@@ -8,6 +8,13 @@
       "when": 1783427264780,
       "tag": "0000_graceful_menace",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783678495165,
+      "tag": "0001_adorable_killmonger",
+      "breakpoints": true
     }
   ]
 }
