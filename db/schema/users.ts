@@ -23,8 +23,14 @@ export const users = pgTable("users", {
     roleId: integer("role_id")
         .references(() => role.id)
         .notNull(),
+    
+    // For storing profile image URL to firebase (future implementation)
+    profileImage: varchar("profile_image", { length: 500 }),
 
     isActive: boolean("is_active").default(true).notNull(),
+
+    // Last successful login timestamp (future implementation)
+    lastLogin: timestamp("last_login"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
 
