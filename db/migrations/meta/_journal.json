@@ -43,6 +43,13 @@
       "when": 1784035371676,
       "tag": "0005_faulty_salo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784035834707,
+      "tag": "0006_nasty_logan",
+      "breakpoints": true
     }
   ]
 }
