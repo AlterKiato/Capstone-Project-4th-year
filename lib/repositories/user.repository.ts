@@ -1,3 +1,5 @@
+// Database layer, can do CRUD only
+
 import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";

@@ -1,4 +1,4 @@
-import { loginSchema } from "./lib/validations/auth";
+import { loginSchema } from "../../lib/validations/auth";
 
 const result = loginSchema.safeParse({
     email: "student@test.com",

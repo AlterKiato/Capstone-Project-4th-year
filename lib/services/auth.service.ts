@@ -1,13 +1,12 @@
-import { db } from "@/lib/db"
-import { users } from "@/db/schema/users"
-import { role } from "@/db/schema/role"
-import { eq } from "drizzle-orm"
+// Where business logic resides that can be used in REST API
+
 import { hashPassword, comparePassword } from "@/lib/auth/hash"
 import { createSession } from "@/lib/auth/session"
+import { createUser, findUserByEmail } from "../repositories/user.repository"
 
 import type { ServiceResult, AuthUser } from "@/types/auth"
 import type { RegisterInput, LoginInput } from "@/lib/validations/auth"
-import { createUser, findUserByEmail } from "../repositories/user.repository"
+
 
 export async function registerUser(data: RegisterInput): Promise<ServiceResult<AuthUser>> {
     const existingUser = await findUserByEmail(data.email);

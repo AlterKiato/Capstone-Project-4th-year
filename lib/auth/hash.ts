@@ -1,3 +1,5 @@
+// This part of folder contains the authentications utilities only
+
 import bcrypt from "bcrypt";
 
 const SALT_ROUNDS = 12;

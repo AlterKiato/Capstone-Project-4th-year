@@ -1,4 +1,4 @@
-import { createToken, verifyToken, } from "./lib/auth/jwt";
+import { createToken, verifyToken, } from "../../lib/auth/jwt";
 
 async function main() {
   const token = await createToken({

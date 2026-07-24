@@ -1,4 +1,4 @@
-import { hashPassword, comparePassword } from "./lib/auth/hash";
+import { hashPassword, comparePassword } from "../../lib/auth/hash";
 
  async function main() {
     const password = "Admin123";
