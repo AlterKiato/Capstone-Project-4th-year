@@ -15,8 +15,8 @@ export interface AuthUser {
     lastName: string;
 }
 
-export interface LoginResult {
+export interface ServiceResult<T = undefined>{
     success: boolean;
-    message: string; 
-    user?: AuthUser;
+    message: String;
+    data?: T;
 }
