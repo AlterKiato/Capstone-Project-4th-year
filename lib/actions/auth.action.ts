@@ -1,3 +1,5 @@
+// Never talks directly to PostgresSQL, just provide smooth flow for web app side
+
 "use server";
 
 import { redirect } from "next/navigation";
