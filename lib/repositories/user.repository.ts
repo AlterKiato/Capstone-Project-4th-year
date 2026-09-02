@@ -5,13 +5,13 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function findUserByEmail(email: string){
-    return await db.query.users.findFirst({
+    return  db.query.users.findFirst({
         where: eq(users.email, email),
     });
 }
 
 export async function findUserById(id: number) {
-    return await db.query.users.findFirst({
+    return  db.query.users.findFirst({
         where: eq(users.id, id),
     });
 }

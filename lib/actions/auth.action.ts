@@ -1,60 +1,127 @@
-// Never talks directly to PostgresSQL, just provide smooth flow for web app side
-
 "use server";
 
 import { redirect } from "next/navigation";
 
-import { registerUser } from "@/lib/services/auth.service";
 import { createSession } from "@/lib/auth/session";
 
-import { registerSchema } from "@/lib/validations/auth";
-import { success } from "zod";
+import { registerUser, loginUser, } from "@/lib/services/auth.service";
+
+import { registerSchema, loginSchema,} from "@/lib/validations/auth";
+
+import { deleteSession } from "@/lib/auth/session";
+
+import type { AuthUser, ServiceResult,} from "@/types/auth";
 
 /**
- * Handles the registration form submission.
+ * Handles registration form submissions.
  *
  * Responsibilities:
- * 1. Read form values.
- * 2. Validate the input using Zod.
- * 3. Call the authentication service.
- * 4. Create the user's session.
- * 5. Redirect to the dashboard.
+ * - Receive the previous form state and submitted form data.
+ * - Validate the registration data using Zod.
+ * - Register the user through the service layer.
+ * - Create a session after successful registration.
+ * - Return errors to the form or redirect on success.
  */
+export async function registerAction(previousState: ServiceResult<AuthUser>,formData: FormData): Promise<ServiceResult<AuthUser>> {
+    // Prevent TypeScript from reporting the parameter as unused.
+    void previousState;
 
-export async function registerAction(formData: FormData){
-    // validate all incoming fields
+    // Validate the submitted registration data.
     const parsed = registerSchema.safeParse({
         firstName: formData.get("firstName"),
         lastName: formData.get("lastName"),
         email: formData.get("email"),
         password: formData.get("password"),
         confirmPassword: formData.get("confirmPassword"),
-        roleID: Number(formData.get("roleId")),
+        roleId: Number(formData.get("roleId")),
     });
 
-    //stop if validation failes
-    if (!parsed.success){
-        return{
+    // Return a validation error to the client form.
+    if (!parsed.success) {
+        return {
             success: false,
             message:
                 parsed.error.issues[0]?.message ??
-                "invalid registration information",
+                "Invalid registration information.",
         };
     }
 
-    //register the new user
+    // Register the user through the authentication service.
     const result = await registerUser(parsed.data);
 
-    //registration failed
-    if (!result.success || !result.data){
+    // Return the error state if registration fails.
+    if (!result.success || !result.data) {
         return result;
     }
 
-    //create an authenticated session
+    // Create an authenticated session for the newly registered user.
     await createSession({
         userId: result.data.id,
         email: result.data.email,
         roleId: result.data.roleID,
     });
 
+    // Redirect after successful registration.
+    redirect("/dashboard");
+}
+
+/**
+ * Handles login form submissions.
+ *
+ * Responsibilities:
+ * - Receive the previous form state and submitted form data.
+ * - Validate login credentials using Zod.
+ * - Authenticate the user through the service layer.
+ * - Create a session after successful authentication.
+ * - Return errors to the form or redirect on success.
+ */
+export async function loginAction(
+    previousState: ServiceResult<AuthUser>,
+    formData: FormData): Promise<ServiceResult<AuthUser>> {
+    // Prevent TypeScript from reporting the parameter as unused.
+    void previousState;
+
+    // Validate the submitted login data.
+    const parsed = loginSchema.safeParse({
+        email: formData.get("email"),
+        password: formData.get("password"),
+    });
+
+    // Return a validation error to the client form.
+    if (!parsed.success) {
+        return {
+            success: false,
+            message:
+                parsed.error.issues[0]?.message ??
+                "Invalid login information.",
+        };
+    }
+
+    // Authenticate the user through the service layer.
+    const result = await loginUser(parsed.data);
+
+    // Return the error state if authentication fails.
+    if (!result.success || !result.data) {
+        return result;
+    }
+
+    // Create an authenticated session.
+    await createSession({
+        userId: result.data.id,
+        email: result.data.email,
+        roleId: result.data.roleID,
+    });
+
+    // Redirect after successful login.
+    redirect("/dashboard");
+}
+
+/**
+ * Logs the current user out.
+ *
+ * Deletes the authentication session and redirects
+ * the user to the login page.
+ */
+export async function logoutAction() {
+    await deleteSession();
 }
