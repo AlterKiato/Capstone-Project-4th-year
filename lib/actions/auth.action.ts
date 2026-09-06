@@ -2,13 +2,11 @@
 
 import { redirect } from "next/navigation";
 
-import { createSession } from "@/lib/auth/session";
+import { createSession, deleteSession,} from "@/lib/auth/session";
 
-import { registerUser, loginUser, } from "@/lib/services/auth.service";
+import { registerUser, loginUser,} from "@/lib/services/auth.service";
 
 import { registerSchema, loginSchema,} from "@/lib/validations/auth";
-
-import { deleteSession } from "@/lib/auth/session";
 
 import type { AuthUser, ServiceResult,} from "@/types/auth";
 
@@ -20,20 +18,27 @@ import type { AuthUser, ServiceResult,} from "@/types/auth";
  * - Validate the registration data using Zod.
  * - Register the user through the service layer.
  * - Create a session after successful registration.
- * - Return errors to the form or redirect on success.
+ * - Redirect to the dashboard on success.
+ *
+ * The user's role is intentionally not received from
+ * the client. The service layer securely assigns the
+ * Student role for public registration.
  */
-export async function registerAction(previousState: ServiceResult<AuthUser>,formData: FormData): Promise<ServiceResult<AuthUser>> {
+export async function registerAction(
+    previousState: ServiceResult<AuthUser>,
+    formData: FormData
+): Promise<ServiceResult<AuthUser>> {
     // Prevent TypeScript from reporting the parameter as unused.
     void previousState;
 
     // Validate the submitted registration data.
+    // Role assignment is intentionally excluded.
     const parsed = registerSchema.safeParse({
         firstName: formData.get("firstName"),
         lastName: formData.get("lastName"),
         email: formData.get("email"),
         password: formData.get("password"),
         confirmPassword: formData.get("confirmPassword"),
-        roleId: Number(formData.get("roleId")),
     });
 
     // Return a validation error to the client form.
@@ -47,6 +52,7 @@ export async function registerAction(previousState: ServiceResult<AuthUser>,form
     }
 
     // Register the user through the authentication service.
+    // The service determines the correct role for public users.
     const result = await registerUser(parsed.data);
 
     // Return the error state if registration fails.
@@ -58,7 +64,7 @@ export async function registerAction(previousState: ServiceResult<AuthUser>,form
     await createSession({
         userId: result.data.id,
         email: result.data.email,
-        roleId: result.data.roleID,
+        roleId: result.data.roleId,
     });
 
     // Redirect after successful registration.
@@ -77,7 +83,8 @@ export async function registerAction(previousState: ServiceResult<AuthUser>,form
  */
 export async function loginAction(
     previousState: ServiceResult<AuthUser>,
-    formData: FormData): Promise<ServiceResult<AuthUser>> {
+    formData: FormData
+): Promise<ServiceResult<AuthUser>> {
     // Prevent TypeScript from reporting the parameter as unused.
     void previousState;
 
@@ -97,7 +104,7 @@ export async function loginAction(
         };
     }
 
-    // Authenticate the user through the service layer.
+    // Authenticate the user through the authentication service.
     const result = await loginUser(parsed.data);
 
     // Return the error state if authentication fails.
@@ -109,7 +116,7 @@ export async function loginAction(
     await createSession({
         userId: result.data.id,
         email: result.data.email,
-        roleId: result.data.roleID,
+        roleId: result.data.roleId,
     });
 
     // Redirect after successful login.
@@ -119,8 +126,8 @@ export async function loginAction(
 /**
  * Logs the current user out.
  *
- * Deletes the authentication session and redirects
- * the user to the login page.
+ * Deletes the authentication session.
+ * The client then redirects the user to the login page.
  */
 export async function logoutAction() {
     await deleteSession();

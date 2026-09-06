@@ -91,20 +91,6 @@ export default function RegisterForm() {
                 />
             </div>
 
-            {/* Temporary field for authentication testing. */}
-            <div>
-                <label htmlFor="roleId">
-                    Role ID
-                </label>
-
-                <input
-                    id="roleId"
-                    name="roleId"
-                    type="number"
-                    required
-                />
-            </div>
-
             {state.message && (
                 <p>
                     {state.message}
