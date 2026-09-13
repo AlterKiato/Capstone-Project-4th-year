@@ -1,13 +1,16 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 
-import { getAdminDashboardData } from "@/lib/services/dashboard.service";
+import {
+    getAdminDashboardStats,
+    getAdminRecentActivities,
+} from "@/lib/services/dashboard.service";
 
 /**
  * Admin-only dashboard.
  *
- * Displays real-time system statistics retrieved
- * from the database.
+ * Displays real-time system statistics and
+ * recent system activities.
  */
 export default async function AdminPage() {
     // Ensure only Admin users can access this page.
@@ -15,11 +18,41 @@ export default async function AdminPage() {
         ROLE_IDS.ADMIN,
     ]);
 
-    // Retrieve dashboard statistics and recent activities.
-    const {
-        statistics,
-        recentActivities,
-    } = await getAdminDashboardData();
+    // Retrieve dashboard data concurrently.
+    const [
+        statisticsResult,
+        activitiesResult,
+    ] = await Promise.all([
+        getAdminDashboardStats(),
+        getAdminRecentActivities(),
+    ]);
+
+    // Handle dashboard statistics retrieval failure.
+    if (
+        !statisticsResult.success ||
+        !statisticsResult.data
+    ) {
+        return (
+            <main>
+                <h1>Admin Dashboard</h1>
+
+                <p>
+                    Welcome, {session.email}
+                </p>
+
+                <p>
+                    {statisticsResult.message}
+                </p>
+            </main>
+        );
+    }
+
+    const statistics = statisticsResult.data;
+
+    // Use an empty array if recent activities
+    // cannot be retrieved.
+    const recentActivities =
+        activitiesResult.data ?? [];
 
     return (
         <main>
@@ -50,7 +83,8 @@ export default async function AdminPage() {
                     </p>
 
                     <p>
-                        Total Research Papers: {statistics.totalPapers}
+                        Total Research Papers:{" "}
+                        {statistics.totalResearchPapers}
                     </p>
                 </div>
             </section>
@@ -58,31 +92,39 @@ export default async function AdminPage() {
             <section>
                 <h2>Recent Activity</h2>
 
-                {recentActivities.length === 0 ? (
+                {!activitiesResult.success ? (
+                    <p>
+                        {activitiesResult.message}
+                    </p>
+                ) : recentActivities.length === 0 ? (
                     <p>
                         No recent activity found.
                     </p>
                 ) : (
                     <ul>
-                        {recentActivities.map((activity) => (
-                            <li key={activity.id}>
-                                <strong>
-                                    {activity.firstName}{" "}
-                                    {activity.lastName}
-                                </strong>
+                        {recentActivities.map(
+                            (activity) => (
+                                <li key={activity.id}>
+                                    <strong>
+                                        {activity.firstName}{" "}
+                                        {activity.lastName}
+                                    </strong>
 
-                                {" — "}
+                                    {" — "}
 
-                                {activity.action}
+                                    {activity.action}
 
-                                {activity.description && (
-                                    <>
-                                        {": "}
-                                        {activity.description}
-                                    </>
-                                )}
-                            </li>
-                        ))}
+                                    {activity.description && (
+                                        <>
+                                            {": "}
+                                            {
+                                                activity.description
+                                            }
+                                        </>
+                                    )}
+                                </li>
+                            )
+                        )}
                     </ul>
                 )}
             </section>

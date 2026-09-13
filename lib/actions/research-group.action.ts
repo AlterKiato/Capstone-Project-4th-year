@@ -58,6 +58,10 @@ export async function createResearchGroupAction(
 
     // Refresh the Adviser's groups page.
     revalidatePath("/dashboard/adviser/groups");
+
+    // Refresh the Admin Dashboard so recent activity
+    // and statistics can reflect the new group.
+    revalidatePath("/dashboard/admin");
 }
 
 /**
@@ -71,16 +75,27 @@ export async function changeResearchGroupStatusAction(
     status: string
 ): Promise<void> {
     // Ensure only Admin users can change group status.
-    await requireRole([
+    const session = await requireRole([
         ROLE_IDS.ADMIN,
     ]);
 
-    // Update the research group status.
-    await changeResearchGroupStatus(
+    // Update the research group status and provide
+    // the current Admin ID for activity logging.
+    const result = await changeResearchGroupStatus(
         groupId,
-        status
+        status,
+        session.userId
     );
+
+    // Stop if the update fails.
+    if (!result.success) {
+        return;
+    }
 
     // Refresh the Admin groups page.
     revalidatePath("/dashboard/admin/groups");
+
+    // Refresh the Admin Dashboard so the new
+    // activity appears immediately.
+    revalidatePath("/dashboard/admin");
 }

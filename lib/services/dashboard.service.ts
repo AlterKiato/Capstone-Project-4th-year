@@ -8,17 +8,35 @@ import {
 
 import { ROLE_IDS } from "@/lib/auth/roles";
 
+import type { ServiceResult } from "@/types/auth";
+
 /**
- * Gets all data required by the Admin dashboard.
+ * Statistics displayed on the Admin Dashboard.
  */
-export async function getAdminDashboardData() {
+export interface AdminDashboardStats {
+    totalUsers: number;
+
+    totalStudents: number;
+
+    totalAdvisers: number;
+
+    totalGroups: number;
+
+    totalResearchPapers: number;
+}
+
+/**
+ * Retrieves statistics for the Admin Dashboard.
+ */
+export async function getAdminDashboardStats(): Promise<
+    ServiceResult<AdminDashboardStats>
+> {
     const [
         totalUsers,
         totalStudents,
         totalAdvisers,
         totalGroups,
-        totalPapers,
-        recentActivities,
+        totalResearchPapers,
     ] = await Promise.all([
         countUsers(),
 
@@ -33,19 +51,62 @@ export async function getAdminDashboardData() {
         countResearchGroups(),
 
         countResearchPapers(),
-
-        getRecentActivities(),
     ]);
 
     return {
-        statistics: {
-            totalUsers,
-            totalStudents,
-            totalAdvisers,
-            totalGroups,
-            totalPapers,
-        },
+        success: true,
 
-        recentActivities,
+        message:
+            "Admin dashboard statistics retrieved successfully.",
+
+        data: {
+            totalUsers,
+
+            totalStudents,
+
+            totalAdvisers,
+
+            totalGroups,
+
+            totalResearchPapers,
+        },
+    };
+}
+
+/**
+ * Activity information displayed on the Admin Dashboard.
+ */
+export interface RecentActivity {
+    id: number;
+
+    action: string;
+
+    description: string | null;
+
+    createdAt: Date;
+
+    userId: number;
+
+    firstName: string;
+
+    lastName: string;
+}
+
+/**
+ * Retrieves recent system activities for the
+ * Admin Dashboard.
+ */
+export async function getAdminRecentActivities(): Promise<
+    ServiceResult<RecentActivity[]>
+> {
+    const activities = await getRecentActivities();
+
+    return {
+        success: true,
+
+        message:
+            "Recent activities retrieved successfully.",
+
+        data: activities,
     };
 }

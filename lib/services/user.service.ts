@@ -1,6 +1,12 @@
-import { findAllUsers, updateUserStatus, updateUserRole } from "@/lib/repositories/user.repository";
+import {
+    findAllUsers,
+    updateUserStatus,
+    updateUserRole,
+} from "@/lib/repositories/user.repository";
 
 import { ROLE_IDS } from "@/lib/auth/roles";
+
+import { logActivity } from "@/lib/services/activity-log.service";
 
 import type { ServiceResult } from "@/types/auth";
 
@@ -59,6 +65,7 @@ export async function setUserStatus(
         };
     }
 
+    // Update the user's account status.
     const updatedUser = await updateUserStatus(
         userId,
         isActive
@@ -70,6 +77,19 @@ export async function setUserStatus(
             message: "User not found.",
         };
     }
+
+    // Record the successful administrative action.
+    await logActivity(
+        currentUserId,
+        isActive
+            ? "User Activated"
+            : "User Deactivated",
+        `${updatedUser.firstName} ${updatedUser.lastName} was ${
+            isActive
+                ? "activated"
+                : "deactivated"
+        }.`
+    );
 
     return {
         success: true,
@@ -99,7 +119,9 @@ export async function changeUserRole(
     }
 
     // Get the valid role IDs from the centralized roles object.
-    const validRoleIds: number[] = Object.values(ROLE_IDS);
+    const validRoleIds: number[] = Object.values(
+        ROLE_IDS
+    );
 
     // Reject invalid role IDs.
     if (!validRoleIds.includes(roleId)) {
@@ -121,6 +143,13 @@ export async function changeUserRole(
             message: "User not found.",
         };
     }
+
+    // Record the successful administrative action.
+    await logActivity(
+        currentUserId,
+        "User Role Changed",
+        `${updatedUser.firstName} ${updatedUser.lastName}'s role was changed to role ID ${roleId}.`
+    );
 
     return {
         success: true,

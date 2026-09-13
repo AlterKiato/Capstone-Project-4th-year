@@ -1,11 +1,18 @@
-import { findAllResearchGroups, createResearchGroup as createResearchGroupRecord, updateResearchGroupStatus, findResearchGroupById, findResearchGroupsByAdviserId } from "@/lib/repositories/research-group.repository";
+import {
+    findAllResearchGroups,
+    createResearchGroup as createResearchGroupRecord,
+    updateResearchGroupStatus,
+    findResearchGroupById,
+    findResearchGroupsByAdviserId,
+} from "@/lib/repositories/research-group.repository";
+
+import { logActivity } from "@/lib/services/activity-log.service";
 
 import type { ServiceResult } from "@/types/auth";
 
-
 /**
  * Research group information used by the
- * Admin Research Group Management module.
+ * Research Group Management module.
  */
 export interface ManagedResearchGroup {
     id: number;
@@ -17,6 +24,20 @@ export interface ManagedResearchGroup {
     status: string;
     createdAt: Date;
     updatedAt: Date;
+}
+
+/**
+ * Data required for an Adviser to create
+ * a research group.
+ *
+ * The adviser ID is intentionally excluded
+ * because it comes from the authenticated session.
+ */
+export interface CreateManagedResearchGroupInput {
+    groupName: string;
+    strand: string;
+    section: string;
+    schoolYear: string;
 }
 
 /**
@@ -36,10 +57,10 @@ export async function getResearchGroups(): Promise<
 }
 
 /**
- * Creates a research group for a specific Adviser.
+ * Creates a research group for the authenticated Adviser.
  *
- * The adviser ID should come from the authenticated
- * session and must not come from the client form.
+ * The adviser ID comes from the authenticated session
+ * and is also used to record the activity.
  */
 export async function createResearchGroup(
     data: CreateManagedResearchGroupInput,
@@ -53,18 +74,31 @@ export async function createResearchGroup(
         adviserId,
     });
 
+    // Record the successful research group creation.
+    await logActivity(
+        adviserId,
+        "Research Group Created",
+        `Created research group "${group.groupName}".`
+    );
+
     return {
         success: true,
         message: "Research group created successfully.",
         data: group,
     };
 }
+
 /**
  * Updates the status of a research group.
+ *
+ * The current user ID represents the Admin
+ * performing the action and is used for
+ * activity logging.
  */
 export async function changeResearchGroupStatus(
     id: number,
-    status: string
+    status: string,
+    currentUserId: number
 ): Promise<ServiceResult> {
     // Check if the research group exists.
     const existingGroup = await findResearchGroupById(id);
@@ -89,29 +123,25 @@ export async function changeResearchGroupStatus(
         };
     }
 
+    // Update the research group status.
     await updateResearchGroupStatus(
         id,
         status
+    );
+
+    // Record the successful administrative action.
+    await logActivity(
+        currentUserId,
+        status === "active"
+            ? "Research Group Activated"
+            : "Research Group Archived",
+        `Research group "${existingGroup.groupName}" was ${status}.`
     );
 
     return {
         success: true,
         message: "Research group status updated successfully.",
     };
-}
-
-/**
- * Data required for an Adviser to create
- * a research group.
- *
- * The adviser ID is intentionally excluded
- * because it comes from the authenticated session.
- */
-export interface CreateManagedResearchGroupInput {
-    groupName: string;
-    strand: string;
-    section: string;
-    schoolYear: string;
 }
 
 /**
