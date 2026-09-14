@@ -70,32 +70,35 @@ export async function createResearchGroupAction(
  * Only Admin users can archive or reactivate
  * research groups for system-wide oversight.
  */
+/**
+ * Changes the status of a research group.
+ *
+ * Only Admin users can archive or reactivate
+ * research groups for system-wide oversight.
+ */
 export async function changeResearchGroupStatusAction(
     groupId: number,
     status: string
 ): Promise<void> {
-    // Ensure only Admin users can change group status.
+    // Ensure only Admin users can change
+    // research group statuses.
     const session = await requireRole([
         ROLE_IDS.ADMIN,
     ]);
 
-    // Update the research group status and provide
-    // the current Admin ID for activity logging.
+    // Update the research group status and
+    // record the Admin responsible for the action.
     const result = await changeResearchGroupStatus(
         groupId,
         status,
         session.userId
     );
 
-    // Stop if the update fails.
+    // Stop if the operation fails.
     if (!result.success) {
         return;
     }
 
     // Refresh the Admin groups page.
     revalidatePath("/dashboard/admin/groups");
-
-    // Refresh the Admin Dashboard so the new
-    // activity appears immediately.
-    revalidatePath("/dashboard/admin");
 }

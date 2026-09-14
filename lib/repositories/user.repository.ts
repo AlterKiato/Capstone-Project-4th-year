@@ -96,3 +96,20 @@ export async function updateUserRole(
 
     return updatedUser;
 }
+
+/**
+ * Finds all users assigned to a specific role.
+ */
+export async function findUsersByRoleId(
+    roleId: number
+) {
+    return await db
+        .select()
+        .from(users)
+        .where(
+            eq(
+                users.roleId,
+                roleId
+            )
+        );
+}

@@ -6,7 +6,15 @@ import {
     findResearchGroupsByAdviserId,
 } from "@/lib/repositories/research-group.repository";
 
+import {
+    findUsersByRoleId,
+} from "@/lib/repositories/user.repository";
+
+import { ROLE_IDS } from "@/lib/auth/roles";
+
 import { logActivity } from "@/lib/services/activity-log.service";
+
+import { sendNotification } from "@/lib/services/notification.service";
 
 import type { ServiceResult } from "@/types/auth";
 
@@ -59,13 +67,15 @@ export async function getResearchGroups(): Promise<
 /**
  * Creates a research group for the authenticated Adviser.
  *
- * The adviser ID comes from the authenticated session
- * and is also used to record the activity.
+ * After successful creation:
+ * - An activity log is recorded.
+ * - All Admin users receive a notification.
  */
 export async function createResearchGroup(
     data: CreateManagedResearchGroupInput,
     adviserId: number
 ): Promise<ServiceResult<ManagedResearchGroup>> {
+    // Create the research group.
     const group = await createResearchGroupRecord({
         groupName: data.groupName,
         strand: data.strand,
@@ -81,6 +91,22 @@ export async function createResearchGroup(
         `Created research group "${group.groupName}".`
     );
 
+    // Find all users with the Admin role.
+    const admins = await findUsersByRoleId(
+        ROLE_IDS.ADMIN
+    );
+
+    // Notify every Admin about the new research group.
+    await Promise.all(
+        admins.map((admin) =>
+            sendNotification(
+                admin.id,
+                "New Research Group Created",
+                `A new research group named "${group.groupName}" was created.`
+            )
+        )
+    );
+
     return {
         success: true,
         message: "Research group created successfully.",
@@ -94,6 +120,9 @@ export async function createResearchGroup(
  * The current user ID represents the Admin
  * performing the action and is used for
  * activity logging.
+ *
+ * The group's Adviser is notified after the
+ * status is successfully changed.
  */
 export async function changeResearchGroupStatus(
     id: number,
@@ -136,6 +165,17 @@ export async function changeResearchGroupStatus(
             ? "Research Group Activated"
             : "Research Group Archived",
         `Research group "${existingGroup.groupName}" was ${status}.`
+    );
+
+    // Notify the Adviser responsible for the group.
+    await sendNotification(
+        existingGroup.adviserId,
+        status === "active"
+            ? "Research Group Reactivated"
+            : "Research Group Archived",
+        status === "active"
+            ? `Your research group "${existingGroup.groupName}" has been reactivated by an Administrator.`
+            : `Your research group "${existingGroup.groupName}" has been archived by an Administrator.`
     );
 
     return {

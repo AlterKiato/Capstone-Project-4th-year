@@ -9,19 +9,19 @@ import {
 } from "@/lib/actions/notification.action";
 
 /**
- * Admin Notification Management page.
+ * Adviser Notifications page.
  *
  * Displays notifications belonging to the
- * currently authenticated Admin user.
+ * currently authenticated Adviser.
  */
-export default async function AdminNotificationsPage() {
-    // Ensure only Admin users can access this page.
+export default async function AdviserNotificationsPage() {
+    // Ensure only Adviser users can access this page.
     const session = await requireRole([
-        ROLE_IDS.ADMIN,
+        ROLE_IDS.ADVISER,
     ]);
 
     // Retrieve notifications belonging to
-    // the authenticated Admin.
+    // the authenticated Adviser.
     const result = await getUserNotifications(
         session.userId
     );
@@ -30,7 +30,7 @@ export default async function AdminNotificationsPage() {
     if (!result.success || !result.data) {
         return (
             <main>
-                <h1>Admin Notifications</h1>
+                <h1>Adviser Notifications</h1>
 
                 <p>
                     {result.message}
@@ -43,10 +43,10 @@ export default async function AdminNotificationsPage() {
 
     return (
         <main>
-            <h1>Admin Notifications</h1>
+            <h1>Adviser Notifications</h1>
 
             <p>
-                View and manage your system notifications.
+                View and manage your notifications.
             </p>
 
             {notifications.length === 0 ? (
@@ -56,9 +56,7 @@ export default async function AdminNotificationsPage() {
             ) : (
                 <ul>
                     {notifications.map((notification) => (
-                        <li
-                            key={notification.id}
-                        >
+                        <li key={notification.id}>
                             <article>
                                 <h2>
                                     {notification.title}
