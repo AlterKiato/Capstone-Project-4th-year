@@ -6,30 +6,67 @@ import {
     timestamp,
 } from "drizzle-orm/pg-core";
 
-import { researchGroups } from "./research-group";
+import { researchPapers } from "./research-paper";
 import { users } from "./users";
 
 export const submissions = pgTable("submissions", {
     id: serial("id").primaryKey(),
 
+    /**
+     * The research paper this submission belongs to.
+     */
     paperId: integer("paper_id")
-        .references(() => researchGroups.id)
+        .references(() => researchPapers.id)
         .notNull(),
-    
-        submittedBy: integer("submitted_by")
+
+    /**
+     * The student who submitted this version.
+     */
+    submittedBy: integer("submitted_by")
         .references(() => users.id)
         .notNull(),
-    
-    version: varchar("version", { length: 20 }).notNull(),
 
-    fileUrl: varchar("file_url", { length: 500 }).notNull(),
+    /**
+     * Version label of the submitted research paper.
+     *
+     * Examples:
+     * v1
+     * v2
+     * v3
+     */
+    version: varchar("version", {
+        length: 20,
+    }).notNull(),
 
-    remarks: varchar("remarks", { length: 500 }),
+    /**
+     * File location.
+     *
+     * This will later store the Firebase
+     * Storage URL.
+     */
+    fileUrl: varchar("file_url", {
+        length: 500,
+    }).notNull(),
 
-    status: varchar("status", { length: 30 })
+    /**
+     * Optional submission remarks.
+     */
+    remarks: varchar("remarks", {
+        length: 500,
+    }),
+
+    /**
+     * Submission workflow status.
+     */
+    status: varchar("status", {
+        length: 30,
+    })
         .default("Submitted")
         .notNull(),
 
-    submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-
+    submittedAt: timestamp(
+        "submitted_at"
+    )
+        .defaultNow()
+        .notNull(),
 });

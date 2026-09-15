@@ -50,6 +50,13 @@
       "when": 1784035834707,
       "tag": "0006_nasty_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789454403376,
+      "tag": "0007_left_stranger",
+      "breakpoints": true
     }
   ]
 }
