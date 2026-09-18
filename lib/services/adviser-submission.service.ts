@@ -27,7 +27,11 @@ export interface AdviserSubmission {
     id: number;
     paperId: number;
     groupId: number;
+    groupName: string;
+    researchTitle: string;
     submittedBy: number;
+    studentFirstName: string;
+    studentLastName: string;
     version: string;
     fileUrl: string;
     remarks: string | null;
