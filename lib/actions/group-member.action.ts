@@ -5,56 +5,100 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 
-import { addGroupMember, removeGroupMember, } from "@/lib/services/group-member.service";
+import {
+    addGroupMember,
+    removeGroupMember,
+} from "@/lib/services/group-member.services";
+
+import {
+    findResearchGroupById,
+} from "@/lib/repositories/research-group.repository";
 
 /**
- * Adds a student to a research group.
+ * Adds a Student to an Adviser's research group.
  *
- * Only Admin users can manage research group members.
+ * Only the Adviser who owns the group
+ * can add members.
  */
 export async function addGroupMemberAction(
     groupId: number,
     userId: number
 ): Promise<void> {
-    // Ensure only Admin users can manage group members.
-    await requireRole([
-        ROLE_IDS.ADMIN,
+    const session = await requireRole([
+        ROLE_IDS.ADVISER,
     ]);
 
-    // Add the student through the service layer.
+    const group = await findResearchGroupById(
+        groupId
+    );
+
+    if (!group) {
+        return;
+    }
+
+    if (group.adviserId !== session.userId) {
+        return;
+    }
+
     const result = await addGroupMember(
         groupId,
         userId
     );
 
-    // Refresh the relevant group pages only if successful.
-    if (result.success) {
-        revalidatePath("/dashboard/admin/groups");
+    if (!result.success) {
+        return;
     }
+
+    revalidatePath(
+        "/dashboard/adviser/groups"
+    );
+
+    revalidatePath(
+        `/dashboard/adviser/groups/${groupId}`
+    );
 }
 
 /**
- * Removes a student from a research group.
+ * Removes a Student from an Adviser's
+ * research group.
  *
- * Only Admin users can manage research group members.
+ * Only the Adviser who owns the group
+ * can remove members.
  */
 export async function removeGroupMemberAction(
     groupId: number,
     userId: number
 ): Promise<void> {
-    // Ensure only Admin users can manage group members.
-    await requireRole([
-        ROLE_IDS.ADMIN,
+    const session = await requireRole([
+        ROLE_IDS.ADVISER,
     ]);
 
-    // Remove the student through the service layer.
+    const group = await findResearchGroupById(
+        groupId
+    );
+
+    if (!group) {
+        return;
+    }
+
+    if (group.adviserId !== session.userId) {
+        return;
+    }
+
     const result = await removeGroupMember(
         groupId,
         userId
     );
 
-    // Refresh the relevant group pages only if successful.
-    if (result.success) {
-        revalidatePath("/dashboard/admin/groups");
+    if (!result.success) {
+        return;
     }
+
+    revalidatePath(
+        "/dashboard/adviser/groups"
+    );
+
+    revalidatePath(
+        `/dashboard/adviser/groups/${groupId}`
+    );
 }

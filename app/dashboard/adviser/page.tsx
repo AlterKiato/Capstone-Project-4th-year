@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import Link from "next/link";
 
 /**
  * Temporary Adviser-only page used to test RBAC.
@@ -22,6 +23,10 @@ export default async function AdviserPage() {
             <p>
                 You have Adviser access.
             </p>
+
+            <Link href="/dashboard/adviser/groups">
+                Research Groups
+            </Link>
         </main>
     );
 }

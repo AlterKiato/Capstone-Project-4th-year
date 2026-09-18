@@ -1,18 +1,29 @@
 // Database layer for research group member operations.
 
 import { db } from "@/lib/db";
-import { groupMembers } from "@/db/schema";
 
-import { and, eq } from "drizzle-orm";
+import {
+    groupMembers,
+    researchGroups,
+} from "@/db/schema";
+
+import {
+    and,
+    eq,
+} from "drizzle-orm";
 
 /**
- * Retrieves all members belonging to a research group.
+ * Retrieves all members belonging
+ * to a research group.
  */
 export async function findGroupMembersByGroupId(
     groupId: number
 ) {
     return db.query.groupMembers.findMany({
-        where: eq(groupMembers.groupId, groupId),
+        where: eq(
+            groupMembers.groupId,
+            groupId
+        ),
     });
 }
 
@@ -28,12 +39,68 @@ export async function findGroupMember(
     userId: number
 ) {
     return db.query.groupMembers.findFirst({
-        where: (groupMembers, { and, eq }) =>
+        where: (
+            groupMembers,
+            { and, eq }
+        ) =>
             and(
-                eq(groupMembers.groupId, groupId),
-                eq(groupMembers.userId, userId)
+                eq(
+                    groupMembers.groupId,
+                    groupId
+                ),
+                eq(
+                    groupMembers.userId,
+                    userId
+                )
             ),
     });
+}
+
+/**
+ * Retrieves all research groups to which
+ * a specific Student belongs.
+ *
+ * This is used by the Student dashboard
+ * when selecting a research group for a
+ * new research project.
+ */
+export async function findGroupsByUserId(
+    userId: number
+) {
+    return db
+        .select({
+            id: researchGroups.id,
+            groupName:
+                researchGroups.groupName,
+            strand:
+                researchGroups.strand,
+            section:
+                researchGroups.section,
+            schoolYear:
+                researchGroups.schoolYear,
+            adviserId:
+                researchGroups.adviserId,
+            status:
+                researchGroups.status,
+            createdAt:
+                researchGroups.createdAt,
+            updatedAt:
+                researchGroups.updatedAt,
+        })
+        .from(groupMembers)
+        .innerJoin(
+            researchGroups,
+            eq(
+                groupMembers.groupId,
+                researchGroups.id
+            )
+        )
+        .where(
+            eq(
+                groupMembers.userId,
+                userId
+            )
+        );
 }
 
 /**
@@ -65,8 +132,14 @@ export async function deleteGroupMember(
         .delete(groupMembers)
         .where(
             and(
-                eq(groupMembers.groupId, groupId),
-                eq(groupMembers.userId, userId)
+                eq(
+                    groupMembers.groupId,
+                    groupId
+                ),
+                eq(
+                    groupMembers.userId,
+                    userId
+                )
             )
         )
         .returning();
