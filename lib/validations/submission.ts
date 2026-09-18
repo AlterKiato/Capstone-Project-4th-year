@@ -4,8 +4,8 @@ import { z } from "zod";
  * Validates the information required when
  * a Student submits a research document.
  *
- * The server generates the submission version,
- * so version is intentionally not accepted here.
+ * The uploaded File itself is validated
+ * separately by the Storage Service.
  */
 export const createSubmissionSchema =
     z.object({
@@ -13,18 +13,6 @@ export const createSubmissionSchema =
             .number()
             .int()
             .positive(),
-
-        fileUrl: z
-            .string()
-            .trim()
-            .min(
-                1,
-                "A submission file is required."
-            )
-            .max(
-                500,
-                "The submission file reference is too long."
-            ),
 
         remarks: z
             .string()
@@ -36,10 +24,6 @@ export const createSubmissionSchema =
             .optional(),
     });
 
-/**
- * Represents validated data for creating
- * a research submission.
- */
 export type CreateSubmissionInput =
     z.infer<
         typeof createSubmissionSchema

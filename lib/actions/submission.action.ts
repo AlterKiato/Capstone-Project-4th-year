@@ -22,30 +22,37 @@ import {
  * Creates a new research submission
  * for the currently authenticated Student.
  *
- * The Student identity is taken from the
- * authentication session instead of the
- * submitted form data.
+ * The Student identity comes from the
+ * authentication session.
  */
 export async function submitResearchAction(
     formData: FormData
 ): Promise<void> {
-    const session = await requireRole([
-        ROLE_IDS.STUDENT,
-    ]);
+    const session =
+        await requireRole([
+            ROLE_IDS.STUDENT,
+        ]);
 
     const parsed =
         createSubmissionSchema.safeParse({
             paperId:
-                formData.get("paperId"),
-
-            fileUrl:
-                formData.get("fileUrl"),
-
+                formData.get(
+                    "paperId"
+                ),
             remarks:
-                formData.get("remarks"),
+                formData.get(
+                    "remarks"
+                ),
         });
 
     if (!parsed.success) {
+        return;
+    }
+
+    const file =
+        formData.get("file");
+
+    if (!(file instanceof File)) {
         return;
     }
 
@@ -53,7 +60,7 @@ export async function submitResearchAction(
         await submitResearch(
             parsed.data.paperId,
             session.userId,
-            parsed.data.fileUrl,
+            file,
             parsed.data.remarks
         );
 

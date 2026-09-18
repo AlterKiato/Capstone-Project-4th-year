@@ -13,6 +13,8 @@ import {
     submitResearchAction,
 } from "@/lib/actions/submission.action";
 
+import DownloadSubmissionButton from "./DownloadSubmissionButton";
+
 /**
  * Student research submission page.
  *
@@ -21,14 +23,11 @@ import {
  * and displays previous submission versions.
  */
 export default async function StudentSubmissionsPage() {
-    // Ensure that only authenticated Students
-    // can access this page.
-    const session = await requireRole([
-        ROLE_IDS.STUDENT,
-    ]);
+    const session =
+        await requireRole([
+            ROLE_IDS.STUDENT,
+        ]);
 
-    // Retrieve research projects belonging
-    // to the Student's research group.
     const projectsResult =
         await getStudentResearchProjects(
             session.userId
@@ -37,7 +36,6 @@ export default async function StudentSubmissionsPage() {
     const projects =
         projectsResult.data ?? [];
 
-    // Retrieve the Student's previous submissions.
     const submissionsResult =
         await getSubmissionsByStudent(
             session.userId
@@ -59,8 +57,8 @@ export default async function StudentSubmissionsPage() {
             </h1>
 
             <p>
-                Submit your research document and
-                track your submission versions.
+                Submit your research document
+                and track your submission versions.
             </p>
 
             <hr
@@ -69,7 +67,6 @@ export default async function StudentSubmissionsPage() {
                 }}
             />
 
-            {/* New research submission section */}
             <section>
                 <h2>
                     Submit Research
@@ -87,9 +84,11 @@ export default async function StudentSubmissionsPage() {
                         action={
                             submitResearchAction
                         }
+                        encType="multipart/form-data"
                         style={{
                             display: "flex",
-                            flexDirection: "column",
+                            flexDirection:
+                                "column",
                             gap: "16px",
                             marginTop: "20px",
                         }}
@@ -132,25 +131,23 @@ export default async function StudentSubmissionsPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="fileUrl">
-                                Submission File
+                            <label htmlFor="file">
+                                Research Document
                             </label>
                             <br />
 
                             <input
-                                id="fileUrl"
-                                name="fileUrl"
-                                type="text"
-                                maxLength={500}
+                                id="file"
+                                name="file"
+                                type="file"
+                                accept="application/pdf,.pdf"
                                 required
-                                placeholder="Enter temporary file reference"
                             />
 
                             <p>
-                                Firebase Storage will
-                                replace this temporary
-                                file reference in a
-                                later step.
+                                PDF files only.
+                                Maximum file size:
+                                10 MB.
                             </p>
                         </div>
 
@@ -184,7 +181,6 @@ export default async function StudentSubmissionsPage() {
                 }}
             />
 
-            {/* Previous submissions section */}
             <section>
                 <h2>
                     Submission History
@@ -206,30 +202,22 @@ export default async function StudentSubmissionsPage() {
                     >
                         <thead>
                             <tr>
-                                <th>
-                                    ID
-                                </th>
-
+                                <th>ID</th>
                                 <th>
                                     Research ID
                                 </th>
-
                                 <th>
                                     Version
                                 </th>
-
                                 <th>
                                     File
                                 </th>
-
                                 <th>
                                     Remarks
                                 </th>
-
                                 <th>
                                     Status
                                 </th>
-
                                 <th>
                                     Submitted At
                                 </th>
@@ -238,7 +226,9 @@ export default async function StudentSubmissionsPage() {
 
                         <tbody>
                             {submissions.map(
-                                (submission) => (
+                                (
+                                    submission
+                                ) => (
                                     <tr
                                         key={
                                             submission.id
@@ -263,11 +253,13 @@ export default async function StudentSubmissionsPage() {
                                         </td>
 
                                         <td>
-                                            {
-                                                submission.fileUrl
-                                            }
+                                            <DownloadSubmissionButton
+                                                submissionId={
+                                                    submission.id
+                                                }
+                                            />
                                         </td>
-
+                                        
                                         <td>
                                             {
                                                 submission.remarks ??
