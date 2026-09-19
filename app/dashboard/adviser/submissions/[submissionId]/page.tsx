@@ -18,6 +18,8 @@ import {
 
 import DownloadSubmissionButton from "../DownloadSubmissionButton";
 
+import StartReviewButton from "../StartReviewButton";
+
 /**
  * Displays the details of one research
  * submission belonging to the Adviser.
@@ -266,11 +268,21 @@ export default async function AdviserSubmissionDetailsPage({
                     secure download link.
                 </p>
 
-                <DownloadSubmissionButton
-                    submissionId={
-                        submission.id
-                    }
-                />
+                <div>
+                    <DownloadSubmissionButton
+                        submissionId={submission.id}
+                    />
+
+                    {submission.status ===
+                        "Submitted" && (
+                        <StartReviewButton
+                            submissionId={
+                                submission.id
+                            }
+                        />
+                    )}
+                </div>
+                
             </section>
         </main>
     );
