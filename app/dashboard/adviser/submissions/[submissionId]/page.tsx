@@ -20,6 +20,8 @@ import DownloadSubmissionButton from "../DownloadSubmissionButton";
 
 import StartReviewButton from "../StartReviewButton";
 
+import FeedbackForm from "../FeedbackForm";
+
 /**
  * Displays the details of one research
  * submission belonging to the Adviser.
@@ -206,9 +208,16 @@ export default async function AdviserSubmissionDetailsPage({
                         </dt>
 
                         <dd>
-                            {
-                                submission.status
-                            }
+                            {(submission.status ===
+                                "Under Review" ||
+                                submission.status ===
+                                    "Submitted") && (
+                                <FeedbackForm
+                                    submissionId={
+                                        submission.id
+                                    }
+                                />
+                            )}
                         </dd>
                     </div>
 
