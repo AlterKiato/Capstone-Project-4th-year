@@ -10,6 +10,10 @@ import {
 } from "@/lib/services/submission.service";
 
 import {
+    getStudentFeedbackBySubmission,
+} from "@/lib/services/student-feedback.service";
+
+import {
     submitResearchAction,
 } from "@/lib/actions/submission.action";
 
@@ -20,7 +24,9 @@ import DownloadSubmissionButton from "./DownloadSubmissionButton";
  *
  * Displays the Student's research projects,
  * allows a project to be selected for submission,
- * and displays previous submission versions.
+ * displays previous submission versions,
+ * and displays Adviser feedback for each
+ * student's own submission.
  */
 export default async function StudentSubmissionsPage() {
     const session =
@@ -43,6 +49,33 @@ export default async function StudentSubmissionsPage() {
 
     const submissions =
         submissionsResult.data ?? [];
+
+    /**
+     * Retrieve feedback for every submission.
+     *
+     * The Student feedback service performs
+     * the authorization check for each submission.
+     */
+    const submissionsWithFeedback =
+        await Promise.all(
+            submissions.map(
+                async (submission) => {
+                    const feedbackResult =
+                        await getStudentFeedbackBySubmission(
+                            submission.id,
+                            session.userId
+                        );
+
+                    return {
+                        submission,
+                        feedback:
+                            feedbackResult.success
+                                ? feedbackResult.data ?? []
+                                : [],
+                    };
+                }
+            )
+        );
 
     return (
         <main
@@ -84,7 +117,6 @@ export default async function StudentSubmissionsPage() {
                         action={
                             submitResearchAction
                         }
-                        encType="multipart/form-data"
                         style={{
                             display: "flex",
                             flexDirection:
@@ -97,6 +129,7 @@ export default async function StudentSubmissionsPage() {
                             <label htmlFor="paperId">
                                 Research Project
                             </label>
+
                             <br />
 
                             <select
@@ -134,6 +167,7 @@ export default async function StudentSubmissionsPage() {
                             <label htmlFor="file">
                                 Research Document
                             </label>
+
                             <br />
 
                             <input
@@ -155,6 +189,7 @@ export default async function StudentSubmissionsPage() {
                             <label htmlFor="remarks">
                                 Remarks
                             </label>
+
                             <br />
 
                             <textarea
@@ -203,32 +238,43 @@ export default async function StudentSubmissionsPage() {
                         <thead>
                             <tr>
                                 <th>ID</th>
+
                                 <th>
                                     Research ID
                                 </th>
+
                                 <th>
                                     Version
                                 </th>
+
                                 <th>
                                     File
                                 </th>
+
                                 <th>
                                     Remarks
                                 </th>
+
                                 <th>
                                     Status
                                 </th>
+
                                 <th>
                                     Submitted At
+                                </th>
+
+                                <th>
+                                    Feedback
                                 </th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {submissions.map(
-                                (
-                                    submission
-                                ) => (
+                            {submissionsWithFeedback.map(
+                                ({
+                                    submission,
+                                    feedback,
+                                }) => (
                                     <tr
                                         key={
                                             submission.id
@@ -259,7 +305,7 @@ export default async function StudentSubmissionsPage() {
                                                 }
                                             />
                                         </td>
-                                        
+
                                         <td>
                                             {
                                                 submission.remarks ??
@@ -275,6 +321,69 @@ export default async function StudentSubmissionsPage() {
 
                                         <td>
                                             {submission.submittedAt.toLocaleString()}
+                                        </td>
+
+                                        <td>
+                                            {feedback.length ===
+                                            0 ? (
+                                                "No feedback yet."
+                                            ) : (
+                                                <div
+                                                    style={{
+                                                        display:
+                                                            "flex",
+                                                        flexDirection:
+                                                            "column",
+                                                        gap: "12px",
+                                                    }}
+                                                >
+                                                    {feedback.map(
+                                                        (
+                                                            item
+                                                        ) => (
+                                                            <div
+                                                                key={
+                                                                    item.id
+                                                                }
+                                                                style={{
+                                                                    border:
+                                                                        "1px solid #ccc",
+                                                                    padding:
+                                                                        "12px",
+                                                                }}
+                                                            >
+                                                                <p>
+                                                                    <strong>
+                                                                        Decision:
+                                                                    </strong>{" "}
+                                                                    {
+                                                                        item.decision
+                                                                    }
+                                                                </p>
+
+                                                                <p>
+                                                                    <strong>
+                                                                        Comments:
+                                                                    </strong>
+                                                                </p>
+
+                                                                <p>
+                                                                    {
+                                                                        item.comments
+                                                                    }
+                                                                </p>
+
+                                                                <p>
+                                                                    <strong>
+                                                                        Reviewed:
+                                                                    </strong>{" "}
+                                                                    {item.createdAt.toLocaleString()}
+                                                                </p>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 )
