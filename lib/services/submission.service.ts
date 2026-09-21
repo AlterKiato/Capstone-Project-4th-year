@@ -20,6 +20,10 @@ import {
     uploadResearchDocument,
 } from "@/lib/services/storage.service";
 
+import {
+    SUBMISSION_STATUS,
+} from "@/lib/constants/submission-status";
+
 import type { ServiceResult } from "@/types/auth";
 
 /**
@@ -110,8 +114,30 @@ async function getNextSubmissionVersion(
 }
 
 /**
+ * Retrieves the latest submission version
+ * for a research paper.
+ *
+ * The submission repository already orders
+ * submissions from newest to oldest.
+ */
+async function getLatestSubmission(
+    paperId: number
+): Promise<ManagedSubmission | undefined> {
+    const submissions =
+        await findSubmissionsByPaperId(
+            paperId
+        );
+
+    return submissions[0];
+}
+
+/**
  * Creates a new research submission
  * for a Student.
+ *
+ * A first submission is always allowed.
+ * Additional versions are allowed only when
+ * the latest submission requires revision.
  *
  * The uploaded File is stored in Supabase
  * before its Storage path is saved to the
@@ -189,6 +215,36 @@ export async function submitResearch(
         };
     }
 
+    /**
+     * Check the latest submission before
+     * allowing another version to be created.
+     */
+    const latestSubmission =
+        await getLatestSubmission(
+            paperId
+        );
+
+    /**
+     * No previous submission means this
+     * will be the initial version.
+     */
+    if (latestSubmission) {
+        /**
+         * A new version is only allowed when
+         * the Adviser has requested a revision.
+         */
+        if (
+            latestSubmission.status !==
+            SUBMISSION_STATUS.REVISION_REQUIRED
+        ) {
+            return {
+                success: false,
+                message:
+                    "A new submission version cannot be submitted until the current version has been reviewed and marked for revision.",
+            };
+        }
+    }
+
     /*
      * Generate the version before
      * creating the Storage path.
@@ -224,7 +280,8 @@ export async function submitResearch(
                 remarks:
                     remarks?.trim() ||
                     null,
-                status: "Submitted",
+                status:
+                    SUBMISSION_STATUS.SUBMITTED,
             });
 
         return {

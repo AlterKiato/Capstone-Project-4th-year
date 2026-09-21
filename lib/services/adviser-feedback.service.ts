@@ -26,6 +26,10 @@ import type {
     ServiceResult,
 } from "@/types/auth";
 
+import {
+    SUBMISSION_STATUS,
+} from "@/lib/constants/submission-status";
+
 /**
  * Creates Adviser feedback for a specific
  * research submission.
@@ -104,12 +108,12 @@ export async function createAdviserFeedback(
         };
     }
 
-    if (
-        submission.status !==
-            "Under Review" &&
-        submission.status !==
-            "Submitted"
-    ) {
+        if (
+            submission.status !==
+                SUBMISSION_STATUS.UNDER_REVIEW &&
+            submission.status !==
+                SUBMISSION_STATUS.SUBMITTED
+        ) {
         return {
             success: false,
             message:
@@ -165,13 +169,13 @@ export async function createAdviserFeedback(
      * feedback record and will be handled by
      * the later approval workflow.
      */
-    if (
+        if (
         trimmedDecision ===
-        "Revision Required"
+        SUBMISSION_STATUS.REVISION_REQUIRED
     ) {
         await updateSubmissionStatus(
             submissionId,
-            "Revision Required"
+            SUBMISSION_STATUS.REVISION_REQUIRED
         );
     }
 

@@ -22,6 +22,10 @@ import type {
     ServiceResult,
 } from "@/types/auth";
 
+import {
+    SUBMISSION_STATUS,
+} from "@/lib/constants/submission-status";
+
 /**
  * Starts the Adviser review process
  * for a submitted research document.
@@ -96,7 +100,7 @@ export async function startSubmissionReview(
 
     if (
         submission.status !==
-        "Submitted"
+        SUBMISSION_STATUS.SUBMITTED
     ) {
         return {
             success: false,
@@ -106,10 +110,10 @@ export async function startSubmissionReview(
     }
 
     const updatedSubmission =
-        await updateSubmissionStatus(
-            submissionId,
-            "Under Review"
-        );
+    await updateSubmissionStatus(
+        submissionId,
+        SUBMISSION_STATUS.UNDER_REVIEW
+    );
 
     if (!updatedSubmission) {
         return {
