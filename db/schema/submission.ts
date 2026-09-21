@@ -4,69 +4,53 @@ import {
     integer,
     varchar,
     timestamp,
+    unique,
 } from "drizzle-orm/pg-core";
 
 import { researchPapers } from "./research-paper";
 import { users } from "./users";
 
-export const submissions = pgTable("submissions", {
-    id: serial("id").primaryKey(),
+export const submissions = pgTable(
+    "submissions",
+    {
+        id: serial("id").primaryKey(),
 
-    /**
-     * The research paper this submission belongs to.
-     */
-    paperId: integer("paper_id")
-        .references(() => researchPapers.id)
-        .notNull(),
+        paperId: integer("paper_id")
+            .references(() => researchPapers.id)
+            .notNull(),
 
-    /**
-     * The student who submitted this version.
-     */
-    submittedBy: integer("submitted_by")
-        .references(() => users.id)
-        .notNull(),
+        submittedBy: integer("submitted_by")
+            .references(() => users.id)
+            .notNull(),
 
-    /**
-     * Version label of the submitted research paper.
-     *
-     * Examples:
-     * v1
-     * v2
-     * v3
-     */
-    version: varchar("version", {
-        length: 20,
-    }).notNull(),
+        version: varchar("version", {
+            length: 20,
+        }).notNull(),
 
-    /**
-     * File location.
-     *
-     * This will later store the Firebase
-     * Storage URL.
-     */
-    fileUrl: varchar("file_url", {
-        length: 500,
-    }).notNull(),
+        fileUrl: varchar("file_url", {
+            length: 500,
+        }).notNull(),
 
-    /**
-     * Optional submission remarks.
-     */
-    remarks: varchar("remarks", {
-        length: 500,
-    }),
+        remarks: varchar("remarks", {
+            length: 500,
+        }),
 
-    /**
-     * Submission workflow status.
-     */
-    status: varchar("status", {
-        length: 30,
+        status: varchar("status", {
+            length: 30,
+        })
+            .default("Submitted")
+            .notNull(),
+
+        submittedAt: timestamp("submitted_at")
+            .defaultNow()
+            .notNull(),
+    },
+    (table) => ({
+        paperVersionUnique: unique(
+            "submissions_paper_version_unique"
+        ).on(
+            table.paperId,
+            table.version
+        ),
     })
-        .default("Submitted")
-        .notNull(),
-
-    submittedAt: timestamp(
-        "submitted_at"
-    )
-        .defaultNow()
-        .notNull(),
-});
+);

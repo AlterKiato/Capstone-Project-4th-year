@@ -1,0 +1,1 @@
+ALTER TABLE "submissions" ADD CONSTRAINT "submissions_paper_version_unique" UNIQUE("paper_id","version");

@@ -99,36 +99,59 @@ export async function getSubmissionsByStudent(
 }
 
 /**
- * Determines the next submission version
- * for a research paper.
+ * Determines the next submission version number
+ * from the highest existing version for the research paper.
  */
-async function getNextSubmissionVersion(
-    paperId: number
-): Promise<string> {
-    const submissions =
-        await findSubmissionsByPaperId(
-            paperId
-        );
+async function getNextSubmissionVersion(paperId: number): Promise<string> {
+    const submissions = await findSubmissionsByPaperId(paperId);
 
-    return `v${submissions.length + 1}`;
+    let highestVersion = 0;
+
+    for (const submission of submissions) {
+        const match = /^v(\d+)$/.exec(submission.version);
+
+        if (!match) {
+            continue;
+        }
+
+        const versionNumber = Number(match[1]);
+
+        if (versionNumber > highestVersion) {
+            highestVersion = versionNumber;
+        }
+    }
+
+    return `v${highestVersion + 1}`;
 }
 
 /**
- * Retrieves the latest submission version
- * for a research paper.
- *
- * The submission repository already orders
- * submissions from newest to oldest.
+ * Retrieves the submission with the highest
+ * version number for a research paper.
  */
 async function getLatestSubmission(
     paperId: number
 ): Promise<ManagedSubmission | undefined> {
-    const submissions =
-        await findSubmissionsByPaperId(
-            paperId
-        );
+    const submissions = await findSubmissionsByPaperId(paperId);
 
-    return submissions[0];
+    let latestSubmission: ManagedSubmission | undefined;
+    let highestVersion = 0;
+
+    for (const submission of submissions) {
+        const match = /^v(\d+)$/.exec(submission.version);
+
+        if (!match) {
+            continue;
+        }
+
+        const versionNumber = Number(match[1]);
+
+        if (versionNumber > highestVersion) {
+            highestVersion = versionNumber;
+            latestSubmission = submission;
+        }
+    }
+
+    return latestSubmission;
 }
 
 /**

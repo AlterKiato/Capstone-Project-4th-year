@@ -57,6 +57,13 @@
       "when": 1789454403376,
       "tag": "0007_left_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789979944790,
+      "tag": "0008_keen_frightful_four",
+      "breakpoints": true
     }
   ]
 }
