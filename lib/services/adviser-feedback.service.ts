@@ -108,12 +108,12 @@ export async function createAdviserFeedback(
         };
     }
 
-        if (
-            submission.status !==
-                SUBMISSION_STATUS.UNDER_REVIEW &&
-            submission.status !==
-                SUBMISSION_STATUS.SUBMITTED
-        ) {
+    if (
+        submission.status !==
+            SUBMISSION_STATUS.UNDER_REVIEW &&
+        submission.status !==
+            SUBMISSION_STATUS.SUBMITTED
+    ) {
         return {
             success: false,
             message:
@@ -162,20 +162,26 @@ export async function createAdviserFeedback(
     }
 
     /**
-     * A revision-required decision moves
-     * the submission into the revision state.
-     *
-     * Other decisions are preserved in the
-     * feedback record and will be handled by
-     * the later approval workflow.
+     * Updates the submission status according
+     * to the Adviser's review decision.
      */
-        if (
+    if (
         trimmedDecision ===
         SUBMISSION_STATUS.REVISION_REQUIRED
     ) {
         await updateSubmissionStatus(
             submissionId,
             SUBMISSION_STATUS.REVISION_REQUIRED
+        );
+    }
+
+    if (
+        trimmedDecision ===
+        SUBMISSION_STATUS.APPROVED
+    ) {
+        await updateSubmissionStatus(
+            submissionId,
+            SUBMISSION_STATUS.APPROVED
         );
     }
 
