@@ -30,6 +30,14 @@ import {
     SUBMISSION_STATUS,
 } from "@/lib/constants/submission-status";
 
+import {
+    updateResearchPaperStatus,
+} from "@/lib/repositories/research-paper.repository";
+
+import {
+    RESEARCH_STATUS,
+} from "@/lib/constants/research-status";
+
 /**
  * Creates Adviser feedback for a specific
  * research submission.
@@ -162,8 +170,8 @@ export async function createAdviserFeedback(
     }
 
     /**
-     * Updates the submission status according
-     * to the Adviser's review decision.
+     * Synchronizes the submission and research
+     * status with the Adviser's review decision.
      */
     if (
         trimmedDecision ===
@@ -172,6 +180,11 @@ export async function createAdviserFeedback(
         await updateSubmissionStatus(
             submissionId,
             SUBMISSION_STATUS.REVISION_REQUIRED
+        );
+
+        await updateResearchPaperStatus(
+            submission.paperId,
+            RESEARCH_STATUS.REVISION_REQUIRED
         );
     }
 
@@ -182,6 +195,11 @@ export async function createAdviserFeedback(
         await updateSubmissionStatus(
             submissionId,
             SUBMISSION_STATUS.APPROVED
+        );
+
+        await updateResearchPaperStatus(
+            submission.paperId,
+            RESEARCH_STATUS.APPROVED
         );
     }
 
