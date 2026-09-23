@@ -15,6 +15,10 @@ import {
 } from "@/lib/repositories/submission.repository";
 
 import {
+    updateResearchPaperStatus,
+} from "@/lib/repositories/research-paper.repository";
+
+import {
     findUserById,
 } from "@/lib/repositories/user.repository";
 
@@ -31,12 +35,16 @@ import {
 } from "@/lib/constants/submission-status";
 
 import {
-    updateResearchPaperStatus,
-} from "@/lib/repositories/research-paper.repository";
-
-import {
     RESEARCH_STATUS,
 } from "@/lib/constants/research-status";
+
+import {
+    logActivity,
+} from "@/lib/services/activity-log.service";
+
+import {
+    ACTIVITY_ACTION,
+} from "@/lib/constants/activity-action";
 
 /**
  * Creates Adviser feedback for a specific
@@ -186,6 +194,12 @@ export async function createAdviserFeedback(
             submission.paperId,
             RESEARCH_STATUS.REVISION_REQUIRED
         );
+
+        await logActivity(
+            adviserId,
+            ACTIVITY_ACTION.RESEARCH_SUBMISSION_REVISION_REQUIRED,
+            `Submission ${submission.version} for research paper ${submission.paperId} was marked for revision.`
+        );
     }
 
     if (
@@ -200,6 +214,12 @@ export async function createAdviserFeedback(
         await updateResearchPaperStatus(
             submission.paperId,
             RESEARCH_STATUS.APPROVED
+        );
+
+        await logActivity(
+            adviserId,
+            ACTIVITY_ACTION.RESEARCH_SUBMISSION_APPROVED,
+            `Submission ${submission.version} for research paper ${submission.paperId} was approved.`
         );
     }
 
