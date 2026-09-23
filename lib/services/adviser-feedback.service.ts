@@ -126,14 +126,12 @@ export async function createAdviserFeedback(
 
     if (
         submission.status !==
-            SUBMISSION_STATUS.UNDER_REVIEW &&
-        submission.status !==
-            SUBMISSION_STATUS.SUBMITTED
+        SUBMISSION_STATUS.UNDER_REVIEW
     ) {
         return {
             success: false,
             message:
-                "This submission is not currently available for Adviser review.",
+                "This submission must be under review before feedback can be submitted.",
         };
     }
 
