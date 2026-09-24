@@ -46,6 +46,11 @@ import {
     ACTIVITY_ACTION,
 } from "@/lib/constants/activity-action";
 
+import {
+    notifyStudentSubmissionApproved,
+    notifyStudentSubmissionRevisionRequired,
+} from "@/lib/services/notification.service";
+
 /**
  * Creates Adviser feedback for a specific
  * research submission.
@@ -198,6 +203,19 @@ export async function createAdviserFeedback(
             ACTIVITY_ACTION.RESEARCH_SUBMISSION_REVISION_REQUIRED,
             `Submission ${submission.version} for research paper ${submission.paperId} was marked for revision.`
         );
+        
+        const notificationResult =
+            await notifyStudentSubmissionRevisionRequired(
+                submission.submittedBy,
+                submission.version
+            );
+
+        if (!notificationResult.success) {
+            console.error(
+                "Failed to notify student about revision-required decision:",
+                notificationResult.message
+            );
+        }
     }
 
     if (
@@ -219,6 +237,19 @@ export async function createAdviserFeedback(
             ACTIVITY_ACTION.RESEARCH_SUBMISSION_APPROVED,
             `Submission ${submission.version} for research paper ${submission.paperId} was approved.`
         );
+        const notificationResult =
+            await notifyStudentSubmissionApproved(
+                submission.submittedBy,
+                submission.version
+            );
+
+        if (!notificationResult.success) {
+            console.error(
+                "Failed to notify student about approval decision:",
+                notificationResult.message
+            );
+        }
+        
     }
 
     return {

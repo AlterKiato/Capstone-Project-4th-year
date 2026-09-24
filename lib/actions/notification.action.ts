@@ -38,6 +38,9 @@ export async function markNotificationAsReadAction(
     // Refresh Adviser notification pages.
     revalidatePath("/dashboard/adviser/notifications");
     revalidatePath("/dashboard/adviser");
+
+    revalidatePath("/dashboard/student/notifications");
+    revalidatePath("/dashboard/student");
 }
 
 /**
@@ -69,4 +72,7 @@ export async function deleteNotificationAction(
     // Refresh Adviser notification pages.
     revalidatePath("/dashboard/adviser/notifications");
     revalidatePath("/dashboard/adviser");
+
+    revalidatePath("/dashboard/student/notifications");
+    revalidatePath("/dashboard/student");
 }
