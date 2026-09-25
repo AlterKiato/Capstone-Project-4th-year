@@ -26,6 +26,10 @@ import {
 
 import type { ServiceResult } from "@/types/auth";
 
+import {
+    notifyAdviserNewSubmission,
+} from "@/lib/services/notification.service";
+
 /**
  * Represents a research submission
  * stored in the database.
@@ -306,6 +310,20 @@ export async function submitResearch(
                 status:
                     SUBMISSION_STATUS.SUBMITTED,
             });
+
+            const notificationResult =
+                await notifyAdviserNewSubmission(
+                    group.adviserId,
+                    submission.version,
+                    paper.title
+                );
+
+            if (!notificationResult.success) {
+                console.error(
+                    "Failed to notify adviser about new submission:",
+                    notificationResult.message
+                );
+            }
 
         return {
             success: true,
