@@ -5,73 +5,489 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- END:nextjs-agent-rules -->
 
 
-# ThesiSHS AI Development Rules
+# ThesiSHS AI — Complete Development Progress & Handoff Guide
 
-## Project
+> **Purpose:** Working source of truth for progress, implementation decisions, test evidence, and contributor handoffs.
+>
+> **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
+> **Last confirmed branch:** `feature/development`  
+> **Last confirmed commit:** `4499aea` — `feat(notification): notify adviser of new submissions`  
+> **Last confirmed Git state:** Working tree clean  
+> **Current checkpoint:** Step 3I-7 Adviser Notifications verified.  
+> **Next task:** Step 3I-8 — end-to-end research review and revision workflow verification.
+>
+> **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
-ThesiSHS AI is an AI-powered multi-platform
-research management and evaluation system
-for Senior High School.
+---
 
-## Architecture
+## 1. How to Use This Document
 
-Use:
+This file is intended for the project owner and other contributors to resume work without losing context.
 
-UI
-↓
+### Status key
+- `[ ]` Not started
+- `[~]` In progress
+- `[x]` Complete and verified
+- `[?]` Needs verification
+- `[!]` Blocked
+
+### Maintenance rules
+1. Code written is not enough to mark a task complete; record build/test evidence.
+2. Record files changed, schema/migration impact, test results, commit hash, and remaining work.
+3. Never invent a commit hash or claim a test passed unless confirmed.
+4. If information is uncertain, label it `Needs verification`.
+5. Before starting, check this file, the relevant source files, branch, commit, and working tree.
+6. After each meaningful milestone, update the checkpoint and handoff log and commit the progress document.
+
+### Feature tracking template
+```md
+### Feature: [name]
+- Status: [ ] / [~] / [x] / [?] / [!]
+- Scope:
+- Files changed:
+- Migration/schema:
+- Validation and test evidence:
+- Commit:
+- Known limitations:
+- Exact next action:
+- Updated by/date:
+```
+
+---
+
+## 2. Project Goal and Scope
+
+ThesiSHS AI is a research/thesis workflow and repository system for Senior High School research groups. It supports research group management, student research creation and submissions, Adviser review and feedback, version history, repository access, and planned AI-assisted features.
+
+### Roles
+- **Admin:** system oversight, user management, group monitoring, and system/repository administration.
+- **Adviser:** creates/manages own research groups, manually assigns/removes students, reviews submissions, and provides feedback/decisions for own groups.
+- **Student:** views own group, creates research projects, submits documents, receives feedback, and resubmits when revision is required.
+- **Panel:** role exists, but **Panel Evaluation is excluded from the active roadmap** unless the owner explicitly changes scope.
+
+### Planned AI features
+1. **AI Chatbot Guide** — guides users through system/research workflow and usage.
+2. **AI Summarization** — summarizes research material for assistance.
+
+AI is assistive and human-supervised. It must not make final academic/review decisions. Do not claim either feature is implemented until built and tested.
+
+---
+
+## 3. Current Checkpoint
+
+### Confirmed
+- Step 3H submission and version-integrity functionality implemented.
+- Step 3I Adviser review, feedback, activity logging, and notification workflows implemented incrementally.
+- Student decision notifications tested and committed.
+- Adviser new-submission notifications tested and committed.
+- Adviser notification page already existed and was tested; no code change was needed.
+- Last confirmed commit: `4499aea`.
+- Last confirmed working tree: clean.
+
+### Immediate next task: Step 3I-8
+Run the complete workflow with test accounts and a test research paper:
+
+1. Student submits an initial document.
+2. Assigned Adviser receives a new-submission notification.
+3. Adviser opens the submission and starts review.
+4. Adviser gives feedback and selects **Revision Required**.
+5. Verify submission/research statuses and Student notification.
+6. Student views feedback and submits the next version.
+7. Verify a separate submission/version is created and prior version/feedback remain.
+8. Adviser reviews the new version and approves it.
+9. Verify approval statuses and Student notification.
+10. Verify unrelated Advisers cannot access the group’s submission, document, feedback, or notifications.
+
+Record each test result. Do not mark complete until executed.
+
+---
+
+## 4. Architecture and Conventions
+
+### Application architecture
+```text
+UI / Pages
+    ↓
 Server Actions
-↓
-Zod Validation
-↓
-Services
-↓
-Repositories
-↓
+    ↓
+Zod validation
+    ↓
+Services (business rules and authorization)
+    ↓
+Repositories (database access)
+    ↓
 Drizzle ORM
-↓
+    ↓
 PostgreSQL
 
-## Roles
+Research documents → private Supabase Storage
+```
 
-ADMIN
-ADVISER
-STUDENT
-PANEL
+### Stack (as last documented)
+- Web: Next.js App Router, React, TypeScript
+- Backend: Next.js Server Actions and server-side services
+- Database: PostgreSQL
+- ORM/migrations: Drizzle ORM / Drizzle Kit
+- Validation: Zod
+- Authentication: custom JWT/session using `jose`
+- Password hashing: `bcrypt`
+- Storage: **Supabase Storage**, private bucket
+- Deployment target: Vercel (verify deployment status)
+- Mobile: Expo React Native is in the broader plan; verify implementation status before assigning work.
 
-## Important ownership rules
+### Non-negotiable rules
+- Follow the layered architecture; keep business logic in services and DB access in repositories.
+- Enforce authorization server-side; hiding UI is not access control.
+- Verify ownership in services for Adviser-owned groups and user-owned notifications/documents.
+- Validate untrusted input with Zod.
+- Keep Supabase secret credentials server-only; never use `NEXT_PUBLIC_` for secrets or commit `.env` files.
+- Bucket `research-submissions` is private. Use authorized server-side signed URLs.
+- Preserve submission/version history; never overwrite old submissions with a new version.
+- Do not add a `Resubmitted` status without owner approval.
+- UI/UX polish is deferred to a dedicated phase.
+- Do not implement Panel Evaluation unless the owner explicitly reopens it.
+- Do not log credentials, tokens, or sensitive personal data.
 
-- Advisers create and manage research groups.
-- Students belong to adviser-managed research groups.
-- Students create their own research projects.
-- Students submit research.
-- Advisers review submissions and provide feedback.
-- Admin provides system-wide oversight.
+---
 
-## Panel
+## 5. Data Model Snapshot
 
-Panel Evaluation is currently excluded from
-active development.
+Documented tables:
+- `users`
+- `research_groups`
+- `group_members`
+- `research_papers`
+- `submissions`
+- `feedback` / `feedbacks` (verify actual schema/table name)
+- `repository`
+- `notifications`
+- `activity_logs`
+- `role`
 
-Do not implement the Panel Evaluation module
-unless explicitly instructed.
+Important documented rules:
+- A Student can belong to only one active research group at a time.
+- Adviser group/member operations must verify group ownership.
+- Research papers belong to a research group.
+- Submissions are versioned per paper.
+- A unique `(paper_id, version)` constraint was added in migration `0008_keen_frightful_four.sql` and reported applied.
+- Feedback belongs to a specific submission/version.
+- Notification mutation verifies notification ownership.
+- Database stores Supabase storage path, not a public URL.
 
-## AI
+---
 
-The system's primary AI features are:
+## 6. Step 3 — Research Submission and Adviser Review
 
-1. AI Chatbot Guide
-2. AI Summarization
+### 3A–3G — Foundations
+- [x] Authentication/session and role access foundation.
+- [x] Research group and membership management foundation.
+- [x] Adviser ownership checks for group operations.
+- [x] Student research/project creation.
+- [x] Research paper retrieval and service/repository structure.
 
-AI is assistive and must not replace teacher/adviser
-evaluation.
+**History note:** Individual sub-step labels and hashes for 3A–3G are not fully reconstructed here. Do not invent historical commit hashes.
 
-## Development rules
+### 3H — Student Submission System
+- [x] Student research document submission.
+- [x] Submission record stores paper, submitter, version, storage path, remarks, status, timestamp.
+- [x] Supabase private bucket integration: `research-submissions`.
+- [x] PDF validation and documented 10 MB limit.
+- [x] Storage path: `research/{paperId}/{version}/{sanitizedFileName}`.
+- [x] Authorized signed URL access for Students and Advisers.
+- [x] Student submission list and document access.
+- [x] Version numbering and next-version eligibility logic.
+- [x] Unique paper/version constraint; migration reported applied.
+- [x] Drizzle migration check reported passed.
+- [x] Normal version progression browser-tested (historically reported through v8).
+- [x] Commit: `c425f1a` — `feat(submission): enforce unique paper versions`.
 
-- Inspect existing code before modifying it.
-- Follow existing architecture and naming conventions.
-- Do not introduce a new library without asking.
-- Do not redesign the database unnecessarily.
-- Do not modify unrelated files.
-- Run npm run build after significant changes.
-- Explain errors before making large architectural changes.
-- Prefer small, incremental changes.
+### 3I — Adviser Review, Feedback, Activity Logs, Notifications
+
+#### 3I-1 — Adviser submissions and ownership
+- [x] Adviser submission list scoped to own groups.
+- [x] Submission details and ownership-filtered retrieval.
+- [x] Authorized document access via signed URL.
+- [x] Cross-Adviser access tests reported passed.
+
+#### 3I-2 — Start review
+- [x] Adviser can start review for eligible `Submitted` submission.
+- [x] Status changes to `Under Review`.
+- [x] List/detail refresh tested.
+- [x] Unauthorized Adviser review attempt rejected.
+
+#### 3I-3 — Activity logging
+- [x] Activity action constants for approval/revision decisions.
+- [x] Logging wired into Adviser decisions.
+- [x] Browser tests for both decision paths reported passed.
+
+#### 3I-4 — Feedback and decisions
+- [x] Feedback tied to a specific submission.
+- [x] Feedback allowed only when status is `Under Review`.
+- [x] `Revision Required` updates submission and research status.
+- [x] `Approved` updates submission and research status.
+- [x] Feedback/status tests reported passed.
+
+#### 3I-5 — Student notifications
+- [x] Notification title constants and domain helpers.
+- [x] Failure-safe notification creation.
+- [x] Student notification for approval.
+- [x] Student notification for revision-required decision.
+- [x] Student page supports view, mark read, delete.
+- [x] Ownership/access tests passed.
+- [x] Decision-to-notification end-to-end tests reported passed.
+- [x] Commit: `cad078c` — `feat(notification): notify students of adviser decisions`.
+
+#### 3I-6 — Notify Adviser of new submission
+- [x] Student submission notifies assigned Adviser.
+- [x] Notification includes version and research title.
+- [x] Notification failure is logged without changing submission success.
+- [x] Correct-Adviser and cross-Adviser tests passed.
+- [x] Commit: `4499aea` — `feat(notification): notify adviser of new submissions`.
+
+#### 3I-7 — Adviser notification page
+- [x] Existing page at `app/dashboard/adviser/notifications/page.tsx` reviewed.
+- [x] Adviser-only access using `ROLE_IDS.ADVISER`.
+- [x] Displays own notifications, status, and received date.
+- [x] Mark-as-read and delete actions connected.
+- [x] Tests passed: access, content, mark read, delete, ownership isolation.
+- [x] No new commit required; page was already implemented/tracked.
+- [x] Working tree reported clean.
+
+#### 3I-8 — End-to-end review/revision cycle
+- [ ] Student submits initial version.
+- [ ] Assigned Adviser notification verified.
+- [ ] Adviser starts review; verify `Submitted → Under Review`.
+- [ ] Adviser submits `Revision Required` feedback.
+- [ ] Verify submission and research statuses.
+- [ ] Verify Student notification and feedback visibility.
+- [ ] Student submits next version; verify version increments.
+- [ ] Verify previous submission and feedback remain.
+- [ ] Adviser reviews new version and approves.
+- [ ] Verify approval statuses and Student notification.
+- [ ] Test cross-Adviser and document-access isolation.
+- [ ] Record results; fix failures in small steps and retest.
+- [ ] Commit after validation.
+
+#### 3I-9 — Step 3 closure audit (proposed checklist; not a confirmed original label)
+- [ ] Audit status transitions and edge cases.
+- [ ] Verify invalid transitions and duplicate/version protections.
+- [ ] Verify feedback history and version integrity.
+- [ ] Verify notification failure behavior.
+- [ ] Verify role/ownership boundaries.
+- [ ] Run build and relevant regression tests.
+- [ ] Update progress file with evidence and hashes.
+- [ ] Owner confirms Step 3 closure before next major phase.
+
+---
+
+## 7. Later Roadmap (Confirm Exact Phase Numbering)
+
+### Research Repository
+- [ ] Confirm repository inclusion rules (e.g., approved research only).
+- [ ] Define metadata and access rules.
+- [ ] Implement repository records/association without unnecessary duplicate source data.
+- [ ] Implement listing, details, and authorized document access.
+- [ ] Test visibility of approved vs. unapproved work and role boundaries.
+- [ ] Build, browser-test, commit.
+
+### Search and Filters
+- [ ] Confirm searchable fields, filters, sorting, and pagination requirements.
+- [ ] Implement server-side query/filter validation.
+- [ ] Test empty results, invalid filters, and access controls.
+- [ ] Build, browser-test, commit.
+
+### AI-Assisted Features
+**AI Chatbot Guide**
+- [ ] Define allowed topics, role-aware behavior, and safe fallback.
+- [ ] Document provider/model, privacy, cost/usage limits, and secrets handling.
+- [ ] Keep it assistive; no review/approval decisions.
+- [ ] Test accuracy, role-specific guidance, and fallback behavior.
+
+**AI Summarization**
+- [ ] Define supported document types, size limits, extraction, and output format.
+- [ ] Define privacy, retention, provider, and cost controls.
+- [ ] Label output as AI-generated; never treat it as an official review decision.
+- [ ] Test long documents, extraction failures, and unsupported files.
+
+### Other later work (verify against actual roadmap)
+- [ ] Remaining Admin oversight/reporting and role modules.
+- [ ] Notification navigation/unread count if required.
+- [ ] Dedicated responsive/accessibility/UI polish phase.
+- [ ] Deployment/environment/security/backups/operations checks.
+- [ ] Documentation, user guide, final acceptance testing.
+- [ ] Mobile app work (confirm scope/status).
+
+**Panel Evaluation remains excluded.**
+
+---
+
+## 8. Efficient, Safe Development Workflow
+
+### Before coding
+1. Read this document and relevant source files.
+2. Check repository state:
+   ```bash
+   git status
+   git branch --show-current
+   git log -5 --oneline
+   ```
+3. Define user story, roles, ownership boundary, acceptance criteria.
+4. Inspect related schema, repository, service, action, page, validation, and constants.
+5. Determine whether a migration is needed.
+6. List exact files to change and tests to run.
+
+### During coding
+- Work on one small, coherent step at a time.
+- Preserve unrelated code and existing conventions.
+- Keep business rules in services and DB access in repositories.
+- Add concise comments for purpose/non-obvious rules, not noisy line-by-line comments.
+- Do not silently change statuses, role semantics, storage paths, or schema.
+- Avoid new dependencies unless justified and documented.
+
+### Validation
+Run the relevant checks:
+```bash
+npm run build
+```
+For schema/migration work, as applicable:
+```bash
+npx drizzle-kit check
+```
+For migrations: inspect generated SQL, confirm no unintended destructive changes, apply only to the intended environment, and verify resulting schema.
+
+Feature tests should cover as applicable:
+- Happy path and invalid input
+- Unauthorized role and cross-user/group ownership
+- Status-transition restrictions
+- External storage/notification failure behavior
+- Revalidation/UI refresh
+- Version/history preservation
+
+Never claim a test passed unless it was actually run and reported.
+
+### Commit protocol
+```bash
+git status
+git diff --check
+git diff
+git add <specific-files>
+git commit -m "<type>(<scope>): <short description>"
+git log -1 --oneline
+git status
+```
+Use specific paths; review diffs; exclude secrets, `.env`, generated junk, and unrelated changes. Record exact hash and working-tree state. Do not commit unless requested/approved.
+
+---
+
+## 9. Contributor Handoff Protocol
+
+### Taking over
+1. Read this file and latest handoff.
+2. Verify branch, commit, and working-tree state.
+3. Inspect actual files and relevant commits.
+4. Check whether the feature already exists before creating duplicate files.
+5. Ask for clarification when a business rule or acceptance criterion is missing.
+
+### Handing back
+Record:
+- Feature/sub-step and status
+- Summary of completed/incomplete work
+- Files changed
+- Schema/migration details and whether applied
+- Build and test commands/results
+- Browser test scenarios/results
+- Commit hash and Git state
+- Known bugs/limitations/risks
+- Decisions needing owner approval
+- Exact next action (file/function/test)
+
+### Handoff template
+```md
+## Handoff — YYYY-MM-DD — [Feature / Sub-step]
+- Contributor:
+- Status: [x] / [~] / [?] / [!]
+- Branch:
+- Starting commit:
+- Ending commit:
+- Working tree:
+- Summary:
+- Files changed:
+- Schema/migrations:
+- Build:
+- Tests performed and results:
+- Known issues/risks:
+- Owner decisions needed:
+- Exact next action:
+- Progress document updated: Yes/No
+```
+
+---
+
+## 10. Security and Quality Gate
+
+Before marking a feature complete:
+- [ ] Authentication required for protected routes/actions.
+- [ ] Role authorization enforced server-side.
+- [ ] Ownership checked server-side.
+- [ ] Input validated and normalized.
+- [ ] Errors do not leak secrets or sensitive data.
+- [ ] External service failures handled safely.
+- [ ] Critical invariants enforced by database constraints where appropriate.
+- [ ] Upload type/size/path rules enforced.
+- [ ] Private documents not exposed through public URLs.
+- [ ] Version and feedback history preserved.
+- [ ] Notification ownership protected.
+- [ ] Build and relevant regression tests pass.
+- [ ] Progress and commit evidence recorded.
+
+---
+
+## 11. Decisions and Constraints
+- Supabase Storage is the selected current storage direction; older Firebase references are stale unless the owner revisits the decision.
+- Private bucket: `research-submissions`.
+- The application uses its own JWT/session authentication; do not assume Supabase Auth.
+- Supabase secret key remains server-only.
+- Documents are accessed through server-authorized signed URLs.
+- A Student can be in one active group at a time.
+- Advisers access only their own groups/submissions.
+- Feedback belongs to a specific submission/version.
+- No separate `Resubmitted` status.
+- Panel Evaluation excluded.
+- UI/UX polish deferred.
+- AI features assist users; they do not make final academic decisions.
+
+---
+
+## 12. Handoff Log
+
+### Handoff — 2026-09-25 — Step 3I-7 Adviser Notifications
+- **Status:** `[x]` Complete and verified.
+- **Branch (last confirmed):** `feature/development`.
+- **Last confirmed commit:** `4499aea` — `feat(notification): notify adviser of new submissions`.
+- **Working tree:** Reported clean.
+- **Summary:** Adviser notification page at `app/dashboard/adviser/notifications/page.tsx` was already implemented, reviewed, and tested without code changes.
+- **Tests:** Adviser access, correct notification content, mark as read, delete, cross-Adviser isolation — all reported passed.
+- **Build:** No new build reported for this no-code-change checkpoint; prior feature build passed during 3I-6.
+- **Next action:** Step 3I-8 — run full submission → Adviser review → revision → resubmission → approval workflow.
+- **Caution:** Re-check Git state before continuing.
+
+### Explicitly confirmed commits
+| Commit | Description |
+|---|---|
+| `c425f1a` | `feat(submission): enforce unique paper versions` |
+| `cad078c` | `feat(notification): notify students of adviser decisions` |
+| `4499aea` | `feat(notification): notify adviser of new submissions` |
+
+Only hashes explicitly confirmed in project history are listed here.
+
+---
+
+## 13. New Chat / Session Start Checklist
+1. Read this file first.
+2. Verify current `git status`, branch, and latest commit.
+3. Confirm whether Step 3I-8 has started or been completed since this update.
+4. Continue one small, testable step at a time.
+5. Do not repeat completed work unless regression testing finds a problem.
+6. After a milestone, update the checkpoint, checklist, and handoff log with test evidence and commit hash.
+
+**Next task at the time of this update: Step 3I-8 — End-to-end research review and revision workflow verification.**
