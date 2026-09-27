@@ -11,8 +11,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Last confirmed commit:** `7d79fa0` — `feat(AGENTS.md) updated AGENTS.md to utilize CODEX and soon, CLAUDE`
-> **Current Git state (2026-09-27):** Working tree has Phase 5 repository changes in progress; see handoff.
+> **Last confirmed implementation commit:** `4a58815` — `feat(repository): add approved research repository`
+> **Git state after implementation commit (2026-09-27):** Working tree clean; this progress-only update records the implementation hash.
 > **Current checkpoint:** Phase 4 closure checks complete; Phase 5 — Research Repository in progress.
 > **Next task:** Complete repository validation, browser acceptance checks where environment permits, and update this handoff with confirmed evidence.
 >
@@ -447,7 +447,7 @@ Before marking a feature complete:
 - **Status:** Phase 4 closure checks complete for the agreed scope; Phase 5 repository implementation is in progress.
 - **Branch:** `feature/development`.
 - **Starting commit:** `7d79fa0` — `feat(AGENTS.md) updated AGENTS.md to utilize CODEX and soon, CLAUDE`.
-- **Ending commit:** Not yet created; do not infer a new hash.
+- **Ending implementation commit:** `4a58815` — `feat(repository): add approved research repository`.
 - **Starting working tree:** Already had uncommitted Phase 5 changes in `app/dashboard/admin/repository/page.tsx`, `db/schema/repository.ts`, `app/dashboard/repository/`, `lib/actions/repository.action.ts`, and `lib/repositories/repository.repository.ts`; `AGENTS.md` was stale.
 - **Progress document:** Updated for owner-confirmed Sprint 3I.8 results and Sprint 3I.9 checkpoint; historical roadmap and hashes retained.
 - **Phase 4 validation:** Owner-confirmed all six 3I.8 end-to-end tests passed; invalid status transitions and version/feedback history passed. `npm.cmd run build` and `npm.cmd run lint` both passed on 2026-09-27 after removing literal conflict markers from the Admin Repository page.
@@ -455,7 +455,7 @@ Before marking a feature complete:
 - **Phase 5 rule:** Current repository implementation uses approved research and approved submission as eligibility, with Admin publication controlling in-app visibility. Details, role access, and signed document retrieval are implemented and build-validated; manual acceptance scenarios remain pending.
 - **Phase 5 progress:** Admin publish/unpublish interface and service/action/repository layers implemented; catalog/details and signed PDF download implemented; database uniqueness constraint added to Drizzle schema with generated migration `0009_repository_paper_unique.sql`.
 - **Phase 5 validation:** `npm.cmd run build` passed (Next.js 16.2.9, TypeScript, 22 static pages); `npm.cmd run lint` passed; `npx.cmd drizzle-kit check` passed; `git diff --check` passed after progress header cleanup. Migration not applied.
-- **Known changes in this session:** `AGENTS.md`; conflict marker cleanup and Admin repository UI; repository pages/actions/service/data layer; schema and migration generation. No migration was applied.
+- **Known changes in this session:** `AGENTS.md`; conflict marker cleanup and Admin repository UI; repository pages/actions/service/data layer; schema and migration generation. No migration was applied. The feature commit `4a58815` was followed by a clean working-tree check; this progress-only update records its hash.
 - **Pending checks:** Browser visibility and role-boundary scenarios were not run; no browser automation tool or test accounts were available in this session. Existing automated test suite/spec files are absent. Confirm intended database environment and inspect existing duplicates before applying unique constraint migration.
 - **Exact next action:** Run browser scenarios with project test accounts; inspect repository table for duplicate `paper_id` values in the intended database, then apply migration `0009` to that environment if safe; record results and complete Phase 5 acceptance checks.
 
