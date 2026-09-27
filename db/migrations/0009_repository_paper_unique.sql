@@ -1,0 +1,1 @@
+ALTER TABLE "repositories" ADD CONSTRAINT "repositories_paper_id_unique" UNIQUE("paper_id");

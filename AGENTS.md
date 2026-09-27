@@ -10,11 +10,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 > **Purpose:** Working source of truth for progress, implementation decisions, test evidence, and contributor handoffs.
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
-> **Last confirmed branch:** `feature/development`  
-> **Last confirmed commit:** `4499aea` — `feat(notification): notify adviser of new submissions`  
-> **Last confirmed Git state:** Working tree clean  
-> **Current checkpoint:** Step 3I-7 Adviser Notifications verified.  
-> **Next task:** Step 3I-8 — end-to-end research review and revision workflow verification.
+> **Last confirmed branch:** `feature/development`
+> **Last confirmed commit:** `7d79fa0` — `feat(AGENTS.md) updated AGENTS.md to utilize CODEX and soon, CLAUDE`
+> **Current Git state (2026-09-27):** Working tree has Phase 5 repository changes in progress; see handoff.
+> **Current checkpoint:** Phase 4 closure checks complete; Phase 5 — Research Repository in progress.
+> **Next task:** Complete repository validation, browser acceptance checks where environment permits, and update this handoff with confirmed evidence.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -81,24 +81,12 @@ AI is assistive and human-supervised. It must not make final academic/review dec
 - Student decision notifications tested and committed.
 - Adviser new-submission notifications tested and committed.
 - Adviser notification page already existed and was tested; no code change was needed.
-- Last confirmed commit: `4499aea`.
-- Last confirmed working tree: clean.
+- Latest verified repository tip at session start: `7d79fa0`.
+- Working tree at session start is not clean; uncommitted Phase 5 repository files are present.
 
-### Immediate next task: Step 3I-8
-Run the complete workflow with test accounts and a test research paper:
+### Step 3I-8 — end-to-end review/revision cycle
 
-1. Student submits an initial document.
-2. Assigned Adviser receives a new-submission notification.
-3. Adviser opens the submission and starts review.
-4. Adviser gives feedback and selects **Revision Required**.
-5. Verify submission/research statuses and Student notification.
-6. Student views feedback and submits the next version.
-7. Verify a separate submission/version is created and prior version/feedback remain.
-8. Adviser reviews the new version and approves it.
-9. Verify approval statuses and Student notification.
-10. Verify unrelated Advisers cannot access the group’s submission, document, feedback, or notifications.
-
-Record each test result. Do not mark complete until executed.
+Owner-confirmed complete: all six end-to-end tests passed. Details below reflect the reported test summary; no new test execution is claimed here.
 
 ---
 
@@ -254,39 +242,34 @@ Important documented rules:
 - [x] Working tree reported clean.
 
 #### 3I-8 — End-to-end review/revision cycle
-- [ ] Student submits initial version.
-- [ ] Assigned Adviser notification verified.
-- [ ] Adviser starts review; verify `Submitted → Under Review`.
-- [ ] Adviser submits `Revision Required` feedback.
-- [ ] Verify submission and research statuses.
-- [ ] Verify Student notification and feedback visibility.
-- [ ] Student submits next version; verify version increments.
-- [ ] Verify previous submission and feedback remain.
-- [ ] Adviser reviews new version and approves.
-- [ ] Verify approval statuses and Student notification.
-- [ ] Test cross-Adviser and document-access isolation.
-- [ ] Record results; fix failures in small steps and retest.
-- [ ] Commit after validation.
+- [x] Student submits initial version and assigned Adviser notification is verified. (Owner-confirmed; all six tests passed.)
+- [x] Adviser starts review and `Submitted → Under Review` transition is verified. (Owner-confirmed.)
+- [x] Adviser submits `Revision Required`; submission/research statuses, Student notification, and feedback visibility are verified. (Owner-confirmed.)
+- [x] Student submits next version; version increment and preservation of prior submission/feedback are verified. (Owner-confirmed.)
+- [x] Adviser reviews the new version and approves; statuses and Student notification are verified. (Owner-confirmed.)
+- [x] Cross-Adviser and document-access isolation verified. (Owner-confirmed.)
+- **Evidence source:** Project owner reported all six tests passed in the development conversation; no test log or new commit hash was supplied in this update.
 
 #### 3I-9 — Step 3 closure audit (proposed checklist; not a confirmed original label)
-- [ ] Audit status transitions and edge cases.
-- [ ] Verify invalid transitions and duplicate/version protections.
-- [ ] Verify feedback history and version integrity.
-- [ ] Verify notification failure behavior.
-- [ ] Verify role/ownership boundaries.
-- [ ] Run build and relevant regression tests.
-- [ ] Update progress file with evidence and hashes.
-- [ ] Owner confirms Step 3 closure before next major phase.
+- [x] Invalid status transitions: passed (owner-confirmed).
+- [x] Version and feedback history: passed (owner-confirmed).
+- [~] Notification failure handling: deferred by owner; excluded from current closure checks unless explicitly resumed.
+- [x] Role/ownership boundaries: covered by owner-confirmed 3I-8 cross-Adviser/document-access isolation tests.
+- [x] `npm.cmd run build` passed on 2026-09-27 after removing literal merge markers from the in-progress Admin Repository page; Next.js 16.2.9 compiled, TypeScript completed, and all 22 static pages generated.
+- [x] `npm.cmd run lint` passed on 2026-09-27 after the same cleanup.
+- [x] Regression evidence reviewed: 3I-8 end-to-end workflow, invalid status transitions, version/feedback history, and ownership boundaries are owner-confirmed passed. No automated test/spec files or test script are present in the checkout.
+- [x] Phase 4 closure checks complete for the agreed scope. Notification failure handling remains explicitly deferred and is not represented as verified.
+- [x] Proceed to Phase 5 — Research Repository.
 
 ---
 
 ## 7. Later Roadmap (Confirm Exact Phase Numbering)
 
-### Research Repository
-- [ ] Confirm repository inclusion rules (e.g., approved research only).
-- [ ] Define metadata and access rules.
-- [ ] Implement repository records/association without unnecessary duplicate source data.
-- [ ] Implement listing, details, and authorized document access.
+### Phase 5 — Research Repository
+- [x] Inclusion rule confirmed for current implementation: Adviser-approved research and approved submission, followed by Admin publication.
+- [x] Metadata/access rules implemented: title, abstract, category, keywords, group/strand/section/school-year metadata; only authenticated system roles can browse; PDF downloads use server-authorized signed URLs.
+- [~] Repository association and Admin publish/unpublish flow implemented in code. Unique `(paper_id)` migration generated as `0009_repository_paper_unique.sql`; migration has **not** been applied to a database.
+- [~] Listing, details, and authorized document access implemented and build-validated; browser scenarios remain pending.
 - [ ] Test visibility of approved vs. unapproved work and role boundaries.
 - [ ] Build, browser-test, commit.
 
@@ -459,6 +442,22 @@ Before marking a feature complete:
 ---
 
 ## 12. Handoff Log
+
+### Handoff — 2026-09-27 — Phase 4 closure and Phase 5 start
+- **Status:** Phase 4 closure checks complete for the agreed scope; Phase 5 repository implementation is in progress.
+- **Branch:** `feature/development`.
+- **Starting commit:** `7d79fa0` — `feat(AGENTS.md) updated AGENTS.md to utilize CODEX and soon, CLAUDE`.
+- **Ending commit:** Not yet created; do not infer a new hash.
+- **Starting working tree:** Already had uncommitted Phase 5 changes in `app/dashboard/admin/repository/page.tsx`, `db/schema/repository.ts`, `app/dashboard/repository/`, `lib/actions/repository.action.ts`, and `lib/repositories/repository.repository.ts`; `AGENTS.md` was stale.
+- **Progress document:** Updated for owner-confirmed Sprint 3I.8 results and Sprint 3I.9 checkpoint; historical roadmap and hashes retained.
+- **Phase 4 validation:** Owner-confirmed all six 3I.8 end-to-end tests passed; invalid status transitions and version/feedback history passed. `npm.cmd run build` and `npm.cmd run lint` both passed on 2026-09-27 after removing literal conflict markers from the Admin Repository page.
+- **Deferred:** Notification failure handling remains deferred by owner. No automated test/spec files or test script are present. No browser checks were run in this session.
+- **Phase 5 rule:** Current repository implementation uses approved research and approved submission as eligibility, with Admin publication controlling in-app visibility. Details, role access, and signed document retrieval are implemented and build-validated; manual acceptance scenarios remain pending.
+- **Phase 5 progress:** Admin publish/unpublish interface and service/action/repository layers implemented; catalog/details and signed PDF download implemented; database uniqueness constraint added to Drizzle schema with generated migration `0009_repository_paper_unique.sql`.
+- **Phase 5 validation:** `npm.cmd run build` passed (Next.js 16.2.9, TypeScript, 22 static pages); `npm.cmd run lint` passed; `npx.cmd drizzle-kit check` passed; `git diff --check` passed after progress header cleanup. Migration not applied.
+- **Known changes in this session:** `AGENTS.md`; conflict marker cleanup and Admin repository UI; repository pages/actions/service/data layer; schema and migration generation. No migration was applied.
+- **Pending checks:** Browser visibility and role-boundary scenarios were not run; no browser automation tool or test accounts were available in this session. Existing automated test suite/spec files are absent. Confirm intended database environment and inspect existing duplicates before applying unique constraint migration.
+- **Exact next action:** Run browser scenarios with project test accounts; inspect repository table for duplicate `paper_id` values in the intended database, then apply migration `0009` to that environment if safe; record results and complete Phase 5 acceptance checks.
 
 ### Handoff — 2026-09-25 — Step 3I-7 Adviser Notifications
 - **Status:** `[x]` Complete and verified.
