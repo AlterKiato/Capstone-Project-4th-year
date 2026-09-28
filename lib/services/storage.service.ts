@@ -200,7 +200,8 @@ export async function uploadResearchDocument(
  */
 export async function createResearchDocumentSignedUrl(
     storagePath: string,
-    expiresIn = 3600
+    expiresIn = 3600,
+    options: { download?: boolean } = {}
 ): Promise<string> {
     if (!storagePath.trim()) {
         throw new Error(
@@ -220,7 +221,8 @@ export async function createResearchDocumentSignedUrl(
         )
         .createSignedUrl(
             storagePath,
-            expiresIn
+            expiresIn,
+            options
         );
 
     if (error) {

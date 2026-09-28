@@ -2,33 +2,60 @@
 
 import { useState } from "react";
 
-import { getRepositoryDownloadUrlAction } from "@/lib/actions/repository.action";
+import { getRepositoryDocumentUrlAction } from "@/lib/actions/repository.action";
 
 export default function DownloadRepositoryDocumentButton({
     paperId,
 }: {
     paperId: number;
 }) {
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<"view" | "download" | null>(null);
     const [error, setError] = useState("");
 
-    async function downloadDocument() {
-        setLoading(true);
+    async function accessDocument(mode: "view" | "download") {
+        setLoading(mode);
         setError("");
-        const url = await getRepositoryDownloadUrlAction(paperId);
-        if (url) {
-            window.location.assign(url);
-        } else {
-            setError("The document is currently unavailable.");
-            setLoading(false);
+
+        // Open synchronously so popup blockers allow the signed PDF to load in a new tab.
+        const viewWindow = mode === "view" ? window.open("about:blank", "_blank") : null;
+        if (viewWindow) viewWindow.opener = null;
+
+        try {
+            const result = await getRepositoryDocumentUrlAction(paperId, mode);
+            if (!result.success || !result.url) {
+                viewWindow?.close();
+                setError(result.message ?? "The document could not be opened.");
+                return;
+            }
+
+            if (mode === "view") {
+                if (viewWindow) {
+                    viewWindow.location.replace(result.url);
+                } else {
+                    window.location.assign(result.url);
+                }
+            } else {
+                window.location.assign(result.url);
+            }
+        } catch {
+            viewWindow?.close();
+            setError("Your session may have expired, or the document service is unavailable. Sign in again and retry.");
+        } finally {
+            setLoading(null);
         }
     }
 
     return (
         <div>
-            <button type="button" onClick={downloadDocument} disabled={loading}>
-                {loading ? "Preparing document…" : "Download research PDF"}
-            </button>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                <button type="button" onClick={() => accessDocument("view")} disabled={loading !== null}>
+                    {loading === "view" ? "Opening PDF…" : "View PDF"}
+                </button>
+                <button type="button" onClick={() => accessDocument("download")} disabled={loading !== null}>
+                    {loading === "download" ? "Preparing download…" : "Download PDF"}
+                </button>
+            </div>
+            <p>Document links expire after five minutes. Request a new link if one expires.</p>
             {error && <p role="alert">{error}</p>}
         </div>
     );

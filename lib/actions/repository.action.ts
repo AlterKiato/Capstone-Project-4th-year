@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import {
-    createPublishedResearchDownloadUrl,
+    createPublishedResearchDocumentUrl,
     publishApprovedResearch,
     updateResearchPublication,
 } from "@/lib/services/repository.service";
@@ -40,12 +40,30 @@ export async function updateRepositoryPublicationAction(formData: FormData) {
     revalidatePath("/dashboard/repository");
 }
 
-export async function getRepositoryDownloadUrlAction(
-    paperIdInput: unknown
-): Promise<string | null> {
-    await requireRole(repositoryRoles);
-    const parsed = idSchema.safeParse(paperIdInput);
-    if (!parsed.success) return null;
+const documentRequestSchema = z.object({
+    paperId: idSchema,
+    mode: z.enum(["view", "download"]),
+});
 
-    return createPublishedResearchDownloadUrl(parsed.data);
+export async function getRepositoryDocumentUrlAction(
+    paperIdInput: unknown,
+    modeInput: unknown
+) {
+    await requireRole(repositoryRoles);
+    const parsed = documentRequestSchema.safeParse({
+        paperId: paperIdInput,
+        mode: modeInput,
+    });
+    if (!parsed.success) {
+        return {
+            success: false as const,
+            url: null,
+            message: "The document request is invalid. Refresh the page and try again.",
+        };
+    }
+
+    return createPublishedResearchDocumentUrl(
+        parsed.data.paperId,
+        parsed.data.mode
+    );
 }

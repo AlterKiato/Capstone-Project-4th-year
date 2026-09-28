@@ -13,8 +13,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 > **Last confirmed branch:** `feature/development`
 > **Last confirmed implementation commit:** `4a58815` — `feat(repository): add approved research repository`
 > **Git state after implementation commit (2026-09-27):** Working tree clean; this progress-only update records the implementation hash.
-> **Current checkpoint:** Phase 4 closure checks complete; Phase 5 — Research Repository in progress.
-> **Next task:** Complete repository validation, browser acceptance checks where environment permits, and update this handoff with confirmed evidence.
+> **Current checkpoint:** Phase 4 closure checks complete; Phase 5 repository document access fix is implemented and awaiting browser acceptance.
+> **Next task:** Run repository document view/download browser scenarios with valid test accounts and confirm signed URL behavior against the configured Supabase project.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -81,8 +81,8 @@ AI is assistive and human-supervised. It must not make final academic/review dec
 - Student decision notifications tested and committed.
 - Adviser new-submission notifications tested and committed.
 - Adviser notification page already existed and was tested; no code change was needed.
-- Latest verified repository tip at session start: `7d79fa0`.
-- Working tree at session start is not clean; uncommitted Phase 5 repository files are present.
+- Latest verified repository tip before document access work: `79d3347`.
+- Working tree was clean before this document access fix; current changes are being committed at the owner's explicit request while browser acceptance remains pending.
 
 ### Step 3I-8 — end-to-end review/revision cycle
 
@@ -269,9 +269,14 @@ Important documented rules:
 - [x] Inclusion rule confirmed for current implementation: Adviser-approved research and approved submission, followed by Admin publication.
 - [x] Metadata/access rules implemented: title, abstract, category, keywords, group/strand/section/school-year metadata; only authenticated system roles can browse; PDF downloads use server-authorized signed URLs.
 - [~] Repository association and Admin publish/unpublish flow implemented in code. Unique `(paper_id)` migration generated as `0009_repository_paper_unique.sql`; migration has **not** been applied to a database.
-- [~] Listing, details, and authorized document access implemented and build-validated; browser scenarios remain pending.
-- [ ] Test visibility of approved vs. unapproved work and role boundaries.
-- [ ] Build, browser-test, commit.
+- [x] Repository listing and detail pages implemented; listing and metadata behavior preserved.
+- [x] Server-side document lookup selects the latest approved submission for the requested paper and reuses its existing `research/{paperId}/{version}/...` storage path.
+- [x] Short-lived signed URL generation remains server-side and uses the private `research-submissions` bucket; no duplicate document is uploaded.
+- [~] Separate inline PDF viewing and attachment download implemented; path validation, approval checks, and user-facing access errors are in place. Build and lint pass; browser/runtime acceptance remains pending.
+- [ ] Browser-test approved vs. unapproved visibility, PDF view, PDF download, signed object path, expired/missing document handling, and role/URL tampering boundaries.
+- [ ] Verify existing Student/Adviser submission document access still works in the browser.
+- [ ] Check for existing duplicate `paper_id` rows in the intended database before applying migration `0009_repository_paper_unique.sql`; migration is generated but not applied.
+- [ ] Complete browser/runtime acceptance and update this handoff with executed results. The owner explicitly requested the implementation commit before these checks; do not mark Phase 5 acceptance complete until they pass.
 
 ### Search and Filters
 - [ ] Confirm searchable fields, filters, sorting, and pagination requirements.
@@ -443,6 +448,19 @@ Before marking a feature complete:
 
 ## 12. Handoff Log
 
+### Handoff — 2026-09-28 — Repository document access fix
+- **Status:** Implementation complete; browser/runtime acceptance pending. Owner explicitly requested a commit while these checks remain unrun.
+- **Branch:** `feature/development`.
+- **Starting commit:** `79d3347` — `docs(progress): record repository checkpoint`.
+- **Ending commit:** To be recorded after the requested commit is created.
+- **Working tree:** Modified `app/dashboard/repository/[paperId]/DownloadRepositoryDocumentButton.tsx`, `lib/actions/repository.action.ts`, `lib/repositories/repository.repository.ts`, `lib/services/repository.service.ts`, and `lib/services/storage.service.ts`.
+- **Root cause from code inspection:** Repository document access had one same-tab button for both viewing and downloading and created signed URLs without Supabase's `download` option. Service errors returned `null`; the client did not catch rejected Server Actions or reset loading state on failure. The repository path/query did use the existing approved submission path and private `research-submissions` bucket; no wrong-path evidence was found in code.
+- **Changes:** Added inline-view and attachment-download modes, validates the stored path against the selected paper/version, returns clear service errors, opens viewing in a new tab, and displays the five-minute URL expiry behavior. Existing Student/Adviser submission calls retain the helper's default parameters.
+- **Validation:** `npm.cmd run lint` passed. Sandboxed `npm.cmd run build` initially failed fetching configured Google Fonts; network-enabled `npm.cmd run build` then passed with TypeScript and all 22 static pages generated. `git diff --check` passed. No browser test or live Supabase URL test was run.
+- **Storage/migration:** Existing `research-submissions` bucket and object path are reused. No upload, duplicate document, bucket, or migration changes.
+- **Pending acceptance:** Confirm viewing, attachment download, exact signed object URL, approved-only access, unauthorized direct Server Action access, expired/missing file messages, and existing submission document access in browser/integration tests.
+- **Exact next action:** Run the pending browser scenarios with test accounts and the configured Supabase environment; update the acceptance status only after actual results are confirmed.
+
 ### Handoff — 2026-09-27 — Phase 4 closure and Phase 5 start
 - **Status:** Phase 4 closure checks complete for the agreed scope; Phase 5 repository implementation is in progress.
 - **Branch:** `feature/development`.
@@ -484,9 +502,11 @@ Only hashes explicitly confirmed in project history are listed here.
 ## 13. New Chat / Session Start Checklist
 1. Read this file first.
 2. Verify current `git status`, branch, and latest commit.
-3. Confirm whether Step 3I-8 has started or been completed since this update.
-4. Continue one small, testable step at a time.
-5. Do not repeat completed work unless regression testing finds a problem.
-6. After a milestone, update the checkpoint, checklist, and handoff log with test evidence and commit hash.
+3. Phase 4 closure is recorded complete; notification failure handling remains deferred.
+4. Continue Phase 5 repository document-access acceptance from the 2026-09-28 handoff.
+5. Run browser/runtime tests with project test accounts; do not treat build/lint as proof of Supabase document delivery.
+6. Do not apply migration `0009_repository_paper_unique.sql` until the intended database is confirmed and duplicate paper associations are checked.
+7. Do not commit the current document-access fix until browser tests pass and the project owner confirms.
+8. After a milestone, update the checkpoint and handoff with executed test evidence and confirmed commit hash.
 
-**Next task at the time of this update: Step 3I-8 — End-to-end research review and revision workflow verification.**
+**Current next task: complete Phase 5 repository document viewing/downloading browser acceptance.**

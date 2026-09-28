@@ -133,6 +133,7 @@ export async function findPublishedRepositoryEntry(paperId: number) {
             publishedAt: repositories.publishedAt,
             viewCount: repositories.viewCount,
             submissionId: submissions.id,
+            version: submissions.version,
             fileUrl: submissions.fileUrl,
             submittedAt: submissions.submittedAt,
         })
