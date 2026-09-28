@@ -1,10 +1,20 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 
 import {
     getAdminDashboardStats,
     getAdminRecentActivities,
 } from "@/lib/services/dashboard.service";
+
+const adminLinks = [
+    { href: "/dashboard/admin/groups", label: "Manage Groups" },
+    { href: "/dashboard/admin/users", label: "Manage Users" },
+    { href: "/dashboard/admin/reports", label: "Reports" },
+    { href: "/dashboard/admin/notifications", label: "Notifications" },
+    { href: "/dashboard/admin/repository", label: "Repository Management" },
+    { href: "/dashboard/repository", label: "Browse Repository" },
+];
 
 /**
  * Admin-only dashboard.
@@ -35,6 +45,7 @@ export default async function AdminPage() {
         return (
             <main>
                 <h1>Admin Dashboard</h1>
+                <DashboardNavigation links={adminLinks} />
 
                 <p>
                     Welcome, {session.email}
@@ -57,6 +68,7 @@ export default async function AdminPage() {
     return (
         <main>
             <h1>Admin Dashboard</h1>
+            <DashboardNavigation links={adminLinks} />
 
             <p>
                 Welcome, {session.email}

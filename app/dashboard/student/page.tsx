@@ -13,6 +13,7 @@ import {
 import {
     createStudentResearchAction,
 } from "@/lib/actions/student-research.action";
+import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 
 /**
  * Student dashboard and research
@@ -41,6 +42,12 @@ export default async function StudentPage() {
             }}
         >
             <h1>Student Dashboard</h1>
+
+            <DashboardNavigation links={[
+                { href: "/dashboard/student/submissions", label: "My Research & Submissions" },
+                { href: "/dashboard/student/notifications", label: "Notifications" },
+                { href: "/dashboard/repository", label: "Browse Repository" },
+            ]} />
 
             <p>
                 Welcome, {session.email}
