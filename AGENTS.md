@@ -11,8 +11,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Last confirmed implementation commit:** `4a58815` — `feat(repository): add approved research repository`
-> **Git state after implementation commit (2026-09-27):** Working tree clean; this progress-only update records the implementation hash.
+> **Last confirmed implementation commit:** `deb0224` — `fix(repository): support PDF viewing and downloads`
+> **Git state after implementation commit (2026-09-28):** Working tree clean; this progress-only update records the implementation hash.
 > **Current checkpoint:** Phase 4 closure checks complete; Phase 5 repository document access fix is implemented and awaiting browser acceptance.
 > **Next task:** Run repository document view/download browser scenarios with valid test accounts and confirm signed URL behavior against the configured Supabase project.
 >
@@ -452,8 +452,8 @@ Before marking a feature complete:
 - **Status:** Implementation complete; browser/runtime acceptance pending. Owner explicitly requested a commit while these checks remain unrun.
 - **Branch:** `feature/development`.
 - **Starting commit:** `79d3347` — `docs(progress): record repository checkpoint`.
-- **Ending commit:** To be recorded after the requested commit is created.
-- **Working tree:** Modified `app/dashboard/repository/[paperId]/DownloadRepositoryDocumentButton.tsx`, `lib/actions/repository.action.ts`, `lib/repositories/repository.repository.ts`, `lib/services/repository.service.ts`, and `lib/services/storage.service.ts`.
+- **Ending implementation commit:** `deb0224` — `fix(repository): support PDF viewing and downloads`.
+- **Working tree after implementation commit:** Clean before this progress-only hash update.
 - **Root cause from code inspection:** Repository document access had one same-tab button for both viewing and downloading and created signed URLs without Supabase's `download` option. Service errors returned `null`; the client did not catch rejected Server Actions or reset loading state on failure. The repository path/query did use the existing approved submission path and private `research-submissions` bucket; no wrong-path evidence was found in code.
 - **Changes:** Added inline-view and attachment-download modes, validates the stored path against the selected paper/version, returns clear service errors, opens viewing in a new tab, and displays the five-minute URL expiry behavior. Existing Student/Adviser submission calls retain the helper's default parameters.
 - **Validation:** `npm.cmd run lint` passed. Sandboxed `npm.cmd run build` initially failed fetching configured Google Fonts; network-enabled `npm.cmd run build` then passed with TypeScript and all 22 static pages generated. `git diff --check` passed. No browser test or live Supabase URL test was run.
