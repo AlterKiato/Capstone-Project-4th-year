@@ -1,14 +1,16 @@
 import {
     findApprovedPapersForRepository,
     findRepositoryManagementEntries,
-    findPublishedRepositoryEntries,
+    findPublishedRepositoryFilterOptions,
     findPublishedRepositoryEntry,
+    findPublishedResearchPage,
     incrementRepositoryDownloadCount,
     incrementRepositoryViewCount,
     publishApprovedPaper,
     setRepositoryPublished,
 } from "@/lib/repositories/repository.repository";
 import { createResearchDocumentSignedUrl } from "@/lib/services/storage.service";
+import type { RepositorySearchCriteria } from "@/types/repository";
 
 export async function getRepositoryManagementData() {
     const [eligiblePapers, repositoryEntries] = await Promise.all([
@@ -30,8 +32,12 @@ export async function updateResearchPublication(
     return setRepositoryPublished(repositoryId, isPublished);
 }
 
-export async function getPublishedResearch() {
-    return findPublishedRepositoryEntries();
+export async function getPublishedResearch(criteria: RepositorySearchCriteria) {
+    return findPublishedResearchPage(criteria);
+}
+
+export async function getPublishedResearchFilterOptions() {
+    return findPublishedRepositoryFilterOptions();
 }
 
 export async function getPublishedResearchDetails(paperId: number) {

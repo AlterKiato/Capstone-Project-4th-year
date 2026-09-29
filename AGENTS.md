@@ -11,10 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Last confirmed implementation commit:** `deb0224` — `fix(repository): support PDF viewing and downloads`
-> **Git state after implementation commit (2026-09-28):** Working tree clean; this progress-only update records the implementation hash.
-> **Current checkpoint:** Phase 4 closure checks complete; Phase 5 repository document access fix is implemented and awaiting browser acceptance.
-> **Next task:** Run repository document view/download browser scenarios with valid test accounts and confirm signed URL behavior against the configured Supabase project.
+> **Latest confirmed commit at Phase 6 audit:** `26d56d2` — `feat(dashboard): add temporary role navigation`
+> **Git state (2026-09-29):** Phase 6 implementation files are modified/untracked in the working tree; no Phase 6 commit was created. This progress update is also uncommitted.
+> **Current checkpoint:** Phase 6 — Search, Filtering & Discovery is implemented and build-validated. Direct database queries pass for all three sort modes after fixing Drizzle SQL aliases. Authenticated browser acceptance remains pending.
+> **Next task:** Run Phase 6 listing scenarios in an authenticated browser with a Student account and a sufficiently populated repository dataset; then continue pending Phase 5 document-access browser acceptance.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -278,11 +278,15 @@ Important documented rules:
 - [ ] Check for existing duplicate `paper_id` rows in the intended database before applying migration `0009_repository_paper_unique.sql`; migration is generated but not applied.
 - [ ] Complete browser/runtime acceptance and update this handoff with executed results. The owner explicitly requested the implementation commit before these checks; do not mark Phase 5 acceptance complete until they pass.
 
-### Search and Filters
-- [ ] Confirm searchable fields, filters, sorting, and pagination requirements.
-- [ ] Implement server-side query/filter validation.
-- [ ] Test empty results, invalid filters, and access controls.
-- [ ] Build, browser-test, commit.
+### Phase 6 — Search, Filtering & Discovery
+- [x] Approved requirements confirmed: search title/abstract/keywords; category, school year, and strand filters; newest, oldest, and title A–Z sorting; 10 results per page; no-results state with Clear filters.
+- [x] Search and filters are validated and applied in SQL; published research with at least one approved submission remains required.
+- [x] Deterministic sort modes and stable tie-breakers implemented; database count and pagination are applied before returning results.
+- [x] Listing controls, filter choices, page navigation, active-query persistence, invalid-parameter fallback, and empty-state clearing implemented.
+- [x] Drizzle runtime query corrected: `sortDate` has SQL alias `sort_date`; repository and paper ID selections have distinct `repository_id` and `paper_id` aliases.
+- [x] Validation evidence: `npm.cmd run lint`, `npx.cmd tsc --noEmit`, `git diff --check`, and network-enabled `npm.cmd run build` passed. Direct database queries for newest, oldest, and title sorting each executed successfully. Search parameter checks for repeated, oversized, and invalid values passed.
+- [~] Authenticated browser acceptance remains pending: query behavior across populated search/filter combinations, first/last pagination pages, active-filter navigation, empty-state interaction, and Student access have not been browser-tested. The configured database currently has only one eligible published paper, insufficient for pagination and multi-value ordering scenarios.
+- [ ] Run the browser acceptance matrix using an authenticated Student session and a test dataset with more than 10 eligible papers; record actual results before marking Phase 6 complete.
 
 ### AI-Assisted Features
 **AI Chatbot Guide**
@@ -448,6 +452,20 @@ Before marking a feature complete:
 
 ## 12. Handoff Log
 
+### Handoff — 2026-09-29 — Phase 6 Search, Filtering & Discovery
+- **Status:** Implementation complete in the working tree; authenticated browser acceptance pending. No commit created.
+- **Branch:** `feature/development`.
+- **Latest confirmed commit before this worktree diff:** `26d56d2` — `feat(dashboard): add temporary role navigation`.
+- **Working tree:** Phase 6 implementation files are modified/untracked, and this progress document is modified. No implementation files were changed while recording this handoff.
+- **Files in the Phase 6 implementation diff:** `app/dashboard/repository/page.tsx`, `lib/repositories/repository.repository.ts`, `lib/services/repository.service.ts`, `lib/constants/repository.ts`, `lib/validations/repository.ts`, and `types/repository.ts`.
+- **Scope:** Search title/abstract/keywords; category, school-year, and strand filters; newest/oldest/title sorting; SQL-level 10-item pagination and count; stable tie-breakers; active criteria retained across page links; invalid URL values default safely; empty state includes Clear filters.
+- **Runtime issue and resolution:** The first authenticated browser report showed Drizzle rejecting `sortDate` because its raw SQL selection had no declared alias. The selected expression now has `.as("sort_date")`. A direct DB call then exposed ambiguous duplicate `id` names in the subquery SQL; the repository and paper IDs now have explicit `repository_id` and `paper_id` aliases. Published/approved predicates and authorization were not changed.
+- **Schema/storage:** No schema or migration change. Supabase document access and storage behavior were not changed.
+- **Validation:** `npm.cmd run lint`, `npx.cmd tsc --noEmit`, `git diff --check`, and network-enabled `npm.cmd run build` passed after the alias corrections. A direct DB query executed successfully for newest, oldest, and title sort modes; each returned one record. Search parameter validation checks for repeated values, oversized input, invalid sort, and invalid page passed.
+- **Browser acceptance:** Not completed. No browser executable or authenticated Student test session was available. The configured DB has one published paper meeting both approved-paper and approved-submission requirements, so it cannot exercise multi-page boundaries or varied filters/orderings. Unauthenticated HTTP requests redirected to `/login`; that does not verify an authenticated listing.
+- **Exact next action:** Use a valid Student browser session and a test dataset with more than 10 eligible papers to verify search fields, individual/combined filters, all ordering modes, first/last pages, persisted criteria, empty-state clearing, role boundaries, and document view/download. Record only executed results.
+- **Commit:** None. Do not commit until requested by the owner.
+
 ### Handoff — 2026-09-28 — Repository document access fix
 - **Status:** Implementation complete; browser/runtime acceptance pending. Owner explicitly requested a commit while these checks remain unrun.
 - **Branch:** `feature/development`.
@@ -503,10 +521,11 @@ Only hashes explicitly confirmed in project history are listed here.
 1. Read this file first.
 2. Verify current `git status`, branch, and latest commit.
 3. Phase 4 closure is recorded complete; notification failure handling remains deferred.
-4. Continue Phase 5 repository document-access acceptance from the 2026-09-28 handoff.
-5. Run browser/runtime tests with project test accounts; do not treat build/lint as proof of Supabase document delivery.
-6. Do not apply migration `0009_repository_paper_unique.sql` until the intended database is confirmed and duplicate paper associations are checked.
-7. Do not commit the current document-access fix until browser tests pass and the project owner confirms.
-8. After a milestone, update the checkpoint and handoff with executed test evidence and confirmed commit hash.
+4. Continue Phase 6 authenticated browser acceptance; the Drizzle sort-date and duplicate-ID alias errors are fixed and all three sort queries ran successfully against the configured database.
+5. Use an authenticated Student account and a populated test dataset with more than 10 eligible papers to verify search, filters, sorting, pagination, empty-state clearing, and access boundaries.
+6. Then continue Phase 5 repository document-access acceptance from the 2026-09-28 handoff; do not treat build/lint as proof of Supabase document delivery.
+7. Do not apply migration `0009_repository_paper_unique.sql` until the intended database is confirmed and duplicate paper associations are checked.
+8. Do not commit uncommitted feature work until required acceptance tests pass and the project owner confirms.
+9. After a milestone, update the checkpoint and handoff with executed test evidence and confirmed commit hash.
 
-**Current next task: complete Phase 5 repository document viewing/downloading browser acceptance.**
+**Current next task: complete Phase 6 authenticated repository search/filter/sort/pagination browser acceptance.**
