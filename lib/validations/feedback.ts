@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 
 /**
  * Validates Adviser feedback submitted
@@ -23,17 +24,10 @@ export const createFeedbackSchema =
                 "Feedback comments must not exceed 5000 characters."
             ),
 
-        decision: z
-            .string()
-            .trim()
-            .min(
-                1,
-                "A review decision is required."
-            )
-            .max(
-                30,
-                "Review decision must not exceed 30 characters."
-            ),
+        decision: z.enum([
+            SUBMISSION_STATUS.REVISION_REQUIRED,
+            SUBMISSION_STATUS.APPROVED,
+        ]),
     });
 
 export type CreateFeedbackInput =

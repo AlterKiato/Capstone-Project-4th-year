@@ -95,12 +95,13 @@ export async function sendNotification(
  */
 export async function notifyStudentSubmissionApproved(
     studentId: number,
-    version: string
+    version: string,
+    researchTitle: string
 ): Promise<ServiceResult<ManagedNotification>> {
     return sendNotification(
         studentId,
         NOTIFICATION_TITLE.SUBMISSION_APPROVED,
-        `Your research submission ${version} has been approved by your Adviser.`
+        `Your research submission ${version} for "${researchTitle}" has been approved by your Adviser.`
     );
 }
 
@@ -110,12 +111,13 @@ export async function notifyStudentSubmissionApproved(
  */
 export async function notifyStudentSubmissionRevisionRequired(
     studentId: number,
-    version: string
+    version: string,
+    researchTitle: string
 ): Promise<ServiceResult<ManagedNotification>> {
     return sendNotification(
         studentId,
         NOTIFICATION_TITLE.SUBMISSION_REVISION_REQUIRED,
-        `Your research submission ${version} requires revision. Please review your Adviser's feedback.`
+        `Your research submission ${version} for "${researchTitle}" requires revision. Please review your Adviser's feedback.`
     );
 }
 

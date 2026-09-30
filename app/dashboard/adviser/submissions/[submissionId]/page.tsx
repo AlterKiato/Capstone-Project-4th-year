@@ -208,6 +208,7 @@ export default async function AdviserSubmissionDetailsPage({
                         </dt>
 
                         <dd>
+                            {submission.status}
                             {(submission.status ===
                                 "Under Review" ||
                                 submission.status ===

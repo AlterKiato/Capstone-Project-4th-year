@@ -146,6 +146,17 @@ export async function createAdviserFeedback(
     const trimmedDecision =
         decision.trim();
 
+    if (
+        trimmedDecision !== SUBMISSION_STATUS.REVISION_REQUIRED &&
+        trimmedDecision !== SUBMISSION_STATUS.APPROVED
+    ) {
+        return {
+            success: false,
+            message:
+                "A valid review decision is required.",
+        };
+    }
+
     if (!trimmedComments) {
         return {
             success: false,
@@ -207,7 +218,8 @@ export async function createAdviserFeedback(
         const notificationResult =
             await notifyStudentSubmissionRevisionRequired(
                 submission.submittedBy,
-                submission.version
+                submission.version,
+                submission.researchTitle
             );
 
         if (!notificationResult.success) {
@@ -240,7 +252,8 @@ export async function createAdviserFeedback(
         const notificationResult =
             await notifyStudentSubmissionApproved(
                 submission.submittedBy,
-                submission.version
+                submission.version,
+                submission.researchTitle
             );
 
         if (!notificationResult.success) {

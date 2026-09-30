@@ -11,10 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Latest confirmed commit:** `82e63fd` — `feat(repository): add search and discovery`
-> **Git state (2026-09-30):** Working tree was clean after the Phase 6 commit; documentation updates are now uncommitted. The synthetic Phase 6 dataset remains in the local development database.
-> **Current checkpoint:** Phase 6 implementation is committed. Core listing and empty-state/Clear filters scenarios passed their recorded acceptance tests. All applicable repository access-boundary tests (unauthenticated, Student, Adviser, Admin, and query tampering) passed in Playwright-managed Chromium; Test E is not applicable because all supported roles are authorized.
-> **Next task:** Continue pending Phase 5 repository document-access acceptance.
+> **Latest confirmed commit:** `1dc27ac` — `test(repository): add Playwright acceptance coverage`
+> **Git state (2026-10-01):** Starting and ending commit is `1dc27ac` on `feature/development`. Six tracked files are modified and one Phase 4 Playwright spec is untracked; no commit was created. The source-of-truth progress documents were updated outside the repository.
+> **Current checkpoint:** Sprint 3I.9 Phase 4 closure and regression audit passed on 2026-10-01. Phase 4 is complete; the Phase 5 repository document-access acceptance remains the next task. Existing Phase 6 acceptance evidence is retained below.
+> **Next task:** Resume pending Phase 5 repository document-access acceptance. Do not treat this closure sprint as Phase 5 work.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -261,11 +261,23 @@ Important documented rules:
 - [x] Phase 4 closure checks complete for the agreed scope. Notification failure handling remains explicitly deferred and is not represented as verified.
 - [x] Proceed to Phase 5 — Research Repository.
 
+### Sprint 3I.9 — Phase 4 closure and regression audit
+- [x] `3I.8 Complete Review Cycle` — VERIFIED.
+- [x] `3I.9 Closure & Regression` — VERIFIED COMPLETE.
+- [x] Phase 4 — Adviser Review & Feedback — COMPLETE.
+- [ ] Phase 5 — Research Repository — NEXT (existing document-access acceptance remains pending).
+- [x] Full review/revision/approval cycle, version history, feedback association, notifications, authorization, role isolation, invalid operations, and PDF access verified. Detailed 3I.8 evidence is preserved in the progress source.
+- [x] Adviser detail now displays the submission status. Adviser PDF access now navigates the current tab to the authorized five-minute signed URL; opening a delayed popup was not reliable in Chromium.
+- [x] Added `tests/phase4-adviser-submission-status.spec.ts`; Chromium verified v1 `Revision Required`, v2 `Approved`, and the v2 private PDF response (HTTP 200, `application/pdf`, expected v2 storage path).
+- [x] `npm.cmd run build` passed (Next.js 16.2.9; 22 static pages); `npx.cmd tsc --noEmit`, `npx.cmd eslint .`, and `git diff --check` passed. A sandboxed build initially failed only when fetching Google Fonts; the network-enabled build passed.
+- [x] Starting/ending commit: `1dc27ac`. No commit created; implementation, regression test, and documentation changes remain uncommitted pending owner authorization.
+- [x] Notification delivery failure handling remains deferred per the prior owner decision; notification correctness, title content, and ownership were verified.
+
 ---
 
 ## 7. Later Roadmap (Confirm Exact Phase Numbering)
 
-### Phase 5 — Research Repository
+### Phase 5 — Research Repository — [ ] NEXT
 - [x] Inclusion rule confirmed for current implementation: Adviser-approved research and approved submission, followed by Admin publication.
 - [x] Metadata/access rules implemented: title, abstract, category, keywords, group/strand/section/school-year metadata; only authenticated system roles can browse; PDF downloads use server-authorized signed URLs.
 - [~] Repository association and Admin publish/unpublish flow implemented in code. Unique `(paper_id)` migration generated as `0009_repository_paper_unique.sql`; migration has **not** been applied to a database.
