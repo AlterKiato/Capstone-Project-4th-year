@@ -11,10 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Latest confirmed commit at Phase 6 audit:** `26d56d2` — `feat(dashboard): add temporary role navigation`
-> **Git state (2026-09-29):** Phase 6 implementation files are modified/untracked in the working tree; no Phase 6 commit was created. This progress update is also uncommitted.
-> **Current checkpoint:** Phase 6 — Search, Filtering & Discovery is implemented and build-validated. Direct database queries pass for all three sort modes after fixing Drizzle SQL aliases. Authenticated browser acceptance remains pending.
-> **Next task:** Run Phase 6 listing scenarios in an authenticated browser with a Student account and a sufficiently populated repository dataset; then continue pending Phase 5 document-access browser acceptance.
+> **Latest confirmed commit:** `82e63fd` — `feat(repository): add search and discovery`
+> **Git state (2026-09-30):** Working tree was clean after the Phase 6 commit; documentation updates are now uncommitted. The synthetic Phase 6 dataset remains in the local development database.
+> **Current checkpoint:** Phase 6 implementation is committed. Core listing and empty-state/Clear filters scenarios passed their recorded acceptance tests. All applicable repository access-boundary tests (unauthenticated, Student, Adviser, Admin, and query tampering) passed in Playwright-managed Chromium; Test E is not applicable because all supported roles are authorized.
+> **Next task:** Continue pending Phase 5 repository document-access acceptance.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -285,8 +285,10 @@ Important documented rules:
 - [x] Listing controls, filter choices, page navigation, active-query persistence, invalid-parameter fallback, and empty-state clearing implemented.
 - [x] Drizzle runtime query corrected: `sortDate` has SQL alias `sort_date`; repository and paper ID selections have distinct `repository_id` and `paper_id` aliases.
 - [x] Validation evidence: `npm.cmd run lint`, `npx.cmd tsc --noEmit`, `git diff --check`, and network-enabled `npm.cmd run build` passed. Direct database queries for newest, oldest, and title sorting each executed successfully. Search parameter checks for repeated, oversized, and invalid values passed.
-- [~] Authenticated browser acceptance remains pending: query behavior across populated search/filter combinations, first/last pagination pages, active-filter navigation, empty-state interaction, and Student access have not been browser-tested. The configured database currently has only one eligible published paper, insufficient for pagination and multi-value ordering scenarios.
-- [ ] Run the browser acceptance matrix using an authenticated Student session and a test dataset with more than 10 eligible papers; record actual results before marking Phase 6 complete.
+- [x] Manually tested and user-confirmed with an authenticated Student session and 11 eligible published papers: 10 results on page 1 and the remaining paper on page 2; searches in title, abstract, and keywords; category, school-year, and strand filters individually and combined; newest, oldest, and title A–Z sorting; search/filter state persistence while navigating pages.
+- [x] Playwright browser acceptance with the authenticated Student test account: unmatched search and a valid zero-result filter combination each show the empty message, zero results, no papers, and no pagination; Clear filters after no results and after partial criteria resets controls and restores the default 11-paper listing with 10 items on page 1 of 2. The cleared URL has no query parameters (the browser may retain a bare trailing `?`).
+- [x] Access-boundary browser acceptance: unauthenticated redirect, Student access, Adviser access, Admin access, and query-parameter tampering passed. Source review confirms all four roles (Admin, Adviser, Student, Panel) are permitted; Test E is not applicable because no restricted authenticated role exists.
+- **Test dataset:** Synthetic records marked `PHASE6_ACCEPTANCE_20260929` in local `localhost:5432/thesishs_ai`; no production or Supabase data used. Keep the dataset until acceptance testing and cleanup are explicitly requested.
 
 ### AI-Assisted Features
 **AI Chatbot Guide**
@@ -453,18 +455,51 @@ Before marking a feature complete:
 ## 12. Handoff Log
 
 ### Handoff — 2026-09-29 — Phase 6 Search, Filtering & Discovery
-- **Status:** Implementation complete in the working tree; authenticated browser acceptance pending. No commit created.
+- **Status:** Implementation was committed as `82e63fd`; core authenticated listing acceptance is now user-confirmed. Remaining empty-state and access-boundary checks are pending.
 - **Branch:** `feature/development`.
 - **Latest confirmed commit before this worktree diff:** `26d56d2` — `feat(dashboard): add temporary role navigation`.
-- **Working tree:** Phase 6 implementation files are modified/untracked, and this progress document is modified. No implementation files were changed while recording this handoff.
+- **Working tree at implementation handoff:** Phase 6 implementation and progress files were modified before commit; this handoff predates commit `82e63fd`.
 - **Files in the Phase 6 implementation diff:** `app/dashboard/repository/page.tsx`, `lib/repositories/repository.repository.ts`, `lib/services/repository.service.ts`, `lib/constants/repository.ts`, `lib/validations/repository.ts`, and `types/repository.ts`.
 - **Scope:** Search title/abstract/keywords; category, school-year, and strand filters; newest/oldest/title sorting; SQL-level 10-item pagination and count; stable tie-breakers; active criteria retained across page links; invalid URL values default safely; empty state includes Clear filters.
 - **Runtime issue and resolution:** The first authenticated browser report showed Drizzle rejecting `sortDate` because its raw SQL selection had no declared alias. The selected expression now has `.as("sort_date")`. A direct DB call then exposed ambiguous duplicate `id` names in the subquery SQL; the repository and paper IDs now have explicit `repository_id` and `paper_id` aliases. Published/approved predicates and authorization were not changed.
 - **Schema/storage:** No schema or migration change. Supabase document access and storage behavior were not changed.
 - **Validation:** `npm.cmd run lint`, `npx.cmd tsc --noEmit`, `git diff --check`, and network-enabled `npm.cmd run build` passed after the alias corrections. A direct DB query executed successfully for newest, oldest, and title sort modes; each returned one record. Search parameter validation checks for repeated values, oversized input, invalid sort, and invalid page passed.
-- **Browser acceptance:** Not completed. No browser executable or authenticated Student test session was available. The configured DB has one published paper meeting both approved-paper and approved-submission requirements, so it cannot exercise multi-page boundaries or varied filters/orderings. Unauthenticated HTTP requests redirected to `/login`; that does not verify an authenticated listing.
-- **Exact next action:** Use a valid Student browser session and a test dataset with more than 10 eligible papers to verify search fields, individual/combined filters, all ordering modes, first/last pages, persisted criteria, empty-state clearing, role boundaries, and document view/download. Record only executed results.
-- **Commit:** None. Do not commit until requested by the owner.
+- **Browser acceptance at implementation handoff:** Not completed at that time. The configured DB then had one eligible published paper, insufficient for pagination and varied filters/orderings; the acceptance update below records the later user-confirmed results after preparing a synthetic dataset.
+- **Acceptance update (2026-09-30):** User confirmed the manual browser tests passed for 10-per-page pagination with the remaining paper on page 2; title/abstract/keyword search; category, school-year, and strand filters individually and combined; newest/oldest/title A–Z sorting; and search/filter persistence during page navigation. Dataset marker: `PHASE6_ACCEPTANCE_20260929`; 11 eligible entries.
+- **Exact next action:** Verify no-results and Clear filters behavior, then test access boundaries. After Phase 6 acceptance is complete, continue the Phase 5 document-access browser matrix.
+
+### Handoff — 2026-09-30 — Phase 6 Functional Acceptance
+- **Status:** Core listing functionality is user-confirmed; empty-results/Clear filters A–D and access-boundary checks A, B, and F passed in Playwright-managed Chromium. Adviser/Admin checks remain not run.
+- **Commit:** `82e63fd` — `feat(repository): add search and discovery`.
+- **Test dataset:** 11 eligible synthetic published papers in the local development database, marked `PHASE6_ACCEPTANCE_20260929`. Dataset was not modified during documentation update.
+- **Passed (user-confirmed):** Pagination; title, abstract, and keyword search; category, school-year, and strand filters; combined filters; newest-first, oldest-first, and title A–Z sorting; search/filter persistence during page navigation.
+- **Passed (Playwright browser acceptance):** A unmatched search; B valid zero-result filter combination; C Clear filters after no results; D Clear partial criteria. Verified zero-result message/count, no result cards or pagination, reset controls, cleared query parameters, and restored default listing/pagination. The URL retained a bare trailing `?`, with no query parameters.
+- **Access boundary results and remaining Adviser/Admin tests:** See the following access-boundary handoff.
+- **Exact next action:** Complete Adviser/Admin browser checks if an approved local authentication mechanism becomes available, then resume Phase 5 repository document-access acceptance.
+- **Implementation commit:** `82e63fd` — `feat(repository): add search and discovery`.
+- **Documentation commit:** None; do not commit the progress updates unless requested by the owner.
+
+### Handoff — 2026-09-30 — Phase 6 Empty Results and Clear Filters Acceptance
+- **Status:** A–D passed in Playwright-managed Chromium using the authenticated Student test account.
+- **Browser test:** `tests/phase6-empty-results.manual.spec.ts`; run with `npx.cmd playwright test tests/phase6-empty-results.manual.spec.ts --project=chromium --headed`.
+- **Results:** A unmatched search and B valid zero-result category/school-year/strand combination showed the expected empty state, zero count, no paper cards, and no pagination. C clearing search after no results and D clearing partial search/category criteria reset controls and restored 11 papers, 10 on page 1 of 2.
+- **URL behavior:** Clear filters returned to `/dashboard/repository?`; the URL contains no query parameters. Assertions verify path and empty query parameter set.
+- **Data/schema:** The existing synthetic dataset was read only; no record, schema, or migration changes were made.
+- **Implementation changes:** None. Only the temporary Playwright acceptance spec was adjusted to authenticate from process environment variables and accept the empty-query URL semantics.
+- **Validation:** The targeted Chromium Playwright spec passed (1 test); `git diff --check` passed. No build was run because application code was unchanged.
+- **Pending:** Phase 6 unauthenticated and role-based access-boundary checks; then Phase 5 repository document-access browser acceptance.
+- **Commit:** None.
+
+### Handoff — 2026-09-30 — Phase 6 Access Boundary Acceptance
+- **Status:** A, B, C, D, and F passed; E is not applicable because all supported roles are explicitly authorized for repository access.
+- **Source model:** Listing and detail pages require authentication and allow Admin, Adviser, Student, and Panel. Panel Evaluation remains excluded. Unauthenticated requests redirect to `/login`; authenticated roles outside an allowed list would redirect to `/dashboard`.
+- **Eligibility:** SQL listing predicates require a published repository entry, approved research status, and at least one approved submission. URL filters cannot remove these predicates.
+- **Browser results:** A unauthenticated direct navigation redirected to `/login` without rendering repository content. B Student direct access showed 11 eligible papers and a title search returned results. F unsupported publication/status parameters, invalid sort, invalid page, and an unsupported limit did not change the eligible first-page titles/count; sort/page safely defaulted to newest/page 1.
+- **Role account availability:** A read-only query to the approved local `localhost:5432/thesishs_ai` database found active accounts for all roles (Admin 1, Adviser 2, Student 4, Panel 1). Student, Adviser, and Admin browser sign-ins succeeded using credentials passed at runtime; no credentials were written to files.
+- **Database:** Read-only account-count query only. No record, schema, or migration changes; synthetic dataset untouched.
+- **Validation:** The complete targeted spec passed in headed Chromium (5 tests); `git diff --check` passed. No application code changed; no build run.
+- **Pending:** Phase 5 repository document-access acceptance. Other pre-existing Phase 6 checklist items remain as recorded.
+- **Commit:** None.
 
 ### Handoff — 2026-09-28 — Repository document access fix
 - **Status:** Implementation complete; browser/runtime acceptance pending. Owner explicitly requested a commit while these checks remain unrun.
@@ -521,11 +556,11 @@ Only hashes explicitly confirmed in project history are listed here.
 1. Read this file first.
 2. Verify current `git status`, branch, and latest commit.
 3. Phase 4 closure is recorded complete; notification failure handling remains deferred.
-4. Continue Phase 6 authenticated browser acceptance; the Drizzle sort-date and duplicate-ID alias errors are fixed and all three sort queries ran successfully against the configured database.
-5. Use an authenticated Student account and a populated test dataset with more than 10 eligible papers to verify search, filters, sorting, pagination, empty-state clearing, and access boundaries.
-6. Then continue Phase 5 repository document-access acceptance from the 2026-09-28 handoff; do not treat build/lint as proof of Supabase document delivery.
+4. Phase 6 core authenticated search/filter/sort/pagination scenarios are user-confirmed passed on 11 eligible synthetic papers; no-results and Clear filters A–D passed in Playwright.
+5. Phase 6 access-boundary checks are complete for applicable roles; continue Phase 5 repository document-access acceptance and preserve the synthetic dataset until cleanup is explicitly requested.
+6. Then continue Phase 5 repository document-access acceptance from the 2026-09-28 handoff; do not treat build/lint as proof of document delivery.
 7. Do not apply migration `0009_repository_paper_unique.sql` until the intended database is confirmed and duplicate paper associations are checked.
 8. Do not commit uncommitted feature work until required acceptance tests pass and the project owner confirms.
 9. After a milestone, update the checkpoint and handoff with executed test evidence and confirmed commit hash.
 
-**Current next task: complete Phase 6 authenticated repository search/filter/sort/pagination browser acceptance.**
+**Current next task: continue Phase 5 repository document-access acceptance.**
