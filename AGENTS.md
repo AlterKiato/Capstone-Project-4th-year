@@ -11,8 +11,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Latest confirmed commit:** `1dc27ac` — `test(repository): add Playwright acceptance coverage`
-> **Git state (2026-10-01):** Starting and ending commit is `1dc27ac` on `feature/development`. Six tracked files are modified and one Phase 4 Playwright spec is untracked; no commit was created. The source-of-truth progress documents were updated outside the repository.
+> **Latest confirmed Phase 4 implementation commit:** `bc87caf` — `fix(review): close Phase 4 regression audit`
+> **Git state (2026-10-01):** Phase 4 fixes and regression test were committed as `bc87caf` on `feature/development`. The source-of-truth progress documents are in Downloads (outside this repository); this handoff update records the completed commit.
 > **Current checkpoint:** Sprint 3I.9 Phase 4 closure and regression audit passed on 2026-10-01. Phase 4 is complete; the Phase 5 repository document-access acceptance remains the next task. Existing Phase 6 acceptance evidence is retained below.
 > **Next task:** Resume pending Phase 5 repository document-access acceptance. Do not treat this closure sprint as Phase 5 work.
 >
@@ -270,7 +270,7 @@ Important documented rules:
 - [x] Adviser detail now displays the submission status. Adviser PDF access now navigates the current tab to the authorized five-minute signed URL; opening a delayed popup was not reliable in Chromium.
 - [x] Added `tests/phase4-adviser-submission-status.spec.ts`; Chromium verified v1 `Revision Required`, v2 `Approved`, and the v2 private PDF response (HTTP 200, `application/pdf`, expected v2 storage path).
 - [x] `npm.cmd run build` passed (Next.js 16.2.9; 22 static pages); `npx.cmd tsc --noEmit`, `npx.cmd eslint .`, and `git diff --check` passed. A sandboxed build initially failed only when fetching Google Fonts; the network-enabled build passed.
-- [x] Starting/ending commit: `1dc27ac`. No commit created; implementation, regression test, and documentation changes remain uncommitted pending owner authorization.
+- [x] Phase 4 implementation and regression test committed as `bc87caf` — `fix(review): close Phase 4 regression audit`.
 - [x] Notification delivery failure handling remains deferred per the prior owner decision; notification correctness, title content, and ownership were verified.
 
 ---
