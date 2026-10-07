@@ -2,8 +2,8 @@
 
 **Last reconciled:** 2026-10-07
 **Current branch:** `feature/development`
-**HEAD checkpoint:** `20c733f` — `feat(storage): secure submitted PDF access`
-**Working tree:** Phase 5.4 implementation/tests/handoff changes are uncommitted. No staging, commit/push, CI, or `.github/` changes.
+**HEAD checkpoint:** `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`
+**Working tree:** Phase 5.4 is committed locally; Phase 5.5 and Phase 5.6/5.7 implementation/tests/handoff changes are uncommitted. No staging, commit/push, CI, or `.github/` changes.
 
 > This file is the **current-state handoff document**. Treat the working tree as current source evidence and keep its uncommitted state explicit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-The current checkout is at `20c733f`; Phase 5.1/5.2 are complete and committed. Phase 5.3 is complete and runtime-accepted with its implementation committed. Phase 5.4 is runtime-accepted with uncommitted source/tests and documentation. Completion/documentation audit is complete; Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
+The current checkout is at `70b8fb4`; Phase 5.1/5.2 are complete and committed. Phase 5.3 is complete and runtime-accepted with its implementation committed. Phase 5.4 is complete and committed locally; Phase 5.5 source/tests and documentation are uncommitted. Completion/documentation audit is complete; Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
 
 ### Current phase status
 
@@ -25,8 +25,12 @@ The current checkout is at `20c733f`; Phase 5.1/5.2 are complete and committed. 
 | 5.1 | Document Storage Foundation | ✅ Complete and runtime-accepted |
 | 5.2 | Submission ↔ Document Integration | ✅ Complete and runtime-accepted (service-level, not browser-level) |
 | 5.3 | Secure Document Access | Complete and runtime-accepted; completion/documentation audit complete |
-| 5.4 | Repository Publication | Complete and runtime-accepted; completion/documentation audit complete; changes uncommitted |
-| 5.5 | Repository Document Access | Start-gated; not started |
+| 5.4 | Repository Publication | Complete and runtime-accepted; completion/documentation audit complete; committed locally |
+| 5.5 | Repository Document Access | Complete and runtime-accepted; completion/documentation audit complete; uncommitted |
+| 5.6 | End-to-End Verification & Security Audit | Complete; practical regression/security/cleanup PASS |
+| 5.7 | Documentation & Completion Audit | Complete |
+| 5 overall | Research Repository | Complete |
+| 6 | Search, Filtering & Discovery | Next start-gated task; no work started in this pass |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
 
 **Panel Evaluation:** excluded/deferred unless explicitly reopened.
@@ -40,11 +44,11 @@ The authoritative current checkpoint is:
 
 ```text
 branch: feature/development
-HEAD:   20c733f
-message: feat(storage): secure submitted PDF access
+HEAD:   70b8fb4
+message: docs(phase5): close Phase 5.4 acceptance
 ```
 
-Phase 5.1/5.2 implementation is committed in HEAD. Phase 5.3 is committed; Phase 5.4 source/tests and handoff changes are uncommitted.
+Phase 5.1/5.2 implementation is committed in HEAD. Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 source/tests and handoff changes are uncommitted.
 
 Before changing code, verify the actual checkout:
 
@@ -61,7 +65,7 @@ Do not restore historical work blindly. Inspect the current source first and re-
 
 ## 3. Phase 4 — Adviser Review & Feedback
 
-Phase 4 Adviser Review & Feedback remains complete. Phase 5.4 is the latest completed implementation milestone.
+Phase 4 Adviser Review & Feedback remains complete. Phase 5.5 is the latest runtime-accepted implementation milestone.
 
 ### Verified workflow
 
@@ -144,7 +148,7 @@ Already issued signed URLs may remain usable until their 300-second expiry after
 
 ### Phase 5.4 — Repository Publication — Complete and runtime accepted
 
-Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
+Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
 
 ---
 
@@ -228,7 +232,7 @@ Before implementation:
 3. Read `README.md`.
 4. Read `docs/ARCHITECTURE_UPDATED.md`.
 5. Read `docs/DATABASE (1).md` for database work.
-6. Inspect the actual repository and working tree; `20c733f` is HEAD, Phase 5.1/5.2 are committed, and Phase 5.3 is committed and Phase 5.4 work is uncommitted.
+6. Inspect the actual repository and working tree; `70b8fb4` is HEAD, Phase 5.1/5.2 are committed, and Phases 5.3/5.4 are committed and Phase 5.5 work is uncommitted.
 7. Check working-tree changes before modifying files.
 8. Do not discard unrelated working-tree changes.
 9. Do not commit without project-owner approval.
@@ -247,9 +251,9 @@ Every handoff should record:
 
 ## 10. Immediate Next Action
 
-Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
+Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
 
-Review the latest Phase 5.4 handoff and intended diff before the owner performs any manual commit/push. No staging or commit is authorized in this task.
+Review the latest Phase 5.5 handoff and intended diff before the owner performs any manual commit/push. No staging or commit is authorized in this task.
 
 
 ## Handoff — 2026-10-07 — Phase 5.3 Secure Document Access
@@ -359,3 +363,70 @@ This entry supersedes the pending live-acceptance status in the preceding Phase 
 - Known non-blocking risks: Storage verification holds the database transaction during a network request; objects may be deleted after publication; repository records dynamically resolve an approved submission. Phase 5.3 300-second bearer-URL and strict legacy-path limitations remain unchanged.
 - Recommended manual commit grouping: (1) `feat(repository): secure Admin publication` for the nine application/test files; (2) `docs(phase5): close Phase 5.4 acceptance` for the six documents. Existing migration 0009 is already tracked and unchanged. Exclude `.github/`, environment files, and generated artifacts. No staging, commit, or push performed.
 - Next start gate: **Phase 5.5 — Repository Document Access** requires explicit owner direction. Phase 5.5, CI, AI work, and unrelated refactors were not started.
+
+## Handoff — 2026-10-07 — Phase 5.5 Repository Document Access PASS
+
+- Recommendation: **PHASE 5.5 PASS**. Implementation and runtime acceptance complete. Branch/starting and ending HEAD: `feature/development`, `70b8fb4`. Phase 5.4 commits `a6bae0f` and `70b8fb4` remain intact, two commits ahead of the local origin tracking ref. No reset/rebase/amend/staging/commit/push or remote fetch performed.
+- Audit: Existing repository listing/details permit all four authenticated roles. Existing document controls/action/service and published/approved joins were retained, not blindly restored. Historical service lacked active DB account checks and duplicated weaker path validation; it logged raw errors. Repository rows reference papers, and approved documents resolve dynamically. Phase 5.3 submitted-document access remains separate and unchanged.
+- Implementation: Existing UI -> authenticated Server Action -> strict numeric paper ID/mode Zod validation -> dedicated server-only repository-document service -> existing published/approved repository lookup -> shared Phase 5.3 path validator and private-storage signer for 300 seconds. Service verifies an active account with database role Admin/Adviser/Student/Panel and persisted submission identity/paper/version metadata. Group ownership does not restrict published repository access. Client storage paths, roles, versions and submission IDs never select the object. Approved submission resolution has a stable ID tie-breaker. Generic safe failures; existing view/download controls now report success as well as pending/failure. Only the existing download counter changes; no public URLs or signed URLs in initial HTML.
+- Reuse: `isSubmissionDocumentPath`, `submissionDocumentIdSchema`, `createResearchDocumentSignedUrl` (existing default 300 seconds), published/approved database query, established synthetic PDF/login/cleanup acceptance patterns. Phase 5.3 service/action/storage helpers and Phase 5.4 publication services/constraints were not changed.
+- Schema/migrations: None required, created, changed, or applied. Existing migration 0009 remains applied only to the designated development/test DB; production/other environment states unverified.
+- Runtime command: Process-only `PHASE5_ACCEPTANCE_CONFIRMED=1`, `node --import tsx tests/phase5-repository-document.acceptance.cjs`. Guarded designated DB `localhost/thesishs_ai`, Supabase `cbkplqkkjuoglpimwmib.supabase.co`, private bucket `research-submissions`. Real network-enabled local production app and Chromium; synthetic fixtures only. Final runner exited 0.
+
+| Required acceptance | Result | Executed evidence |
+|---|---|---|
+| 1 Student published PDF | PASS | Service HTTP 200 PDF exact bytes and real Chromium download. |
+| 2 Adviser same PDF | PASS | Same approved-v2 bytes through service and real Chromium download. |
+| 3 Admin published PDF | PASS | Service and real Chromium download. |
+| 4 Panel published PDF | PASS | Established four-role repository rule verified; service/Chromium download, no evaluation features. |
+| 5 Unauthenticated denied | PASS | Actual anonymous Server Action replay redirected/denied; isolated action check also passed. |
+| 6 Unpublished denied | PASS | Service/action reject hidden publication; detail controls absent after unpublication. |
+| 7 Tampered identifiers denied | PASS | Invalid/malformed/nonexistent numeric/object/path identifiers rejected; only paper ID accepted, no client repository/submission selector. |
+| 8 Client path injection cannot redirect | PASS | Malformed mode/path rejected; extra path/version/submission/role arguments ignored and authoritative approved v2 signed. |
+| 9 Correct approved submission/version | PASS | DB lookup matches v2 ID/path; exact distinct v2 bytes retrieved. |
+| 10 Older/unapproved/revision version denied | PASS | Revision-v1 path injection cannot select v1; nonapproved/missing approved selection fails safely. |
+| 11 Expected PDF retrieval | PASS | HTTP 200, application/pdf, byte-for-byte uploaded-v2 match; Chromium View PDF HTTP 200 and four-role download byte match. |
+| 12 300-second lifetime | PASS | Actual signed JWT exp minus iat exactly 300 seconds; isolated signer arguments exactly 300. Real post-expiry retrieval was not repeated for Phase 5.5 (Phase 5.3 already runtime-verified it). |
+| 13 Public/unsigned storage denied | PASS | Both anonymous direct/public object requests returned HTTP 400. |
+| 14 Missing object safe | PASS | Valid bound nonexistent path yields generic failure with no URL. |
+| 15 Storage/signing failure safe | PASS | Process-local fetch fault injection, restored in finally; generic result, no path/sensitive detail. Isolated DB/storage failures also pass. |
+| 16 Publication state/timestamp preserved | PASS | Snapshots before/after successful document requests match; intentional unpublish test is separate. History/feedback unchanged. |
+| 17 Phase 5.3 intact | PASS | Authorized Student/Adviser submitted URLs; Admin/Panel/foreign Student/foreign Adviser denied. Existing isolated Phase 5.3 suite rerun PASS. |
+| 18 Phase 5.4 protections intact | PASS | Concurrent publication one winner/row, repeated publish rejected, direct duplicate DB insert denied. |
+
+- Browser: Real authenticated Server Action and View PDF passed; Student/Adviser/Admin/Panel downloads matched uploaded v2 bytes. Anonymous, manipulated requests, inactive account with stale session, and hidden publication denied. Foreign-group Student/Adviser repository service access works as intended while their submitted-document access is denied.
+- Regression: Student upload -> Adviser review -> Revision Required -> v2 -> Approved -> Admin publication -> authenticated repository PDF PASS. Submission/review exercised at service level; repository view/download exercised in Chromium.
+- Harness corrections: Sandboxed storage reachability failed before fixtures; network-enabled service/app retries succeeded. Initial token assertion used workstation wall clock; changed to exact issuer exp-iat lifetime. An unordered history snapshot produced an assertion failure after adding view coverage; fixed by ordering both snapshots by ID. No application defect or security weakening was found. Failed-run fixtures were cleaned by the runner.
+- Cleanup: All synthetic users/groups/papers/submissions/memberships/feedback/activity/notifications/repository rows and PDFs removed. Independent read-only marker and fixture/child-row counts were zero; synthetic storage prefixes empty. Temporary creation helper removed; intended unit/acceptance files retained. Local test app stopped. No real/production data or environment configuration changed.
+- Final checks: `npm.cmd run lint` PASS; `npx.cmd tsc --noEmit` PASS; `npx.cmd drizzle-kit check` PASS; `git diff --check` PASS. Sandboxed build failed only on Google Fonts; authorized network-enabled `npm.cmd run build` PASS (Next.js 16.2.9, TypeScript, 22 static pages). Both isolated document suites PASS.
+- Files: `app/dashboard/repository/[paperId]/DownloadRepositoryDocumentButton.tsx`, `lib/actions/repository.action.ts`, `lib/services/repository.service.ts`, `lib/services/repository-document.service.ts`, `lib/repositories/repository.repository.ts`, `lib/validations/repository-document.ts`, `tests/phase5-repository-document.unit.cjs`, `tests/phase5-repository-document.acceptance.cjs`, and the six source-of-truth documentation files.
+- Blocked/unverified: No required acceptance cases blocked. Phase 5.5 did not repeat the real expiry wait or verify other environments. Browser coverage targets repository documents, not the entire submission/review UI.
+- Remaining risks: Issued bearer URLs remain usable until their 300-second expiry after revocation/unpublication; strict legacy/nonconforming paths are rejected; storage can be deleted after signing/publication; approved document selection is dynamic. Phase 5.4 network request inside publication transaction remains unchanged. No schema migration needed.
+- Stop gate: Everything uncommitted/unstaged for owner review. No CI/.github changes, Phase 5.6, AI features, or unrelated refactors. Await explicit owner direction before the next phase.
+
+## Handoff — 2026-10-07 — Phase 5.5 Completion / Documentation Audit
+
+- Final result: **PHASE 5.5 COMPLETE**. Phases 5.1 through 5.5 are complete and runtime-accepted. All 18 required Phase 5.5 cases and independent database/storage cleanup are accepted and recorded in the preceding handoff. Live acceptance was reviewed, not rerun during this documentation audit; no fixtures were created.
+- Evidence reviewed: Chromium View PDF and Student/Adviser/Admin/Panel downloads PASS; expected PDF HTTP 200, application/pdf, exact uploaded-byte match. Anonymous, unpublished, inactive and manipulated requests denied; malformed metadata/missing objects and injected storage failures fail safely. Actual token exp - iat = 300 seconds. Phase 5.5 did not repeat the real expiry wait already runtime-verified in Phase 5.3. Submission -> Adviser approval -> Admin publication -> authenticated repository PDF regression PASS; history and Phase 5.3/5.4 protections preserved.
+- Authorization audit: Submission documents remain Student membership/Adviser ownership scoped (Admin/Panel denied). Published repository documents permit active database-backed Student/Adviser/Admin/Panel accounts, independently of group ownership, only for published approved research and its database-resolved approved submission. Shared Phase 5.3 ID/path validation, server-only private-storage signer, 300-second expiry and safe storage handling are reused. No application correctness defect found; application/test files unchanged during this audit.
+- Documentation reconciled: `AGENTS.md`, `README.md`, `docs/MASTER_CONTEXT_UPDATED.md`, `docs/SOURCE_OF_TRUTH_UPDATED.md`, `docs/ARCHITECTURE_UPDATED.md`, `docs/DATABASE (1).md`. Corrected stale Phase 5.4 working-tree descriptions and README's current .github status; named the Phase 5.6 gate, clarified role/access separation, expiry evidence and migration boundary. Earlier handoffs remain historical records.
+- Validation rerun in this audit: `npm.cmd run lint` PASS; `npx.cmd tsc --noEmit` PASS; `npx.cmd drizzle-kit check` PASS; `git diff --check` PASS. Sandboxed `npm.cmd run build` failed only fetching existing Google Fonts; authorized network-enabled retry PASS (Next.js 16.2.9, TypeScript, 22 static pages).
+- Schema/migrations: No Phase 5.5 changes, new migrations or migration applications. Existing 0009 remains applied only to the designated development/test database during Phase 5.4; production/other environments remain unverified. No environment configuration changed.
+- Git boundary: Branch `feature/development`, HEAD `70b8fb4`; Phase 5.4 commits `a6bae0f` and `70b8fb4` preserved without reset/rebase/amend/squash/cherry-pick/rewrite. Local origin tracking comparison remains zero behind/two ahead. Eight accepted application/test files and six documentation files comprise the working tree; nothing staged. No .github files appear in current Git status and that directory was untouched.
+- Known non-blocking limitations: Issued bearer URLs can remain usable until 300-second expiry after account revocation/unpublication; strict legacy/nonconforming paths are intentionally rejected; storage objects may be removed after publication; approved-document selection resolves dynamically. Submission/review regression is service-level; Chromium covered repository documents. No required acceptance blockers remain.
+- Recommended manual commits: (1) `feat(repository): secure published PDF access` for the eight application/test files listed in the preceding handoff; (2) `docs(phase5): close Phase 5.5 acceptance` for only the six documents. Exclude .github, environment files, migration/schema files and generated artifacts. Nothing staged, committed or pushed.
+- Next start gate: **Phase 5.6 — End-to-End Verification & Security Audit** requires explicit owner direction. Phase 5.6, CI, AI work and unrelated refactors were not started.
+
+## Handoff — 2026-10-07 — Phase 5.6 / 5.7 Final Verification and Closure
+
+- Results: **Phase 5.6 PASS; Phase 5.7 COMPLETE; PHASE 5 COMPLETE**. Proportional capstone verification, no new test framework or enterprise/load/security scanning. Earlier detailed acceptance evidence remains valid.
+- Command: Process-only `PHASE5_ACCEPTANCE_CONFIRMED=1` and `PHASE5_FINAL_VERIFICATION=1`, then `node --import tsx tests/phase5-repository-document.acceptance.cjs`. Reused existing guarded test runner with a reduced final-verification mode. Designated environment checks passed: localhost/thesishs_ai and confirmed test Supabase private research-submissions bucket. No configuration change or production/real student data.
+- Runtime PASS: Student PDF -> owned Adviser review -> Revision Required -> v2 -> approval -> Admin publication -> authenticated repository PDF. Approved resubmission blocked, foreign Adviser review denied, Student/Adviser/Panel publication denied, repeated publication rejected with one row. Submission/feedback history and publication timestamp/state preserved. No exhaustive concurrency retest.
+- Browser PASS: Authenticated Student followed repository listing title link to details; actual Server Action download matched exact uploaded v2 bytes; View PDF returned HTTP 200 application/pdf. Anonymous, unpublished, tampered and inactive-session requests denied. Submission/review/publication regression was service-level; browser focused on important repository navigation/documents rather than repeating every earlier UI case.
+- Security PASS: Server-side authentication and database-role/account checks, strict IDs/persisted path, Student/Adviser ownership-scoped submitted documents versus authenticated published repository access, private bucket and public/unsigned object HTTP 400, signed JWT exp - iat exactly 300. No public PDF URL introduced or secrets/internal errors returned by document access. Prior expiry wait/fault-injection coverage was reused, not repeated. No application defect found and no application code changed in this final pass.
+- Cleanup PASS: Runner removed all synthetic users/groups/papers/submissions/memberships/feedback/activity/notifications/repository rows/PDFs. Independent read-only marker and fixture-child counts zero; synthetic storage prefixes empty; existing UNIQUE(paper_id) intact. Existing unrelated/historical data preserved. Local test app stopped.
+- Static PASS: npm.cmd run lint; npx.cmd tsc --noEmit; npm.cmd run build (network-enabled retry; initial sandbox attempt failed only fetching Google Fonts); git diff --check; npx.cmd drizzle-kit check. Next.js 16.2.9 generated all 22 static pages.
+- Phase 5.7 reconciliation: Six source-of-truth docs updated only where stale. Phases 5.1 through 5.7 and Phase 5 overall complete; next start gate Phase 6 — Search, Filtering & Discovery. Earlier Phase 6 checklist/handoffs remain historical, not new work in this pass.
+- Files changed this pass: tests/phase5-repository-document.acceptance.cjs plus AGENTS.md, README.md, docs/MASTER_CONTEXT_UPDATED.md, docs/SOURCE_OF_TRUTH_UPDATED.md, docs/ARCHITECTURE_UPDATED.md, docs/DATABASE (1).md. Prior uncommitted Phase 5.5 changes preserved. Schema/migrations: none created/changed/applied; 0009 remains applied only to the designated development/test DB from Phase 5.4; production state unverified.
+- Known limitations, not blockers: Issued URLs remain usable until 300-second expiry after revocation/unpublication; storage objects may be removed after publication; strict legacy paths rejected; approved-document resolution dynamic. This verification supports the capstone delivery/demo, not enterprise production hardening.
+- Git/stop gate: HEAD 70b8fb4, Phase 5.4 commits a6bae0f/70b8fb4 untouched; everything unstaged/uncommitted. No Phase 6, CI, .github changes, AI work, reset/rebase/amend, commit or push. Suggested manual commits for accumulated work: feat(repository): secure published PDF access; test(phase5): verify capstone repository workflow; docs(phase5): close research repository phase.

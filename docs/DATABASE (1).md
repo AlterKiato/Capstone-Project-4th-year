@@ -2,9 +2,11 @@
 
 **Purpose:** Database/schema reference for AI agents and developers.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `20c733f` — `feat(storage): secure submitted PDF access`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; Phase 5.4 source/tests and documentation remain uncommitted.
+**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; Phase 5.4 is committed locally; Phase 5.5 source/tests and documentation remain uncommitted.
 
-No Phase 5.3 schema/migration changes were required, generated, or applied. `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
+No Phase 5.3 or Phase 5.5 schema/migration changes were required, generated, or applied. `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
+
+Phase 5.5 repository PDF access uses the existing published repository -> approved paper -> approved submission relationships; no schema changes. Active database-backed Student, Adviser, Admin and Panel accounts may access this published research independently of group ownership. Unpublished research is denied; persisted private paths must match the approved submission paper/version before server-side 300-second signing. This does not grant access to the separate Phase 5.3 ownership-scoped submitted documents. Migration 0009 remains development/test-only; production state is unverified.
 
 **Important:** The database document is a reference to the application's
 intended relational model. Always inspect the actual `db/schema/`,
@@ -456,3 +458,5 @@ Before changing the database:
 ------------------------------------------------------------------------
 
 **End of Database Reference**
+
+Phase 5.6 practical final verification and Phase 5.7 documentation closure passed: upload -> revision -> v2 -> approval -> Admin publication -> authenticated repository listing/detail/view/download, basic security, preserved history and independent synthetic cleanup. Phase 5.1 through 5.7 and Phase 5 overall are complete. No schema/migration changes in this final pass; existing 0009 remains development/test-only. Known limitations remain: issued URLs last until expiry; objects may be removed after publication; strict nonconforming paths are rejected; approved-document resolution is dynamic. This is capstone-level validation, not enterprise production hardening. Phase 6 is next; CI remains deferred.

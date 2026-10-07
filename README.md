@@ -17,9 +17,9 @@ milestones, blockers, testing evidence, roadmap status, and immediate
 next actions.
 
 **Current Git checkpoint (2026-10-07):** `feature/development`, HEAD
-`20c733f` — `feat(storage): secure submitted PDF access`. Phase
-5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 source/tests and handoff
-documentation remain uncommitted. `.github/` is unrelated and untracked.
+`70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase
+5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 source/tests and handoff
+documentation remain uncommitted. `.github/` is unrelated and untouched; current Git status reports no files there.
 Check `git status` before changing or staging files.
 
 ### `docs/ARCHITECTURE_UPDATED.md`
@@ -107,11 +107,13 @@ See `docs/MASTER_CONTEXT_UPDATED.md` for executed evidence.
 
 Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
 
-Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
+Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
 
 Publication requires an authenticated, active database Admin and validated identifiers. The service verifies approved research, an approved submission, its persisted paper/version path, and private object existence. A per-paper transaction row lock plus `UNIQUE (paper_id)` serialize requests and prevent duplicate rows; repeated publication preserves the original timestamp. All 14 Phase 5.4 cases and Chromium authorization coverage passed, including Student/Adviser/Panel/anonymous denial and safe database failure. The Student upload -> Adviser review -> Revision Required -> v2 -> Approved -> Admin publication regression passed with history and Phase 5.3 protections preserved. Synthetic database/storage fixtures were removed and independently checked. Detailed accepted evidence is recorded in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 Known non-blocking publication risks: storage verification holds the database transaction during a network request; an object can be deleted after publication; repository records dynamically resolve an approved submission. Production migration state is unverified.
+
+Phase 5.5 repository document access is complete and runtime-accepted: authenticated active Student, Adviser, Admin and Panel accounts are permitted through database-account checks, published/approved database eligibility, shared strict persisted paper/version path validation, and existing server-only 300-second signing. Chromium view/download, exact PDF retrieval, failure/denial checks, Phase 5.3/5.4 regression, and independent cleanup passed. No schema/migration changes. Actual signed-token lifetime was exactly 300 seconds (exp - iat); Phase 5.5 did not repeat the full expiry wait already verified in Phase 5.3. Repository eligibility is independent of group ownership and does not weaken the separate Phase 5.3 Student/Adviser ownership rules. Unpublished research is denied. Issued URLs remain bearer access until expiry, including after unpublication; legacy path validation remains strict. See the latest Phase 5.5 handoff in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 ## Critical Rules
 
@@ -165,3 +167,5 @@ owner explicitly asks to restore a reverted feature.
 ------------------------------------------------------------------------
 
 **End of Documentation Guide**
+
+Phase 5.6 practical final verification and Phase 5.7 documentation closure passed: upload -> revision -> v2 -> approval -> Admin publication -> authenticated repository listing/detail/view/download, basic security, preserved history and independent synthetic cleanup. Phase 5.1 through 5.7 and Phase 5 overall are complete. No schema/migration changes in this final pass; existing 0009 remains development/test-only. Known limitations remain: issued URLs last until expiry; objects may be removed after publication; strict nonconforming paths are rejected; approved-document resolution is dynamic. This is capstone-level validation, not enterprise production hardening. Phase 6 is next; CI remains deferred.
