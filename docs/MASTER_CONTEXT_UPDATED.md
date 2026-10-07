@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-07
+**Last reconciled:** 2026-10-08
 **Current branch:** `feature/development`
-**HEAD checkpoint:** `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`
-**Working tree:** Phase 5.4 is committed locally; Phase 5.5 and Phase 5.6/5.7 implementation/tests/handoff changes are uncommitted. No staging, commit/push, CI, or `.github/` changes.
+**HEAD checkpoint:** `482b112` ? `docs(phase5): close research repository phase`
+**Working tree:** Clean at start; lean Phase 6 discovery changes, focused acceptance test, and checkpoint docs are now uncommitted/unstaged. No commit/push, CI, or `.github/` changes.
 
 > This file is the **current-state handoff document**. Treat the working tree as current source evidence and keep its uncommitted state explicit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-The current checkout is at `70b8fb4`; Phase 5.1/5.2 are complete and committed. Phase 5.3 is complete and runtime-accepted with its implementation committed. Phase 5.4 is complete and committed locally; Phase 5.5 source/tests and documentation are uncommitted. Completion/documentation audit is complete; Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
+Phase 5 is complete and committed at `482b112`. The owner authorized a lean Phase 6 on 2026-10-08. Existing SQL discovery was already present and is reused; ordering is now newest-first only. Students and Advisers retain server-authorized discovery and Phase 5 detail/view/download behavior. Existing Admin/Panel repository access remains intact. See the latest handoff for executed evidence and scope. CI remains deferred. Do not stage, commit or push.
 
 ### Current phase status
 
@@ -26,11 +26,11 @@ The current checkout is at `70b8fb4`; Phase 5.1/5.2 are complete and committed. 
 | 5.2 | Submission ↔ Document Integration | ✅ Complete and runtime-accepted (service-level, not browser-level) |
 | 5.3 | Secure Document Access | Complete and runtime-accepted; completion/documentation audit complete |
 | 5.4 | Repository Publication | Complete and runtime-accepted; completion/documentation audit complete; committed locally |
-| 5.5 | Repository Document Access | Complete and runtime-accepted; completion/documentation audit complete; uncommitted |
+| 5.5 | Repository Document Access | Complete and runtime-accepted; completion/documentation audit complete; committed |
 | 5.6 | End-to-End Verification & Security Audit | Complete; practical regression/security/cleanup PASS |
 | 5.7 | Documentation & Completion Audit | Complete |
 | 5 overall | Research Repository | Complete |
-| 6 | Search, Filtering & Discovery | Next start-gated task; no work started in this pass |
+| 6 | Search, Filtering & Discovery | Lean implementation and focused runtime acceptance complete; see latest handoff |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
 
 **Panel Evaluation:** excluded/deferred unless explicitly reopened.
@@ -430,3 +430,19 @@ This entry supersedes the pending live-acceptance status in the preceding Phase 
 - Files changed this pass: tests/phase5-repository-document.acceptance.cjs plus AGENTS.md, README.md, docs/MASTER_CONTEXT_UPDATED.md, docs/SOURCE_OF_TRUTH_UPDATED.md, docs/ARCHITECTURE_UPDATED.md, docs/DATABASE (1).md. Prior uncommitted Phase 5.5 changes preserved. Schema/migrations: none created/changed/applied; 0009 remains applied only to the designated development/test DB from Phase 5.4; production state unverified.
 - Known limitations, not blockers: Issued URLs remain usable until 300-second expiry after revocation/unpublication; storage objects may be removed after publication; strict legacy paths rejected; approved-document resolution dynamic. This verification supports the capstone delivery/demo, not enterprise production hardening.
 - Git/stop gate: HEAD 70b8fb4, Phase 5.4 commits a6bae0f/70b8fb4 untouched; everything unstaged/uncommitted. No Phase 6, CI, .github changes, AI work, reset/rebase/amend, commit or push. Suggested manual commits for accumulated work: feat(repository): secure published PDF access; test(phase5): verify capstone repository workflow; docs(phase5): close research repository phase.
+
+## Handoff ? 2026-10-08 ? Phase 6 Lean Repository Discovery
+
+- Status: Complete for the owner-approved lean scope; focused runtime acceptance and static checks PASS.
+- Branch / starting and ending HEAD: `feature/development`, `482b112` ? `docs(phase5): close research repository phase`. Working tree was clean at start; all changes remain unstaged/uncommitted. No staging, commit, push, CI or `.github/` changes.
+- Inspection: Read current progress/source-of-truth/architecture docs, repository listing/detail/service/query/action/schema and Phase 5 tests; read installed Next.js 16.2.9 page/searchParams guide before editing. Historical Phase 6 discovery was already in HEAD, so no duplicate implementation was created.
+- Scope: Reuse title/abstract/keyword SQL ILIKE search with escaped wildcards, exact category/school-year/strand filters, count/limit/offset pagination at 10 per page, criteria-preserving links and existing empty/Clear filters state. Simplified ordering to newest first with stable paper-ID tie-breaker; removed the old sort selector/types/validation/branches. Obsolete URL sort values are ignored.
+- Authorization: Existing server-side requireRole runs before listing queries for Students and Advisers. Existing Phase 5 Admin/Panel archive access is preserved; no new evaluation or role semantics. Published row + approved paper + approved submission predicates remain required in SQL. Detail, publication, document actions, database account/role checks and private 300-second signing are unchanged.
+- Application files: `app/dashboard/repository/page.tsx`, `lib/repositories/repository.repository.ts`, `lib/validations/repository.ts`, `types/repository.ts`. Test: `tests/phase6-discovery.acceptance.cjs`. Docs: `AGENTS.md`, `README.md`, `docs/MASTER_CONTEXT_UPDATED.md`, `docs/SOURCE_OF_TRUTH_UPDATED.md`.
+- Schema/migrations/dependencies: None changed or applied. Existing 0009 remains development/test-only.
+- Runtime command: `node --import tsx tests/phase6-discovery.acceptance.cjs` PASS. Guarded localhost/thesishs_ai; reused existing PHASE6_ACCEPTANCE_20260929 synthetic discovery data and an existing published PDF. No database fixtures, publication changes, counters or storage objects were written/deleted.
+- Focused runtime evidence: Expected published paper returned for each supported search field; category filter returned expected IDs; all results matched independently queried eligibility and an unpublished paper title returned zero results; existing 11 eligible papers yielded 10 on page 1 and 1 on page 2 with no duplicates/omissions. Detail lookup matched the published title; Student and Adviser document services each retrieved actual private PDF HTTP 200/application/pdf with %PDF- header.
+- Regression command: `node --import tsx tests/phase5-repository-document.unit.cjs` PASS, including view/download action authorization and signing. No Phase 5 acceptance matrix, submission/publication cycle, browser acceptance, exhaustive filter combinations, new fixtures or expiry wait repeated. Fresh detail/PDF checks are service-level; download action is covered by the existing isolated regression, not a fresh browser download.
+- Static checks: `npx.cmd tsc --noEmit`, `npm.cmd run lint`, `npm.cmd run build` PASS (Next.js 16.2.9, 22 static pages); `git diff --check` PASS. Workspace sandbox setup failed before execution; approved elevated shell execution was used. No approval rejection occurred.
+- Known limits: Historical discovery fixtures use placeholder document paths; PDF regression uses an existing valid published paper. Acceptance runner intentionally requires the existing local dataset. Existing signed-URL/storage limitations remain as documented in Phase 5. No load testing or enterprise hardening.
+- Exact next action: Owner review of the unstaged lean Phase 6 diff. Any further phase/feature requires owner direction; do not commit or push.

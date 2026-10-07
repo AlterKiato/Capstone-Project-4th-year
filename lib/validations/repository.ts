@@ -7,7 +7,6 @@ const searchParamsSchema = z.object({
     category: z.string().trim().max(100).catch("").default(""),
     schoolYear: z.string().trim().max(20).catch("").default(""),
     strand: z.string().trim().max(50).catch("").default(""),
-    sort: z.enum(["newest", "oldest", "title"]).catch("newest").default("newest"),
     page: z.coerce.number().int().min(1).max(1_000_000).catch(1).default(1),
 });
 

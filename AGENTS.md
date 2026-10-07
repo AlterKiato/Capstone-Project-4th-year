@@ -11,10 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Current Git checkpoint (2026-10-07):** `feature/development` at `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`; preceding commit `a6bae0f` contains Phase 5.4 implementation. Both remain two commits ahead of origin and are preserved.
-> **Working tree:** Phase 5.4 is committed locally. Phase 5.5 and Phase 5.6/5.7 changes are uncommitted and unstaged. No CI or `.github/` modification.
-> **Current phase status:** Phase 5.1 through 5.7 are complete; Phase 5 overall is complete with capstone-level runtime/security checks and final static validation. Phase 5.1/5.2/5.3/5.4 are committed locally; Phase 5.5 and final verification/documentation remain uncommitted. Migration 0009 remains applied only to the designated development/test database.
-> **Next task:** Phase 6 — Search, Filtering & Discovery requires explicit owner direction. Phase 5 is complete. CI remains deferred. Do not stage, commit or push.
+> **Current Git checkpoint (2026-10-08):** `feature/development` at `482b112` ? `docs(phase5): close research repository phase`. Working tree was clean at the start of the lean Phase 6 pass.
+> **Working tree:** Lean Phase 6 discovery changes/tests/documentation are uncommitted and unstaged. No CI or `.github/` modification.
+> **Current phase status:** Phase 5 is complete and committed. Phase 6 reuses existing discovery with newest-first ordering; focused runtime checks passed. See the latest Phase 6 handoff in `docs/MASTER_CONTEXT_UPDATED.md` for final validation and limits. Migration 0009 remains development/test-only.
+> **Next task:** Owner review of lean Phase 6. CI remains deferred. Do not stage, commit or push.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -324,7 +324,7 @@ Already issued signed URLs may remain usable until their 300-second expiry after
 
 ### Phase 6 — Search, Filtering & Discovery — Next start-gated task
 
-The following checklist records earlier historical implementation/acceptance. No Phase 6 work started in this pass; recheck the current checkout when explicitly authorized to resume it.
+The owner authorized a lean pass on 2026-10-08. Existing discovery is reused with newest-first ordering only; focused runtime checks, lint, TypeScript and build passed. See the latest master-context handoff. The following checklist records earlier historical implementation/acceptance, including sorting modes now removed from the lean scope.
 - [x] Approved requirements confirmed: search title/abstract/keywords; category, school year, and strand filters; newest, oldest, and title A–Z sorting; 10 results per page; no-results state with Clear filters.
 - [x] Search and filters are validated and applied in SQL; published research with at least one approved submission remains required.
 - [x] Deterministic sort modes and stable tie-breakers implemented; database count and pagination are applied before returning results.

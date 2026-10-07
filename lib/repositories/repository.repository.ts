@@ -120,15 +120,6 @@ export async function findPublishedResearchPage(
     const pageCount = Math.ceil(total / REPOSITORY_PAGE_SIZE);
     const page = pageCount === 0 ? 1 : Math.min(criteria.page, pageCount);
 
-    let ordering;
-    if (criteria.sort === "oldest") {
-        ordering = [asc(publishedResearch.sortDate), asc(publishedResearch.paperId)];
-    } else if (criteria.sort === "title") {
-        ordering = [asc(sql`lower(${publishedResearch.title})`), asc(publishedResearch.paperId)];
-    } else {
-        ordering = [desc(publishedResearch.sortDate), desc(publishedResearch.paperId)];
-    }
-
     const items = total === 0
         ? []
         : await db
@@ -147,7 +138,7 @@ export async function findPublishedResearchPage(
                 viewCount: publishedResearch.viewCount,
             })
             .from(publishedResearch)
-            .orderBy(...ordering)
+            .orderBy(desc(publishedResearch.sortDate), desc(publishedResearch.paperId))
             .limit(REPOSITORY_PAGE_SIZE)
             .offset((page - 1) * REPOSITORY_PAGE_SIZE);
 

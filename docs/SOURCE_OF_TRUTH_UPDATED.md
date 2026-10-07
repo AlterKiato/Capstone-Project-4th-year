@@ -310,10 +310,7 @@ services. UI hiding is not access control.
     -   Category
     -   School year
     -   Strand
--   Sorting:
-    -   Newest
-    -   Oldest
-    -   Title A--Z
+-   Ordering: newest first only (owner-approved lean Phase 6, 2026-10-08)
 -   Pagination: 10 results per page
 -   Document access uses temporary server-generated signed URLs
 

@@ -16,7 +16,6 @@ function pageHref(criteria: RepositorySearchCriteria, page: number) {
     if (criteria.category) params.set("category", criteria.category);
     if (criteria.schoolYear) params.set("schoolYear", criteria.schoolYear);
     if (criteria.strand) params.set("strand", criteria.strand);
-    params.set("sort", criteria.sort);
     params.set("page", String(page));
     return `/dashboard/repository?${params.toString()}`;
 }
@@ -87,14 +86,6 @@ export default async function ResearchRepositoryPage({
                                 <option value={criteria.strand}>{criteria.strand}</option>
                             )}
                             {filterOptions.strands.map((value) => <option key={value} value={value}>{value}</option>)}
-                        </select>
-                    </label>
-                    <label>
-                        Sort by
-                        <select name="sort" defaultValue={criteria.sort} style={{ display: "block", width: "100%", marginTop: 4 }}>
-                            <option value="newest">Newest first</option>
-                            <option value="oldest">Oldest first</option>
-                            <option value="title">Title A–Z</option>
                         </select>
                     </label>
                 </div>
