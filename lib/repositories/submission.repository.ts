@@ -1,8 +1,28 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 
 import { submissions } from "@/db/schema";
+
+type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+const SUBMISSION_LOCK_NAMESPACE = 1296388936;
+
+/**
+ * Serializes submission version decisions for a paper. The lock is held
+ * until the callback commits or rolls back.
+ */
+export async function withPaperSubmissionLock<T>(
+    paperId: number,
+    operation: (tx: DbTransaction) => Promise<T>
+): Promise<T> {
+    return db.transaction(async (tx) => {
+        await tx.execute(
+            sql`select pg_advisory_xact_lock(${SUBMISSION_LOCK_NAMESPACE}, ${paperId})`
+        );
+
+        return operation(tx);
+    });
+}
 
 /**
  * Retrieves all submissions.
@@ -29,9 +49,10 @@ export async function findAllSubmissions() {
  * the complete submission/version history.
  */
 export async function findSubmissionsByPaperId(
-    paperId: number
+    paperId: number,
+    executor: typeof db | DbTransaction = db
 ) {
-    return await db
+    return await executor
         .select()
         .from(submissions)
         .where(
@@ -93,9 +114,10 @@ export async function findSubmissionById(
  * Creates a new submission record.
  */
 export async function createSubmission(
-    data: typeof submissions.$inferInsert
+    data: typeof submissions.$inferInsert,
+    executor: typeof db | DbTransaction = db
 ) {
-    const [submission] = await db
+    const [submission] = await executor
         .insert(submissions)
         .values(data)
         .returning();

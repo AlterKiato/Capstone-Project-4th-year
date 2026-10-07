@@ -7,16 +7,8 @@ import {
 } from "@/lib/repositories/adviser-submission.repository";
 
 import {
-    createFeedback,
+    persistAdviserDecision,
 } from "@/lib/repositories/feedback.repository";
-
-import {
-    updateSubmissionStatus,
-} from "@/lib/repositories/submission.repository";
-
-import {
-    updateResearchPaperStatus,
-} from "@/lib/repositories/research-paper.repository";
 
 import {
     findUserById,
@@ -37,10 +29,6 @@ import {
 import {
     RESEARCH_STATUS,
 } from "@/lib/constants/research-status";
-
-import {
-    logActivity,
-} from "@/lib/services/activity-log.service";
 
 import {
     ACTIVITY_ACTION,
@@ -173,96 +161,48 @@ export async function createAdviserFeedback(
         };
     }
 
-    const feedback =
-        await createFeedback({
-            submissionId,
-            teacherId: adviserId,
-            comments:
-                trimmedComments,
-            decision:
-                trimmedDecision,
-        });
-
-    if (!feedback) {
-        return {
-            success: false,
-            message:
-                "The feedback could not be saved.",
-        };
-    }
-
-    /**
-     * Synchronizes the submission and research
-     * status with the Adviser's review decision.
-     */
-    if (
+    const isRevisionRequired =
         trimmedDecision ===
-        SUBMISSION_STATUS.REVISION_REQUIRED
-    ) {
-        await updateSubmissionStatus(
-            submissionId,
-            SUBMISSION_STATUS.REVISION_REQUIRED
+        SUBMISSION_STATUS.REVISION_REQUIRED;
+    const activityAction = isRevisionRequired
+        ? ACTIVITY_ACTION.RESEARCH_SUBMISSION_REVISION_REQUIRED
+        : ACTIVITY_ACTION.RESEARCH_SUBMISSION_APPROVED;
+    const researchStatus = isRevisionRequired
+        ? RESEARCH_STATUS.REVISION_REQUIRED
+        : RESEARCH_STATUS.APPROVED;
+
+    // Persist feedback, statuses, and the activity entry atomically.
+    const feedback = await persistAdviserDecision({
+        submissionId,
+        paperId: submission.paperId,
+        teacherId: adviserId,
+        comments: trimmedComments,
+        decision: trimmedDecision,
+        expectedSubmissionStatus: SUBMISSION_STATUS.UNDER_REVIEW,
+        researchStatus,
+        activityAction,
+        activityDescription: isRevisionRequired
+            ? `Submission ${submission.version} for research paper ${submission.paperId} was marked for revision.`
+            : `Submission ${submission.version} for research paper ${submission.paperId} was approved.`,
+    });
+
+    const notificationResult = isRevisionRequired
+        ? await notifyStudentSubmissionRevisionRequired(
+            submission.submittedBy,
+            submission.version,
+            submission.researchTitle
+        )
+        : await notifyStudentSubmissionApproved(
+            submission.submittedBy,
+            submission.version,
+            submission.researchTitle
         );
 
-        await updateResearchPaperStatus(
-            submission.paperId,
-            RESEARCH_STATUS.REVISION_REQUIRED
+    if (!notificationResult.success) {
+        console.error(
+            `Failed to notify student about ${isRevisionRequired ? "revision-required decision" : "approval"}:`,
+            notificationResult.message
         );
-
-        await logActivity(
-            adviserId,
-            ACTIVITY_ACTION.RESEARCH_SUBMISSION_REVISION_REQUIRED,
-            `Submission ${submission.version} for research paper ${submission.paperId} was marked for revision.`
-        );
-        
-        const notificationResult =
-            await notifyStudentSubmissionRevisionRequired(
-                submission.submittedBy,
-                submission.version,
-                submission.researchTitle
-            );
-
-        if (!notificationResult.success) {
-            console.error(
-                "Failed to notify student about revision-required decision:",
-                notificationResult.message
-            );
-        }
-    }
-
-    if (
-        trimmedDecision ===
-        SUBMISSION_STATUS.APPROVED
-    ) {
-        await updateSubmissionStatus(
-            submissionId,
-            SUBMISSION_STATUS.APPROVED
-        );
-
-        await updateResearchPaperStatus(
-            submission.paperId,
-            RESEARCH_STATUS.APPROVED
-        );
-
-        await logActivity(
-            adviserId,
-            ACTIVITY_ACTION.RESEARCH_SUBMISSION_APPROVED,
-            `Submission ${submission.version} for research paper ${submission.paperId} was approved.`
-        );
-        const notificationResult =
-            await notifyStudentSubmissionApproved(
-                submission.submittedBy,
-                submission.version,
-                submission.researchTitle
-            );
-
-        if (!notificationResult.success) {
-            console.error(
-                "Failed to notify student about approval decision:",
-                notificationResult.message
-            );
-        }
-        
     }
 
     return {

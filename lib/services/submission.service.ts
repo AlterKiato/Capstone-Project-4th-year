@@ -2,6 +2,7 @@ import {
     findSubmissionsByPaperId,
     findSubmissionsByUserId,
     createSubmission,
+    withPaperSubmissionLock,
 } from "@/lib/repositories/submission.repository";
 
 import {
@@ -18,6 +19,7 @@ import {
 
 import {
     uploadResearchDocument,
+    deleteResearchDocument,
 } from "@/lib/services/storage.service";
 
 import {
@@ -106,9 +108,7 @@ export async function getSubmissionsByStudent(
  * Determines the next submission version number
  * from the highest existing version for the research paper.
  */
-async function getNextSubmissionVersion(paperId: number): Promise<string> {
-    const submissions = await findSubmissionsByPaperId(paperId);
-
+function getNextSubmissionVersion(submissions: ManagedSubmission[]): string {
     let highestVersion = 0;
 
     for (const submission of submissions) {
@@ -133,10 +133,8 @@ async function getNextSubmissionVersion(paperId: number): Promise<string> {
  * version number for a research paper.
  */
 async function getLatestSubmission(
-    paperId: number
+    submissions: ManagedSubmission[]
 ): Promise<ManagedSubmission | undefined> {
-    const submissions = await findSubmissionsByPaperId(paperId);
-
     let latestSubmission: ManagedSubmission | undefined;
     let highestVersion = 0;
 
@@ -242,88 +240,66 @@ export async function submitResearch(
         };
     }
 
-    /**
-     * Check the latest submission before
-     * allowing another version to be created.
-     */
-    const latestSubmission =
-        await getLatestSubmission(
-            paperId
-        );
-
-    /**
-     * No previous submission means this
-     * will be the initial version.
-     */
-    if (latestSubmission) {
-        /**
-         * A new version is only allowed when
-         * the Adviser has requested a revision.
-         */
-        if (
-            latestSubmission.status !==
-            SUBMISSION_STATUS.REVISION_REQUIRED
-        ) {
-            return {
-                success: false,
-                message:
-                    "A new submission version cannot be submitted until the current version has been reviewed and marked for revision.",
-            };
-        }
-    }
-
-    /*
-     * Generate the version before
-     * creating the Storage path.
-     */
-    const version =
-        await getNextSubmissionVersion(
-            paperId
-        );
-
+    let uploadedPath: string | undefined;
     try {
-        /*
-         * Upload the actual document to
-         * Supabase Storage.
-         */
-        const uploadedDocument =
-            await uploadResearchDocument(
-                file,
-                paperId,
-                version
-            );
+        const submission = await withPaperSubmissionLock(
+            paperId,
+            async (tx) => {
+                const existingSubmissions =
+                    await findSubmissionsByPaperId(paperId, tx);
+                const latestSubmission =
+                    await getLatestSubmission(existingSubmissions);
 
-        /*
-         * Save the returned Storage path
-         * in the database.
-         */
-        const submission =
-            await createSubmission({
-                paperId,
-                submittedBy: studentId,
-                version,
-                fileUrl:
-                    uploadedDocument.path,
-                remarks:
-                    remarks?.trim() ||
-                    null,
-                status:
-                    SUBMISSION_STATUS.SUBMITTED,
-            });
+                if (
+                    latestSubmission &&
+                    latestSubmission.status !==
+                        SUBMISSION_STATUS.REVISION_REQUIRED
+                ) {
+                    throw new Error(
+                        "A new submission version cannot be submitted until the current version has been reviewed and marked for revision."
+                    );
+                }
 
-            const notificationResult =
-                await notifyAdviserNewSubmission(
-                    group.adviserId,
-                    submission.version,
-                    paper.title
-                );
+                const version =
+                    getNextSubmissionVersion(existingSubmissions);
+                const uploadedDocument =
+                    await uploadResearchDocument(
+                        file,
+                        paperId,
+                        version
+                    );
+                uploadedPath = uploadedDocument.path;
 
-            if (!notificationResult.success) {
-                console.error(
-                    "Failed to notify adviser about new submission:",
-                    notificationResult.message
+                return createSubmission(
+                    {
+                        paperId,
+                        submittedBy: studentId,
+                        version,
+                        fileUrl: uploadedDocument.path,
+                        remarks: remarks?.trim() || null,
+                        status: SUBMISSION_STATUS.SUBMITTED,
+                    },
+                    tx
                 );
             }
+        );
+
+        // The database commit succeeded, so cleanup is no longer appropriate.
+        uploadedPath = undefined;
+
+        const notificationResult =
+            await notifyAdviserNewSubmission(
+                group.adviserId,
+                submission.version,
+                paper.title
+            );
+
+        if (!notificationResult.success) {
+            console.error(
+                "Failed to notify adviser about new submission:",
+                notificationResult.message
+            );
+        }
 
         return {
             success: true,
@@ -332,6 +308,17 @@ export async function submitResearch(
             data: submission,
         };
     } catch (error) {
+        if (uploadedPath) {
+            try {
+                await deleteResearchDocument(uploadedPath);
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to clean up research document after submission transaction failure:",
+                    cleanupError
+                );
+            }
+        }
+
         console.error(
             "Research submission failed:",
             error

@@ -49,23 +49,11 @@ export interface UploadedResearchDocument {
 function sanitizeFileName(
     fileName: string
 ): string {
-    const extensionIndex =
-        fileName.lastIndexOf(".");
-
-    const extension =
-        extensionIndex >= 0
-            ? fileName
-                  .slice(extensionIndex)
-                  .toLowerCase()
-            : "";
-
+    const pathSegments = fileName.split(/[\\/]/);
+    const baseFileName =
+        pathSegments[pathSegments.length - 1] ?? "";
     const baseName =
-        extensionIndex >= 0
-            ? fileName.slice(
-                  0,
-                  extensionIndex
-              )
-            : fileName;
+        baseFileName.replace(/\.pdf$/i, "");
 
     const sanitizedBaseName =
         baseName
@@ -83,13 +71,7 @@ function sanitizeFileName(
                 ""
             );
 
-    return (
-        (
-            sanitizedBaseName ||
-            "research-document"
-        ) +
-        extension
-    );
+    return `${sanitizedBaseName || "research-document"}.pdf`;
 }
 
 /**
@@ -132,6 +114,33 @@ export async function uploadResearchDocument(
     ) {
         throw new Error(
             "Only PDF research documents are currently accepted."
+        );
+    }
+
+    const fileHeader = new Uint8Array(
+        await file.slice(0, 5).arrayBuffer()
+    );
+    const hasPdfSignature =
+        fileHeader.length === 5 &&
+        fileHeader[0] === 0x25 && // %
+        fileHeader[1] === 0x50 && // P
+        fileHeader[2] === 0x44 && // D
+        fileHeader[3] === 0x46 && // F
+        fileHeader[4] === 0x2d; // -
+
+    if (!hasPdfSignature) {
+        throw new Error(
+            "The research submission file is not a valid PDF document."
+        );
+    }
+
+    if (
+        !Number.isSafeInteger(paperId) ||
+        paperId <= 0 ||
+        !/^v[1-9]\d*$/.test(version)
+    ) {
+        throw new Error(
+            "Invalid research document path."
         );
     }
 
@@ -200,7 +209,7 @@ export async function uploadResearchDocument(
  */
 export async function createResearchDocumentSignedUrl(
     storagePath: string,
-    expiresIn = 3600,
+    expiresIn = 300,
     options: { download?: boolean } = {}
 ): Promise<string> {
     if (!storagePath.trim()) {
