@@ -2,8 +2,8 @@
 
 **Last reconciled:** 2026-10-08
 **Current branch:** `feature/development`
-**HEAD checkpoint:** `482b112` ? `docs(phase5): close research repository phase`
-**Working tree:** Clean at start; lean Phase 6 discovery changes, focused acceptance test, and checkpoint docs are now uncommitted/unstaged. No commit/push, CI, or `.github/` changes.
+**HEAD checkpoint:** `435dc36` — `feat(repository): add lean search and discovery`
+**Working tree:** Phase 7 implementation, focused tests, closure docs and Phase 8.1 design docs remain uncommitted/unstaged. No commit/push, CI or `.github/` changes.
 
 > This file is the **current-state handoff document**. Treat the working tree as current source evidence and keep its uncommitted state explicit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-Phase 5 is complete and committed at `482b112`. The owner authorized a lean Phase 6 on 2026-10-08. Existing SQL discovery was already present and is reused; ordering is now newest-first only. Students and Advisers retain server-authorized discovery and Phase 5 detail/view/download behavior. Existing Admin/Panel repository access remains intact. See the latest handoff for executed evidence and scope. CI remains deferred. Do not stage, commit or push.
+Phase 5 and lean Phase 6 are complete in the verified checkout. Phase 7 — Administration & Reporting is fully complete, including final focused Chromium acceptance on 2026-10-08. All Phase 7 changes remain uncommitted/unstaged. Phase 8 is the next roadmap phase: AI-Assisted Features, beginning with AI Chatbot Guide scope/design from the documented AI feature order. Phase 8.1 scope/technical design is now proposed in docs/PHASE8_1_CHATBOT_GUIDE_DESIGN.md; Phase 8.2 implementation awaits owner approval. The chatbot is not implemented. CI and advanced reporting remain deferred. Do not stage, commit or push.
 
 ### Current phase status
 
@@ -31,6 +31,8 @@ Phase 5 is complete and committed at `482b112`. The owner authorized a lean Phas
 | 5.7 | Documentation & Completion Audit | Complete |
 | 5 overall | Research Repository | Complete |
 | 6 | Search, Filtering & Discovery | Lean implementation and focused runtime acceptance complete; see latest handoff |
+| 7 | Administration & Reporting | Complete; service/database/HTTP and final Chromium acceptance PASS |
+| 8 | AI-Assisted Features | Phase 8.1 design proposed; owner approval pending; chatbot and summarization not implemented |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
 
 **Panel Evaluation:** excluded/deferred unless explicitly reopened.
@@ -44,11 +46,11 @@ The authoritative current checkpoint is:
 
 ```text
 branch: feature/development
-HEAD:   70b8fb4
-message: docs(phase5): close Phase 5.4 acceptance
+HEAD:   435dc36
+message: feat(repository): add lean search and discovery
 ```
 
-Phase 5.1/5.2 implementation is committed in HEAD. Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 source/tests and handoff changes are uncommitted.
+Phase 5 and lean Phase 6 are committed in HEAD. Phase 7 implementation/tests/documentation are complete but uncommitted; prior handoffs retain their historical checkpoints.
 
 Before changing code, verify the actual checkout:
 
@@ -65,7 +67,7 @@ Do not restore historical work blindly. Inspect the current source first and re-
 
 ## 3. Phase 4 — Adviser Review & Feedback
 
-Phase 4 Adviser Review & Feedback remains complete. Phase 5.5 is the latest runtime-accepted implementation milestone.
+Phase 4 Adviser Review & Feedback remains complete. Phase 7 is the latest accepted milestone; see the final closure handoff.
 
 ### Verified workflow
 
@@ -152,20 +154,14 @@ Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; com
 
 ---
 
-## 5. Phase 6 and Phase 7 Context
+## 5. Current Phase 6 / Phase 7 Closure and Phase 8 Target
 
-The project handoff recorded prior Phase 6 and Phase 7 work separately from the current Phase 5 completion. Verify their source and acceptance status from the actual checkout before treating those milestones as current:
-
-### Phase 6 — Search, Filtering & Discovery
-Historical work included repository search/filter/sort/pagination, empty-state handling, access-boundary testing, and synthetic acceptance data.
-
-### Phase 7 — Administration & Reporting
-Historical work included dashboard/reporting metrics and an Admin reports page.
-
-Do not infer their implementation or acceptance state from this Phase 5.2 handoff.
+- Phase 6: Lean repository search/filter/pagination, newest-first ordering and focused runtime acceptance complete, committed at 435dc36.
+- Phase 7: Lean Admin reporting complete. Final Chromium acceptance verifies Admin navigation/rendering and Student direct-URL denial without runtime/rendering errors. Earlier unit/database/HTTP acceptance and static checks remain valid.
+- Phase 8: AI-Assisted Features is the next roadmap label, based on the next planned capabilities in AGENTS.md and SOURCE_OF_TRUTH_UPDATED.md section 11; those documents previously did not explicitly number Phase 8. Exact first target: AI Chatbot Guide scope/design — allowed topics, role-aware guidance, safe fallback, provider/model, privacy, usage/cost limits and server-only secrets. AI Research Summarization follows in the documented AI scope. Neither feature has been implemented or started in this closure.
+- Charts, exports, date-range analytics and comprehensive auditing remain deferred. CI remains deferred; Panel Evaluation remains excluded.
 
 ---
-
 ## 6. Stable Project Rules
 
 These rules remain applicable:
@@ -232,7 +228,7 @@ Before implementation:
 3. Read `README.md`.
 4. Read `docs/ARCHITECTURE_UPDATED.md`.
 5. Read `docs/DATABASE (1).md` for database work.
-6. Inspect the actual repository and working tree; `70b8fb4` is HEAD, Phase 5.1/5.2 are committed, and Phases 5.3/5.4 are committed and Phase 5.5 work is uncommitted.
+6. Inspect the actual repository and working tree; `435dc36` is HEAD, Phase 5 and lean Phase 6 are committed, and Phase 7 is complete but uncommitted.
 7. Check working-tree changes before modifying files.
 8. Do not discard unrelated working-tree changes.
 9. Do not commit without project-owner approval.
@@ -251,11 +247,7 @@ Every handoff should record:
 
 ## 10. Immediate Next Action
 
-Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
-
-Review the latest Phase 5.5 handoff and intended diff before the owner performs any manual commit/push. No staging or commit is authorized in this task.
-
-
+Phase 7 is fully complete. Phase 8.1 design is proposed in docs/PHASE8_1_CHATBOT_GUIDE_DESIGN.md. Owner approval of topic-driven scope, provider/model/privacy terms, spending ceiling and local versus shared usage limits is the next action before Phase 8.2. No chatbot implementation, staging, commit or push.
 ## Handoff — 2026-10-07 — Phase 5.3 Secure Document Access
 
 Historical implementation snapshot: pending statuses and next actions below were superseded by live acceptance and the completion audit.
@@ -446,3 +438,46 @@ This entry supersedes the pending live-acceptance status in the preceding Phase 
 - Static checks: `npx.cmd tsc --noEmit`, `npm.cmd run lint`, `npm.cmd run build` PASS (Next.js 16.2.9, 22 static pages); `git diff --check` PASS. Workspace sandbox setup failed before execution; approved elevated shell execution was used. No approval rejection occurred.
 - Known limits: Historical discovery fixtures use placeholder document paths; PDF regression uses an existing valid published paper. Acceptance runner intentionally requires the existing local dataset. Existing signed-URL/storage limitations remain as documented in Phase 5. No load testing or enterprise hardening.
 - Exact next action: Owner review of the unstaged lean Phase 6 diff. Any further phase/feature requires owner direction; do not commit or push.
+
+## Handoff — 2026-10-08 — Phase 7 Lean Administration & Reporting
+
+- Status: Implemented and verified for the authorized lean scope; ready for owner review/closure.
+- Branch / starting and ending HEAD: feature/development, 435dc36 (feat(repository): add lean search and discovery). Working tree clean at start; final changes unstaged/uncommitted. No staging, commit, push, CI or .github changes.
+- Actual checkout supersedes earlier rollback-era status: Phase 5 and lean Phase 6 are already committed. Reviewed current Admin routes, dashboard/service/repositories, role/session authorization, users/groups/papers/submissions/repository/activity schema, research-status constants and existing acceptance patterns. Read installed Next.js page and authentication guidance before editing.
+- Functionality: /dashboard/admin/reports now displays total users, all four role counts, total groups, total papers, four research workflow status counts, distinct published repository papers, and latest five activity actions with UTC ISO timestamps. Zero and Other buckets retained. All-account/all-group and paper-versus-submission status semantics explained on the page. Published count shares existing discovery eligibility and has no storage access or counter updates.
+- Architecture: Page -> existing dashboard service -> dashboard/repository repositories -> Drizzle/PostgreSQL. Existing Admin navigation already links Reports. Existing dashboard also benefits from service authorization and privacy-limited activity output; no Student/Adviser workflow modification.
+- Security: Reports page calls requireRole before service queries. Both reporting services derive identity from getSession and require an active database Admin; anonymous, Adviser/Student/Panel, stale Admin claims, inactive and missing accounts fail closed before metric/activity queries. Safe unavailable messages for database errors. No user details, free-text activity descriptions, IPs or private URLs returned by reporting. Queries are read-only.
+- Application files: app/dashboard/admin/reports/page.tsx; app/dashboard/admin/page.tsx; lib/services/dashboard.service.ts; lib/repositories/dashboard.repository.ts; lib/repositories/repository.repository.ts.
+- Tests: tests/phase7-reporting.unit.cjs; tests/phase7-reporting.acceptance.cjs. Documentation: AGENTS.md and docs/MASTER_CONTEXT_UPDATED.md.
+- Unit command: node --import tsx tests/phase7-reporting.unit.cjs PASS. Admin server-rendered page content, non-Admin/anonymous page redirects, no reporting reads on service denial, stale database roles/inactive/missing users, zero/unknown aggregation buckets and controlled failure state.
+- Live acceptance: node --import tsx tests/phase7-reporting.acceptance.cjs PASS against guarded localhost/thesishs_ai. Independent raw SQL verifies total/role/status/group/paper/distinct published counts, bounded deterministic recent activity/actions/timestamps and privacy-limited projections. Actual active Adviser/Student/Panel accounts denied including forged/stale Admin role claims. No fixtures or database/storage writes.
+- HTTP acceptance: process-only PHASE7_BASE_URL=http://127.0.0.1:3017 with the same runner PASS against temporary npm.cmd run start -- --hostname 127.0.0.1 --port 3017 production server. Valid signed Admin session receives HTTP 200 and correct metric content. Non-Admin roles redirect to /dashboard; anonymous redirects to /login. Stale Admin claims for real non-Admin users disclose no report data. No tokens/emails printed. Temporary server stopped. Browser visual acceptance not performed.
+- Regression: node --import tsx tests/phase5-repository-document.unit.cjs PASS. No full submission/publication matrix repeated; shared publication/discovery eligibility unchanged.
+- Final static checks: npm.cmd run lint PASS; npx.cmd tsc --noEmit PASS; npm.cmd run build PASS (Next.js 16.2.9, 22 static pages, Reports dynamic); git diff --check PASS.
+- Corrections during validation: raw SQL timestamp representation in acceptance normalized explicitly to UTC; initial count-helper criteria type error replaced by direct countDistinct with the existing eligibility predicate; PowerShell default file encoding parse failure corrected to UTF-8. Final reruns PASS. Initial sandbox helper failed before commands ran; auto-reviewed elevated shell used successfully, no approval rejection.
+- Schema/migrations/dependencies: None created, changed or applied. Migration 0009 remains development/test-only. Environment files unchanged.
+- Limits/deferred: Live counts are separate reads and may briefly differ during concurrent changes, not an atomic/historical snapshot. Recent activity covers only existing logged operations, not a complete audit stream. No charts, exports, advanced filters, date-range analytics or enterprise analytics/load testing. No Panel evaluation or AI features.
+- Exact next action: Owner review/close lean Phase 7. Keep all changes unstaged/uncommitted until explicitly authorized; CI and further features remain deferred.
+
+## Handoff — 2026-10-08 — Phase 7 Final Browser Acceptance and Closure
+
+- Final status: **PHASE 7 COMPLETE** for the approved lean Administration & Reporting scope. No reporting expansion or application bug fix was needed.
+- Branch / starting and ending HEAD: feature/development, 435dc36. Existing Phase 7 changes preserved; all changes remain unstaged/uncommitted. No commit/push.
+- Browser command: node --import tsx tests/phase7-reporting.browser.cjs PASS. One focused Playwright Chromium scenario against the existing production build on http://127.0.0.1:3017. Reused existing active local test Admin and Student accounts, existing createToken/session-cookie authentication and local test data; no account fixtures/password changes or database/storage writes.
+- Admin acceptance: normal browser navigation Dashboard -> Open Admin Dashboard -> Reports reaches /dashboard/admin/reports. Admin Reports, System Overview, Users by Role, Research Papers by Status and Recent System Activity headings visible; all four overview metric values visible; no unavailable message. Screenshot inspected: no obvious clipping, broken content or rendering errors. Observed totals: 8 users (Admin 1, Adviser 2, Student 4, Panel 1), 11 groups, 17 papers (Revision Required 3, Approved 14), 11 published eligible papers; five logged actions/timestamps visible. No pageerror, console errors or same-origin HTTP 5xx responses.
+- Non-Admin acceptance: existing Student opens the reports URL directly in Chromium and is redirected to /dashboard; no Admin Reports heading/content. Prior service/HTTP tests already covered Adviser and Panel denial, stale Admin claims, inactive/missing accounts and anonymous access; not repeated as a browser matrix.
+- Artifact: ignored .next/phase7-reporting-browser.png (visual evidence, no sensitive user data). Temporary production server stopped after acceptance. No environment-file edits or new dependencies.
+- Closure files changed: tests/phase7-reporting.browser.cjs, docs/MASTER_CONTEXT_UPDATED.md, AGENTS.md. Current checkpoints/status/next-action reconciled; previous handoffs preserved as historical evidence.
+- Validation this closure: focused Chromium acceptance PASS; npm.cmd run lint PASS; git diff --check PASS. Previous successful TypeScript/build/unit/SQL/HTTP/document-regression checks reviewed, not rerun because application code did not change. No schema/migrations changed or applied.
+- Deferred: charts, exports, date-range analytics, comprehensive auditing. Existing limits remain: separate live aggregate reads, latest five existing logged operations only, no historical/atomic report snapshot.
+- Exact next Phase 8 target: AI-Assisted Features, beginning with AI Chatbot Guide scope/design (topics, roles, fallback, provider/model, privacy, usage/cost limits, server-only secrets). This maps the next documented AI capabilities to Phase 8; earlier docs did not explicitly number that phase. AI Research Summarization remains the other planned AI capability. Neither started; await owner direction. CI remains deferred and Panel Evaluation excluded.
+
+## Handoff - 2026-10-08 - Phase 8.1 AI Chatbot Guide Design
+
+- Status: Scope/technical design proposal complete; owner approval pending. Chatbot/provider and summarization remain unimplemented.
+- Branch/starting and ending HEAD: feature/development, 435dc36. Pre-existing Phase 7 changes preserved; all changes unstaged/uncommitted.
+- Design: docs/PHASE8_1_CHATBOT_GUIDE_DESIGN.md. Role-filtered curated topic cards, static fallback and optional isolated AI explanations. No raw typed questions or research/user content sent to provider. Provisional Gemini Flash-family API recommendation; current model/pricing/terms unverified because web browsing was excluded.
+- Security: Session-derived identity plus active database role verification; no tools, agents, RAG, documents, workflow mutations or provider-generated links. No schema/migrations/dependencies/env changes. Local in-memory pilot limits explicitly insufficient for multi-instance Vercel; shared atomic counters required before public serverless enablement.
+- Evidence: Read-only Git/source/handoff inspection; installed Next.js Server Action guidance reviewed. Design-only documentation; no runtime tests/build or live-provider calls performed. git diff --check PASS; design file also reviewed for whitespace and required sections.
+- Files: docs/PHASE8_1_CHATBOT_GUIDE_DESIGN.md, AGENTS.md, docs/MASTER_CONTEXT_UPDATED.md.
+- Exact next action: Owner approves scope, provider/model/privacy/spend and limiter deployment choice, then explicitly authorizes Phase 8.2 implementation/testing. CI, Panel evaluation and summarization remain deferred. No commit/push.

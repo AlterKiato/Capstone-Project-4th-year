@@ -69,25 +69,23 @@ export async function countResearchPapers() {
 /**
  * Gets the most recent system activities.
  */
-export async function getRecentActivities(
-    limit = 5
-) {
-    return await db
-        .select({
-            id: activityLogs.id,
-            action: activityLogs.action,
-            description: activityLogs.description,
-            createdAt: activityLogs.createdAt,
+export async function getRecentActivities() {
+    // Deliberately omit actors, descriptions and IP addresses from oversight output.
+    return db.select({
+        id: activityLogs.id,
+        action: activityLogs.action,
+        createdAt: activityLogs.createdAt,
+    }).from(activityLogs)
+        .orderBy(desc(activityLogs.createdAt), desc(activityLogs.id))
+        .limit(5);
+}
 
-            userId: users.id,
-            firstName: users.firstName,
-            lastName: users.lastName,
-        })
-        .from(activityLogs)
-        .innerJoin(
-            users,
-            eq(activityLogs.userId, users.id)
-        )
-        .orderBy(desc(activityLogs.createdAt))
-        .limit(limit);
+export async function groupUsersByRole() {
+    return db.select({ roleId: users.roleId, count: count() })
+        .from(users).groupBy(users.roleId);
+}
+
+export async function groupPapersByStatus() {
+    return db.select({ status: researchPapers.status, count: count() })
+        .from(researchPapers).groupBy(researchPapers.status);
 }

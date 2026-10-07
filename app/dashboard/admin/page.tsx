@@ -117,23 +117,10 @@ export default async function AdminPage() {
                         {recentActivities.map(
                             (activity) => (
                                 <li key={activity.id}>
-                                    <strong>
-                                        {activity.firstName}{" "}
-                                        {activity.lastName}
-                                    </strong>
-
-                                    {" — "}
-
-                                    {activity.action}
-
-                                    {activity.description && (
-                                        <>
-                                            {": "}
-                                            {
-                                                activity.description
-                                            }
-                                        </>
-                                    )}
+                                    {activity.action}{" — "}
+                                    <time dateTime={activity.createdAt.toISOString()}>
+                                        {activity.createdAt.toISOString()}
+                                    </time>
                                 </li>
                             )
                         )}

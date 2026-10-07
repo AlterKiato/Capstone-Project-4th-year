@@ -1,112 +1,74 @@
+import "server-only";
+import { getSession } from "@/lib/auth/session";
+import { ROLE_IDS, ROLE_NAMES } from "@/lib/auth/roles";
+import { RESEARCH_STATUS } from "@/lib/constants/research-status";
+import { findUserById } from "@/lib/repositories/user.repository";
 import {
-    countUsers,
-    countUsersByRole,
-    countResearchGroups,
-    countResearchPapers,
-    getRecentActivities,
+    countUsers, countResearchGroups, countResearchPapers,
+    groupUsersByRole, groupPapersByStatus, getRecentActivities,
 } from "@/lib/repositories/dashboard.repository";
-
-import { ROLE_IDS } from "@/lib/auth/roles";
-
+import { countPublishedResearch } from "@/lib/repositories/repository.repository";
 import type { ServiceResult } from "@/types/auth";
 
-/**
- * Statistics displayed on the Admin Dashboard.
- */
 export interface AdminDashboardStats {
     totalUsers: number;
-
     totalStudents: number;
-
     totalAdvisers: number;
-
     totalGroups: number;
-
     totalResearchPapers: number;
+    totalPublishedPapers: number;
+    usersByRole: { role: string; count: number }[];
+    papersByStatus: { status: string; count: number }[];
 }
 
-/**
- * Retrieves statistics for the Admin Dashboard.
- */
-export async function getAdminDashboardStats(): Promise<
-    ServiceResult<AdminDashboardStats>
-> {
-    const [
-        totalUsers,
-        totalStudents,
-        totalAdvisers,
-        totalGroups,
-        totalResearchPapers,
-    ] = await Promise.all([
-        countUsers(),
-
-        countUsersByRole(
-            ROLE_IDS.STUDENT
-        ),
-
-        countUsersByRole(
-            ROLE_IDS.ADVISER
-        ),
-
-        countResearchGroups(),
-
-        countResearchPapers(),
-    ]);
-
-    return {
-        success: true,
-
-        message:
-            "Admin dashboard statistics retrieved successfully.",
-
-        data: {
-            totalUsers,
-
-            totalStudents,
-
-            totalAdvisers,
-
-            totalGroups,
-
-            totalResearchPapers,
-        },
-    };
+// Identity is read from the verified session; stale roles and inactive accounts are denied.
+async function isReportingAdmin() {
+    const session = await getSession();
+    if (!session || session.roleId !== ROLE_IDS.ADMIN ||
+        !Number.isSafeInteger(session.userId) || session.userId <= 0) return false;
+    const user = await findUserById(session.userId);
+    return Boolean(user?.isActive && user.roleId === ROLE_IDS.ADMIN);
 }
 
-/**
- * Activity information displayed on the Admin Dashboard.
- */
+const unavailable = { success: false, message: "Admin reporting is unavailable." } as const;
+
+export async function getAdminDashboardStats(): Promise<ServiceResult<AdminDashboardStats>> {
+    try {
+        if (!await isReportingAdmin()) return unavailable;
+        const [totalUsers, totalGroups, totalResearchPapers, totalPublishedPapers, roles, statuses] = await Promise.all([
+            countUsers(), countResearchGroups(), countResearchPapers(), countPublishedResearch(),
+            groupUsersByRole(), groupPapersByStatus(),
+        ]);
+        const roleCount = (id: number) => roles.find(row => row.roleId === id)?.count ?? 0;
+        const knownStatuses: string[] = Object.values(RESEARCH_STATUS);
+        return {
+            success: true, message: "Admin reporting retrieved successfully.",
+            data: {
+                totalUsers, totalGroups, totalResearchPapers, totalPublishedPapers,
+                totalStudents: roleCount(ROLE_IDS.STUDENT),
+                totalAdvisers: roleCount(ROLE_IDS.ADVISER),
+                usersByRole: [
+                    ...Object.entries(ROLE_NAMES).map(([id, role]) => ({ role, count: roleCount(Number(id)) })),
+                    { role: "Other", count: roles.filter(row => !ROLE_NAMES[row.roleId]).reduce((sum, row) => sum + row.count, 0) },
+                ],
+                papersByStatus: [
+                    ...knownStatuses.map(status => ({ status, count: statuses.find(row => row.status === status)?.count ?? 0 })),
+                    { status: "Other", count: statuses.filter(row => !knownStatuses.includes(row.status)).reduce((sum, row) => sum + row.count, 0) },
+                ],
+            },
+        };
+    } catch { return unavailable; }
+}
+
 export interface RecentActivity {
     id: number;
-
     action: string;
-
-    description: string | null;
-
     createdAt: Date;
-
-    userId: number;
-
-    firstName: string;
-
-    lastName: string;
 }
 
-/**
- * Retrieves recent system activities for the
- * Admin Dashboard.
- */
-export async function getAdminRecentActivities(): Promise<
-    ServiceResult<RecentActivity[]>
-> {
-    const activities = await getRecentActivities();
-
-    return {
-        success: true,
-
-        message:
-            "Recent activities retrieved successfully.",
-
-        data: activities,
-    };
+export async function getAdminRecentActivities(): Promise<ServiceResult<RecentActivity[]>> {
+    try {
+        if (!await isReportingAdmin()) return unavailable;
+        return { success: true, message: "Recent activities retrieved successfully.", data: await getRecentActivities() };
+    } catch { return unavailable; }
 }

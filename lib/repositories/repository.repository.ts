@@ -2,6 +2,7 @@ import {
     asc,
     and,
     count,
+    countDistinct,
     desc,
     eq,
     exists,
@@ -287,4 +288,14 @@ export async function incrementRepositoryDownloadCount(repositoryId: number) {
         .update(repositories)
         .set({ downloadCount: sql`${repositories.downloadCount} + 1` })
         .where(eq(repositories.id, repositoryId));
+}
+
+/** Counts distinct papers using the same eligibility rules as repository discovery. */
+export async function countPublishedResearch() {
+    const [result] = await db.select({ total: countDistinct(researchPapers.id) })
+        .from(repositories)
+        .innerJoin(researchPapers, eq(repositories.paperId, researchPapers.id))
+        .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
+        .where(publishedApprovedCondition());
+    return result?.total ?? 0;
 }

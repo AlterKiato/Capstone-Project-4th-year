@@ -11,10 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Current Git checkpoint (2026-10-08):** `feature/development` at `482b112` ? `docs(phase5): close research repository phase`. Working tree was clean at the start of the lean Phase 6 pass.
-> **Working tree:** Lean Phase 6 discovery changes/tests/documentation are uncommitted and unstaged. No CI or `.github/` modification.
-> **Current phase status:** Phase 5 is complete and committed. Phase 6 reuses existing discovery with newest-first ordering; focused runtime checks passed. See the latest Phase 6 handoff in `docs/MASTER_CONTEXT_UPDATED.md` for final validation and limits. Migration 0009 remains development/test-only.
-> **Next task:** Owner review of lean Phase 6. CI remains deferred. Do not stage, commit or push.
+> **Current Git checkpoint (2026-10-08):** `feature/development` at `435dc36` — `feat(repository): add lean search and discovery`. Clean working tree verified before Phase 7.
+> **Working tree:** Lean Phase 7 reporting changes/tests/documentation and Phase 8.1 design documentation are uncommitted and unstaged. No CI or `.github/` modification.
+> **Current phase status:** Phase 5 and lean Phase 6 are complete in the verified checkout. Lean Phase 7 is fully complete, including final Chromium browser acceptance; see the latest closure handoff in `docs/MASTER_CONTEXT_UPDATED.md`. Migration 0009 remains development/test-only.
+> **Next task:** Phase 8.1 design proposal is complete; see docs/PHASE8_1_CHATBOT_GUIDE_DESIGN.md. Phase 8.2 implementation awaits owner approval of scope/provider/usage controls; chatbot is not implemented. CI and advanced reporting remain deferred. Do not stage, commit or push.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -336,8 +336,21 @@ The owner authorized a lean pass on 2026-10-08. Existing discovery is reused wit
 - [x] Access-boundary browser acceptance: unauthenticated redirect, Student access, Adviser access, Admin access, and query-parameter tampering passed. Source review confirms all four roles (Admin, Adviser, Student, Panel) are permitted; Test E is not applicable because no restricted authenticated role exists.
 - **Test dataset:** Synthetic records marked `PHASE6_ACCEPTANCE_20260929` in local `localhost:5432/thesishs_ai`; no production or Supabase data used. Keep the dataset until acceptance testing and cleanup are explicitly requested.
 
-### AI-Assisted Features
+### Phase 7 — Administration & Reporting — Complete
+
+- [x] Existing Admin Reports placeholder replaced with a read-only overview; dashboard services now enforce session-derived identity and an active database Admin role.
+- [x] Counts: all users with Admin/Adviser/Student/Panel breakdown; all research groups; all research papers with Draft/In Review/Revision Required/Approved breakdown; zero and Other buckets retained.
+- [x] Distinct published paper count reuses repository eligibility: published entry, approved paper, approved submission. No storage access, counters or document URLs.
+- [x] Latest five recorded activity actions/timestamps, deterministic timestamp/ID ordering; actor details, descriptions and IP addresses omitted from reporting and the existing dashboard activity output.
+- [x] Focused unit/rendering, read-only local database aggregation and actual production HTTP access checks PASS. Anonymous and non-Admin redirects, stale database roles, inactive/missing accounts and safe errors covered.
+- [x] Lint, TypeScript, production build, existing repository-document isolated regression and diff checks PASS. No schema/migration/dependency changes, fixtures, commits or pushes.
+- [x] Final focused Chromium browser acceptance PASS: existing Admin navigates Dashboard -> Admin Dashboard -> Reports; all implemented sections/metrics visible; screenshot inspected with no obvious rendering issues; no page/console/HTTP 5xx errors. Existing Student direct reports URL redirects to /dashboard without report content.
+- Limits: Live counts use separate reads, not a historical or transaction-consistent snapshot. Activity includes only existing logged operations. Charts, exports, date-range analytics and comprehensive auditing remain deferred.
+- Exact next action: Phase 8.1 design proposal recorded; await owner approval and Phase 8.2 authorization. Phase 7 is closed and remains uncommitted.
+
+### Phase 8 — AI-Assisted Features — Phase 8.1 design proposed; implementation not started
 **AI Chatbot Guide**
+- [x] Phase 8.1 scope/technical design proposal recorded in docs/PHASE8_1_CHATBOT_GUIDE_DESIGN.md (2026-10-08); owner approval pending. No chatbot/provider implementation. The following implementation/acceptance items remain open.
 - [ ] Define allowed topics, role-aware behavior, and safe fallback.
 - [ ] Document provider/model, privacy, cost/usage limits, and secrets handling.
 - [ ] Keep it assistive; no review/approval decisions.
