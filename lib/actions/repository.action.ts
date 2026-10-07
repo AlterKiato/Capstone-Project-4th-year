@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { repositoryDocumentRequestSchema } from "@/lib/validations/repository-document";
 
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
@@ -14,7 +14,6 @@ import {
 import { publicationIdSchema, publicationStateSchema } from "@/lib/validations/repository-publication";
 import type { PublicationResult } from "@/lib/services/repository-publication.service";
 
-const idSchema = z.coerce.number().int().positive().safe();
 const repositoryRoles = [
     ROLE_IDS.ADMIN,
     ROLE_IDS.ADVISER,
@@ -50,17 +49,12 @@ function refreshRepository() {
     revalidatePath("/dashboard/repository", "layout");
 }
 
-const documentRequestSchema = z.object({
-    paperId: idSchema,
-    mode: z.enum(["view", "download"]),
-});
-
 export async function getRepositoryDocumentUrlAction(
     paperIdInput: unknown,
     modeInput: unknown
 ) {
-    await requireRole(repositoryRoles);
-    const parsed = documentRequestSchema.safeParse({
+    const session = await requireRole(repositoryRoles);
+    const parsed = repositoryDocumentRequestSchema.safeParse({
         paperId: paperIdInput,
         mode: modeInput,
     });
@@ -74,6 +68,7 @@ export async function getRepositoryDocumentUrlAction(
 
     return createPublishedResearchDocumentUrl(
         parsed.data.paperId,
-        parsed.data.mode
+        parsed.data.mode,
+        session.userId
     );
 }

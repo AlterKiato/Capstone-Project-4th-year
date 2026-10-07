@@ -278,7 +278,7 @@ export async function findPublishedRepositoryEntry(paperId: number) {
             eq(researchPapers.status, RESEARCH_STATUS.APPROVED),
             eq(submissions.status, SUBMISSION_STATUS.APPROVED)
         ))
-        .orderBy(desc(submissions.submittedAt))
+        .orderBy(desc(submissions.submittedAt), desc(submissions.id))
         .limit(1);
 
     return entry;
