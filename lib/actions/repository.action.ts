@@ -11,6 +11,9 @@ import {
     updateResearchPublication,
 } from "@/lib/services/repository.service";
 
+import { publicationIdSchema, publicationStateSchema } from "@/lib/validations/repository-publication";
+import type { PublicationResult } from "@/lib/services/repository-publication.service";
+
 const idSchema = z.coerce.number().int().positive().safe();
 const repositoryRoles = [
     ROLE_IDS.ADMIN,
@@ -19,25 +22,32 @@ const repositoryRoles = [
     ROLE_IDS.PANEL,
 ] as const;
 
-export async function publishRepositoryPaperAction(formData: FormData) {
-    await requireRole([ROLE_IDS.ADMIN]);
-    const parsed = idSchema.safeParse(formData.get("paperId"));
-    if (!parsed.success) return;
-
-    await publishApprovedResearch(parsed.data);
-    revalidatePath("/dashboard/admin/repository");
-    revalidatePath("/dashboard/repository");
+export async function publishRepositoryPaperAction(previous: PublicationResult, formData: FormData): Promise<PublicationResult> {
+    void previous;
+    const session = await requireRole([ROLE_IDS.ADMIN]);
+    if (!(formData instanceof FormData)) return { success: false, message: "The publication request is invalid." };
+    const parsed = publicationIdSchema.safeParse(formData.get("paperId"));
+    if (!parsed.success) return { success: false, message: "The publication request is invalid." };
+    const result = await publishApprovedResearch(parsed.data, session.userId);
+    if (result.success) refreshRepository();
+    return result;
 }
 
-export async function updateRepositoryPublicationAction(formData: FormData) {
-    await requireRole([ROLE_IDS.ADMIN]);
-    const parsedId = idSchema.safeParse(formData.get("repositoryId"));
-    const publish = formData.get("publish") === "true";
-    if (!parsedId.success) return;
+export async function updateRepositoryPublicationAction(previous: PublicationResult, formData: FormData): Promise<PublicationResult> {
+    void previous;
+    const session = await requireRole([ROLE_IDS.ADMIN]);
+    if (!(formData instanceof FormData)) return { success: false, message: "The publication request is invalid." };
+    const id = publicationIdSchema.safeParse(formData.get("repositoryId"));
+    const state = publicationStateSchema.safeParse(formData.get("publish"));
+    if (!id.success || !state.success) return { success: false, message: "The publication request is invalid." };
+    const result = await updateResearchPublication(id.data, state.data, session.userId);
+    if (result.success) refreshRepository();
+    return result;
+}
 
-    await updateResearchPublication(parsedId.data, publish);
+function refreshRepository() {
     revalidatePath("/dashboard/admin/repository");
-    revalidatePath("/dashboard/repository");
+    revalidatePath("/dashboard/repository", "layout");
 }
 
 const documentRequestSchema = z.object({

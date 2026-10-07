@@ -1,3 +1,5 @@
+import { isSubmissionDocumentPath } from "@/lib/validations/submission-document";
+import { isActivePublicationAdmin } from "@/lib/services/repository-publication.service";
 import {
     findApprovedPapersForRepository,
     findRepositoryManagementEntries,
@@ -6,31 +8,27 @@ import {
     findPublishedResearchPage,
     incrementRepositoryDownloadCount,
     incrementRepositoryViewCount,
-    publishApprovedPaper,
-    setRepositoryPublished,
 } from "@/lib/repositories/repository.repository";
 import { createResearchDocumentSignedUrl } from "@/lib/services/storage.service";
 import type { RepositorySearchCriteria } from "@/types/repository";
 
-export async function getRepositoryManagementData() {
-    const [eligiblePapers, repositoryEntries] = await Promise.all([
-        findApprovedPapersForRepository(),
-        findRepositoryManagementEntries(),
-    ]);
-
-    return { eligiblePapers, repositoryEntries };
+export async function getRepositoryManagementData(userId: number) {
+    try {
+        if (!await isActivePublicationAdmin(userId)) return null;
+        const [candidates, repositoryEntries] = await Promise.all([
+            findApprovedPapersForRepository(), findRepositoryManagementEntries(),
+        ]);
+        const eligiblePapers = candidates
+            .filter(paper => isSubmissionDocumentPath(paper.fileUrl, paper.paperId, paper.version))
+            .map(({ paperId, title, groupName, createdAt }) => ({ paperId, title, groupName, createdAt }));
+        return { eligiblePapers, repositoryEntries };
+    } catch {
+        console.error("Repository management could not be retrieved.");
+        return null;
+    }
 }
 
-export async function publishApprovedResearch(paperId: number) {
-    return publishApprovedPaper(paperId);
-}
-
-export async function updateResearchPublication(
-    repositoryId: number,
-    isPublished: boolean
-) {
-    return setRepositoryPublished(repositoryId, isPublished);
-}
+export { publishResearch as publishApprovedResearch, changeResearchPublication as updateResearchPublication } from "@/lib/services/repository-publication.service";
 
 export async function getPublishedResearch(criteria: RepositorySearchCriteria) {
     return findPublishedResearchPage(criteria);

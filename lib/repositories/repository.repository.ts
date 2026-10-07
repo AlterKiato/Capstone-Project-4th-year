@@ -188,11 +188,13 @@ export async function findPublishedRepositoryFilterOptions() {
 
 export async function findApprovedPapersForRepository() {
     return db
-        .select({
+        .selectDistinctOn([researchPapers.id], {
             paperId: researchPapers.id,
             title: researchPapers.title,
             groupName: researchGroups.groupName,
             createdAt: researchPapers.createdAt,
+            version: submissions.version,
+            fileUrl: submissions.fileUrl,
         })
         .from(researchPapers)
         .innerJoin(
@@ -212,7 +214,7 @@ export async function findApprovedPapersForRepository() {
             eq(submissions.status, SUBMISSION_STATUS.APPROVED),
             isNull(repositories.id)
         ))
-        .orderBy(desc(researchPapers.updatedAt));
+        .orderBy(researchPapers.id, desc(submissions.submittedAt), desc(submissions.id));
 }
 
 export async function findRepositoryManagementEntries() {
@@ -280,74 +282,6 @@ export async function findPublishedRepositoryEntry(paperId: number) {
         .limit(1);
 
     return entry;
-}
-
-export async function publishApprovedPaper(paperId: number) {
-    const [paper] = await db
-        .select({ id: researchPapers.id })
-        .from(researchPapers)
-        .innerJoin(
-            submissions,
-            eq(submissions.paperId, researchPapers.id)
-        )
-        .where(and(
-            eq(researchPapers.id, paperId),
-            eq(researchPapers.status, RESEARCH_STATUS.APPROVED),
-            eq(submissions.status, SUBMISSION_STATUS.APPROVED)
-        ));
-    if (!paper) return null;
-
-    const [created] = await db
-        .insert(repositories)
-        .values({
-            paperId,
-            isPublished: true,
-            publishedAt: new Date(),
-        })
-        .onConflictDoUpdate({
-            target: repositories.paperId,
-            set: { isPublished: true, publishedAt: new Date() },
-        })
-        .returning();
-    return created;
-}
-
-export async function setRepositoryPublished(
-    repositoryId: number,
-    isPublished: boolean
-) {
-    const eligibilityQuery = db
-        .select({ id: repositories.id })
-        .from(repositories);
-
-    const [entry] = isPublished
-        ? await eligibilityQuery
-            .innerJoin(
-                researchPapers,
-                eq(repositories.paperId, researchPapers.id)
-            )
-            .innerJoin(
-                submissions,
-                eq(submissions.paperId, researchPapers.id)
-            )
-            .where(and(
-                eq(repositories.id, repositoryId),
-                eq(researchPapers.status, RESEARCH_STATUS.APPROVED),
-                eq(submissions.status, SUBMISSION_STATUS.APPROVED)
-            ))
-        : await eligibilityQuery
-            .where(eq(repositories.id, repositoryId));
-    if (!entry) return null;
-
-    const [updated] = await db
-        .update(repositories)
-        .set({
-            isPublished,
-            publishedAt: isPublished ? new Date() : null,
-        })
-        .where(eq(repositories.id, repositoryId))
-        .returning();
-    return updated;
 }
 
 export async function incrementRepositoryViewCount(repositoryId: number) {
