@@ -11,10 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Project:** ThesiSHS AI — Thesis Evaluation and Repository Project  
 > **Last confirmed branch:** `feature/development`
-> **Latest confirmed Phase 4 implementation commit:** `bc87caf` — `fix(review): close Phase 4 regression audit`
-> **Git state (2026-10-01):** Phase 4 fixes and regression test were committed as `bc87caf` on `feature/development`. The source-of-truth progress documents are in Downloads (outside this repository); this handoff update records the completed commit.
-> **Current checkpoint:** Sprint 3I.9 Phase 4 closure and regression audit passed on 2026-10-01. Phase 4 is complete; the Phase 5 repository document-access acceptance remains the next task. Existing Phase 6 acceptance evidence is retained below.
-> **Next task:** Resume pending Phase 5 repository document-access acceptance. Do not treat this closure sprint as Phase 5 work.
+> **Current Git checkpoint (2026-10-07):** `feature/development` at `73ca174` — `docs(progress): record Phase 4 audit commit`.
+> **Working tree:** Phase 5.1/5.2 implementation changes are present but uncommitted, alongside existing documentation and `.github/` changes. This handoff commit must include only the six requested documentation files; preserve the other changes.
+> **Current phase status:** Phase 5.1 Document Storage Foundation and Phase 5.2 Submission ↔ Document Integration are complete and runtime-accepted. Phase 5.2 acceptance was service-level, not browser-level. Phase 5.2 required no schema or migration changes. Migration `0009_repository_paper_unique.sql` was not applied.
+> **Next task:** Phase 5.3 is the next start-gated task. Do not begin it or CI until explicitly directed. The Phase 4 closure's notification-failure deferral remains scoped to that Phase 4 audit; Phase 5.2 post-commit notification failure was separately runtime-verified.
 >
 > **Accuracy note:** Re-check `git status` and `git log -1 --oneline` before continuing. Items marked planned or needs verification are not confirmed complete.
 
@@ -258,26 +258,36 @@ Important documented rules:
 - [x] `npm.cmd run build` passed on 2026-09-27 after removing literal merge markers from the in-progress Admin Repository page; Next.js 16.2.9 compiled, TypeScript completed, and all 22 static pages generated.
 - [x] `npm.cmd run lint` passed on 2026-09-27 after the same cleanup.
 - [x] Regression evidence reviewed: 3I-8 end-to-end workflow, invalid status transitions, version/feedback history, and ownership boundaries are owner-confirmed passed. No automated test/spec files or test script are present in the checkout.
-- [x] Phase 4 closure checks complete for the agreed scope. Notification failure handling remains explicitly deferred and is not represented as verified.
+- [x] Phase 4 closure checks complete for the agreed scope. Its notification-failure handling was deferred from that closure scope; Phase 5.2 post-commit notification failure was separately verified.
 - [x] Proceed to Phase 5 — Research Repository.
 
 ### Sprint 3I.9 — Phase 4 closure and regression audit
 - [x] `3I.8 Complete Review Cycle` — VERIFIED.
 - [x] `3I.9 Closure & Regression` — VERIFIED COMPLETE.
 - [x] Phase 4 — Adviser Review & Feedback — COMPLETE.
-- [ ] Phase 5 — Research Repository — NEXT (existing document-access acceptance remains pending).
+- [x] Phase 5.1 — Document Storage Foundation — implementation and runtime acceptance complete.
+- [x] Phase 5.2 — Submission ↔ Document Integration — implementation and service-level runtime acceptance complete; no schema/migration change required. Concurrent submissions and Adviser decisions were exercised; notification failure was fault-injected after commit. Browser-level Phase 5.2 acceptance was not run.
+- [ ] Phase 5.3 — NEXT START-GATED TASK. Do not begin until explicitly directed; CI is deferred.
 - [x] Full review/revision/approval cycle, version history, feedback association, notifications, authorization, role isolation, invalid operations, and PDF access verified. Detailed 3I.8 evidence is preserved in the progress source.
 - [x] Adviser detail now displays the submission status. Adviser PDF access now navigates the current tab to the authorized five-minute signed URL; opening a delayed popup was not reliable in Chromium.
 - [x] Added `tests/phase4-adviser-submission-status.spec.ts`; Chromium verified v1 `Revision Required`, v2 `Approved`, and the v2 private PDF response (HTTP 200, `application/pdf`, expected v2 storage path).
 - [x] `npm.cmd run build` passed (Next.js 16.2.9; 22 static pages); `npx.cmd tsc --noEmit`, `npx.cmd eslint .`, and `git diff --check` passed. A sandboxed build initially failed only when fetching Google Fonts; the network-enabled build passed.
 - [x] Phase 4 implementation and regression test committed as `bc87caf` — `fix(review): close Phase 4 regression audit`.
-- [x] Notification delivery failure handling remains deferred per the prior owner decision; notification correctness, title content, and ownership were verified.
+- [x] Notification delivery failure handling was deferred within the Phase 4 closure audit scope; Phase 5.2 separately runtime-verified post-commit notification failure as non-blocking.
 
 ---
 
 ## 7. Later Roadmap (Confirm Exact Phase Numbering)
 
-### Phase 5 — Research Repository — [ ] NEXT
+### Phase 5 — Research Repository — IN PROGRESS
+- [x] Phase 5.1 storage foundation and runtime acceptance complete (private bucket, PDF/10 MiB validation, safe versioned storage paths, server-side five-minute signed URLs).
+- [x] Phase 5.2 submission/document integration and runtime acceptance complete. Per-paper transaction-scoped advisory locking serializes version eligibility/calculation through upload and insert; `(paper_id, version)` uniqueness remains the database backstop. Losing concurrent requests are rejected without an orphan object. Adviser feedback, conditional submission/research status changes, and activity logging commit in one transaction; notifications run afterward and failures do not fail the primary operation.
+- [x] Phase 5.2 required no schema or migration changes. `0009_repository_paper_unique.sql` was not applied.
+- [x] Phase 5.2 runtime acceptance used service-level flows, not browser-level acceptance. Synthetic fixtures were cleaned up. Static checks and build passed.
+- [ ] Phase 5.3 — next start-gated task; scope/start requires owner direction. CI remains deferred.
+
+#### Phase 5.3 repository publication/document-access acceptance (not started)
+
 - [x] Inclusion rule confirmed for current implementation: Adviser-approved research and approved submission, followed by Admin publication.
 - [x] Metadata/access rules implemented: title, abstract, category, keywords, group/strand/section/school-year metadata; only authenticated system roles can browse; PDF downloads use server-authorized signed URLs.
 - [~] Repository association and Admin publish/unpublish flow implemented in code. Unique `(paper_id)` migration generated as `0009_repository_paper_unique.sql`; migration has **not** been applied to a database.
@@ -567,12 +577,12 @@ Only hashes explicitly confirmed in project history are listed here.
 ## 13. New Chat / Session Start Checklist
 1. Read this file first.
 2. Verify current `git status`, branch, and latest commit.
-3. Phase 4 closure is recorded complete; notification failure handling remains deferred.
+3. Phase 4 closure is complete; its notification-failure deferral remains limited to that closure scope. Phase 5.1 and 5.2 are complete and runtime-accepted.
 4. Phase 6 core authenticated search/filter/sort/pagination scenarios are user-confirmed passed on 11 eligible synthetic papers; no-results and Clear filters A–D passed in Playwright.
-5. Phase 6 access-boundary checks are complete for applicable roles; continue Phase 5 repository document-access acceptance and preserve the synthetic dataset until cleanup is explicitly requested.
-6. Then continue Phase 5 repository document-access acceptance from the 2026-09-28 handoff; do not treat build/lint as proof of document delivery.
-7. Do not apply migration `0009_repository_paper_unique.sql` until the intended database is confirmed and duplicate paper associations are checked.
-8. Do not commit uncommitted feature work until required acceptance tests pass and the project owner confirms.
+5. Phase 5.2 runtime acceptance was service-level, not browser-level. Do not treat it as browser acceptance.
+6. Phase 5.3 is the next start-gated task; do not begin it or CI until explicitly directed.
+7. Migration `0009_repository_paper_unique.sql` was not applied; inspect the intended database before any future application.
+8. Preserve unrelated uncommitted source, `.github/`, and documentation changes when committing a scoped task.
 9. After a milestone, update the checkpoint and handoff with executed test evidence and confirmed commit hash.
 
-**Current next task: continue Phase 5 repository document-access acceptance.**
+**Current next task: await direction to start Phase 5.3. CI is explicitly deferred.**
