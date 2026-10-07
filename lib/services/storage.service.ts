@@ -234,11 +234,8 @@ export async function createResearchDocumentSignedUrl(
             options
         );
 
-    if (error) {
-        console.error(
-            "Supabase signed URL creation failed:",
-            error
-        );
+    if (error || !data?.signedUrl) {
+        console.error("Supabase signed URL creation failed.");
 
         throw new Error(
             "The research document URL could not be created."

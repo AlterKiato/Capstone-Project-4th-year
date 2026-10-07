@@ -2,8 +2,9 @@
 
 **Purpose:** Database/schema reference for AI agents and developers.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `73ca174` ---
-`docs(progress): record Phase 4 audit commit`. Phase 5.1/5.2 source changes are in the uncommitted working tree.
+**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; source/tests and documentation remain uncommitted.
+
+No Phase 5.3 schema/migration changes were required, generated, or applied. `0009_repository_paper_unique.sql` remains unapplied. Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`.
 
 **Important:** The database document is a reference to the application's
 intended relational model. Always inspect the actual `db/schema/`,
@@ -286,9 +287,15 @@ Rules:
 -   Maximum 10 MB
 -   Private bucket
 -   Server-generated signed URLs
--   Signed URL lifetime: five minutes
+-   Signed URL lifetime: 300 seconds / five minutes
 
 The database record and storage object must remain consistent.
+
+`submissions.fileUrl` maps to DB column `file_url` and stores the private storage path, not a public or signed URL. Phase 5.3 reads the existing submission ID, `paperId`, version, and path; resolves the paper/group; rechecks the active user/database role; and enforces Student membership or Adviser ownership before signing. Admin/Panel are denied for submitted documents. The path must match the persisted paper/version and safe PDF naming convention. No new columns/tables/constraints are needed.
+
+Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
+
+Live acceptance synthetic users/groups/papers/submissions/memberships/feedback/activity/notifications and PDF objects were removed; cleanup was independently checked. No real student data or schema was changed.
 
 ------------------------------------------------------------------------
 
@@ -342,11 +349,11 @@ Before applying a migration:
 ### Repository uniqueness migration
 
 `0009_repository_paper_unique.sql` exists in the current repository
-migration history. It was **not applied** during Phase 5.1/5.2 work.
+migration history. It was **not applied** during Phase 5.1/5.2/5.3 work or this documentation audit.
 
 Its existence does not establish its state in any target database.
 Inspect the migration and verify the intended database before any
-future application; do not apply it as part of Phase 5.2.
+future application; do not apply it as part of Phase 5.3 or its completion audit. Repository Publication is Phase 5.4 and remains start-gated.
 
 ------------------------------------------------------------------------
 
@@ -432,8 +439,8 @@ can be implemented safely without a schema change.
 
 Before changing the database:
 
-1.  Read `SOURCE_OF_TRUTH.md`.
-2.  Read `MASTER_CONTEXT.md`.
+1.  Read `docs/SOURCE_OF_TRUTH_UPDATED.md`.
+2.  Read `docs/MASTER_CONTEXT_UPDATED.md`.
 3.  Read this file.
 4.  Inspect `db/schema/`.
 5.  Inspect relevant migrations.

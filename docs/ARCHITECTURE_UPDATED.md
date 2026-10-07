@@ -3,13 +3,9 @@
 **Purpose:** Technical reference for the current application's
 architecture, module boundaries, data flow, and security model.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `73ca174` ---
-`docs(progress): record Phase 4 audit commit`. Phase 5.1/5.2 changes are in the uncommitted working tree.
+**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase 5.1/5.2 are committed; Phase 5.3 source/tests and documentation remain uncommitted.
 
-Phase 5.1 and Phase 5.2 are complete and runtime-accepted. Phase 5.2
-acceptance was service-level, not browser-level; it required no schema
-or migration changes. Migration `0009_repository_paper_unique.sql` was
-not applied. Phase 5.3 is start-gated and CI is deferred.
+Phase 5.1, Phase 5.2, and Phase 5.3 are complete and runtime-accepted. Phase 5.3 completion/documentation audit is complete. No Phase 5.3 schema/migration change was needed or applied; `0009_repository_paper_unique.sql` remains unapplied. Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`.
 
 ------------------------------------------------------------------------
 
@@ -133,6 +129,7 @@ Representative services include:
 -   `adviser-review.service.ts`
 -   `adviser-submission.service.ts`
 -   `submission.service.ts`
+-   `submission-document.service.ts`
 -   `storage.service.ts`
 -   `notification.service.ts`
 -   `activity-log.service.ts`
@@ -378,7 +375,7 @@ Rules:
 -   Store the storage path in the database
 -   Do not expose permanent public URLs
 -   Generate temporary signed URLs server-side
--   Signed URL lifetime: five minutes
+-   Signed URL lifetime: 300 seconds / five minutes
 
 ### Upload flow
 
@@ -396,24 +393,23 @@ Server-side Supabase upload
 Persist storage metadata
 ```
 
-### Access flow
+### Submitted-document access flow
 
-``` text
-Request document
-   ↓
-Authenticate
-   ↓
-Authorize user/resource
-   ↓
-Retrieve permitted storage path
-   ↓
-Generate temporary signed URL
-   ↓
-Return controlled access
+```text
+UI document button
+→ lib/actions/storage.action.ts (authenticated role gate)
+→ lib/validations/submission-document.ts (Zod ID validation)
+→ lib/services/submission-document.service.ts
+→ existing user/submission/paper/group/membership repositories
+→ lib/services/storage.service.ts (server-only Supabase signer)
+→ controlled URL or null
 ```
 
-Storage failures should be handled explicitly and should not expose
-secrets or internal storage details.
+Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer for 300 seconds in private bucket `research-submissions`; no client-supplied paper, path, version, identity, or role is trusted.
+
+The service derives the role from the current active DB account, traverses submission → paper → group, and reuses the existing `createResearchDocumentSignedUrl` helper with `300`. Valid paths must match `research/{paperId}/{version}/{safePdfName}` exactly; public URLs, cross-paper/version paths, traversal, extra segments, and invalid/missing metadata are rejected before signing. Student and Adviser buttons navigate the current tab to the short-lived URL. Unexpected DB/storage failures return null and generic error messages, without raw SDK details.
+
+Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
 
 ------------------------------------------------------------------------
 
@@ -441,7 +437,7 @@ activity_logs
 ```
 
 The exact schema, field definitions, relationships, constraints, and
-migration state belong in `DATABASE.md`.
+migration state belong in `docs/DATABASE (1).md`.
 
 Do not infer database state from application code alone.
 
@@ -559,6 +555,8 @@ acceptance was exercised through service-level runtime flows, not
 browser-level acceptance. Do not describe the Phase 5.2 checks as
 browser tests.
 
+Phase 5.3 document access passed real Chromium Student/Adviser access and tampered/cross-group/anonymous/Admin/Panel denial. Runtime acceptance verified exact PDF bytes, real 300-second expiry, direct/public denial, process-local signing failure, service-level review/version regression, and independently checked cleanup. Detailed executed evidence is in `docs/MASTER_CONTEXT_UPDATED.md`.
+
 ### Test data
 
 Acceptance data must be isolated from production data.
@@ -572,10 +570,10 @@ pass.
 
 Before implementing:
 
-1.  Read `SOURCE_OF_TRUTH.md`.
-2.  Read `MASTER_CONTEXT.md`.
+1.  Read `docs/SOURCE_OF_TRUTH_UPDATED.md`.
+2.  Read `docs/MASTER_CONTEXT_UPDATED.md`.
 3.  Check Git branch, HEAD, and working tree.
-4.  Read `DATABASE.md` for database changes.
+4.  Read `docs/DATABASE (1).md` for database changes.
 5.  Inspect the actual source files.
 6.  Preserve existing architecture.
 7.  Avoid unrelated refactors.

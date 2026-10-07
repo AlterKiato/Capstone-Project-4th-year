@@ -39,11 +39,7 @@ export default function DownloadSubmissionButton({
                 return;
             }
 
-            window.open(
-                url,
-                "_blank",
-                "noopener,noreferrer"
-            );
+            window.location.assign(url);
         } catch {
             alert(
                 "The research document could not be accessed."

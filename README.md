@@ -17,9 +17,10 @@ milestones, blockers, testing evidence, roadmap status, and immediate
 next actions.
 
 **Current Git checkpoint (2026-10-07):** `feature/development`, HEAD
-`73ca174` — `docs(progress): record Phase 4 audit commit`. Phase 5.1/5.2
-implementation changes are present in the uncommitted working tree.
-Check `git status` before treating them as committed or changing files.
+`5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase
+5.1/5.2 are committed; accepted Phase 5.3 source/tests and reconciled
+documentation remain uncommitted. `.github/` is unrelated and untracked.
+Check `git status` before changing or staging files.
 
 ### `docs/ARCHITECTURE_UPDATED.md`
 
@@ -64,7 +65,8 @@ Do not assume documentation is newer than the actual checkout.
 Phase 4 is complete. Phase 5.1 Document Storage Foundation and Phase
 5.2 Submission ↔ Document Integration are also complete and
 runtime-accepted. Phase 5.2 runtime acceptance was service-level, not
-browser-level.
+browser-level. Phase 5.3 Secure Document Access is complete and runtime-accepted
+(`PHASE 5.3 PASS`); its completion/documentation audit is complete.
 
 Phase 4 was verified as an end-to-end workflow:
 
@@ -93,8 +95,19 @@ after commit and failure is non-blocking. Phase 5.2 required no schema or
 migration changes; migration `0009_repository_paper_unique.sql` was not
 applied.
 
-Phase 5.3 is the next start-gated task. Do not start Phase 5.3 or CI
-until explicitly directed.
+Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer for 300 seconds in private bucket `research-submissions`; no client-supplied paper, path, version, identity, or role is trusted.
+
+Phase 5.3 acceptance passed actual PDF retrieval (HTTP 200, `application/pdf`,
+exact uploaded-byte match), Chromium access/denial checks, real 300-second
+expiry (HTTP 400 afterward), anonymous public/unsigned denial (HTTP 400),
+safe process-local storage failure, service-level review/version regression,
+and independently verified fixture cleanup. No Phase 5.3 schema/migration
+change was needed; `0009_repository_paper_unique.sql` remains unapplied.
+See `docs/MASTER_CONTEXT_UPDATED.md` for executed evidence.
+
+Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
+
+Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`.
 
 ## Critical Rules
 
@@ -111,7 +124,7 @@ until explicitly directed.
     non-blocking.
 -   Research documents are stored in private Supabase Storage.
 -   Store storage paths, not permanent public document URLs.
--   Signed document URLs are generated server-side.
+-   Signed document URLs are generated server-side for 300 seconds / five minutes.
 -   Never commit secrets such as `JWT_SECRET` or `SUPABASE_SECRET_KEY`.
 -   Do not apply a generated migration without checking its
     applicability to the target database.

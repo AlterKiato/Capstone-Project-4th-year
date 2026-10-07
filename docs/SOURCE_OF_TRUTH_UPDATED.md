@@ -1,10 +1,10 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-02\
+**Last reviewed:** 2026-10-07\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
-immediate next actions belong in `MASTER_CONTEXT.md`.
+immediate next actions belong in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 ------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ ThesiSHS AI follows a **PWA-first platform strategy**.
     -   Bucket: `research-submissions` (private)
     -   Document format: PDF only
     -   Maximum file size: 10 MB
-    -   Access method: Server-generated signed URLs with 5-minute expiry
+    -   Access method: Server-generated signed URLs with 300-second / five-minute expiry
 
 ### Frontend & Styling
 
@@ -361,7 +361,7 @@ rather than creating an independent copy of the research workflow.
 -   **Path pattern:** `research/{paperId}/{version}/{sanitizedFileName}`
 -   **Format:** PDF only
 -   **Maximum size:** 10 MB
--   **Access:** Five-minute server-generated signed URLs
+-   **Access:** 300-second / five-minute server-generated signed URLs
 
 ### Upload Flow
 
@@ -370,16 +370,23 @@ rather than creating an independent copy of the research workflow.
 3.  Upload through the server-side Supabase client
 4.  Store the storage path in the submission record
 
-### Document Access Flow
+### Submitted Document Access Flow
 
-1.  Retrieve the submission or repository entry
-2.  Validate the user's authorization to access it
-3.  Generate a temporary signed URL on the server
-4.  Allow the user to view/download through the temporary URL
-5.  Update document-access metrics where applicable
+```text
+Authenticated request
+→ submission ID validation
+→ active-account/database-role verification
+→ Student membership or Adviser ownership authorization
+→ persisted submission/file metadata verification
+→ storage path bound to submission paper/version
+→ server-side 300-second signed URL
+```
 
-Storage paths are stored in the database; public document URLs are not
-stored as permanent access credentials.
+Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer for 300 seconds in private bucket `research-submissions`; no client-supplied paper, path, version, identity, or role is trusted.
+
+Missing/invalid metadata, unauthorized access, and storage/database failures return controlled results without sensitive details. No permanent/public storage URL or credentials are exposed. The DB retains the storage path, not signed URLs. Published-repository access is a separate existing flow governed by publication eligibility; its rules do not grant submitted-document access to Admin/Panel.
+
+Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
 
 ------------------------------------------------------------------------
 
@@ -527,7 +534,7 @@ AI features remain assistive and human-supervised and must not replace
 Adviser judgment or make final academic/review decisions.
 
 The detailed implementation sequence and current completion status are
-maintained in `MASTER_CONTEXT.md`, not in this document.
+maintained in `docs/MASTER_CONTEXT_UPDATED.md`, not in this document.
 
 ------------------------------------------------------------------------
 
@@ -539,13 +546,13 @@ decisions**.
 
 When project information changes:
 
--   Update `SOURCE_OF_TRUTH.md` when a stable architecture, product
+-   Update `docs/SOURCE_OF_TRUTH_UPDATED.md` when a stable architecture, product
     rule, security rule, or durable design decision changes.
--   Update `MASTER_CONTEXT.md` for current phase status, completed work,
+-   Update `docs/MASTER_CONTEXT_UPDATED.md` for current phase status, completed work,
     blockers, testing evidence, commits, and immediate next actions.
--   Update `ARCHITECTURE.md` for detailed technical architecture,
+-   Update `docs/ARCHITECTURE_UPDATED.md` for detailed technical architecture,
     component relationships, and data flows.
--   Update `DATABASE.md` for schema, migrations, database-specific
+-   Update `docs/DATABASE (1).md` for schema, migrations, database-specific
     rules, and database state.
 -   Update `README.md` when the documentation/handoff process itself
     changes.
@@ -568,10 +575,10 @@ When project information changes:
 
 ## Current Implementation Boundary
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `73ca174` — `docs(progress): record Phase 4 audit commit`. Phase 5.1/5.2 implementation changes are in the uncommitted working tree.
+**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase 5.1/5.2 are committed; accepted Phase 5.3 changes and documentation are uncommitted.
 
-This document defines the stable product, architecture, security, design, and long-term rules of ThesiSHS AI. It is **not** the authoritative record of current implementation progress. That role belongs to `MASTER_CONTEXT.md`.
+This document defines the stable product, architecture, security, design, and long-term rules of ThesiSHS AI. It is **not** the authoritative record of current implementation progress. That role belongs to `docs/MASTER_CONTEXT_UPDATED.md`.
 
-Phase 5.1 Document Storage Foundation and Phase 5.2 Submission ↔ Document Integration are complete and runtime-accepted. Phase 5.2 acceptance was service-level, not browser-level; it required no schema or migration changes. Migration `0009_repository_paper_unique.sql` was not applied. Phase 5.3 is the next start-gated task; CI is deferred. See `MASTER_CONTEXT_UPDATED.md` for current progress and working-tree details.
+Phase 5.1 Document Storage Foundation, Phase 5.2 Submission ↔ Document Integration, and Phase 5.3 Secure Document Access are complete and runtime-accepted. Phase 5.3 completion/documentation audit is complete. Phase 5.2 and the Phase 5.3 full review regression were service-level; Phase 5.3 browser acceptance covered document access. No Phase 5.3 schema/migration change was needed or applied; `0009_repository_paper_unique.sql` remains unapplied. Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`. See `docs/MASTER_CONTEXT_UPDATED.md` for executed evidence and working-tree details.
 
 If a target/design rule in this document conflicts with the actual current source code, schema, or migrations regarding what is implemented, inspect the repository and treat the actual checkout as implementation evidence. Do not silently interpret historical or target-state design as current functionality.
