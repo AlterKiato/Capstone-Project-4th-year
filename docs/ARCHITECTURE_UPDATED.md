@@ -3,9 +3,9 @@
 **Purpose:** Technical reference for the current application's
 architecture, module boundaries, data flow, and security model.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase 5.1/5.2 are committed; Phase 5.3 source/tests and documentation remain uncommitted.
+**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `20c733f` — `feat(storage): secure submitted PDF access`. Phase 5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 source/tests and handoff changes are uncommitted.
 
-Phase 5.1, Phase 5.2, and Phase 5.3 are complete and runtime-accepted. Phase 5.3 completion/documentation audit is complete. No Phase 5.3 schema/migration change was needed or applied; `0009_repository_paper_unique.sql` remains unapplied. Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`.
+Phase 5.1, Phase 5.2, and Phase 5.3 are complete and runtime-accepted. Phase 5.3 completion/documentation audit is complete. No Phase 5.3 schema/migration change was needed or applied; `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
 
 ------------------------------------------------------------------------
 
@@ -412,6 +412,14 @@ The service derives the role from the current active DB account, traverses submi
 Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
 
 ------------------------------------------------------------------------
+
+### Repository publication (Phase 5.4)
+
+Admin UI uses controlled action results and pending buttons. Publication actions validate IDs/state with Zod and derive user identity from the authenticated session. `repository-publication.service.ts` rechecks the active database Admin account before lookup and under the transaction lock; Student/Adviser/Panel cannot publish. `repository-publication.repository.ts` locks the account in shared mode and the paper for update, resolves approved submission metadata and existing publication state, and performs only data access/writes.
+
+The service checks approved paper/submission state, exact persisted paper/version path, and actual private-object existence using the existing server-side 300-second signer; that verification URL is discarded server-side. Paper locks serialize duplicate requests, and `repositories_paper_id_unique` enforces one row per paper. Already-published requests return a controlled result without changing timestamps/counters. Hidden entries reuse the same row on republication. No submissions/feedback/objects are copied, overwritten, or made public. Database/storage errors return generic failures. Existing repository document-access behavior is unchanged; Phase 5.5 was not started.
+
+Known non-blocking publication risks: private-object verification holds the transaction during a network request; objects can be deleted after publication; repository records dynamically resolve the paper's approved submission rather than an immutable submission snapshot. These do not invalidate accepted Phase 5.4 requirements.
 
 ## 7. Database Architecture
 

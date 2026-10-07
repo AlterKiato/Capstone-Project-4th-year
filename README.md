@@ -17,8 +17,8 @@ milestones, blockers, testing evidence, roadmap status, and immediate
 next actions.
 
 **Current Git checkpoint (2026-10-07):** `feature/development`, HEAD
-`5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase
-5.1/5.2 are committed; accepted Phase 5.3 source/tests and reconciled
+`20c733f` — `feat(storage): secure submitted PDF access`. Phase
+5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 source/tests and handoff
 documentation remain uncommitted. `.github/` is unrelated and untracked.
 Check `git status` before changing or staging files.
 
@@ -93,7 +93,7 @@ submission insert fails. Adviser feedback, submission/research statuses,
 and activity logging are transactional. Notifications are attempted
 after commit and failure is non-blocking. Phase 5.2 required no schema or
 migration changes; migration `0009_repository_paper_unique.sql` was not
-applied.
+applied during Phase 5.2. It was subsequently applied only to the designated development/test database during Phase 5.4.
 
 Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer for 300 seconds in private bucket `research-submissions`; no client-supplied paper, path, version, identity, or role is trusted.
 
@@ -102,12 +102,16 @@ exact uploaded-byte match), Chromium access/denial checks, real 300-second
 expiry (HTTP 400 afterward), anonymous public/unsigned denial (HTTP 400),
 safe process-local storage failure, service-level review/version regression,
 and independently verified fixture cleanup. No Phase 5.3 schema/migration
-change was needed; `0009_repository_paper_unique.sql` remains unapplied.
+change was needed; `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks.
 See `docs/MASTER_CONTEXT_UPDATED.md` for executed evidence.
 
 Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
 
-Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`.
+Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
+
+Publication requires an authenticated, active database Admin and validated identifiers. The service verifies approved research, an approved submission, its persisted paper/version path, and private object existence. A per-paper transaction row lock plus `UNIQUE (paper_id)` serialize requests and prevent duplicate rows; repeated publication preserves the original timestamp. All 14 Phase 5.4 cases and Chromium authorization coverage passed, including Student/Adviser/Panel/anonymous denial and safe database failure. The Student upload -> Adviser review -> Revision Required -> v2 -> Approved -> Admin publication regression passed with history and Phase 5.3 protections preserved. Synthetic database/storage fixtures were removed and independently checked. Detailed accepted evidence is recorded in `docs/MASTER_CONTEXT_UPDATED.md`.
+
+Known non-blocking publication risks: storage verification holds the database transaction during a network request; an object can be deleted after publication; repository records dynamically resolve an approved submission. Production migration state is unverified.
 
 ## Critical Rules
 

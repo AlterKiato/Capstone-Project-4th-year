@@ -2,9 +2,9 @@
 
 **Purpose:** Database/schema reference for AI agents and developers.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `5762e24` — `feat(phase5): complete Phase 5.2 submission integration`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; source/tests and documentation remain uncommitted.
+**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `20c733f` — `feat(storage): secure submitted PDF access`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; Phase 5.4 source/tests and documentation remain uncommitted.
 
-No Phase 5.3 schema/migration changes were required, generated, or applied. `0009_repository_paper_unique.sql` remains unapplied. Phase 5.4 — Repository Publication is the next start-gated task. Do not start it, publication work, or CI until explicitly directed. CI remains deferred; do not commit/push or include unrelated untracked `.github/`.
+No Phase 5.3 schema/migration changes were required, generated, or applied. `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is the next start-gated task and must not be started. CI remains deferred. Do not commit or push.
 
 **Important:** The database document is a reference to the application's
 intended relational model. Always inspect the actual `db/schema/`,
@@ -348,12 +348,14 @@ Before applying a migration:
 
 ### Repository uniqueness migration
 
+Phase 5.4 requires database-enforced one-row-per-paper uniqueness as the publication invariant and concurrent-insert backstop. The existing Drizzle schema already declares this constraint, but the test database lacked it; the old conflict-target insert would fail without it. Before application, the exact SQL and schema matched, duplicates were absent, and migration hashes/timestamps through 0008 matched the ledger. Only 0009 was pending. Its non-destructive UNIQUE constraint and the tenth ledger entry were verified after migration; no records were deleted.
+
 `0009_repository_paper_unique.sql` exists in the current repository
-migration history. It was **not applied** during Phase 5.1/5.2/5.3 work or this documentation audit.
+migration history. It was not applied during Phase 5.1/5.2/5.3 or the Phase 5.3 documentation audit. It is now applied only to the confirmed development database for Phase 5.4.
 
 Its existence does not establish its state in any target database.
 Inspect the migration and verify the intended database before any
-future application; do not apply it as part of Phase 5.3 or its completion audit. Repository Publication is Phase 5.4 and remains start-gated.
+future application in other environments. Phase 5.4 verified the existing ledger through 0008 and applied only 0009 using the Drizzle migrator. UNIQUE(paper_id) and the added ledger entry were verified; no existing rows were deleted.
 
 ------------------------------------------------------------------------
 
