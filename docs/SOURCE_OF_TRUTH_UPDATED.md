@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-07\
+**Last reviewed:** 2026-10-09\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -36,11 +36,25 @@ and a published repository of approved research.
     enforcement
 4.  Offer a published repository of approved research accessible to
     authenticated users
-5.  Enable future AI-assisted features for research/workflow guidance
-    and document summarization
+5.  Provide limited adult-only AI interpretation of authorized aggregate
+    administrative/workflow statistics, and a non-AI Student system guide
 
 ------------------------------------------------------------------------
 
+## 1B. Capstone-Scale Development Principles (Owner Decision, 2026-10-09)
+
+ThesiSHS AI is a college capstone deployment project. Prioritize a functional, secure, demonstrable system on the existing Next.js, PostgreSQL, Supabase and Vercel stack.
+
+- Prefer free tiers, existing services, minimal dependencies and the smallest clear implementation within the current layered architecture.
+- Avoid unnecessary dashboards, microservices, enterprise monitoring, elaborate infrastructure and excessive abstraction. Add infrastructure only for a demonstrated technical requirement; use the existing stack first.
+- Keep Codex prompts, implementation, documentation and tests focused and token-efficient. Reuse verified work; do not repeat completed audits or introduce planning phases without an actual technical blocker.
+- Test critical authorization, ownership/privacy, consent, database integrity, functionality and relevant regressions. Repeat or broaden checks only for changed code, failures or unresolved concerns.
+- Capstone simplicity never relaxes active-account/current-role authorization, independent adult verification, explicit versioned consent, suppression, fixed-input/output validation, provider isolation or safe fallback. Student guidance remains static; AI never makes academic decisions.
+- Separate a bounded local synthetic-data demonstration from deployment authorization. Local test evidence does not prove shared Vercel quotas, network controls or real-data readiness. Resolve genuine deployment blockers with the smallest feasible existing service, not a speculative enterprise platform.
+
+Current model/terms findings, proposed limits, consent wording and approvals belong in Master Context; they do not constitute provider activation or completed deployment evidence.
+
+------------------------------------------------------------------------
 ## 1A. Platform Strategy
 
 ThesiSHS AI follows a **PWA-first platform strategy**.
@@ -425,8 +439,9 @@ Already issued signed URLs may remain usable until their 300-second expiry after
 -   **One active group per student:** Students do not maintain multiple
     active group memberships.
 -   **No email delivery:** Notifications are currently in-app only.
--   **No AI features yet:** AI capabilities are planned but not
-    considered implemented until built and verified.
+-   **AI deployment gate:** Adult-only Admin/Adviser AI is approved in scope
+    but unimplemented and disabled pending eligibility, privacy, usage/cost
+    and deployment approval. The Student guide is static and uses no provider.
 -   **No separate mobile application currently:** Mobile access is
     provided through the PWA-first strategy.
 -   **No separate desktop application currently:** Desktop access is
@@ -484,54 +499,107 @@ acceptance testing is a **test environment**.
 
 ------------------------------------------------------------------------
 
-## 11. AI Scope & Principles
+## 11. Phase 8 — Approved Role-Separated AI Scope (Owner Decision, 2026-10-09)
 
-### AI Scope
+This section **supersedes** any earlier proposal for a generative **AI
+Chatbot Guide**, optional AI explanations for Student topics, and **AI
+Research Summarization**. Those generative feature proposals are retired,
+not deferred implementation tasks. The completed Phase 8.2 static guide
+foundation is retained. This is an approved **design/scope decision**,
+not evidence that Groq integration is operational.
 
-The two confirmed AI capabilities are:
+### Approved experiences
 
-1.  **AI Chatbot Guide** --- assists users with system/research workflow
-    guidance and role-appropriate assistance.
-2.  **AI Research Summarization** --- assists users by generating
-    summaries of supported research material.
+1. **Admin — AI Administrative Report Interpretation:** Groq may explain
+   approved, minimized, non-identifying *aggregate* metrics already
+   available from authorized administrative reporting. It may not view
+   private research content or make administrative decisions.
+2. **Adviser — AI Workflow Assistant:** Groq may explain permitted
+   aggregate submission/review workflow counts for the authenticated
+   Adviser's authorized scope and provide procedural guidance. It must
+   not grade, approve/reject submissions, create official feedback, or
+   replace human judgment.
+3. **Student — Static Rule-Based Chatbot:** Predefined clickable topic IDs
+   and reviewed answers only. No free-text prompts, AI provider calls,
+   chat history submitted to AI, or external AI requests. Preserve the
+   existing Phase 8.2 static guide; ensure role-filtered authorization.
+4. **Panel:** No Phase 8 AI/guide entitlement unless separately approved.
 
-AI functionality is **assistive and human-supervised**.
+### Provider and activation gate
+- Fixed text-only model: `openai/gpt-oss-20b`; native server REST endpoint `https://api.groq.com/openai/v1/chat/completions`. No automatic model fallback, SDK, browsing or tools. Account settings/verification and pilot progress belong in Master Context; selecting this model does not authorize requests.
+- Any future approved key loader must use dedicated server-only `GROQ_API_KEY` configuration, never `NEXT_PUBLIC_`, client code, payloads or logs. Codex must not inspect/request the key or environment-file contents. Current code remains hard-disabled; runtime key loading requires separate implementation authorization. No other credentials may be made available to the provider.
 
-AI must not:
+- **Selected provider:** Groq API **Free tier** for eligible adult Admin
+  and Adviser features only. Groq is an approved *candidate deployment
+  choice*, **not** authorization to activate it.
+- Groq integration remains **disabled by default**, including in
+  production, until the owner expressly approves the provider's
+  applicable age/eligibility terms, privacy/data processing, quotas and
+  cost exposure, and deployment controls. Do not claim the free tier's
+  terms or allowances have been verified merely from this decision.
+- Eligibility requires verified active account, approved role, and
+  verified adult status. Role alone is **not** proof of age. Design and
+  approve an appropriate eligibility mechanism before enabling AI.
+- Static guidance and normal system operations must work when Groq is
+  absent, unavailable, rate-limited, or disabled.
 
--   make final academic decisions;
--   make final Adviser review decisions;
--   automatically approve or reject research;
--   replace human academic/review judgment.
+### Non-negotiable AI data/security boundaries
 
-AI features are planned and are not considered implemented until they
-are built, tested, and explicitly verified.
+- AI/provider modules have **no direct** PostgreSQL, Supabase Storage,
+  PDF, private research, signed-URL, credential, or arbitrary internet
+  access. They must not receive database/storage clients, tools,
+  function-call capabilities, browsing, or user-chosen URLs.
+- A **separate trusted server-side authorization and aggregation layer**
+  may access only appropriately scoped data, then construct a fixed,
+  approved, minimized, non-identifying aggregate payload. This layer
+  must independently validate session, active account, role, resource
+  scope, and adult eligibility before any Groq call.
+- Avoid identifiers, student names, paper titles/abstracts, PDF text,
+  feedback text, signed URLs, secrets, raw records, and arbitrary user
+  input in provider payloads. Small or identifying groups must be
+  suppressed or withheld; set the exact privacy thresholds during design.
+- Server-side allowlists, strict request validation, role isolation,
+  safe output handling, request quotas/concurrency controls, and graceful
+  fallback are required. Do not rely on prompt instructions as the
+  primary security boundary.
+- Only an explicitly approved Groq API endpoint may be used for provider
+  traffic; arbitrary browsing/network egress must be restricted at the
+  deployment level where supported. An application-level rule alone is
+  **not** a network firewall. The app itself must still communicate with
+  its backend and approved infrastructure for ordinary features.
+- AI is supplementary and must never grade research, make final academic
+  decisions, approve/reject submissions, or generate official Adviser
+  feedback. AI outputs are explanatory, not authoritative.
+
+### Decision longevity / change control
+
+These are **durable owner-approved requirements**, not a request for
+ongoing documentation churn. Do not revise this section for routine test
+runs, wording tweaks, or provider experimentation. Change it only on an
+explicit owner-approved change to stable scope, provider, privacy,
+architecture, or security. Implementation evidence belongs in the Master
+Context or actual repository, not in this section.
 
 ------------------------------------------------------------------------
 
 ## 12. Long-Term Product Direction
 
-The current core system is the foundation for the broader ThesiSHS AI
-product.
+Owner-aligned roadmap (2026-10-10): Phase 8 targets provisional closure
+for implemented static/mock-only assistance; operational Groq remains
+unfinished. Phase 9 is **UI/UX Refinement & PWA Integration**, consistent
+with the existing PWA-first strategy. Phase 10 **Deployment & System
+Integration** and Phase 11 **Final Testing, Evaluation & Documentation**
+are proposed later phases. This sequencing does not authorize AI
+activation or implementation of the later phases; verified completion
+and next-task scope belong in the Master Context.
 
-Future development may include:
-
--   AI-assisted research workflow guidance
--   AI-assisted research summarization
--   Notification and communication enhancements
--   Web UI/UX refinement
--   Expanded administration and reporting
--   Security, performance, and production hardening
--   Comprehensive quality assurance
--   Production deployment and release preparation
--   Technical and user documentation
--   Thesis implementation and evaluation support
-
-AI features remain assistive and human-supervised and must not replace
-Adviser judgment or make final academic/review decisions.
-
-The detailed implementation sequence and current completion status are
-maintained in `docs/MASTER_CONTEXT_UPDATED.md`, not in this document.
+Retain the PWA-first shared research lifecycle, repository, in-app
+notifications, user-facing improvements, security, QA, release preparation,
+and thesis evaluation support. Phase 8 consists only of the three approved
+role-separated experiences described above; the original generative
+student Chatbot Guide and AI Research Summarization are no longer planned.
+The precise implementation sequence and verified completion state belong
+in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 ------------------------------------------------------------------------
 
@@ -572,13 +640,9 @@ When project information changes:
 
 ## Current Implementation Boundary
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 changes are uncommitted.
+This document defines stable product, architecture and security rules; current implementation evidence and historical tests belong in `docs/MASTER_CONTEXT_UPDATED.md`. Git inspection during the 2026-10-09 merge confirmed `feature/development` at `ca95fd3` (`feat(admin): complete Phase 7 reporting`), with Phase 8 edits unstaged/uncommitted. Application tests were not rerun. Phase 8.2 static-guide acceptance is recorded in the existing master handoff; revised adult-only AI scope is a design decision, not an implemented provider.
 
-This document defines the stable product, architecture, security, design, and long-term rules of ThesiSHS AI. It is **not** the authoritative record of current implementation progress. That role belongs to `docs/MASTER_CONTEXT_UPDATED.md`.
-
-Phase 5.1 Document Storage Foundation, Phase 5.2 Submission ↔ Document Integration, and Phase 5.3 Secure Document Access are complete and runtime-accepted. Phase 5.3 completion/documentation audit is complete. Phase 5.2 and the Phase 5.3 full review regression were service-level; Phase 5.3 browser acceptance covered document access. No Phase 5.3 schema/migration change was needed or applied; `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
-
-If a target/design rule in this document conflicts with the actual current source code, schema, or migrations regarding what is implemented, inspect the repository and treat the actual checkout as implementation evidence. Do not silently interpret historical or target-state design as current functionality.
+Inspect actual source/schema/migrations before making implementation claims. Stable rules alone do not prove functionality. Migration 0009 remains development/test-only; production migration state is unverified. CI remains deferred.
 
 Publication requires an authenticated, active database Admin and validated identifiers. The service verifies approved research, an approved submission, its persisted paper/version path, and private object existence. A per-paper transaction row lock plus `UNIQUE (paper_id)` serialize requests and prevent duplicate rows; repeated publication preserves the original timestamp. All 14 Phase 5.4 cases and Chromium authorization coverage passed, including Student/Adviser/Panel/anonymous denial and safe database failure. The Student upload -> Adviser review -> Revision Required -> v2 -> Approved -> Admin publication regression passed with history and Phase 5.3 protections preserved. Synthetic database/storage fixtures were removed and independently checked. Detailed accepted evidence is recorded in `docs/MASTER_CONTEXT_UPDATED.md`.
 
@@ -586,4 +650,4 @@ Known non-blocking publication risks: storage verification holds the database tr
 
 Phase 5.5 repository document access is complete and runtime-accepted: authenticated active Student, Adviser, Admin and Panel accounts are permitted through database-account checks, published/approved database eligibility, shared strict persisted paper/version path validation, and existing server-only 300-second signing. Chromium view/download, exact PDF retrieval, failure/denial checks, Phase 5.3/5.4 regression, and independent cleanup passed. No schema/migration changes. Actual signed-token lifetime was exactly 300 seconds (exp - iat); Phase 5.5 did not repeat the full expiry wait already verified in Phase 5.3. Repository eligibility is independent of group ownership and does not weaken the separate Phase 5.3 Student/Adviser ownership rules. Unpublished research is denied. Issued URLs remain bearer access until expiry, including after unpublication; legacy path validation remains strict. See the latest Phase 5.5 handoff in `docs/MASTER_CONTEXT_UPDATED.md`.
 
-Phase 5.6 practical final verification and Phase 5.7 documentation closure passed: upload -> revision -> v2 -> approval -> Admin publication -> authenticated repository listing/detail/view/download, basic security, preserved history and independent synthetic cleanup. Phase 5.1 through 5.7 and Phase 5 overall are complete. No schema/migration changes in this final pass; existing 0009 remains development/test-only. Known limitations remain: issued URLs last until expiry; objects may be removed after publication; strict nonconforming paths are rejected; approved-document resolution is dynamic. This is capstone-level validation, not enterprise production hardening. Phase 6 is next; CI remains deferred.
+Phase 5.6 practical final verification and Phase 5.7 documentation closure passed: upload -> revision -> v2 -> approval -> Admin publication -> authenticated repository listing/detail/view/download, basic security, preserved history and independent synthetic cleanup. Phase 5.1 through 5.7 and Phase 5 overall are complete. No schema/migration changes in this final pass; existing 0009 remains development/test-only. Known limitations remain: issued URLs last until expiry; objects may be removed after publication; strict nonconforming paths are rejected; approved-document resolution is dynamic. This is capstone-level validation, not enterprise production hardening. Phase 5 closure evidence is historical; the current next design target is in the Master Context. CI remains deferred.

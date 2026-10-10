@@ -1,3 +1,4 @@
+import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
 import Link from "next/link";
 
 import {
@@ -46,6 +47,8 @@ export default async function AdviserSubmissionsPage() {
                 Review research submissions
                 from your research groups.
             </p>
+
+            <LocalAIAssistance feature="adviser" />
 
             <hr
                 style={{

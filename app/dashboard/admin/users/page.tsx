@@ -1,3 +1,7 @@
+import AdminAccountCreation from "@/components/dashboard/admin-account-creation";
+import { EligibilityDialog } from "@/components/dashboard/ai-governance-dialogs";
+import { getActiveAIAccount } from "@/lib/auth/ai-authorization";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles"
 
@@ -17,6 +21,7 @@ export default async function AdminUsersPage() {
     ]);
 
     // Retrieve all users through the service layer.
+    if (!await getActiveAIAccount(ROLE_IDS.ADMIN)) redirect("/dashboard");
     const result = await getUsers();
 
     // Handle unexpected service failures.
@@ -42,6 +47,7 @@ export default async function AdminUsersPage() {
                 Manage registered system users.
             </p>
 
+            <AdminAccountCreation />
             {users.length === 0 ? (
                 <p>
                     No users found.
@@ -145,6 +151,7 @@ export default async function AdminUsersPage() {
                                                 : "Activate"}
                                         </button>
                                     </form>
+                                    {[1,2].includes(user.roleId) && <EligibilityDialog userId={user.id} />}
                                 </td>
                             </tr>
                         ))}

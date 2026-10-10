@@ -14,8 +14,8 @@ import {
 /**
  * Counts all registered users.
  */
-export async function countUsers() {
-    const result = await db
+export async function countUsers(executor: Pick<typeof db, "select"> = db) {
+    const result = await executor
         .select({
             count: count(),
         })
@@ -43,8 +43,8 @@ export async function countUsersByRole(
 /**
  * Counts all research groups.
  */
-export async function countResearchGroups() {
-    const result = await db
+export async function countResearchGroups(executor: Pick<typeof db, "select"> = db) {
+    const result = await executor
         .select({
             count: count(),
         })
@@ -56,8 +56,8 @@ export async function countResearchGroups() {
 /**
  * Counts all research papers.
  */
-export async function countResearchPapers() {
-    const result = await db
+export async function countResearchPapers(executor: Pick<typeof db, "select"> = db) {
+    const result = await executor
         .select({
             count: count(),
         })
@@ -85,7 +85,7 @@ export async function groupUsersByRole() {
         .from(users).groupBy(users.roleId);
 }
 
-export async function groupPapersByStatus() {
-    return db.select({ status: researchPapers.status, count: count() })
+export async function groupPapersByStatus(executor: Pick<typeof db, "select"> = db) {
+    return executor.select({ status: researchPapers.status, count: count() })
         .from(researchPapers).groupBy(researchPapers.status);
 }

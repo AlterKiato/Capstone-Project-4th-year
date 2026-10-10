@@ -1,3 +1,5 @@
+import { sql, type SQL } from "drizzle-orm";
+import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 import {
     desc,
     eq,
@@ -198,4 +200,29 @@ export async function findSubmissionForAdviser(
     }
 
     return submission;
+}
+
+
+// Counts only, scoped in SQL to the verified Adviser's current ownership.
+// All historical versions and archived owned groups match the existing list semantics.
+export async function getAdviserAIWorkflowAggregate(adviserId: number) {
+    if (!Number.isSafeInteger(adviserId) || adviserId <= 0) throw new Error("Invalid account");
+    const cohort = (predicate: SQL = sql`true`) => ({
+        versions: sql<number>`count(*) filter (where ${predicate})`.mapWith(Number),
+        contributors: sql<number>`count(distinct ${submissions.submittedBy}) filter (where ${predicate})`.mapWith(Number),
+        papers: sql<number>`count(distinct ${submissions.paperId}) filter (where ${predicate})`.mapWith(Number),
+    });
+    const submitted = eq(submissions.status, SUBMISSION_STATUS.SUBMITTED);
+    const review = eq(submissions.status, SUBMISSION_STATUS.UNDER_REVIEW);
+    const [aggregate] = await db.select({
+        total: cohort(), submitted: cohort(submitted), review: cohort(review),
+        notSubmitted: cohort(sql`not (${submitted})`),
+        notReview: cohort(sql`not (${review})`),
+        neither: cohort(sql`not (${submitted}) and not (${review})`),
+    }).from(submissions)
+        .innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
+        .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
+        .innerJoin(users, eq(submissions.submittedBy, users.id))
+        .where(eq(researchGroups.adviserId, adviserId));
+    return aggregate;
 }

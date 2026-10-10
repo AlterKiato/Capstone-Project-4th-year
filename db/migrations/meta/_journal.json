@@ -71,6 +71,20 @@
       "when": 1790483957926,
       "tag": "0009_repository_paper_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791535580700,
+      "tag": "0010_ai_eligibility_consent",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791545905673,
+      "tag": "0011_ai_pilot_quota",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,7 @@
+import { managedAccountSchema } from "@/lib/validations/user";
+import { getSession } from "@/lib/auth/session";
+import { hashPassword } from "@/lib/auth/hash";
+import { findUserById, findUserByEmail, createManagedUserForAdmin } from "@/lib/repositories/user.repository";
 import {
     findAllUsers,
     updateUserStatus,
@@ -155,4 +159,21 @@ export async function changeUserRole(
         success: true,
         message: "User role updated successfully.",
     };
+}
+/** Account creation never requires eligibility or consent; no automatic certification. */
+export async function createManagedAccount(input: unknown) {
+    try {
+        const parsed = managedAccountSchema.safeParse(input);
+        const session = await getSession();
+        if (!parsed.success || !session || session.roleId !== 1 || !Number.isSafeInteger(session.userId) || session.userId <= 0)
+            return { success: false, message: "Account creation unavailable." } as const;
+        const actor = await findUserById(session.userId);
+        if (!actor?.isActive || actor.roleId !== 1) return { success: false, message: "Account creation unavailable." } as const;
+        const data = parsed.data, email = data.email.trim().toLowerCase();
+        if (await findUserByEmail(email)) return { success: false, message: "Unable to create account. Check the supplied details." } as const;
+        const password = await hashPassword(data.password);
+        const created = await createManagedUserForAdmin({firstName:data.firstName,lastName:data.lastName,email,password,roleId:data.roleId},session.userId);
+        if (!created) return { success: false, message: "Account creation unavailable." } as const;
+        return { success: true, message: "Account created. AI eligibility is Pending Verification.", data: { id: created.id } } as const;
+    } catch { return { success: false, message: "Unable to create account. Check the supplied details." } as const; }
 }

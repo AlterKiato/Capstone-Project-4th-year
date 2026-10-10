@@ -113,3 +113,12 @@ export async function findUsersByRoleId(
             )
         );
 }
+// Privileged creation locks and rechecks the acting Admin in the same transaction.
+export async function createManagedUserForAdmin(data: typeof users.$inferInsert, actorId: number) {
+    return db.transaction(async tx => {
+        const [actor] = await tx.select({roleId: users.roleId, isActive: users.isActive}).from(users).where(eq(users.id, actorId)).for("update");
+        if (!actor?.isActive || actor.roleId !== 1) return null;
+        const [created] = await tx.insert(users).values(data).returning({ id: users.id });
+        return created;
+    });
+}

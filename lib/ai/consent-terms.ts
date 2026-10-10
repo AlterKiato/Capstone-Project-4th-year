@@ -1,0 +1,8 @@
+import "server-only";
+import { createHash } from "node:crypto";
+// Foundation text; institution must review before a future consent UI/live activation.
+// Material changes MUST create a new version; never edit an accepted version in place.
+export const AI_TERMS_VERSION = "ai-assistance-v2-draft";
+const PREVIOUS_FOUNDATION_TEXT = "AI assistance is optional and supplementary. If separately enabled, Groq receives only approved coarsened aggregate statistics and fixed system instructions, not research content, identities or consent records. Outputs may be inaccurate and must not grade research, decide approvals or create official Adviser feedback. Declining or withdrawing preserves normal account, research, report and static-guide access. Withdrawal stops future AI requests but cannot retract data already sent. Groq remains disabled pending institutional privacy, provider and deployment approval.";
+export const AI_TERMS_TEXT = PREVIOUS_FOUNDATION_TEXT + "\n\nDRAFT: Institutional and provider privacy/retention terms, lawful processing, institutional contact and final approval remain pending. This is optional preparation consent, not finalized legal terms or permission to activate Groq. No provider requests are currently possible. Proposed synthetic local pilot limits are 3 attempts per account per UTC day, 10 globally per day, a 120-second cooldown and one concurrent request globally; these are test-plan limits, not active production quotas, and require approval. Reviewed terms must receive a new version and renewed acceptance before live use.";
+export const AI_TERMS_DIGEST = createHash("sha256").update(AI_TERMS_TEXT, "utf8").digest("hex");

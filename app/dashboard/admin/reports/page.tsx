@@ -1,3 +1,4 @@
+import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
@@ -36,6 +37,7 @@ export default async function AdminReportsPage() {
                     <p>Statuses describe each research paper, rather than individual submission versions.</p>
                 </section>
             </>}
+            <LocalAIAssistance feature="admin" />
             <section>
                 <h2>Recent System Activity</h2>
                 <p>Latest five recorded events. This is not a complete audit of all system operations.</p>

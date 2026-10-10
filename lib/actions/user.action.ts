@@ -48,3 +48,7 @@ export async function changeUserRoleAction(
         session.userId
     );
 }
+export async function createManagedAccountAction(input: unknown) {
+    const { createManagedAccount } = await import("@/lib/services/user.service");
+    return createManagedAccount(input);
+}

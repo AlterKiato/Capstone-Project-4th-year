@@ -37,6 +37,10 @@ export default async function DashboardPage() {
                 <p><Link href="/dashboard/student">Open Student Dashboard</Link></p>
             ) : null}
 
+            {[ROLE_IDS.ADMIN, ROLE_IDS.ADVISER, ROLE_IDS.STUDENT].some(role => role === session.roleId) && (
+                <p><Link href="/dashboard/guide">System Guide</Link></p>
+            )}
+
             <LogoutButton />
         </main>
     );

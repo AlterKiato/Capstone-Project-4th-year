@@ -291,8 +291,8 @@ export async function incrementRepositoryDownloadCount(repositoryId: number) {
 }
 
 /** Counts distinct papers using the same eligibility rules as repository discovery. */
-export async function countPublishedResearch() {
-    const [result] = await db.select({ total: countDistinct(researchPapers.id) })
+export async function countPublishedResearch(executor: Pick<typeof db, "select"> = db) {
+    const [result] = await executor.select({ total: countDistinct(researchPapers.id) })
         .from(repositories)
         .innerJoin(researchPapers, eq(repositories.paperId, researchPapers.id))
         .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
