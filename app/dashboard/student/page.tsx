@@ -14,6 +14,7 @@ import {
     createStudentResearchAction,
 } from "@/lib/actions/student-research.action";
 import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
 
 /**
  * Student dashboard and research
@@ -34,32 +35,17 @@ export default async function StudentPage() {
         groupsResult.data ?? [];
 
     return (
-        <main
-            style={{
-                maxWidth: "900px",
-                margin: "0 auto",
-                padding: "40px 20px",
-            }}
-        >
-            <h1>Student Dashboard</h1>
+        <main className="dashboard-page">
+            <DashboardHeader title="Student Dashboard" email={session.email} />
 
             <DashboardNavigation links={[
+                { href: "/dashboard/student", label: "Overview" },
                 { href: "/dashboard/student/submissions", label: "My Research & Submissions" },
                 { href: "/dashboard/student/notifications", label: "Notifications" },
                 { href: "/dashboard/repository", label: "Browse Repository" },
             ]} />
 
-            <p>
-                Welcome, {session.email}
-            </p>
-
-            <hr
-                style={{
-                    margin: "30px 0",
-                }}
-            />
-
-            <section>
+            <section className="dashboard-panel">
                 <h2>
                     Create Research Project
                 </h2>
@@ -82,13 +68,7 @@ export default async function StudentPage() {
                         action={
                             createStudentResearchAction
                         }
-                        style={{
-                            display: "flex",
-                            flexDirection:
-                                "column",
-                            gap: "16px",
-                            marginTop: "20px",
-                        }}
+                        className="dashboard-form"
                     >
                         <div>
                             <label

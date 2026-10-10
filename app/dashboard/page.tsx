@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/auth/session";
 
-import LogoutButton from "@/components/auth/logout-button";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
 import Link from "next/link";
-import { ROLE_IDS } from "@/lib/auth/roles";
+import { getRoleName, ROLE_IDS } from "@/lib/auth/roles";
 
 /**
  * Protected dashboard page.
@@ -22,26 +22,25 @@ export default async function DashboardPage() {
     }
 
     return (
-        <main>
-            <h1>Dashboard</h1>
+        <main className="dashboard-page">
+            <DashboardHeader title="Dashboard" email={session.email} />
 
-            <p>Welcome, {session.email}</p>
+            <section className="dashboard-panel">
+                <h2>{getRoleName(session.roleId) ?? "Account"} Workspace</h2>
 
-            <p>Role ID: {session.roleId}</p>
+                {session.roleId === ROLE_IDS.ADMIN ? (
+                    <p><Link href="/dashboard/admin">Open Admin Dashboard</Link></p>
+                ) : session.roleId === ROLE_IDS.ADVISER ? (
+                    <p><Link href="/dashboard/adviser">Open Adviser Dashboard</Link></p>
+                ) : session.roleId === ROLE_IDS.STUDENT ? (
+                    <p><Link href="/dashboard/student">Open Student Dashboard</Link></p>
+                ) : null}
 
-            {session.roleId === ROLE_IDS.ADMIN ? (
-                <p><Link href="/dashboard/admin">Open Admin Dashboard</Link></p>
-            ) : session.roleId === ROLE_IDS.ADVISER ? (
-                <p><Link href="/dashboard/adviser">Open Adviser Dashboard</Link></p>
-            ) : session.roleId === ROLE_IDS.STUDENT ? (
-                <p><Link href="/dashboard/student">Open Student Dashboard</Link></p>
-            ) : null}
+                {[ROLE_IDS.ADMIN, ROLE_IDS.ADVISER, ROLE_IDS.STUDENT].some(role => role === session.roleId) && (
+                    <p><Link href="/dashboard/guide">System Guide</Link></p>
+                )}
 
-            {[ROLE_IDS.ADMIN, ROLE_IDS.ADVISER, ROLE_IDS.STUDENT].some(role => role === session.roleId) && (
-                <p><Link href="/dashboard/guide">System Guide</Link></p>
-            )}
-
-            <LogoutButton />
+            </section>
         </main>
     );
 }

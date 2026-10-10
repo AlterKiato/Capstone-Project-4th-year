@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --background: #f6f8fb;
+  --foreground: #1e293b;
 }
 
 @theme inline {
@@ -12,15 +13,47 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  line-height: 1.6;
 }
+
+/* Small native-control defaults; detailed screen layouts remain local. */
+@layer base {
+  h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 700; line-height: 1.25; }
+  h2 { font-size: 1.25rem; font-weight: 650; line-height: 1.4; margin-bottom: 0.75rem; }
+  a { color: #1e40af; text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { color: #172554; }
+  button {
+    min-height: 44px; padding: 0.55rem 1rem; border: 1px solid #1e40af;
+    border-radius: 0.5rem; background: #1e40af; color: white; font-weight: 600; cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: #172554; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+    max-width: 100%; min-height: 44px; padding: 0.55rem 0.75rem;
+    border: 1px solid #64748b; border-radius: 0.5rem; background: white; color: #1e293b;
+  }
+  label { font-weight: 600; }
+  :focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+}
+
+.dashboard-page { width: 100%; max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem; overflow-wrap: anywhere; }
+.dashboard-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.dashboard-header > div { min-width: 0; }
+.product-name { display: inline-block; margin-bottom: 0.75rem; font-weight: 700; text-decoration: none; }
+.dashboard-welcome { margin-top: 0.75rem; color: #475569; }
+.dashboard-navigation { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0; }
+.dashboard-navigation a { display: flex; align-items: center; min-height: 44px; max-width: 100%; padding: 0.55rem 0.85rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; background: white; text-decoration: none; overflow-wrap: anywhere; }
+.dashboard-navigation a:hover { background: #eff6ff; }
+.dashboard-navigation a[aria-current="page"] { background: #1e40af; border-color: #1e40af; color: white; font-weight: 600; }
+.dashboard-panel { min-width: 0; margin-top: 1.5rem; padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid #dbe2ea; border-radius: 0.75rem; background: white; box-shadow: 0 2px 6px #0f172a05; }
+.dashboard-form { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.dashboard-form input, .dashboard-form select, .dashboard-form textarea { width: 100%; }
+.dashboard-form button { justify-self: start; max-width: 100%; }
+.dashboard-statistics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0.75rem; }
+.dashboard-statistics p { padding: 1rem; background: #f6f8fb; border: 1px solid #e2e8f0; border-radius: 0.5rem; }
+.dashboard-activities { list-style: none; }
+.dashboard-activities li + li { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0; }

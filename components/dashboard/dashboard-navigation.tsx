@@ -1,14 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type DashboardNavigationProps = {
     links: Array<{ href: string; label: string }>;
 };
 
 export default function DashboardNavigation({ links }: DashboardNavigationProps) {
+    const pathname = usePathname();
     return (
-        <nav aria-label="Dashboard pages" style={{ display: "flex", flexWrap: "wrap", gap: 12, margin: "20px 0" }}>
+        <nav aria-label="Dashboard pages" className="dashboard-navigation">
             {links.map(({ href, label }) => (
-                <Link key={href} href={href} style={{ border: "1px solid #888", borderRadius: 6, padding: "8px 12px", textDecoration: "none" }}>
+                <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>
                     {label}
                 </Link>
             ))}

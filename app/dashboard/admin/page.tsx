@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
 
 import {
     getAdminDashboardStats,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/services/dashboard.service";
 
 const adminLinks = [
+    { href: "/dashboard/admin", label: "Overview" },
     { href: "/dashboard/admin/groups", label: "Manage Groups" },
     { href: "/dashboard/admin/users", label: "Manage Users" },
     { href: "/dashboard/admin/reports", label: "Reports" },
@@ -43,13 +45,9 @@ export default async function AdminPage() {
         !statisticsResult.data
     ) {
         return (
-            <main>
-                <h1>Admin Dashboard</h1>
+            <main className="dashboard-page">
+                <DashboardHeader title="Admin Dashboard" email={session.email} />
                 <DashboardNavigation links={adminLinks} />
-
-                <p>
-                    Welcome, {session.email}
-                </p>
 
                 <p>
                     {statisticsResult.message}
@@ -66,18 +64,14 @@ export default async function AdminPage() {
         activitiesResult.data ?? [];
 
     return (
-        <main>
-            <h1>Admin Dashboard</h1>
+        <main className="dashboard-page">
+            <DashboardHeader title="Admin Dashboard" email={session.email} />
             <DashboardNavigation links={adminLinks} />
 
-            <p>
-                Welcome, {session.email}
-            </p>
-
-            <section>
+            <section className="dashboard-panel">
                 <h2>System Statistics</h2>
 
-                <div>
+                <div className="dashboard-statistics">
                     <p>
                         Total Users: {statistics.totalUsers}
                     </p>
@@ -101,7 +95,7 @@ export default async function AdminPage() {
                 </div>
             </section>
 
-            <section>
+            <section className="dashboard-panel">
                 <h2>Recent Activity</h2>
 
                 {!activitiesResult.success ? (
@@ -113,7 +107,7 @@ export default async function AdminPage() {
                         No recent activity found.
                     </p>
                 ) : (
-                    <ul>
+                    <ul className="dashboard-activities">
                         {recentActivities.map(
                             (activity) => (
                                 <li key={activity.id}>
