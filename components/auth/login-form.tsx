@@ -24,7 +24,8 @@ export default function LoginForm() {
     );
 
     return (
-        <form action={formAction}>
+        <form action={formAction} className="dashboard-form auth-form" aria-busy={isPending} aria-describedby="login-message">
+            <p className="form-help">All fields are required.</p>
             <div>
                 <label htmlFor="email">
                     Email
@@ -34,6 +35,7 @@ export default function LoginForm() {
                     id="email"
                     name="email"
                     type="email"
+                    autoComplete="username"
                     required
                 />
             </div>
@@ -47,13 +49,14 @@ export default function LoginForm() {
                     id="password"
                     name="password"
                     type="password"
+                    autoComplete="current-password"
+                    minLength={8}
+                    maxLength={100}
                     required
                 />
             </div>
 
-            {state.message && (
-                <p>{state.message}</p>
-            )}
+            <p id="login-message" className={state.message ? "form-message" : undefined} aria-live="polite" aria-atomic="true">{state.message}</p>
 
             <button
                 type="submit"

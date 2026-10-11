@@ -15,6 +15,7 @@ import {
 } from "@/lib/actions/student-research.action";
 import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
+import Link from "next/link";
 
 /**
  * Student dashboard and research
@@ -35,7 +36,7 @@ export default async function StudentPage() {
         groupsResult.data ?? [];
 
     return (
-        <main className="dashboard-page">
+        <main className="dashboard-page student-overview">
             <DashboardHeader title="Student Dashboard" email={session.email} />
 
             <DashboardNavigation links={[
@@ -44,6 +45,26 @@ export default async function StudentPage() {
                 { href: "/dashboard/student/notifications", label: "Notifications" },
                 { href: "/dashboard/repository", label: "Browse Repository" },
             ]} />
+
+            <p className="dashboard-context">Work with your assigned group, submit research versions and read your Adviser’s feedback.</p>
+            <section className="dashboard-panel">
+                <h2>Your Research Workspace</h2>
+                {!groupsResult.success ? (
+                    <p className="form-message" role="alert">{groupsResult.message}</p>
+                ) : groups.length === 0 ? (
+                    <p>You are not currently assigned to an active research group. Contact your Adviser before creating a project.</p>
+                ) : groups.map(group => (
+                    <div className="group-details" key={group.id}>
+                        <p><strong>{group.groupName}</strong></p>
+                        <p>{group.strand} · {group.section} · {group.schoolYear}</p>
+                    </div>
+                ))}
+                <ul className="dashboard-tasks">
+                    <li><Link href="/dashboard/student/submissions">My Research &amp; Submissions</Link><p>Open existing projects, submit documents and read version-specific feedback.</p></li>
+                    <li><Link href="/dashboard/student/notifications">Notifications</Link><p>Read updates about your Adviser’s review decisions.</p></li>
+                    <li><Link href="/dashboard/guide">System Guide</Link><p>Read the predefined guidance for your research workflow.</p></li>
+                </ul>
+            </section>
 
             <section className="dashboard-panel">
                 <h2>
@@ -56,7 +77,9 @@ export default async function StudentPage() {
                     been accepted.
                 </p>
 
-                {groups.length === 0 ? (
+                {!groupsResult.success ? (
+                    <p>Group information is unavailable. Reload this page before creating a project.</p>
+                ) : groups.length === 0 ? (
                     <p>
                         You are not currently
                         assigned to an active research
@@ -106,7 +129,7 @@ export default async function StudentPage() {
                                             {
                                                 group.groupName
                                             }{" "}
-                                            —{" "}
+                                            ·{" "}
                                             {
                                                 group.strand
                                             }{" "}

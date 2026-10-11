@@ -25,7 +25,8 @@ export default function RegisterForm() {
     );
 
     return (
-        <form action={formAction}>
+        <form action={formAction} className="dashboard-form auth-form" aria-busy={isPending} aria-describedby="register-message">
+            <p className="form-help">All fields are required. Names must contain 2–100 characters.</p>
             <div>
                 <label htmlFor="firstName">
                     First Name
@@ -35,6 +36,9 @@ export default function RegisterForm() {
                     id="firstName"
                     name="firstName"
                     type="text"
+                    autoComplete="given-name"
+                    minLength={2}
+                    maxLength={100}
                     required
                 />
             </div>
@@ -48,6 +52,9 @@ export default function RegisterForm() {
                     id="lastName"
                     name="lastName"
                     type="text"
+                    autoComplete="family-name"
+                    minLength={2}
+                    maxLength={100}
                     required
                 />
             </div>
@@ -61,6 +68,7 @@ export default function RegisterForm() {
                     id="email"
                     name="email"
                     type="email"
+                    autoComplete="email"
                     required
                 />
             </div>
@@ -74,8 +82,13 @@ export default function RegisterForm() {
                     id="password"
                     name="password"
                     type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    maxLength={100}
+                    aria-describedby="password-help"
                     required
                 />
+                <p id="password-help" className="form-help">Use 8–100 characters.</p>
             </div>
 
             <div>
@@ -87,21 +100,20 @@ export default function RegisterForm() {
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
+                    aria-describedby="confirm-help"
                     required
                 />
+                <p id="confirm-help" className="form-help">Enter the same password again.</p>
             </div>
 
-            {state.message && (
-                <p>
-                    {state.message}
-                </p>
-            )}
+            <p id="register-message" className={state.message ? "form-message" : undefined} aria-live="polite" aria-atomic="true">{state.message}</p>
 
             <button
                 type="submit"
                 disabled={isPending}
             >
-                {isPending ? "Creating account..." : "Register"}
+                {isPending ? "Creating account..." : "Create Student account"}
             </button>
         </form>
     );

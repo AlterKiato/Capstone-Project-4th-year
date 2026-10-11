@@ -1009,3 +1009,80 @@ This is proposed plain-language disclosure, not a finalized legal agreement. Whe
 - Rulebook and MIT license unchanged: SHA-256 respectively `1b32f1295b2eef2a9f9c9609bf2de6e71408bb41ca424731753c7f66e011c6e7` and `9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de`, matching earlier local checks. Prior preparation handoff records a byte-for-byte comparison with pinned upstream revision `388cbe3b6c37d5175b9f460015bb092ef9e34894`; original fetched comparison files were not independently verified in this closure, and no fresh upstream comparison is claimed. Full MIT attribution retained.
 - Exact inventory, redacted secret-pattern review, untracked-file inspection and unstaged/staged whitespace checks PASS. No env/secrets, generated artifacts, unrelated application, dependency, database/schema/migration or architecture/scope changes in the commit. No application tests/builds, database/provider/Figma operations, dependency installation, deployment, push or merge.
 - Next checkpoint: Phase 9.2 - Authentication & Role Dashboards, only after separate owner implementation authorization. Student guidance stays static; Groq remains hard-disabled. No UI_UX_REFERENCE.md created.
+
+## Handoff - 2026-10-11 - Phase 9.2 Authentication & Role Dashboards
+
+- Authority/baseline: owner authorized Phase 9.2 only via the attached implementation request. Verified feature/development at `e6a00b9`, initially clean. Implementation ready for owner review, not owner-closed. Status PARTIAL because successful password login lacks a supplied synthetic password; signed sessions are not password-login evidence. No accounts created or modified to fill that gap.
+- Authentication: bounded mobile-friendly Login/Create a Student account pages, temporary text branding, contextual instructions and reciprocal links; explicit required fields, schema-aligned native length constraints, autocomplete, associated password instructions, form-level live public messages and busy/disabled pending states. Existing single-message actions/services, public errors, eligibility, Student role assignment and successful `/dashboard` redirect remain unchanged; no invented field-specific server errors.
+- Dashboards: Student displays existing authorized active-group name/strand/section/year and separates retrieval failure from no membership; project creation and its action/fields are preserved. Existing submissions/feedback/notifications and System Guide entry points have descriptive copy. Adviser prioritizes existing review/group/notification/guide routes without new queries or inferred counts/empty groups. Admin adds existing management/report/guide entry points, preserves all five real statistics/activity output, and announces existing failures. All roles retain shared header/logout/navigation/repository access.
+- Changed files: `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx` (page presentation/links); `components/auth/login-form.tsx`, `components/auth/register-form.tsx` (native constraints, autocomplete, help, live/pending state); `app/dashboard/student/page.tsx`, `app/dashboard/adviser/page.tsx`, `app/dashboard/admin/page.tsx` (role context and existing task entry points); `app/globals.css` (scoped auth/task/group styles and Student placeholder contrast); `tests/phase9-auth-dashboards.browser.cjs` (focused established-pattern acceptance); this handoff. Source of Truth unchanged.
+- Validation: `npm.cmd run lint`, `npx.cmd tsc --noEmit` PASS. Initial restricted build failed only fetching existing Google Geist/Geist Mono; network-enabled `npm.cmd run build` PASS (Next.js 16.2.9, 23 pages). Final scoped contrast adjustment: network-enabled build, changed Student file ESLint and focused Chromium rerun PASS; refreshed Student screenshots at both widths inspected. Final `git diff --check` PASS; staged diff empty, only the ten listed UI/test/handoff files changed and HEAD unchanged.
+- Chromium: `node --import tsx tests/phase9-auth-dashboards.browser.cjs` PASS against existing active synthetic accounts on the previously designated localhost/thesishs_ai development target. Read-only account SELECT; signed sessions for three roles. Native required validation, autocomplete/labels, real login pending/disabled state, existing-account invalid-password generic error, server registration password mismatch before mutation, reciprocal auth links, role-specific hub navigation, all six cross-role redirects, cookie removal/logout and subsequent anonymous restriction PASS. Every unique entry-screen link clicked to its expected existing route at both widths; no page/console errors, HTTP 5xx or external browser requests.
+- Responsive: 360px and 1280px no page-wide horizontal overflow, all visible controls within viewport, visible 3px keyboard focus and light theme despite dark system preference PASS. Ten OS-temp screenshots `phase92-{login,register,student,adviser,admin}-{360,1280}.png` visually inspected: readable labels/messages, wrapping navigation, single H1 per screen, sequential sections, no clipped primary actions. Registration and Student forms require ordinary vertical scrolling. Final visual review found inherited pale Student placeholders; scoped #475569 replacement avoids a global change to later screens.
+- Preservation/limits: only presentation plus tests/docs changed; no auth/service/repository/schema/migration/dependency/configuration changes, account writes, submission/review/publication mutations, provider/storage operations, new browser persistence or deployment. Both Groq availability functions still return disabled; Student guide static. Authorization evidence is focused role/session browser coverage, not a new exhaustive active-account/ownership/security audit. No successful password login, successful registration, forced dashboard error/empty fixtures, Safari/Edge/device matrix, screen-reader certification or full WCAG audit claimed.
+- Design reasons: retain Phase 9.1 Geist for continuity/readability and the existing blue accent for actions/current location; bounded single-column auth keeps labels/messages/actions together; row-based task lists explain actual routes without repeated feature cards; separate group/create sections distinguish membership from creation; 1rem form gaps and section borders separate decisions; existing restrained panel borders/shadows contain work areas; no added icons/illustrations/gradients/animation. Design Read: academic workflow screens for Students/Advisers/Admins, minimal light academic language, ENERGY 1 / RHYTHM 2 / MOTION 1.
+- Intentional precedence: retain approved light-only mode despite R-21's generic toggle guidance and existing Geist despite R-06's default-font warning. R-35 interaction coverage is bounded by the owner's prohibition on research/review mutations and missing password: all presentation links, failed auth/validation and logout exercised, existing create-project mutation deliberately unsubmitted. These are documented scope limits, not full workflow acceptance.
+- Next: owner reviews Phase 9.2 and resolves the successful-password-login coverage gap. Phase 9.3 - Student Submission & Adviser Review requires separate owner authorization. Later repository/report/assistance refinement and PWA manifest/icons/service worker/offline/push/deployment remain deferred. No staging, commits, pushes or merges; HEAD remains `e6a00b9`.
+
+### Anti-Slop During delivery gate (Phase 9.2 presentation scope)
+
+- R-02 PASS: affected UI source contains no em dash; existing activity/group separator uses a middle dot.
+- R-03 PASS: Chromium measured no page overflow and contained controls at 360/1280; ten screenshots inspected.
+- R-17 PASS: all Admin statistics still come from the unchanged dashboard service.
+- R-18 PASS: no testimonials in the affected screens.
+- R-23 PASS: temporary text branding retained; only authorized existing destinations surfaced, no visual assets invented.
+- R-24 PASS: each unique entry link clicked and asserted against its expected route.
+- R-25 PASS: calculated contrast for #475569 on white 7.58:1/on #f6f8fb 7.12:1, #1e40af on white 8.72:1, #991b1b on #fef2f2 7.60:1 and #1e293b on white 14.63:1. Student placeholders corrected to #475569 and screenshots rechecked. Full WCAG certification not claimed.
+- R-26 PASS: real Link destinations and unchanged form/logout actions; no dead controls added.
+- R-27 PASS: real auth validation/error/pending feedback tested; dashboard error/empty branches retained or clarified by source review, not forced fixtures.
+- R-28 PASS: no FAQ added.
+- R-32 PASS: native labeled controls retained; Chromium asserted visible keyboard focus at both widths.
+- R-33 PASS: changes written directly in source through patches; no external runtime source/CSS rewriting.
+- R-34 PASS: no theme toggle; approved light-only rendering tested under dark preference.
+- R-35 PASS within owner scope: production build and presentation click-through completed; mutation/password limitations explicitly recorded above.
+- R-36 PASS: no security/compliance/performance claims added to UI.
+- R-37 PASS: approved DESIGN.md and Design Read/dials applied before edits.
+- R-38 PASS: displayed groups/counts/activity use existing services; test session email is explicitly synthetic.
+- R-01 PASS: no gradients or glows added.
+- R-04 PASS: no icons added.
+- R-06 PASS by approved baseline precedence: existing Geist retained for continuity/readability; no display monospace or tracked uppercase labels.
+- R-07 PASS: plain existing backgrounds, no decorative pattern.
+- R-08 PASS: no decorative button arrows.
+- R-09 PASS: no capsule marketing badges.
+- R-10 PASS: no glass effects.
+- R-12 PASS: existing subtle panel shadow only, for work-area containment; no new floating-element effects.
+- R-13 PASS: no glow effects.
+- R-14 PASS: task rows within workflow sections, not identical feature-card grids.
+- R-19 PASS: no added animation; real text/pending state supplies functional feedback.
+- R-22 PASS: no illustrations.
+- Dials PASS: ENERGY 1 / RHYTHM 2 / MOTION 1 explicitly declared and retained.
+- Dial consistency PASS: calm styling, form/task/group/stat/activity compositions and native hover/focus only.
+- Focal point PASS: one page heading; auth primary submit and each role's task section have clear hierarchy.
+- Whitespace PASS: form gaps and divided task rows separate inputs/actions/work areas.
+- Accent PASS: existing blue marks actions/current navigation; red reserved for errors.
+- Identity PASS: text branding and group/version/review/publication vocabulary repeat the actual academic workflow.
+- Design Read PASS: declared before implementation in commentary and recorded above.
+- C-1 PASS: major decisions have written reasons above.
+- C-2 PASS: interactive elements use real routes/actions, with focused click-through evidence.
+- C-3 PASS: sections describe actual membership, research creation, review and management tasks.
+- C-4 PASS within tested scope: native keyboard controls, both viewports/light preference and auth errors/pending checked.
+- C-5 PASS: no fabricated production claims or statistics.
+- R-05 PASS: content-based forms/task rows/group information/existing statistics and activity, no marketing template.
+- R-11 PASS: existing 0.5rem controls/0.75rem panels, no pills.
+- R-15 PASS: Login/Create Student account/Review Submissions and actual management labels.
+- R-16 PASS: no AI marketing buzzwords added.
+- R-20 PASS: academic workflow-specific content and group/version context distinguish the screens; restrained baseline retained.
+- R-21 PASS by owner precedence: light-only approval honored, no toggle required.
+- R-29 PASS: existing blue plus functional error red and neutral palette.
+- R-30 PASS: existing application baseline refined; no other-product imitation.
+- R-31 PASS: color/layout/type/spacing/panels/assets/motion reasons recorded above.
+
+## Handoff - 2026-10-11 - Phase 9.2 Owner-Accepted Closure
+
+- Owner decision: Phase 9.2 implementation accepted for closure. This supersedes the preceding implementation handoff's PARTIAL/review-pending status and manual-login gap; its executed evidence and other limitations remain unchanged.
+- Successful password login: PASS, manually verified and reported by the owner. Codex automated successful password-login coverage: NOT EXECUTED. Codex did not independently verify this successful login; signed-session tests are not password-login evidence.
+- Previously executed lint, TypeScript, network-enabled production build, diff and focused Chromium checks: PASS, as detailed above. No full test-suite/build/browser rerun during closure; no application changes introduced by this closure task.
+- Closure baseline verified: feature/development at `e6a00b9`, exactly the ten uncommitted Phase 9.2 application/test/handoff files listed above. Complete application/documentation diff and new acceptance runner reviewed. No embedded secrets, unintended backend changes, database modifications, schema/migrations, dependencies, generated artifacts or unrelated files found. Synthetic invalid passwords/test identities and runtime environment-variable references in the runner are intentional; no environment-file contents inspected or committed.
+- Remaining limits: Safari/Edge compatibility deferred; no Codex successful password-login or successful registration acceptance, forced dashboard error/empty fixtures, full screen-reader/WCAG certification or research-cycle mutation retest. Existing focused role/session checks do not constitute a new exhaustive security audit. Student guide remains static; Groq remains hard-disabled.
+- Authorized commit: `feat(phase9): refine authentication and role dashboards`, containing only the ten reviewed Phase 9.2 files. Resolve its final hash using `git log -1 --oneline`; verify closure inventory using `git show --stat --oneline HEAD` and final working tree using `git status --short`.
+- Phase 9.2 closed by owner acceptance. Phase 9.3 - Student Submission & Adviser Review is NOT STARTED and requires separate authorization. No push, merge, deployment, schema/database/provider operations or later-phase implementation authorized/performed.

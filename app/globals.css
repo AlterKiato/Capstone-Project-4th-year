@@ -57,3 +57,21 @@ body {
 .dashboard-statistics p { padding: 1rem; background: #f6f8fb; border: 1px solid #e2e8f0; border-radius: 0.5rem; }
 .dashboard-activities { list-style: none; }
 .dashboard-activities li + li { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0; }
+
+/* A bounded form keeps labels and primary actions together at either viewport. */
+.auth-page { width: calc(100% - 2.5rem); max-width: 460px; margin: 3rem auto; padding: clamp(1rem, 3vw, 2rem); border: 1px solid #dbe2ea; border-radius: 0.75rem; background: white; overflow-wrap: anywhere; }
+.auth-form label { display: block; margin-bottom: 0.35rem; }
+.auth-form button { width: 100%; }
+.auth-form p:empty { display: none; }
+.auth-switch { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #e2e8f0; }
+.form-help, .dashboard-context { color: #475569; }
+.form-help { font-size: 0.875rem; }
+.form-message { padding: 0.75rem; border-left: 3px solid #b91c1c; background: #fef2f2; color: #991b1b; }
+.dashboard-context { margin-bottom: 1.5rem; }
+.dashboard-tasks { list-style: none; }
+.dashboard-tasks li { padding: 0.75rem 0; }
+.dashboard-tasks li + li { border-top: 1px solid #e2e8f0; }
+.dashboard-tasks a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
+.dashboard-tasks p { color: #475569; }
+.group-details { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid #cbd5e1; }
+.student-overview input::placeholder, .student-overview textarea::placeholder { color: #475569; opacity: 1; }
