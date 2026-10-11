@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-10
+**Last reconciled:** 2026-10-11
 **Current branch:** `feature/development`
-**HEAD checkpoint:** Phase 9.1 closure commit: `feat(phase9): establish responsive UI foundation` (resolve with `git log -1 --oneline`; predecessor `85ad8cf`)
-**Working tree:** Reviewed Phase 9.1 presentation, focused browser test and handoff are captured by the owner-approved closure commit containing this document. Verify post-commit Git status. No push, merge, deployment, CI or `.github/` changes.
+**HEAD checkpoint:** Anti-Slop documentation closure commit: `docs(design): integrate anti-slop UI standards` (resolve with `git log -1 --oneline`; predecessor `906bca0`)
+**Working tree:** The five reviewed Anti-Slop documentation files are captured by the owner-approved closure commit containing this handoff. Verify post-commit Git status. Phase 9.1 remains committed at `906bca0`; no application changes, push, merge or deployment in this closure.
 
 > This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. Phase 9 UI/UX Refinement & PWA Integration is the next development target; its lean scope/branding/priority screens await explicit implementation approval below. The owner-authorized Phase 8 closure commit preserves reviewed work. No push, merge or Phase 9 implementation.
+Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. Phase 9.1 is complete and committed at `906bca0`; Phase 9.2 and later checkpoints await separate implementation authorization. The active design references are the existing application, approved DESIGN.md decisions and ANTISLOP.md, with owner-selected During mode for future UI implementation. Figma Make inspection is cancelled. No later-phase implementation, push or merge is authorized by this documentation update.
 
 ### Current phase status
 
@@ -33,7 +33,7 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 | 6 | Search, Filtering & Discovery | Lean implementation and focused runtime acceptance complete; see latest handoff |
 | 7 | Administration & Reporting | Complete; service/database/HTTP and final Chromium acceptance PASS |
 | 8 | Role-separated AI and static guidance | Provisionally complete for implemented static/mock-only scope; Chromium and focused safeguards PASS; operational Groq unfinished |
-| 9 | UI/UX Refinement & PWA Integration | Owner-proposed direction; lean scope below awaits implementation approval; not started |
+| 9 | UI/UX Refinement & PWA Integration | Phase 9.1 complete at 906bca0; application/DESIGN.md/ANTISLOP.md references, During mode; Phase 9.2 onward await authorization |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
 
 **Panel Evaluation:** excluded/deferred unless explicitly reopened.
@@ -982,3 +982,30 @@ This is proposed plain-language disclosure, not a finalized legal agreement. Whe
 - Reviewed all ten Phase 9.1 source/test/documentation files listed above. No unrelated files, secret credentials, generated artifacts, schema/migration/dependency or backend changes found in the commit scope. Browser screenshots remain OS-temp artifacts, not repository files. Synthetic test strings are intentional; no environment-file contents read.
 - Existing lint, TypeScript, build, Chromium/responsive/focus/authorization evidence and successful-password-login limitation remain recorded above. Closure review runs only source/Git, secret-pattern and whitespace checks; no full suite rerun or new acceptance claim.
 - Phase 9.1 is owner-approved; Phase 9.2 requires separate implementation authorization. No deployment, push, merge, database operations, migrations or Groq activation in this closure task. Source of Truth unchanged.
+
+## Handoff - 2026-10-10 - Anti-Slop Design Preparation
+
+- Documentation-only integration authorized by owner. Starting branch `feature/development`, HEAD `906bca0` (`feat(phase9): establish responsive UI foundation`), clean working tree. Phase 9.1 closure commit exists and remains the active UI baseline; older pending-Phase-9 statements are historical.
+- Original English upstream `antislop.md` retrieved at revision `388cbe3b6c37d5175b9f460015bb092ef9e34894` from https://github.com/miqdadbadjuber/anti-slop and copied unchanged to root `ANTISLOP.md`. Requested uppercase raw URL returned HTTP 404; verified lowercase upstream file used. Full MIT notice, Copyright (c) 2026 Miqdad Badjuber (antislop), preserved in `ANTISLOP.LICENSE`. Exact pinned URL and provenance are in `DESIGN.md`.
+- Root `DESIGN.md` records owner-supplied provisional academic/light/text-brand/PWA-first direction, ENERGY 1 / RHYTHM 2 / MOTION 1, six-level UI precedence and future Figma inspection/recommendation/review workflow. No finalized palette, typography, logo or icon set invented. `AGENTS.md` adds a concise UI/UX pointer and verified baseline without removing existing instructions.
+- Validation: copied rulebook/license compared byte-for-byte with retrieved files; existing AGENTS content preserved by additive insertion; `git diff --check` and new-file whitespace checks PASS. Final changes are documentation/instructions only. No browser, database or build tests required or run; no application/schema/migration/dependency/configuration changes.
+- No installer, optional skills, global preference changes, Figma inspection/editing or invented `docs/UI_UX_REFERENCE.md`. Phase 8 privacy/authorization/consent/quota/static controls and Groq hard-disable remain binding. No staging, commit, push or merge; integration remains uncommitted for review, HEAD unchanged.
+- Next action: Figma Make design inspection pending owner-provided reference and approval. Recommendations must precede owner review; application and prototype edits remain separately gated. Stop after this integration; do not start Phase 9.2.
+
+
+## Handoff - 2026-10-11 - Phase 9 Design Direction Update
+
+- Owner replaces the planned Figma Make workflow with the existing application, approved `DESIGN.md` decisions and `ANTISLOP.md` as active design references. The earlier Figma inspection next action is superseded and cancelled; do not perform it or create `docs/UI_UX_REFERENCE.md`.
+- Anti-Slop **During mode** explicitly approved for future UI/UX implementation checkpoints as a project preference. No machine-wide settings, optional skills or rulebook changes. Preserve ENERGY 1 / RHYTHM 2 / MOTION 1, the minimal academic style, light-only theme and temporary text-based ThesiSHS AI branding. Unresolved palette/type/logo/icon decisions remain unresolved.
+- Verified branch `feature/development`, HEAD `906bca0`. Preserved existing uncommitted AGENTS.md, ANTISLOP.md, ANTISLOP.LICENSE and Master Context preparation. Only DESIGN.md and this Master Context edited in this task; historical handoffs remain intact. References to the prior Figma plan in unchanged AGENTS.md are superseded by this explicit owner decision.
+- Validation: documentation diff/whitespace checks PASS; no application build or browser tests needed or run. No Figma access/editing, application/backend/dependency/schema changes, database/provider operations, staging, commits, pushes or merges. Existing Phase 9.1 evidence and Phase 8 safeguards/Groq hard-disable preserved.
+- Exact next action: owner reviews this direction update and separately authorizes Phase 9.2 - Authentication & Role Dashboards. Stop after documentation; no Phase 9.2 implementation authorized here.
+
+
+## Handoff - 2026-10-11 - Anti-Slop Documentation Closure
+
+- Owner-authorized documentation-only commit: `docs(design): integrate anti-slop UI standards` on feature/development, predecessor `906bca0`. This handoff is part of that commit; resolve its hash with git log -1 --oneline and verify the final working tree with git status --short.
+- Reviewed only AGENTS.md, ANTISLOP.md, ANTISLOP.LICENSE, DESIGN.md and this Master Context. Corrected the active AGENTS UI pointer's stale Figma instructions to match the already-approved cancellation and During mode; preserved existing historical project instructions and handoffs. Minimal/light/text-brand direction, ENERGY 1 / RHYTHM 2 / MOTION 1 and security/workflow precedence unchanged. Phase 9.1 complete; Phase 9.2 unstarted and separately gated.
+- Rulebook and MIT license unchanged: SHA-256 respectively `1b32f1295b2eef2a9f9c9609bf2de6e71408bb41ca424731753c7f66e011c6e7` and `9fd83fb1fda52ca0094b96e2ed5a3d6c42a81b95a6c6326553f5bbe570f443de`, matching earlier local checks. Prior preparation handoff records a byte-for-byte comparison with pinned upstream revision `388cbe3b6c37d5175b9f460015bb092ef9e34894`; original fetched comparison files were not independently verified in this closure, and no fresh upstream comparison is claimed. Full MIT attribution retained.
+- Exact inventory, redacted secret-pattern review, untracked-file inspection and unstaged/staged whitespace checks PASS. No env/secrets, generated artifacts, unrelated application, dependency, database/schema/migration or architecture/scope changes in the commit. No application tests/builds, database/provider/Figma operations, dependency installation, deployment, push or merge.
+- Next checkpoint: Phase 9.2 - Authentication & Role Dashboards, only after separate owner implementation authorization. Student guidance stays static; Groq remains hard-disabled. No UI_UX_REFERENCE.md created.

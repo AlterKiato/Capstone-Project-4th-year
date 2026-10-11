@@ -4,6 +4,23 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+## UI/UX Design Instructions
+
+For tasks involving UI design, visual components, layouts, responsive behavior or accessibility:
+
+1. Read `DESIGN.md` for the current product design direction.
+2. Read `ANTISLOP.md` for the design-quality filter (core-only integration).
+3. Apply Anti-Slop in **During mode** for future owner-authorized UI/UX implementation checkpoints, as explicitly approved on 2026-10-11; do not ask again for that project choice or change global preferences.
+4. Preserve approved requirements, security controls, role permissions and workflow semantics.
+5. Use the existing application, approved `DESIGN.md` decisions and `ANTISLOP.md` as active design references.
+6. Figma Make is no longer part of the active workflow. Do not perform the cancelled inspection or create `docs/UI_UX_REFERENCE.md` for it.
+7. Refine only the authorized checkpoint's screens; propose unresolved branding or scope decisions separately.
+8. Preserve the minimal academic style, light-only theme and temporary text branding. Phase 9.2 requires separate implementation authorization.
+
+UI decision precedence: security/privacy/authorization > owner-approved scope/workflows > verified implementation/contracts > approved `DESIGN.md` decisions > applicable Anti-Slop rules. Preserve approved decisions on conflict and report the relevant rule/tradeoff. `DESIGN.md` records the active application-based workflow; no prototype inspection or implementation scope is inferred.
+
+Verified 2026-10-10 checkpoint: `feature/development`, Phase 9.1 committed at `906bca0` (`feat(phase9): establish responsive UI foundation`), clean tree before this documentation integration. Phase 9.1 is the active UI baseline; this supersedes older pending-Phase-9 statements below. Phase 9.2 remains unstarted and unapproved; Figma Make inspection is cancelled. Preserve Phase 8 safeguards and hard-disabled Groq. Anti-Slop provenance and full MIT attribution are in `DESIGN.md` and `ANTISLOP.LICENSE`.
+
 
 # ThesiSHS AI — Complete Development Progress & Handoff Guide
 
