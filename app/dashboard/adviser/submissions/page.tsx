@@ -1,188 +1,57 @@
-import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
 import Link from "next/link";
+import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
+import { requireRole } from "@/lib/auth/authorization";
+import { ROLE_IDS } from "@/lib/auth/roles";
+import { getAdviserSubmissions } from "@/lib/services/adviser-submission.service";
 
-import {
-    requireRole,
-} from "@/lib/auth/authorization";
-
-import {
-    ROLE_IDS,
-} from "@/lib/auth/roles";
-
-import {
-    getAdviserSubmissions,
-} from "@/lib/services/adviser-submission.service";
-
-/**
- * Displays research submissions belonging
- * to the authenticated Adviser's groups.
- */
 export default async function AdviserSubmissionsPage() {
-    const session =
-        await requireRole([
-            ROLE_IDS.ADVISER,
-        ]);
-
-    const result =
-        await getAdviserSubmissions(
-            session.userId
-        );
-
-    const submissions =
-        result.data ?? [];
-
+    const session = await requireRole([ROLE_IDS.ADVISER]);
+    const result = await getAdviserSubmissions(session.userId);
+    const submissions = result.data ?? [];
     return (
-        <main
-            style={{
-                maxWidth: "1200px",
-                margin: "0 auto",
-                padding: "40px 20px",
-            }}
-        >
-            <h1>
-                Research Submissions
-            </h1>
-
-            <p>
-                Review research submissions
-                from your research groups.
-            </p>
-
+        <main className="dashboard-page research-workspace">
+            <DashboardHeader title="Research Submissions" email={session.email} />
+            <DashboardNavigation links={[
+                { href: "/dashboard/adviser", label: "Overview" },
+                { href: "/dashboard/adviser/groups", label: "Research Groups" },
+                { href: "/dashboard/adviser/submissions", label: "Review Submissions" },
+                { href: "/dashboard/adviser/notifications", label: "Notifications" },
+                { href: "/dashboard/repository", label: "Browse Repository" },
+            ]} />
+            <p className="dashboard-context">Open a submitted version to read its PDF, start review and record your feedback and decision.</p>
+            <section className="dashboard-panel" aria-labelledby="submissions-heading">
+                <h2 id="submissions-heading">Submitted Research</h2>
+                {!result.success ? (
+                    <p className="form-message" role="alert">{result.message}</p>
+                ) : submissions.length === 0 ? (
+                    <p>No research submissions from your groups yet. Submitted versions will appear here when a Student uploads a document.</p>
+                ) : (
+                    <>
+                        <p id="table-help" className="form-help">Newest submissions first. On a narrow screen, scroll within the table to reach all columns.</p>
+                        <div className="research-table-scroll" role="region" aria-labelledby="submissions-heading" aria-describedby="table-help" tabIndex={0}>
+                            <table className="research-table">
+                                <caption className="sr-only">Submissions from your research groups</caption>
+                                <thead><tr>
+                                    <th scope="col">Research</th><th scope="col">Student</th><th scope="col">Research Group</th>
+                                    <th scope="col">Version</th><th scope="col">Status</th><th scope="col">Submitted</th><th scope="col">Review</th>
+                                </tr></thead>
+                                <tbody>{submissions.map(submission => (
+                                    <tr key={submission.id}>
+                                        <th scope="row"><Link href={`/dashboard/adviser/submissions/${submission.id}`}>{submission.researchTitle}</Link></th>
+                                        <td>{submission.studentFirstName} {submission.studentLastName}</td>
+                                        <td>{submission.groupName}</td><td>{submission.version}</td><td>{submission.status}</td>
+                                        <td><time dateTime={submission.submittedAt.toISOString()}>{submission.submittedAt.toLocaleString()}</time></td>
+                                        <td><Link href={`/dashboard/adviser/submissions/${submission.id}`} aria-label={`Review ${submission.researchTitle}, ${submission.version}`}>View Details</Link></td>
+                                    </tr>
+                                ))}</tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
+            </section>
             <LocalAIAssistance feature="adviser" />
-
-            <hr
-                style={{
-                    margin: "30px 0",
-                }}
-            />
-
-            {submissions.length === 0 ? (
-                <section>
-                    <h2>
-                        No Submissions
-                    </h2>
-
-                    <p>
-                        There are currently no
-                        research submissions from
-                        your research groups.
-                    </p>
-                </section>
-            ) : (
-                <section>
-                    <h2>
-                        Submitted Research
-                    </h2>
-
-                    <div
-                        style={{
-                            overflowX:
-                                "auto",
-                            marginTop:
-                                "20px",
-                        }}
-                    >
-                        <table
-                            style={{
-                                width: "100%",
-                                borderCollapse:
-                                    "collapse",
-                            }}
-                        >
-                            <thead>
-                                <tr>
-                                    <th>
-                                        Research
-                                    </th>
-
-                                    <th>
-                                        Student
-                                    </th>
-
-                                    <th>
-                                        Research Group
-                                    </th>
-
-                                    <th>
-                                        Version
-                                    </th>
-
-                                    <th>
-                                        Status
-                                    </th>
-
-                                    <th>
-                                        Submitted At
-                                    </th>
-
-                                    <th>
-                                        Action
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {submissions.map(
-                                    (
-                                        submission
-                                    ) => (
-                                        <tr
-                                            key={
-                                                submission.id
-                                            }
-                                        >
-                                            <td>
-                                                {
-                                                    submission.researchTitle
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    submission.studentFirstName
-                                                }{" "}
-                                                {
-                                                    submission.studentLastName
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    submission.groupName
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    submission.version
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {
-                                                    submission.status
-                                                }
-                                            </td>
-
-                                            <td>
-                                                {submission.submittedAt.toLocaleString()}
-                                            </td>
-
-                                            <td>
-                                                <Link
-                                                    href={`/dashboard/adviser/submissions/${submission.id}`}
-                                                >
-                                                    View
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            )}
         </main>
     );
 }

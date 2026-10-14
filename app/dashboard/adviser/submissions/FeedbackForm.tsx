@@ -1,195 +1,59 @@
 "use client";
 
-import {
-    useState,
-} from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createAdviserFeedbackAction } from "@/lib/actions/adviser-feedback.action";
 
-import {
-    createAdviserFeedbackAction,
-} from "@/lib/actions/adviser-feedback.action";
+export default function FeedbackForm({ submissionId }: { submissionId: number }) {
+    const router = useRouter();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [comments, setComments] = useState("");
+    const [decision, setDecision] = useState("Revision Required");
+    const [message, setMessage] = useState("");
+    const [failed, setFailed] = useState(false);
 
-/**
- * Allows an Adviser to submit feedback
- * and a review decision for a submission.
- */
-export default function FeedbackForm({
-    submissionId,
-}: {
-    submissionId: number;
-}) {
-    const [
-        isSubmitting,
-        setIsSubmitting,
-    ] = useState(false);
-
-    const [
-        comments,
-        setComments,
-    ] = useState("");
-
-    const [
-        decision,
-        setDecision,
-    ] = useState(
-        "Revision Required"
-    );
-
-    async function handleSubmit(
-        event: React.FormEvent<HTMLFormElement>
-    ) {
+    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-
         setIsSubmitting(true);
-
+        setMessage("");
+        setFailed(false);
         try {
-            const formData =
-                new FormData();
-
-            formData.set(
-                "submissionId",
-                String(
-                    submissionId
-                )
-            );
-
-            formData.set(
-                "comments",
-                comments
-            );
-
-            formData.set(
-                "decision",
-                decision
-            );
-
-            const result =
-                await createAdviserFeedbackAction(
-                    formData
-                );
-
-            if (!result.success) {
-                alert(
-                    result.message
-                );
-
-                return;
-            }
-
-            alert(
-                result.message
-            );
-
-            window.location.reload();
-        } catch (error) {
-            console.error(
-                "Failed to submit Adviser feedback:",
-                error
-            );
-
-            alert(
-                "The feedback could not be submitted."
-            );
+            const formData = new FormData();
+            formData.set("submissionId", String(submissionId));
+            formData.set("comments", comments);
+            formData.set("decision", decision);
+            const result = await createAdviserFeedbackAction(formData);
+            setMessage(result.message);
+            setFailed(!result.success);
+            if (result.success) router.refresh();
+        } catch {
+            setFailed(true);
+            setMessage("The feedback could not be submitted.");
         } finally {
             setIsSubmitting(false);
         }
     }
 
     return (
-        <form
-            onSubmit={
-                handleSubmit
-            }
-            style={{
-                marginTop: "30px",
-            }}
-        >
-            <h2>
-                Adviser Feedback
-            </h2>
-
-            <div
-                style={{
-                    marginBottom:
-                        "20px",
-                }}
-            >
-                <label
-                    htmlFor="comments"
-                >
-                    Feedback Comments
-                </label>
-
-                <textarea
-                    id="comments"
-                    value={comments}
-                    onChange={(event) =>
-                        setComments(
-                            event.target
-                                .value
-                        )
-                    }
-                    rows={8}
-                    maxLength={5000}
-                    required
-                    style={{
-                        display:
-                            "block",
-                        width:
-                            "100%",
-                        marginTop:
-                            "8px",
-                    }}
-                />
+        <form onSubmit={handleSubmit} className="dashboard-form" aria-busy={isSubmitting} aria-describedby="feedback-instructions feedback-message">
+            <p id="feedback-instructions">Record feedback for this version. Comments and a decision are required.</p>
+            <div>
+                <label htmlFor="comments">Feedback Comments</label>
+                <textarea id="comments" name="comments" value={comments} onChange={event => setComments(event.target.value)}
+                    rows={8} maxLength={5000} required disabled={isSubmitting} aria-describedby="comments-help" />
+                <p id="comments-help" className="form-help">Explain the revisions needed or the basis for approval, up to 5,000 characters.</p>
             </div>
-
-            <div
-                style={{
-                    marginBottom:
-                        "20px",
-                }}
-            >
-                <label
-                    htmlFor="decision"
-                >
-                    Decision
-                </label>
-
-                <select
-                    id="decision"
-                    value={decision}
-                    onChange={(event) =>
-                        setDecision(
-                            event.target
-                                .value
-                        )
-                    }
-                    style={{
-                        display:
-                            "block",
-                        marginTop:
-                            "8px",
-                    }}
-                >
-                    <option value="Revision Required">
-                        Revision Required
-                    </option>
-
-                    <option value="Approved">
-                        Approved
-                    </option>
+            <div>
+                <label htmlFor="decision">Review Decision</label>
+                <select id="decision" name="decision" value={decision} onChange={event => setDecision(event.target.value)}
+                    required disabled={isSubmitting} aria-describedby="decision-help">
+                    <option value="Revision Required">Revision Required</option>
+                    <option value="Approved">Approved</option>
                 </select>
+                <p id="decision-help" className="form-help">Revision Required allows a revised submission. Approved records your approval of this version.</p>
             </div>
-
-            <button
-                type="submit"
-                disabled={
-                    isSubmitting
-                }
-            >
-                {isSubmitting
-                    ? "Submitting..."
-                    : "Submit Feedback"}
-            </button>
+            <p id="feedback-message" aria-live="polite" aria-atomic="true" className={message ? (failed ? "form-message" : "research-notice") : undefined}>{message}</p>
+            <button type="submit" disabled={isSubmitting}>{isSubmitting ? "Submitting Feedback..." : "Submit Feedback & Decision"}</button>
         </form>
     );
 }

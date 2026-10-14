@@ -1,70 +1,37 @@
 "use client";
 
-import {
-    useState,
-} from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { startSubmissionReviewAction } from "@/lib/actions/adviser-review.action";
 
-import {
-    startSubmissionReviewAction,
-} from "@/lib/actions/adviser-review.action";
-
-/**
- * Allows an Adviser to move a submitted
- * research document into the review state.
- */
-export default function StartReviewButton({
-    submissionId,
-}: {
-    submissionId: number;
-}) {
-    const [
-        isLoading,
-        setIsLoading,
-    ] = useState(false);
+export default function StartReviewButton({ submissionId }: { submissionId: number }) {
+    const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState("");
 
     async function handleStartReview() {
         setIsLoading(true);
-
+        setMessage("");
         try {
-            const result =
-                await startSubmissionReviewAction(
-                    submissionId
-                );
-
+            const result = await startSubmissionReviewAction(submissionId);
             if (!result.success) {
-                alert(
-                    result.message
-                );
-
+                setMessage(result.message);
                 return;
             }
-
-            window.location.reload();
-        } catch (error) {
-            console.error(
-                "Failed to start submission review:",
-                error
-            );
-
-            alert(
-                "The submission review could not be started."
-            );
+            router.refresh();
+        } catch {
+            setMessage("The submission review could not be started.");
         } finally {
             setIsLoading(false);
         }
     }
 
     return (
-        <button
-            type="button"
-            onClick={
-                handleStartReview
-            }
-            disabled={isLoading}
-        >
-            {isLoading
-                ? "Starting Review..."
-                : "Start Review"}
-        </button>
+        <div aria-busy={isLoading}>
+            <button type="button" onClick={handleStartReview} disabled={isLoading} aria-describedby="start-review-message">
+                {isLoading ? "Starting Review..." : "Start Review"}
+            </button>
+            <p id="start-review-message" className={message ? "form-message" : undefined} aria-live="polite" aria-atomic="true">{message}</p>
+        </div>
     );
 }

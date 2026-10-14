@@ -1,63 +1,34 @@
 "use client";
 
-import {
-    useState,
-} from "react";
+import { useId, useState } from "react";
+import { getSubmissionDownloadUrlAction } from "@/lib/actions/storage.action";
 
-import {
-    getSubmissionDownloadUrlAction,
-} from "@/lib/actions/storage.action";
-
-/**
- * Generates a temporary signed URL
- * and opens the research document.
- */
-export default function DownloadSubmissionButton({
-    submissionId,
-}: {
-    submissionId: number;
-}) {
-    const [
-        isLoading,
-        setIsLoading,
-    ] = useState(false);
-
+export default function DownloadSubmissionButton({ submissionId }: { submissionId: number }) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const messageId = useId();
     async function handleDownload() {
         setIsLoading(true);
-
+        setMessage("");
         try {
-            const url =
-                await getSubmissionDownloadUrlAction(
-                    submissionId
-                );
-
+            const url = await getSubmissionDownloadUrlAction(submissionId);
             if (!url) {
-                alert(
-                    "The research document could not be accessed."
-                );
-
+                setMessage("The research document could not be accessed.");
                 return;
             }
-
             window.location.assign(url);
         } catch {
-            alert(
-                "The research document could not be accessed."
-            );
+            setMessage("The research document could not be accessed.");
         } finally {
             setIsLoading(false);
         }
     }
-
     return (
-        <button
-            type="button"
-            onClick={handleDownload}
-            disabled={isLoading}
-        >
-            {isLoading
-                ? "Opening..."
-                : "View / Download"}
-        </button>
+        <div aria-busy={isLoading}>
+            <button type="button" onClick={handleDownload} disabled={isLoading} aria-describedby={messageId}>
+                {isLoading ? "Opening PDF..." : "View / Download PDF"}
+            </button>
+            <p id={messageId} className={message ? "form-message" : undefined} aria-live="polite" aria-atomic="true">{message}</p>
+        </div>
     );
 }

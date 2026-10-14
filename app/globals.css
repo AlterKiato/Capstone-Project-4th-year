@@ -75,3 +75,27 @@ body {
 .dashboard-tasks p { color: #475569; }
 .group-details { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid #cbd5e1; }
 .student-overview input::placeholder, .student-overview textarea::placeholder { color: #475569; opacity: 1; }
+
+/* Version records leave room for feedback; the comparison table scrolls locally. */
+.research-workspace h3 { font-size: 1.125rem; font-weight: 650; line-height: 1.5; }
+.research-workspace h4 { font-weight: 650; margin-bottom: 0.75rem; }
+.research-workspace .dashboard-form label { display: block; margin-bottom: 0.35rem; }
+.research-workspace .dashboard-form .form-help { margin-top: 0.5rem; }
+.research-metadata { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 1rem; margin: 1rem 0; }
+.research-metadata dt { font-size: 0.875rem; color: #475569; }
+.research-metadata dd { margin-top: 0.25rem; }
+.research-projects, .submission-history { list-style: none; }
+.research-projects li + li, .submission-history > li + li { border-top: 1px solid #cbd5e1; padding-top: 1.5rem; margin-top: 1.5rem; }
+.submission-feedback { margin-top: 1.25rem; padding-left: 1rem; border-left: 3px solid #cbd5e1; }
+.feedback-entry + .feedback-entry { border-top: 1px solid #e2e8f0; padding-top: 1rem; margin-top: 1rem; }
+.research-comments { white-space: pre-wrap; overflow-wrap: anywhere; }
+.research-notice { padding: 0.75rem; border-left: 3px solid #1e40af; background: #eff6ff; }
+.research-table-scroll { overflow-x: auto; max-width: 100%; margin-top: 1rem; }
+.research-table { width: 100%; min-width: 880px; border-collapse: collapse; font-size: 0.9375rem; }
+.research-table th, .research-table td { text-align: left; vertical-align: top; padding: 0.85rem; border-bottom: 1px solid #e2e8f0; overflow-wrap: anywhere; }
+.research-table thead { background: #f6f8fb; }
+.research-table th:first-child { min-width: 220px; max-width: 320px; }
+.research-table th:nth-child(4), .research-table td:nth-child(4), .research-table td:last-child a { white-space: nowrap; }
+.research-table a, .research-back { display: inline-flex; align-items: center; min-height: 44px; }
+.research-workspace input[type="file"] { min-width: 0; font-size: 0.875rem; }
+.research-workspace input[type="file"]::file-selector-button { padding: 0.35rem 0.5rem; margin-right: 0.5rem; border: 1px solid #64748b; border-radius: 0.25rem; background: #f6f8fb; cursor: pointer; }

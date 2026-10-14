@@ -18,6 +18,11 @@ import {
     createSubmissionSchema,
 } from "@/lib/validations/submission";
 
+export type SubmissionActionResult = {
+    success: boolean;
+    message: string;
+};
+
 /**
  * Creates a new research submission
  * for the currently authenticated Student.
@@ -27,7 +32,7 @@ import {
  */
 export async function submitResearchAction(
     formData: FormData
-): Promise<void> {
+): Promise<SubmissionActionResult> {
     const session =
         await requireRole([
             ROLE_IDS.STUDENT,
@@ -46,33 +51,44 @@ export async function submitResearchAction(
         });
 
     if (!parsed.success) {
-        return;
+        return { success: false, message: "Select a research project and keep remarks within 500 characters." };
     }
 
     const file =
         formData.get("file");
 
     if (!(file instanceof File)) {
-        return;
+        return { success: false, message: "Choose a PDF file to submit." };
     }
 
-    const result =
-        await submitResearch(
+    let result;
+    try {
+        result = await submitResearch(
             parsed.data.paperId,
             session.userId,
             file,
             parsed.data.remarks
         );
-
-    if (!result.success) {
-        return;
+    } catch {
+        return { success: false, message: "The research submission could not be completed. Please try again." };
     }
 
-    revalidatePath(
-        "/dashboard/student"
-    );
+    if (!result.success) {
+        // Service failures may contain internal storage/database error details.
+        return { success: false, message: "The research submission could not be completed. Check the PDF requirements and latest review status before trying again." };
+    }
 
-    revalidatePath(
-        "/dashboard/student/submissions"
-    );
+    try {
+        revalidatePath(
+            "/dashboard/student"
+        );
+
+        revalidatePath(
+            "/dashboard/student/submissions"
+        );
+    } catch {
+        // The submission already succeeded. Do not invite a duplicate upload.
+        return { success: true, message: "Research submitted successfully. Reload this page to view the new version." };
+    }
+    return { success: true, message: "Research submitted successfully." };
 }

@@ -28,12 +28,12 @@ test("Adviser submission details display the current status for every review out
         const matchingRows = await rows.all();
         let row = matchingRows[0];
         for (const candidate of matchingRows) {
-            if ((await candidate.locator("td").nth(3).innerText()).trim() === version) {
+            if ((await candidate.locator("th, td").nth(3).innerText()).trim() === version) {
                 row = candidate;
                 break;
             }
         }
-        await row.getByRole("link", { name: "View" }).click();
+        await row.getByRole("link", { name: new RegExp(`^Review .*, ${version}$`) }).click();
         await expect(page.getByRole("heading", { name: "Submission Details" })).toBeVisible();
         await expect(page.getByText(status, { exact: true })).toBeVisible();
 
@@ -41,7 +41,7 @@ test("Adviser submission details display the current status for every review out
             const pdfResponsePromise = page.waitForResponse((response) =>
                 response.url().includes("/storage/v1/object/sign/")
             );
-            await page.getByRole("button", { name: "View / Download" }).click();
+            await page.getByRole("button", { name: "View / Download PDF" }).click();
             const pdfResponse = await pdfResponsePromise;
             const signedUrl = pdfResponse.url();
             expect(signedUrl).toContain("/storage/v1/object/sign/");
