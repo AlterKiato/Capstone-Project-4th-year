@@ -1246,3 +1246,83 @@ This is proposed plain-language disclosure, not a finalized legal agreement. Whe
 - Closure safety: complete tracked diff and all three untracked source/test files reviewed for scope, secrets, unintended backend/database changes and generated artifacts. Only the twenty-one reviewed files are authorized for staging; unstaged and staged whitespace checks and staged inventory verification are required before commit.
 - Authorized commit: `feat(phase9): refine repository and administration UI`. Resolve the resulting hash with `git log -1 --oneline`; verify committed inventory with `git show --stat --oneline HEAD` and final cleanliness with `git status --short`.
 - Next checkpoint: Phase 9.5 - Minimal Online-First PWA Integration is NOT STARTED and requires separate owner authorization. No packages, migrations, deployments, Groq activation, push, merge or later-phase implementation performed during closure.
+
+## Handoff - 2026-10-14 - Phase 9.5 Minimal Online-First PWA Integration
+
+- Status: **Implemented - awaiting owner review.** Owner authorized Phase 9.5 only. Verified `feature/development` at `59a4d60` with a clean tree; Phases 9.1-9.4 are committed. This supersedes the preceding NOT STARTED statement, preserving earlier evidence. No closure or commit claimed.
+- Framework approach: read installed Next.js 16.2.9 manifest, application-icon, metadata, viewport and PWA guides under `node_modules/next/dist/docs/`. Built-in `app/manifest.ts` automatically associates `/manifest.webmanifest`; no duplicate manual manifest link. Theme/color scheme use the supported `viewport` export, not deprecated metadata fields. The framework's `appleWebApp.capable` generates `mobile-web-app-capable` in this version, with Apple title/status-bar metadata and an explicit Apple touch icon. No PWA package, service worker or push example adopted.
+- Manifest: name `ThesiSHS AI`, short name `ThesiSHS`, description `Senior High School research management system.`, start URL `/dashboard`, scope `/`, standalone display, theme/background `#f6f8fb`. Root scope keeps existing login and dashboard routes in scope; scope is navigation configuration, never authorization. Public manifest/icons contain no account or research information. Static caching of these public assets is distinct from private-content/offline caching.
+- Assets: `public/icons/thesishs-192.png` (192x192, 2,035 bytes), `public/icons/thesishs-512.png` (512x512, 5,815 bytes), `public/icons/thesishs-apple-180.png` (180x180, 1,850 bytes). Generated with installed Windows System.Drawing tooling, no dependency or external image service. Temporary blue TS monogram, existing light background and plain bold lettering, not a permanent logo. Replaced starter `app/favicon.ico` with matching 32x32 TS favicon (377 bytes). PNG dimensions verified from served PNG headers and assets visually inspected; actual PNG MIME and HTTP 200 responses verified. Apple icon also checked at 180x180.
+- Metadata/UI: `app/layout.tsx` retains Phase 9.1 title/description and adds application name, Apple standalone/title/default status-bar settings and Apple icon; viewport theme is light with `colorScheme: light`. `app/dashboard/page.tsx` adds one small labeled installation-help section with native details/summary. Android Chrome, iPhone Safari and desktop Chrome/Edge guidance accounts for menu/version differences; installation is optional and network remains necessary. No aggressive popup, install event tracking, new client component, second login or settings module. Four scoped CSS rules in `app/globals.css` bound reading width, spacing and the 44px native summary target, reusing existing panels/focus/type/colors.
+- Guidance sources checked: [Chrome Android](https://support.google.com/chrome/answer/9658361?hl=en&co=GENIE.Platform%3DAndroid), [Chrome desktop](https://support.google.com/chrome/answer/9658361?hl=en&co=GENIE.Platform%3DDesktop), [iPhone Safari](https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios), [Edge](https://support.microsoft.com/en-us/edge/install-manage-or-uninstall-apps-in-microsoft-edge). Browsers offer different installation/menu behavior; production HTTPS and real-platform acceptance remain separate. No browser capability universally guaranteed by this implementation.
+- Executed static validation: `npm.cmd run lint` and `npx.cmd tsc --noEmit` PASS. Restricted build failed only on unchanged Geist/Geist Mono Google Fonts fetches; network-enabled build PASS. Final Safari copy correction rebuilt successfully (Next.js 16.2.9, 24 pages, including static manifest route). Final affected dashboard/test ESLint and test-only ESLint after runner correction PASS. `git diff --check` and untracked text-source whitespace checks PASS. No unrelated acceptance suites run.
+- Executed browser validation: `node --import tsx tests/phase9-pwa.browser.cjs` PASS on the designated localhost:5432/thesishs_ai development/test database using existing active synthetic Admin/Adviser/Student accounts, signed synthetic sessions and production server on localhost port 3023. Manifest route HTTP 200, valid JSON/MIME, all expected fields, root scope/dashboard launch path, both icon paths/dimensions/MIME, Apple icon, favicon response, one automatic manifest association, application/theme/light/Apple metadata and Chromium manifest parser PASS. Ordinary browser launch at both widths shows each role's existing workspace link, navigates to its existing dashboard and logs out through the unchanged cookie-only action. Anonymous dashboard redirects to login, post-logout launch redirects to login and Student Admin Reports access redirects to dashboard. No unexpected browser errors, HTTP 5xx or external requests. Password login not retested; no real credentials used.
+- Runner corrections/standalone limit: first browser attempt expected the older Apple capability tag; corrected the test to installed framework output, without adding duplicate metadata. Second attempt passed ordinary mobile checks but this Chromium did not emulate `display-mode: standalone` through CDP. Final runner explicitly detects unsupported standalone emulation at both widths, logs the limitation and completes ordinary browser checks. No JavaScript override or OS installation was used to fabricate acceptance. Standalone manifest configuration is verified; actual installed-window launch/navigation/logout and installed cookie lifecycle remain **unverified**.
+- Responsive/visual acceptance: 360px and 1280px PASS. Keyboard Tab reaches native summary with visible 3px focus; Enter opens and Space closes; all three platform instructions visible and no horizontal page overflow. OS-temp `phase95-help-360-browser.png` and `phase95-help-1280-browser.png` inspected: readable text, no clipped content/actions; narrow view uses ordinary vertical scrolling when expanded. No screenshot or generated acceptance artifact added to Git.
+- Security preservation: no auth/session/cookie/role/ownership logic changed, no new service/repository/database action or query in application code. Test database query only selects existing synthetic actors; role dashboards perform their existing reads. Cookie-only logout exercised, no DB writes/fixture creation/research detail counter visits/private PDF access/storage/provider operations. Fresh Chromium context has zero registered service workers, Cache Storage entries, localStorage/sessionStorage items or IndexedDB databases after navigation. Source scan confirms no new registration/persistence/push APIs. No offline cache, queued mutations, background sync, browser/push notifications, private-data caching or offline PDF access. Public assets only; existing browser/framework network behavior not redefined. Student guidance stays static and both Groq availability gates remain hard-disabled.
+- Files changed: `app/manifest.ts` (new public manifest); `app/layout.tsx` (supported metadata/viewport); `app/dashboard/page.tsx` (optional installation help); `app/globals.css` (scoped help presentation); `app/favicon.ico` (matching temporary favicon); the three PNG paths above; `tests/phase9-pwa.browser.cjs` (focused established-pattern acceptance); this Master Context. Ten files total; no dependency/config/backend/schema/migration or stable architecture/database/source-of-truth documentation changes.
+- Platform limitations: local automated Chromium covers manifest and ordinary application behavior, not Chrome OS integration. No real Android Chrome, iPhone Safari or desktop Edge install/launch tests, production HTTPS acceptance, device icon cropping, installed session isolation/expiry or comprehensive accessibility/security certification. A platform capability requiring a service worker remains outside the approved scope, rather than adding one. No offline operation promised. Preserve these gates for an owner-authorized Phase 9.6 acceptance pass.
+- Git/next: implementation remains unstaged/uncommitted on `59a4d60`; no push/merge/packages/migrations/deployment/Groq activation. Phase 9.6 - Focused Acceptance & Documentation Closure is NOT STARTED and requires separate owner approval. Owner review of this checkpoint is the next action.
+
+### Phase 9.5 Anti-Slop During gate (scoped implementation)
+
+- R-02 PASS: installation copy adds no em dash.
+- R-03 PASS: measured no horizontal overflow at 360/1280; expanded screenshots inspected.
+- R-17 PASS: no statistics added.
+- R-18 PASS: no testimonials.
+- R-23 PASS: owner authorized temporary app icons; TS monogram and existing navigation only.
+- R-24 PASS: existing workspace links retained and exercised.
+- R-25 PASS: existing dark text/blue accent on white/light backgrounds; no new palette.
+- R-26 PASS: native summary opens/closes by keyboard; no synthetic install button.
+- R-27 PASS: instructions explain unavailable install options and browser fallback; existing auth states unchanged.
+- R-28 PASS: no generic FAQ.
+- R-32 PASS: keyboard Tab/Enter/Space, 44px summary and visible 3px focus verified.
+- R-33 PASS: source/CSS edits; local tooling generates authorized binary icons only.
+- R-34 PASS: light-only viewport/CSS; no toggle.
+- R-35 PASS within scope: production build and focused manifest/navigation/logout/disclosure browser acceptance; OS install explicitly unverified.
+- R-36 PASS: no fabricated security or installation guarantee.
+- R-37 PASS: Design Read declared before edits; approved academic direction.
+- R-38 PASS: existing account data and explicit synthetic test identities, no fictional product claims.
+- R-01 PASS: flat light icon/help backgrounds; no gradient or glow.
+- R-04 PASS: authorized plain temporary TS monogram, no decorative icon library.
+- R-06 PASS by owner precedence: existing Geist for readable continuity; bold simple icon text for small sizes.
+- R-07 PASS: plain backgrounds.
+- R-08 PASS: no decorative arrows; native disclosure marker communicates expansion.
+- R-09 PASS: no badges.
+- R-10 PASS: no glass effects.
+- R-12 PASS: existing restrained panel style only, grouping optional help.
+- R-13 PASS: no glow.
+- R-14 PASS: one compact help group, no repeated feature-card grid.
+- R-19 PASS: no added animation.
+- R-22 PASS: no illustration.
+- Dials PASS: ENERGY 1 / RHYTHM 2 / MOTION 1 maintained.
+- Focal point PASS: existing Dashboard H1 remains primary; optional help subordinate.
+- Whitespace PASS: 75ch reading bound, platform paragraphs spaced and native disclosure compact when closed.
+- Accent PASS: existing functional blue summary/focus/icon; light background retained.
+- Identity PASS: temporary TS app mark, academic product name and research/network guidance.
+- Design Read PASS: compact installation aid declared before implementation.
+- C-1 PASS: flat palette for continuity, monogram for legibility, native disclosure for optional help, reading width for clarity; reasons documented.
+- C-2 PASS: every new interactive control is the tested native disclosure.
+- C-3 PASS: three platform instructions serve authorized installation guidance.
+- C-4 PASS within tested scope: two widths and keyboard checks; installed-device testing explicitly deferred.
+- C-5 PASS: no fabricated claims, real test limitations reported.
+- R-05 PASS: existing academic dashboard composition retained, no marketing template.
+- R-11 PASS: existing panel radius, no pills.
+- R-15 PASS: specific Installation instructions control, no generic CTA.
+- R-16 PASS: no promotional AI language.
+- R-20 PASS: product-specific network, dashboard and installation context.
+- R-21 PASS by owner precedence: approved light-only appearance.
+- R-29 PASS: existing neutrals and blue, no palette expansion.
+- R-30 PASS: existing application refined; no cloned design.
+- R-31 PASS: layout, palette, type, spacing, icon and disclosure reasons recorded above.
+
+## Handoff - 2026-10-14 - Phase 9.5 Owner-Accepted Checkpoint Closure
+
+- Status/authority: Phase 9.5 accepted by the owner for checkpoint closure. This supersedes the implementation handoff's awaiting-review status, preserving all earlier development and acceptance evidence. Baseline verified as `feature/development` at `59a4d60`, exactly ten approved modified/untracked files, nothing staged.
+- Implementation accepted: built-in Next.js manifest with `/dashboard` launch path and root scope; supported application/Apple/light viewport metadata; temporary TS PNG application and Apple icons with matching favicon; optional native-disclosure installation guidance on the existing dashboard and scoped styles. Existing authentication redirects, role routing and logout logic remain unchanged.
+- Existing reported validation preserved: lint, TypeScript, final network-enabled production build, diff checks, focused Chromium manifest/metadata/icon checks, ordinary Admin/Adviser/Student role navigation/logout, anonymous and post-logout redirects, Student Admin denial, 360px/1280px responsive/keyboard acceptance and scoped Anti-Slop During gate PASS. No application suite, browser acceptance or build rerun for this closure; only Git/source/binary asset/safety/diff review performed.
+- Closure asset review: all three PNGs decoded successfully at 192x192, 512x512 and 180x180 and visually inspected; favicon ICO header and embedded PNG decoded at 32x32. Manifest asset paths match the reviewed files. Earlier endpoint/MIME/parser acceptance remains the reported implementation evidence, not a new live check.
+- Remaining gates: real OS installation, actual standalone launch/navigation/logout and installed session lifecycle are NOT VERIFIED. Android Chrome, iPhone Safari and desktop Edge device-specific testing, production HTTPS verification, device icon cropping and comprehensive accessibility/security acceptance remain deferred. Unsupported local standalone emulation is preserved as a limitation; no actual installation PASS claimed.
+- Safety/scope: complete source/documentation diff, all untracked files and binary assets reviewed. No credentials, environment files, generated test artifacts, unrelated files or backend/database/storage/authorization/AI-provider changes. No service worker, offline caching, queued mutations, background sync or push/browser notification implementation introduced. Student guidance stays static; Groq remains hard-disabled. Unstaged/staged whitespace and exact ten-path staging verification are required before commit.
+- Authorized commit: `feat(phase9): add minimal online-first PWA foundation`. Resolve actual hash with `git log -1 --oneline`; verify inventory with `git show --stat --oneline HEAD` and final tree with `git status --short`.
+- Next checkpoint: Phase 9.6 - Focused Acceptance & Documentation Closure remains NOT STARTED and requires separate owner authorization. No dependencies, migrations, provider activation, deployment, push, merge or later-phase implementation performed during closure.

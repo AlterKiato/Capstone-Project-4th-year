@@ -131,3 +131,9 @@ body {
 .governance-dialog p, .governance-dialog label { margin: 0.75rem 0; }
 .governance-dialog select { max-width: 100%; }
 .governance-dialog button { margin: 0.35rem 0.35rem 0.35rem 0; }
+
+/* Native disclosure keeps optional installation help compact and keyboard usable. */
+.installation-help { max-width: 75ch; }
+.installation-help summary { min-height: 44px; padding: 0.65rem 0; color: #1e40af; font-weight: 600; cursor: pointer; }
+.installation-help details { margin-top: 0.75rem; }
+.installation-help details p + p { margin-top: 0.75rem; }

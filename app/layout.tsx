@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ThesiSHS AI",
   description: "Research management, adviser review, and an approved research repository for Senior High School.",
+  applicationName: "ThesiSHS AI",
+  appleWebApp: { capable: true, title: "ThesiSHS AI", statusBarStyle: "default" },
+  icons: {
+    apple: { url: "/icons/thesishs-apple-180.png", sizes: "180x180", type: "image/png" },
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f6f8fb",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
