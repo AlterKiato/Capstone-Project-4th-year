@@ -1,119 +1,26 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
-
 import { getUserNotifications } from "@/lib/services/notification.service";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
+import NotificationList from "@/components/dashboard/notification-list";
 
-import {
-    markNotificationAsReadAction,
-    deleteNotificationAction,
-} from "@/lib/actions/notification.action";
-
-/**
- * Admin Notification Management page.
- *
- * Displays notifications belonging to the
- * currently authenticated Admin user.
- */
-export default async function AdminNotificationsPage() {
-    // Ensure only Admin users can access this page.
-    const session = await requireRole([
-        ROLE_IDS.ADMIN,
-    ]);
-
-    // Retrieve notifications belonging to
-    // the authenticated Admin.
-    const result = await getUserNotifications(
-        session.userId
-    );
-
-    // Handle unexpected retrieval failures.
-    if (!result.success || !result.data) {
-        return (
-            <main>
-                <h1>Admin Notifications</h1>
-
-                <p>
-                    {result.message}
-                </p>
-            </main>
-        );
-    }
-
-    const notifications = result.data;
-
+export default async function NotificationsPage() {
+    const session = await requireRole([ROLE_IDS.ADMIN]);
+    const result = await getUserNotifications(session.userId);
     return (
-        <main>
-            <h1>Admin Notifications</h1>
-
-            <p>
-                View and manage your system notifications.
-            </p>
-
-            {notifications.length === 0 ? (
-                <p>
-                    You have no notifications.
-                </p>
-            ) : (
-                <ul>
-                    {notifications.map((notification) => (
-                        <li
-                            key={notification.id}
-                        >
-                            <article>
-                                <h2>
-                                    {notification.title}
-                                </h2>
-
-                                <p>
-                                    {notification.message}
-                                </p>
-
-                                <p>
-                                    Status:{" "}
-                                    {notification.isRead
-                                        ? "Read"
-                                        : "Unread"}
-                                </p>
-
-                                <p>
-                                    Received:{" "}
-                                    {notification.createdAt.toLocaleString()}
-                                </p>
-
-                                {!notification.isRead && (
-                                    <form
-                                        action={async () => {
-                                            "use server";
-
-                                            await markNotificationAsReadAction(
-                                                notification.id
-                                            );
-                                        }}
-                                    >
-                                        <button type="submit">
-                                            Mark as Read
-                                        </button>
-                                    </form>
-                                )}
-
-                                <form
-                                    action={async () => {
-                                        "use server";
-
-                                        await deleteNotificationAction(
-                                            notification.id
-                                        );
-                                    }}
-                                >
-                                    <button type="submit">
-                                        Delete
-                                    </button>
-                                </form>
-                            </article>
-                        </li>
-                    ))}
-                </ul>
-            )}
+        <main className="dashboard-page notification-page">
+            <DashboardHeader title="Admin Notifications" email={session.email} />
+            <DashboardNavigation links={[
+                { href: "/dashboard/admin", label: "Overview" },
+                { href: "/dashboard/admin/notifications", label: "Notifications" },
+                { href: "/dashboard/repository", label: "Browse Repository" },
+            ]} />
+            <p className="dashboard-context">View and manage notifications belonging to your account.</p>
+            <section className="dashboard-panel">
+                {!result.success || !result.data ? <p role="alert" className="form-message">{result.message}</p> :
+                    <NotificationList notifications={result.data} />}
+            </section>
         </main>
     );
 }

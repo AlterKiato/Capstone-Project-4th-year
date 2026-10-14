@@ -28,11 +28,11 @@ export default function LocalAIAssistance({ feature }: { feature: "admin" | "adv
         });
     }
     return (
-        <section aria-label={feature === "admin" ? "Admin report assistance" : "Adviser workflow assistance"} style={{ border: "1px solid #ddd", padding: 16, margin: "24px 0" }}>
+        <section aria-label={feature === "admin" ? "Admin report assistance" : "Adviser workflow assistance"} className="dashboard-panel assistance-panel">
             <h2>{feature === "admin" ? "Admin report assistance" : "Adviser workflow assistance"}</h2>
             <ConsentDialog />
             <p>AI interpretation is disabled. Choose a predefined question for verified static guidance.</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+            <div className="surface-actions">
                 {feature === "admin" ? <button type="button" disabled={pending} onClick={() => select("admin-overview-v1")}>Explain report metrics</button>
                     : adviserQuestions.map(([id, label]) => <button key={id} type="button" disabled={pending} onClick={() => select(id)}>{label}</button>)}
             </div>

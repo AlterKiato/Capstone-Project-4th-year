@@ -19,11 +19,11 @@ export default function ChatbotGuide({ questions }: { questions: GuideQuestion[]
     }
     return (
         <>
-            <section aria-labelledby="guide-questions">
+            <section aria-labelledby="guide-questions" className="dashboard-panel">
                 <h2 id="guide-questions">Choose a guide question</h2>
-                <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
+                <div className="guide-questions">
                     {questions.map(question => (
-                        <article key={question.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 16 }}>
+                        <article key={question.id}>
                             <button type="button" disabled={pending} onClick={() => selectTopic(question.id)}>
                                 {question.question}
                             </button>
@@ -31,7 +31,7 @@ export default function ChatbotGuide({ questions }: { questions: GuideQuestion[]
                     ))}
                 </div>
             </section>
-            <section aria-live="polite" aria-busy={pending} aria-labelledby="guide-answer">
+            <section aria-live="polite" aria-busy={pending} aria-labelledby="guide-answer" className="dashboard-panel">
                 <h2 id="guide-answer">System guidance</h2>
                 {pending ? <p>Loading verified guidance...</p> : result ? (
                     <>
@@ -39,7 +39,7 @@ export default function ChatbotGuide({ questions }: { questions: GuideQuestion[]
                         {result.success && (
                             <>
                                 <h3>{result.topic.question}</h3>
-                                <p>{result.topic.answer}</p>
+                                <p className="record-text">{result.topic.answer}</p>
                                 {result.topic.links.map(link => (
                                     <p key={link.href}><Link href={link.href}>{link.label}</Link></p>
                                 ))}

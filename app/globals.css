@@ -99,3 +99,35 @@ body {
 .research-table a, .research-back { display: inline-flex; align-items: center; min-height: 44px; }
 .research-workspace input[type="file"] { min-width: 0; font-size: 0.875rem; }
 .research-workspace input[type="file"]::file-selector-button { padding: 0.35rem 0.5rem; margin-right: 0.5rem; border: 1px solid #64748b; border-radius: 0.25rem; background: #f6f8fb; cursor: pointer; }
+
+/* Discovery controls reflow; long admin comparisons stay inside their own region. */
+.discovery-filters { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.discovery-control, .managed-account-form input, .managed-account-form select { display: block; width: 100%; margin-top: 0.35rem; }
+.surface-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+.surface-link, .repository-pagination a { display: inline-flex; align-items: center; min-height: 44px; }
+.result-context { margin: 1.5rem 0 0.75rem; font-weight: 600; }
+.repository-results, .management-records, .notification-records { list-style: none; }
+.repository-results { background: white; border: 1px solid #dbe2ea; border-radius: 0.75rem; padding: clamp(1rem, 3vw, 1.75rem); }
+.repository-results li + li, .management-records li + li, .notification-records li + li { border-top: 1px solid #cbd5e1; margin-top: 1.5rem; padding-top: 1.5rem; }
+.repository-results li > p + p { margin-top: 0.5rem; }
+.record-text { max-width: 75ch; white-space: pre-wrap; overflow-wrap: anywhere; }
+.repository-pagination { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 1.5rem 0; }
+.admin-table-scroll { max-width: 100%; overflow-x: auto; margin-top: 1rem; }
+.admin-table { min-width: 1000px; width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.admin-table th, .admin-table td { text-align: left; vertical-align: top; padding: 0.85rem; border-bottom: 1px solid #e2e8f0; }
+.admin-table thead { background: #f6f8fb; }
+.admin-table th { font-weight: 650; }
+.admin-table form { display: grid; gap: 0.5rem; justify-items: start; }
+.admin-table td:last-child button { margin-bottom: 0.5rem; }
+.admin-surface h3 { font-size: 1.125rem; font-weight: 650; }
+.report-breakdown { max-width: 600px; }
+.report-breakdown > div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.65rem 0; border-bottom: 1px solid #e2e8f0; }
+.report-breakdown dd { font-weight: 650; }
+.guide-questions { display: grid; gap: 0.75rem; }
+.guide-questions button { text-align: left; max-width: 100%; }
+.assistance-panel > p { margin: 0.75rem 0; }
+.governance-dialog { width: min(720px, calc(100% - 2rem)); max-height: calc(100dvh - 2rem); margin: auto; padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid #64748b; border-radius: 0.75rem; background: white; color: #1e293b; overflow: auto; overflow-wrap: anywhere; }
+.governance-dialog::backdrop { background: #0f172a66; }
+.governance-dialog p, .governance-dialog label { margin: 0.75rem 0; }
+.governance-dialog select { max-width: 100%; }
+.governance-dialog button { margin: 0.35rem 0.35rem 0.35rem 0; }

@@ -49,8 +49,8 @@ export default function DownloadRepositoryDocumentButton({
     }
 
     return (
-        <div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        <div aria-busy={loading !== null}>
+            <div className="surface-actions">
                 <button type="button" onClick={() => accessDocument("view")} disabled={loading !== null}>
                     {loading === "view" ? "Opening PDF…" : "View PDF"}
                 </button>
@@ -58,8 +58,8 @@ export default function DownloadRepositoryDocumentButton({
                     {loading === "download" ? "Preparing download…" : "Download PDF"}
                 </button>
             </div>
-            <p>Document links expire after five minutes. Request a new link if one expires.</p>
-            {error && <p role="alert">{error}</p>}
+            <p className="form-help">Document links expire after five minutes. Request a new link if one expires.</p>
+            {error && <p role="alert" className="form-message">{error}</p>}
             {status && <p role="status">{status}</p>}
         </div>
     );

@@ -26,7 +26,7 @@ export function EligibilityDialog({ userId, initiallyOpen = false }: { userId: n
     }
     return <>
         <button type="button" ref={node => { if (node && initiallyOpen && !initiallyShown.current) { initiallyShown.current = true; queueMicrotask(open); } }} onClick={open}>AI eligibility</button>
-        <dialog ref={dialog} aria-labelledby={`eligibility-title-${userId}`} onCancel={() => setConfirmed(false)}>
+        <dialog ref={dialog} className="governance-dialog" aria-labelledby={`eligibility-title-${userId}`} onCancel={() => setConfirmed(false)}>
             <h2 id={`eligibility-title-${userId}`}>Institutional AI eligibility</h2>
             <p>Current status: {status?.decision ?? "Pending Verification"}{status?.revoked ? " (revoked)" : ""}</p>
             <p>Normal account access is unaffected. Only an institutionally designated, independently verified Admin can certify another account.</p>
@@ -77,7 +77,7 @@ export function ConsentDialog() {
     }
     return <>
         <button type="button" onClick={open}>AI Terms &amp; Consent</button>
-        <dialog ref={dialog} aria-labelledby="ai-consent-title" onCancel={() => setConfirmed(false)}>
+        <dialog ref={dialog} className="governance-dialog" aria-labelledby="ai-consent-title" onCancel={() => setConfirmed(false)}>
             <h2 id="ai-consent-title">AI Terms &amp; Consent</h2>
             <p>Groq is disabled. Accepting does not enable AI or affect normal system access.</p>
             <p>Consent: {status?.accepted ? "Accepted current version" : "Not accepted for current eligibility and terms"}</p>

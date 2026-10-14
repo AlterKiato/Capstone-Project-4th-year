@@ -1,24 +1,23 @@
 import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
-import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import AdminNavigation from "@/components/dashboard/admin-navigation";
 import { getAdminDashboardStats, getAdminRecentActivities } from "@/lib/services/dashboard.service";
 
 export default async function AdminReportsPage() {
-    await requireRole([ROLE_IDS.ADMIN]);
+    const session = await requireRole([ROLE_IDS.ADMIN]);
     const [statsResult, activityResult] = await Promise.all([
         getAdminDashboardStats(), getAdminRecentActivities(),
     ]);
     const stats = statsResult.data;
     return (
-        <main>
-            <h1>Admin Reports</h1>
-            <DashboardNavigation links={[
-                { href: "/dashboard/admin", label: "Admin Dashboard" },
-                { href: "/dashboard/admin/repository", label: "Repository Management" },
-            ]} />
-            {!statsResult.success || !stats ? <p>{statsResult.message}</p> : <>
-                <section>
+        <main className="dashboard-page admin-surface">
+            <DashboardHeader title="Admin Reports" email={session.email} />
+            <AdminNavigation />
+            <p className="dashboard-context">Read-only counts and recorded activity from the existing system data.</p>
+            {!statsResult.success || !stats ? <p className="form-message" role="alert">{statsResult.message}</p> : <>
+                <section className="dashboard-panel">
                     <h2>System Overview</h2>
                     <p>Total Users: {stats.totalUsers}</p>
                     <p>Total Research Groups: {stats.totalGroups}</p>
@@ -27,24 +26,24 @@ export default async function AdminReportsPage() {
                     <p>User totals include active and inactive accounts. Group totals include all groups.
                         Published totals count papers currently eligible for the repository.</p>
                 </section>
-                <section>
+                <section className="dashboard-panel">
                     <h2>Users by Role</h2>
-                    <ul>{stats.usersByRole.map(row => <li key={row.role}>{row.role}: {row.count}</li>)}</ul>
+                    <dl className="report-breakdown">{stats.usersByRole.map(row => <div key={row.role}><dt>{row.role}</dt><dd>{row.count}</dd></div>)}</dl>
                 </section>
-                <section>
+                <section className="dashboard-panel">
                     <h2>Research Papers by Status</h2>
-                    <ul>{stats.papersByStatus.map(row => <li key={row.status}>{row.status}: {row.count}</li>)}</ul>
+                    <dl className="report-breakdown">{stats.papersByStatus.map(row => <div key={row.status}><dt>{row.status}</dt><dd>{row.count}</dd></div>)}</dl>
                     <p>Statuses describe each research paper, rather than individual submission versions.</p>
                 </section>
             </>}
             <LocalAIAssistance feature="admin" />
-            <section>
+            <section className="dashboard-panel">
                 <h2>Recent System Activity</h2>
                 <p>Latest five recorded events. This is not a complete audit of all system operations.</p>
                 {!activityResult.success ? <p>{activityResult.message}</p> : !activityResult.data?.length ?
                     <p>No recent activity found.</p> :
-                    <ul>{activityResult.data.map(activity => <li key={activity.id}>
-                        {activity.action}{" — "}<time dateTime={activity.createdAt.toISOString()}>
+                    <ul className="dashboard-activities">{activityResult.data.map(activity => <li key={activity.id}>
+                        {activity.action}{" · "}<time dateTime={activity.createdAt.toISOString()}>
                             {activity.createdAt.toISOString()}
                         </time>
                     </li>)}</ul>}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
 
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
@@ -25,7 +26,7 @@ export default async function ResearchRepositoryPage({
 }: {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    await requireRole([
+    const session = await requireRole([
         ROLE_IDS.ADMIN,
         ROLE_IDS.ADVISER,
         ROLE_IDS.STUDENT,
@@ -42,11 +43,14 @@ export default async function ResearchRepositoryPage({
     const lastResult = Math.min(results.page * REPOSITORY_PAGE_SIZE, results.total);
 
     return (
-        <main style={{ maxWidth: 1000, margin: "0 auto", padding: 32 }}>
-            <h1>Research Repository</h1>
-            <p>Browse research approved by an Adviser and published by an Admin.</p>
+        <main className="dashboard-page discovery-page">
+            <DashboardHeader title="Research Repository" email={session.email} />
+            <p><Link className="surface-link" href="/dashboard">Back to Dashboard</Link></p>
+            <p className="dashboard-context">Browse research approved by an Adviser and published by an Admin.</p>
 
-            <form method="get" action="/dashboard/repository" style={{ display: "grid", gap: 12, margin: "24px 0" }}>
+            <form method="get" action="/dashboard/repository" className="dashboard-panel dashboard-form" aria-describedby="filter-help">
+                <h2>Search and Filter</h2>
+                <p id="filter-help" className="form-help">Search title, abstract or keywords. Combine filters to narrow the results; papers are shown newest first.</p>
                 <label>
                     Search title, abstract, or keywords
                     <input
@@ -54,74 +58,74 @@ export default async function ResearchRepositoryPage({
                         name="search"
                         maxLength={200}
                         defaultValue={criteria.search}
-                        style={{ display: "block", width: "100%", marginTop: 4 }}
+                        className="discovery-control"
                     />
                 </label>
-                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
-                    <label>
-                        Category
-                        <select name="category" defaultValue={criteria.category} style={{ display: "block", width: "100%", marginTop: 4 }}>
+                <div className="discovery-filters">
+                    <div>
+                        <label htmlFor="repository-category">Category</label>
+                        <select id="repository-category" name="category" defaultValue={criteria.category} className="discovery-control">
                             <option value="">All categories</option>
                             {criteria.category && !filterOptions.categories.includes(criteria.category) && (
                                 <option value={criteria.category}>{criteria.category}</option>
                             )}
                             {filterOptions.categories.map((value) => <option key={value} value={value}>{value}</option>)}
                         </select>
-                    </label>
-                    <label>
-                        School year
-                        <select name="schoolYear" defaultValue={criteria.schoolYear} style={{ display: "block", width: "100%", marginTop: 4 }}>
+                    </div>
+                    <div>
+                        <label htmlFor="repository-year">School year</label>
+                        <select id="repository-year" name="schoolYear" defaultValue={criteria.schoolYear} className="discovery-control">
                             <option value="">All school years</option>
                             {criteria.schoolYear && !filterOptions.schoolYears.includes(criteria.schoolYear) && (
                                 <option value={criteria.schoolYear}>{criteria.schoolYear}</option>
                             )}
                             {filterOptions.schoolYears.map((value) => <option key={value} value={value}>{value}</option>)}
                         </select>
-                    </label>
-                    <label>
-                        Strand
-                        <select name="strand" defaultValue={criteria.strand} style={{ display: "block", width: "100%", marginTop: 4 }}>
+                    </div>
+                    <div>
+                        <label htmlFor="repository-strand">Strand</label>
+                        <select id="repository-strand" name="strand" defaultValue={criteria.strand} className="discovery-control">
                             <option value="">All strands</option>
                             {criteria.strand && !filterOptions.strands.includes(criteria.strand) && (
                                 <option value={criteria.strand}>{criteria.strand}</option>
                             )}
                             {filterOptions.strands.map((value) => <option key={value} value={value}>{value}</option>)}
                         </select>
-                    </label>
+                    </div>
                 </div>
-                <button type="submit" style={{ justifySelf: "start" }}>Search and filter</button>
+                <button type="submit">Search and filter</button>
             </form>
-            <form method="get" action="/dashboard/repository" style={{ marginTop: -12, marginBottom: 24 }}>
+            <form method="get" action="/dashboard/repository" className="surface-actions">
                 <button type="submit">Clear filters</button>
             </form>
 
-            <p aria-live="polite">Showing {firstResult}–{lastResult} of {results.total} research papers</p>
+            <p aria-live="polite" className="result-context">Showing {firstResult}–{lastResult} of {results.total} research papers</p>
             {results.items.length === 0 ? (
-                <section aria-live="polite">
+                <section aria-live="polite" className="dashboard-panel">
                     <p>No results match your search and filters.</p>
                     <form method="get" action="/dashboard/repository">
                         <button type="submit">Clear filters</button>
                     </form>
                 </section>
             ) : (
-                <ul style={{ display: "grid", gap: 16, padding: 0, listStyle: "none" }}>
+                <ul className="repository-results">
                     {results.items.map((entry) => (
-                        <li key={entry.paperId} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 20 }}>
-                            <h2 style={{ marginTop: 0 }}>
+                        <li key={entry.paperId}>
+                            <h2>
                                 <Link href={`/dashboard/repository/${entry.paperId}`}>
                                     {entry.title}
                                 </Link>
                             </h2>
                             <p>{entry.groupName} · {entry.strand} · {entry.schoolYear}</p>
                             {entry.category && <p>Category: {entry.category}</p>}
-                            <p>{entry.abstract}</p>
+                            <p className="record-text">{entry.abstract}</p>
                         </li>
                     ))}
                 </ul>
             )}
 
             {results.pageCount > 1 && (
-                <nav aria-label="Repository result pages" style={{ display: "flex", gap: 16, alignItems: "center", marginTop: 24 }}>
+                <nav aria-label="Repository result pages" className="repository-pagination">
                     {results.page > 1 ? (
                         <Link rel="prev" href={pageHref(criteria, results.page - 1)}>Previous</Link>
                     ) : <span aria-disabled="true">Previous</span>}

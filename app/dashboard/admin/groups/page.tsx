@@ -1,5 +1,7 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import AdminNavigation from "@/components/dashboard/admin-navigation";
 
 import {
     getResearchGroups,
@@ -20,7 +22,7 @@ import {
  */
 export default async function AdminGroupsPage() {
     // Ensure only Admin users can access this page.
-    await requireRole([
+    const session = await requireRole([
         ROLE_IDS.ADMIN,
     ]);
 
@@ -30,10 +32,11 @@ export default async function AdminGroupsPage() {
     // Handle unexpected service failures.
     if (!result.success || !result.data) {
         return (
-            <main>
-                <h1>Research Groups</h1>
+            <main className="dashboard-page admin-surface">
+                <DashboardHeader title="Research Groups" email={session.email} />
+                <AdminNavigation />
 
-                <p>
+                <p className="form-message" role="alert">
                     {result.message}
                 </p>
             </main>
@@ -43,20 +46,25 @@ export default async function AdminGroupsPage() {
     const groups = result.data;
 
     return (
-        <main>
-            <h1>Research Groups</h1>
+        <main className="dashboard-page admin-surface">
+            <DashboardHeader title="Research Groups" email={session.email} />
+            <AdminNavigation />
 
             <p>
                 Monitor and manage research groups across
                 the system.
             </p>
 
+            <section className="dashboard-panel">
+            <h2 id="groups-heading">Group Overview</h2>
+            <p className="form-help">Advisers create groups and assign students. Scroll within the table on narrow screens to reach every action.</p>
             {groups.length === 0 ? (
                 <p>
                     No research groups found.
                 </p>
             ) : (
-                <table>
+                <div className="admin-table-scroll" role="region" aria-labelledby="groups-heading" tabIndex={0}>
+                <table className="admin-table">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -125,7 +133,9 @@ export default async function AdminGroupsPage() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             )}
+            </section>
         </main>
     );
 }

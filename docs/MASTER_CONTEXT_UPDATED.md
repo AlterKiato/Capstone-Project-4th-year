@@ -1167,3 +1167,82 @@ This is proposed plain-language disclosure, not a finalized legal agreement. Whe
 - Review/safety: complete application/documentation diff and all three untracked source/test files inspected; no credentials, generated test artifacts, migrations, dependencies or unrelated files in scope. Synthetic test identities/error sentinels/runtime environment-variable references are intentional; no environment-file contents read or committed. Unstaged and staged whitespace checks must pass before the authorized commit.
 - Authorized commit: `feat(phase9): refine student submission and adviser review UI`, containing only the fourteen reviewed files. Resolve final hash with `git log -1 --oneline`; verify inventory using `git show --stat --oneline HEAD` and final working tree with `git status --short`.
 - Phase 9.3 closed by owner acceptance. Phase 9.4 - Repository & Administration is NOT STARTED and requires separate owner authorization. No push, merge, deployment, migrations, schema changes, provider activation or later-phase implementation performed.
+
+## Handoff - 2026-10-14 - Phase 9.4 Repository & Administration UI
+
+- Authority/baseline/status: owner explicitly authorized Phase 9.4 only. Verified feature/development at `0e22f82`, initially clean. Implemented, awaiting owner review; focused executed checks PASS. This supersedes the preceding NOT STARTED statement, not the prior checkpoint evidence. Phase 9.5/9.6 remain unstarted and separately gated.
+- Repository: shared branded header, dashboard/back links, bounded responsive filter form, explicit category/year/strand labels, existing GET search/apply/reset controls and pagination context. Filter grid collapses without minimum-width overflow. Results use divided records instead of repeated floating cards; abstract line length bounded. Detail retains the original metadata, abstract, keywords, publication date, signer controls and record-view call, with clearer sections/back link. PDF button modes, synchronous popup behavior, authorization and five-minute link semantics unchanged; supported busy/error messages styled.
+- Administration: existing user/group/publication/report screens now use shared header/navigation and panels. User/group tables scroll locally in named keyboard-focusable regions; per-user role selectors have contextual labels and role column is labeled Role. Managed-account form has readable spacing, autocomplete/instructions and existing pending/result behavior. Publication lists retain exact eligible/published/hidden records, IDs and actions; existing pending flags now disable related buttons and announce busy state. No confirmation dialog added where none existed. Reports retain exact counts/definitions, zero/Other buckets and five-event activity scope; role/status breakdowns are definition lists, no new metrics/queries/charts.
+- Notifications/assistance: three role pages retain their own requireRole/getUserNotifications(session.userId) calls. Shared server presentation shows original record order, readable messages, Read/Unread text, dates and the same mark-read/delete action IDs. Static guide replaces repeated question cards with compact real buttons; existing topic IDs/actions/answers/links and fallback untouched. Existing Admin/Adviser assistance gets panel/spacing treatment only. Governance dialogs add a single CSS class for viewport bounds/scrolling/backdrop; no checkbox defaults, eligibility/consent state, revisions, confirmations or mutation handlers changed.
+- Changed files: `app/dashboard/repository/page.tsx`, `app/dashboard/repository/[paperId]/page.tsx`, `app/dashboard/repository/[paperId]/DownloadRepositoryDocumentButton.tsx` (discovery/detail/document presentation); `app/dashboard/admin/users/page.tsx`, `groups/page.tsx`, `repository/page.tsx`, `repository/RepositoryManagement.tsx`, `reports/page.tsx` (management/report presentation); Admin/Adviser/Student `notifications/page.tsx` (role-scoped presentation); `app/dashboard/guide/page.tsx`, `ChatbotGuide.tsx` (static guide); `components/dashboard/admin-account-creation.tsx`, `local-ai-assistance.tsx`, `ai-governance-dialogs.tsx` (existing forms/panels/modal classes); new `components/dashboard/admin-navigation.tsx` and `notification-list.tsx` (small presentation helpers shared by multiple affected screens); `app/globals.css` (scoped styles); new `tests/phase9-repository-admin.browser.cjs` (established-pattern focused acceptance); this handoff. Twenty-one files total. No stable-rule/architecture/database documentation changes.
+- Static verification: `npm.cmd run lint`, `npx.cmd tsc --noEmit` PASS. Restricted build failed only fetching existing Geist/Geist Mono; established network-enabled `npm.cmd run build` PASS (Next.js 16.2.9, 23 pages), including final filter-label/presentation corrections. Focused final changed-file/test ESLint and `git diff --check` PASS. Initial browser preflight assumed >10 eligible Phase 6 fixtures; actual obvious synthetic eligible set was 10, so adapted to current safe fixtures without creating data/publications. Current full repository still supplied a second page, exercised successfully. Runner corrected SPA navigation waits and an error locator colliding with Next's route announcer. Wrapped filter labels included option text; corrected to explicit associations, rebuilt and final browser PASS. No passing suite repeated without those changes/failures.
+- Focused Chromium: `node --import tsx tests/phase9-repository-admin.browser.cjs` PASS using existing active synthetic Admin/Adviser/Student accounts and signed sessions on the previously designated localhost/thesishs_ai development/test target. Student/Adviser repository at 360/1280: title search, three filters combined, eligible fixture title/IDs, next/previous pagination, empty/reset, detail heading and available PDF controls/back navigation PASS. Download transport failure deliberately aborted before the signer to check existing client error feedback; no private PDF fetch/provider/storage request. Admin users/groups/publication/reports render; table rightmost actions reachable by local scroll; eligibility open/Close and consent open/Escape PASS without governance writes. Existing Admin static assistance response/unavailable state, all three notification pages and clickable Student guide answer with no input/textarea PASS. Student and Adviser direct access to all four Admin routes redirect to dashboard; anonymous repository redirects to login. No unexpected console/page errors, HTTP 5xx or external browser requests.
+- Counter distinction: ordinary repository detail rendering already calls recordResearchRepositoryView and increments a database view counter. Live detail checks used only the existing clearly marked Phase 6 synthetic paper; view increments occurred through that unchanged route, including the failed error-selector attempt. No direct counter writes/restoration performed. Final repository publication identity/status/timestamp and download-count snapshots unchanged. No users/groups/research/notification/consent/publication mutations, fixture creation, uploads, migrations or storage/provider operations. Do not label the entire browser run strictly read-only because of this pre-existing counter behavior.
+- Responsive/visual: representative OS-temp `phase94-*.png` screenshots inspected for repository filters/detail, Admin users/groups/reports/publication and Student guide at representative 360/1280 widths. Browser measured no page-wide overflow and visible 3px focus; table controls reached after scrolling their own region. Dialog horizontal bounds/open/close checked; CSS bounds height and allows internal scrolling. Long forms, tables and guide sections require ordinary vertical scrolling; content below the initial viewport remains reachable. No obvious rendering or clipped primary-action issues found.
+- Preservation: source/Git review shows no `lib/`, `db/`, schema/migration/dependency/configuration changes; no new service calls, metrics or filters. Existing role/active-account/ownership/publication eligibility and signer checks remain server-side, never inferred from presentation. Existing SQL ordering/ten-result pagination and title/abstract/keyword search contract retained; browser specifically retested title plus filters, not all historical Phase 6 combinations. Student guidance stays predefined/provider-independent and both Groq availability functions still return hard-disabled. No offline/persistent browser storage, credentials/PDF/signed-URL caching, PWA assets, deployment or later-phase work.
+- Limits: no account creation/role/activation, group archive/reactivation, publication/unpublication, read/delete, consent/eligibility or destructive controls submitted. Existing void management-action result limitations unchanged; no action-contract amendment requested/implemented. No real signed PDF retrieval/expiry, full security/workflow retest, password-login retest, Panel/device matrix, full accessibility certification or Safari/Edge run. No new operational AI acceptance claimed. Historical Phase 5/6/8 evidence remains separate.
+- Design reasons/precedence: academic discovery/oversight workspaces, ENERGY 1 / RHYTHM 2 / MOTION 1. Retain light/Geist/blue baseline for continuity/readability; explicit labels and grid reflow make filters usable; divided result/notification/publication rows avoid unnecessary cards; table regions preserve comparisons without page overflow; report definition lists align labels/counts; existing panel borders contain related work; dialog backdrop communicates modality. No icons/gradients/badges/animations added. Owner-approved light-only/typography retain precedence over generic R-21/R-06 guidance. Shared navigation/notification helpers reduce repeated presentation only.
+- Git/next: all changes unstaged/uncommitted; HEAD remains `0e22f82`. No staging, commits, pushes, merges, deployments, migrations or Groq activation. Owner reviews Phase 9.4 before closure. Recommended next: Phase 9.5 - Minimal Online-First PWA Integration, only with separate authorization.
+
+### Anti-Slop During gate (affected presentation, not a separate full audit)
+
+- R-02 PASS: no em dash added; report activity separator changed to a middle dot.
+- R-03 PASS: 360/1280 overflow checks and representative screenshots.
+- R-17 PASS: existing report service counts only.
+- R-18 PASS: no testimonials.
+- R-23 PASS: existing text branding/routes, no invented assets.
+- R-24 PASS: real existing discovery/Admin/notification/guide destinations.
+- R-25 PASS: retained dark text/blue action/red error AA-capable pairs from Phase 9.3; no color-only status added.
+- R-26 PASS: original real forms/actions and guide topic controls retained.
+- R-27 PASS: existing result/error/empty/pending/fallback states preserved or clarified; mutation result contracts unchanged.
+- R-28 PASS: no FAQ.
+- R-32 PASS: explicit filter labels, contextual role selectors, visible focus, keyboard scroll regions and native modal closing.
+- R-33 PASS: direct source patches, no runtime rewriting.
+- R-34 PASS: approved light-only baseline.
+- R-35 PASS within authorized lean scope: build/browser presentation click-through; destructive operations/live PDF deliberately unsubmitted.
+- R-36 PASS: no fabricated claims.
+- R-37 PASS: approved Design Read before edits.
+- R-38 PASS: authorized service data; test records explicitly synthetic.
+- R-01 PASS: no gradients/glows.
+- R-04 PASS: no icons.
+- R-06 PASS by owner precedence: existing Geist for readable continuity.
+- R-07 PASS: plain backgrounds.
+- R-08 PASS: no decorative arrows.
+- R-09 PASS: textual status, no badges.
+- R-10 PASS: no glass effects.
+- R-12 PASS: existing restrained work-panel shadow only.
+- R-13 PASS: no glow.
+- R-14 PASS: record rows/forms/tables, no feature-card grid.
+- R-19 PASS: no new animation; supported pending text is functional.
+- R-22 PASS: no illustrations.
+- Dials PASS: ENERGY 1 / RHYTHM 2 / MOTION 1 declared and retained.
+- Focal point PASS: one H1 and contextual task sections per page.
+- Whitespace PASS: divided records, spaced fields and bounded modal content.
+- Accent PASS: existing blue actions; red only for actual errors.
+- Identity PASS: published research, role management, version-independent reports and reviewed topic vocabulary.
+- Design Read PASS: declared before implementation and recorded above.
+- C-1 PASS: major decisions have written reasons.
+- C-2 PASS within scope: real route/action controls; non-destructive interaction evidence above.
+- C-3 PASS: content-driven discovery/management/report/notification/guide sections.
+- C-4 PASS within tested scope: two widths, focus, table scrolling and dialogs.
+- C-5 PASS: no fake data/claims.
+- R-05 PASS: actual workflow composition, no marketing template.
+- R-11 PASS: baseline control/panel radii, no pills.
+- R-15 PASS: specific Search and filter/Create account/Publish/Mark as Read actions.
+- R-16 PASS: no promotional AI buzzwords added.
+- R-20 PASS: academic repository/oversight content drives hierarchy.
+- R-21 PASS by owner precedence: light-only approval.
+- R-29 PASS: existing blue/functional red plus neutrals.
+- R-30 PASS: existing application refined, no product cloning.
+- R-31 PASS: layout/type/color/spacing/modality/helper reasons recorded.
+
+## Handoff - 2026-10-14 - Phase 9.4 Owner-Accepted Closure
+
+- Status/authority: Phase 9.4 accepted by the owner for closure. Repository and Administration UI refinements are complete for the approved checkpoint. This acceptance supersedes the implementation handoff's awaiting-review status; earlier acceptance and validation evidence remains preserved.
+- Reviewed scope: twenty-one Phase 9.4 application, shared presentation helper, focused browser test and Master Context files on `feature/development`, predecessor `0e22f82`. No backend/service/repository implementation, database queries, action contracts, publication/PDF authorization, workflow statuses, role permissions or notification behavior changed. Student guidance remains static and Groq remains hard-disabled.
+- Existing reported validation: lint, TypeScript, network-enabled production build, focused final ESLint, focused Chromium and whitespace checks PASS as detailed above. Responsive acceptance at 360px and 1280px PASS; Anti-Slop During gate PASS within the documented checkpoint scope. Closure performs source/Git review and diff checks only; no additional application tests, build or browser acceptance claimed.
+- Testing effects: repository detail-view counters increased only on existing synthetic records through the unchanged detail route during the reported implementation testing. Publication identity/status/timestamp and download-count snapshots remained unchanged; the browser run was not entirely read-only.
+- Remaining limitations: management, governance and notification mutations were not retested. Real PDF retrieval and signed-URL expiry were not retested. Safari/Edge, comprehensive accessibility testing and the broader security/workflow/device/Panel matrix remain deferred; historical acceptance evidence stays separate.
+- Closure safety: complete tracked diff and all three untracked source/test files reviewed for scope, secrets, unintended backend/database changes and generated artifacts. Only the twenty-one reviewed files are authorized for staging; unstaged and staged whitespace checks and staged inventory verification are required before commit.
+- Authorized commit: `feat(phase9): refine repository and administration UI`. Resolve the resulting hash with `git log -1 --oneline`; verify committed inventory with `git show --stat --oneline HEAD` and final cleanliness with `git status --short`.
+- Next checkpoint: Phase 9.5 - Minimal Online-First PWA Integration is NOT STARTED and requires separate owner authorization. No packages, migrations, deployments, Groq activation, push, merge or later-phase implementation performed during closure.

@@ -1,139 +1,26 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import { getUserNotifications } from "@/lib/services/notification.service";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
+import NotificationList from "@/components/dashboard/notification-list";
 
-import {
-    getUserNotifications,
-} from "@/lib/services/notification.service";
-
-import {
-    markNotificationAsReadAction,
-    deleteNotificationAction,
-} from "@/lib/actions/notification.action";
-
-/**
- * Student Notification page.
- *
- * Displays notifications belonging only to
- * the currently authenticated Student.
- */
-export default async function StudentNotificationsPage() {
-    // Ensure only Student users can access this page.
-    const session = await requireRole([
-        ROLE_IDS.STUDENT,
-    ]);
-
-    // Retrieve notifications belonging to
-    // the authenticated Student.
-    const result =
-        await getUserNotifications(
-            session.userId
-        );
-
-    // Handle unexpected retrieval failures.
-    if (
-        !result.success ||
-        !result.data
-    ) {
-        return (
-            <main>
-                <h1>
-                    Student Notifications
-                </h1>
-
-                <p>
-                    {result.message}
-                </p>
-            </main>
-        );
-    }
-
-    const notifications =
-        result.data;
-
+export default async function NotificationsPage() {
+    const session = await requireRole([ROLE_IDS.STUDENT]);
+    const result = await getUserNotifications(session.userId);
     return (
-        <main>
-            <h1>
-                Notifications
-            </h1>
-
-            <p>
-                View and manage your
-                research-related notifications.
-            </p>
-
-            {notifications.length === 0 ? (
-                <p>
-                    You have no notifications.
-                </p>
-            ) : (
-                <ul>
-                    {notifications.map(
-                        (notification) => (
-                            <li
-                                key={
-                                    notification.id
-                                }
-                            >
-                                <article>
-                                    <h2>
-                                        {
-                                            notification.title
-                                        }
-                                    </h2>
-
-                                    <p>
-                                        {
-                                            notification.message
-                                        }
-                                    </p>
-
-                                    <p>
-                                        Status:{" "}
-                                        {notification.isRead
-                                            ? "Read"
-                                            : "Unread"}
-                                    </p>
-
-                                    <p>
-                                        Received:{" "}
-                                        {notification.createdAt.toLocaleString()}
-                                    </p>
-
-                                    {!notification.isRead && (
-                                        <form
-                                            action={async () => {
-                                                "use server";
-
-                                                await markNotificationAsReadAction(
-                                                    notification.id
-                                                );
-                                            }}
-                                        >
-                                            <button type="submit">
-                                                Mark as Read
-                                            </button>
-                                        </form>
-                                    )}
-
-                                    <form
-                                        action={async () => {
-                                            "use server";
-
-                                            await deleteNotificationAction(
-                                                notification.id
-                                            );
-                                        }}
-                                    >
-                                        <button type="submit">
-                                            Delete
-                                        </button>
-                                    </form>
-                                </article>
-                            </li>
-                        )
-                    )}
-                </ul>
-            )}
+        <main className="dashboard-page notification-page">
+            <DashboardHeader title="Notifications" email={session.email} />
+            <DashboardNavigation links={[
+                { href: "/dashboard/student", label: "Overview" },
+                { href: "/dashboard/student/notifications", label: "Notifications" },
+                { href: "/dashboard/repository", label: "Browse Repository" },
+            ]} />
+            <p className="dashboard-context">View and manage notifications belonging to your account.</p>
+            <section className="dashboard-panel">
+                {!result.success || !result.data ? <p role="alert" className="form-message">{result.message}</p> :
+                    <NotificationList notifications={result.data} />}
+            </section>
         </main>
     );
 }

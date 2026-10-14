@@ -1,4 +1,6 @@
 import AdminAccountCreation from "@/components/dashboard/admin-account-creation";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import AdminNavigation from "@/components/dashboard/admin-navigation";
 import { EligibilityDialog } from "@/components/dashboard/ai-governance-dialogs";
 import { getActiveAIAccount } from "@/lib/auth/ai-authorization";
 import { redirect } from "next/navigation";
@@ -16,7 +18,7 @@ import { changeUserStatusAction, changeUserRoleAction } from "@/lib/actions/user
  */
 export default async function AdminUsersPage() {
     // Ensure only Admin users can access this page.
-    await requireRole([
+    const session = await requireRole([
         ROLE_IDS.ADMIN,
     ]);
 
@@ -27,10 +29,11 @@ export default async function AdminUsersPage() {
     // Handle unexpected service failures.
     if (!result.success || !result.data) {
         return (
-            <main>
-                <h1>User Management</h1>
+            <main className="dashboard-page admin-surface">
+                <DashboardHeader title="User Management" email={session.email} />
+                <AdminNavigation />
 
-                <p>
+                <p className="form-message" role="alert">
                     {result.message}
                 </p>
             </main>
@@ -40,26 +43,30 @@ export default async function AdminUsersPage() {
     const users = result.data;
 
     return (
-        <main>
-            <h1>User Management</h1>
+        <main className="dashboard-page admin-surface">
+            <DashboardHeader title="User Management" email={session.email} />
+            <AdminNavigation />
 
             <p>
                 Manage registered system users.
             </p>
 
             <AdminAccountCreation />
+            <section className="dashboard-panel">
+            <h2 id="users-heading">Registered Users</h2>
             {users.length === 0 ? (
                 <p>
                     No users found.
                 </p>
             ) : (
-                <table>
+                <div className="admin-table-scroll" role="region" aria-labelledby="users-heading" tabIndex={0}>
+                <table className="admin-table">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Role ID</th>
+                            <th>Role</th>
                             <th>Status</th>
                             <th>Created At</th>
                             <th>Actions</th>
@@ -100,6 +107,7 @@ export default async function AdminUsersPage() {
                                         <select
                                             name="roleId"
                                             defaultValue={user.roleId}
+                                            aria-label={`Role for ${user.firstName} ${user.lastName}`}
                                         >
                                             <option value={ROLE_IDS.ADMIN}>
                                                 Admin
@@ -157,7 +165,9 @@ export default async function AdminUsersPage() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             )}
+            </section>
         </main>
     );
 }
