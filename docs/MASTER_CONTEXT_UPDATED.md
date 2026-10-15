@@ -1702,3 +1702,82 @@ This is proposed plain-language disclosure, not a finalized legal agreement. Whe
 - Focused source and staged-scope audit PASS. Retain existing all-role Light/Dark 360/1280 header/screenshot, scrolling/refresh/touch-emulation, lint/TypeScript/build and whitespace evidence above. No material implementation change needed; no tests rerun for this commit. The previous complete approval record supersedes remaining awaiting-review statements; this refinement closes upon successful separate commit.
 - Four pending Phase 9.6 test files remain byte-identical and unstaged; their entire documentation block remains intact only in the working tree. Index documentation is assembled from reviewed checkpoint sections, excluding that block. No credentials, env files, generated artifacts, dependency/backend/schema/configuration edits, deployment, push or merge. Historical localhost:3000 cause and deferred physical-device/Safari/installed-PWA/comprehensive accessibility limits remain as recorded.
 - Next checkpoint remains Phase 9.7.4 Shared Settings Page, awaiting explicit authorization. No later-phase implementation. Resolve the refinement commit hash with git log and verify the final five-path pending inventory and empty index.
+
+## Handoff - 2026-10-15 - Phase 9.7.4 Shared Settings Page
+
+- Status: **Implemented — awaiting owner visual review.** Focused implementation/automated acceptance PASS. Phase 9 remains open. Next planned checkpoint: Phase 9.7.5 Notification Bell & Dropdown, pending separate owner approval; not started.
+- Baseline confirmed: feature/development at b412c65, exactly five pending Phase 9.6 paths, empty staging. Final state: same branch/HEAD, seven modified files and seven untracked files (Git short status groups the two Settings files as one directory); original five paths remain pending. No stage/commit/push/merge/reset/stash/clean/revert/deployment or dependency install.
+- Route: /dashboard/settings, one shared server page for active, current database-backed Admin/Adviser/Student/Panel accounts. Reuses getDashboardAccount and authenticated layout, including per-render memoization. Explicit supported-role allowlist on page prevents unsupported-role access independently of sidebar visibility. Anonymous uses existing Login redirect; inactive/missing/stale-role/database-error accounts retain the existing layout error state. Account/auth services unchanged; no extra query.
+- Account Information: semantic read-only dl/dt/dd, validated email and existing role label. Name is explicitly Not provided because the existing account DTO does not expose a display name. No credentials, IDs, editable profile fields or fabricated personal details.
+- Appearance: new small native radio group calls existing useTheme preference/ready/select. One root provider and unchanged thesishs-theme key/System default; no duplicate state, account storage or provider. Immediate Light/Dark/System, reload/navigation persistence, live system changes and bidirectional synchronization with retained header popover verified. Existing theme unit regression includes unavailable-storage fallback.
+- About: owner-suggested implemented-workflow description; no operational AI/version/institution/support claims. Sign Out reuses unchanged LogoutButton/logoutAction/session deletion. Pending disable/label, exactly one POST, cookie removal and Login redirect browser-verified. Unit doubles exercise actual existing logout component success, pending and thrown-error propagation with no success navigation after failure; no new error handling or logout service.
+- Navigation: shared role configuration adds one Settings destination as final item above the separate Logout footer, including Panel. Existing NavigationIcon gains a gear outline. Existing active link, icon-only name/title, collapse, scroll, mobile drawer and focus semantics reused. No shell/header/layout redesign.
+- Design reasons: single readable column capped at 760px keeps account/preferences copy comfortable; four existing panel surfaces separate the four requested tasks without nesting. Existing Geist typography preserves application hierarchy; inherited spacing separates labels/values and sections. Semantic navy/slate palette preserves identity and equal light/dark hierarchy. Native radios provide standard keyboard/selected semantics, wrap on narrow screens and keep 44px label targets. Gear means Settings and matches existing outline navigation icons. No decorative assets or new motion. Design Read declared before edits: academic shared account/preferences page, ENERGY 1 / RHYTHM 2 / MOTION 1.
+- Files added: app/dashboard/settings/page.tsx; app/dashboard/settings/settings.module.css; components/theme-preferences.tsx; components/theme-preferences.module.css; tests/phase974-settings.unit.cjs; tests/phase974-settings.browser.cjs. Modified: lib/constants/dashboard-navigation.ts; components/dashboard/navigation-icon.tsx; tests/phase972-navigation.unit.cjs (replace obsolete no-Settings expectation and include Panel Settings); this appended handoff. No protected Phase 9.6 test changed.
+- Focused PASS: node --import tsx tests/phase974-settings.unit.cjs; tests/phase974-settings.browser.cjs; tests/phase972-navigation.unit.cjs; unchanged tests/phase972-navigation.browser.cjs; unchanged tests/phase973-theme.unit.cjs. New unit runner uses synthetic doubles only. Browser runners read existing synthetic accounts from designated localhost:5432/thesishs_ai and issue temporary signed sessions; no fixture creation/workflow/database mutations. Initial Settings unit stub had CommonJS default-import interop mismatch; test double corrected before passing. No application defect found by that failure.
+- Responsive/accessibility PASS: all four roles at 360/1280 in Light/Dark, no horizontal overflow, readable wrapping, semantic account/section labels, accessible native radio names/group, keyboard arrow selection and >=3px focus, active Settings state, collapsed tooltips, mobile drawer dismissal/navigation/focus, visible/operable logout. Sampled Settings text contrast >=4.5:1 normal and >=3:1 large. Existing navigation runner passes modal focus loop/dismissal, reduced motion, all destinations and Panel. Sixteen phase974-role*-{360,1280}-{Light,Dark}.png screenshots saved in OS temp outside Git; inspected Student dark mobile, Panel light mobile, Admin light desktop and Adviser dark desktop with no obvious clipping or palette defects. No page/console/HTTP 5xx errors during acceptance.
+- Static PASS: npm.cmd run lint; npx.cmd tsc --noEmit; npm.cmd run build (Next.js 16.2.9, 25 routes including dynamic Settings); git diff --check; final targeted ESLint on new test runners. Restricted build failed only on existing Google Fonts network fetch; previously authorized network-enabled retry passed. Installed Next.js layouts/pages guide read before code.
+- Preservation: original Master Context is retained as a byte-identical 373933-byte prefix, SHA-256 33BF5761DA315579CE607E2629A1B4F35D39A78EC3CDC6E9AC51967F0FB3D9EE. All four pending Phase 9.6 test hashes match the initial snapshot. Its original 67-line documentation addition stays uncommitted in place. Index remains empty. No schema/migration/API/backend authentication/permissions/submission/version/review/publication/storage/signed-URL/notification/AI governance/provider/PWA changes. Groq stays hard-disabled.
+- Limits: owner visual review pending. Chromium desktop engine with mobile viewport emulation, not physical devices/Safari/installed PWA/HTTPS or comprehensive accessibility certification. Missing/inactive/invalid-role restrictions tested with service/page doubles; no inactive synthetic browser account available. Existing signed sessions verify access, not password login. No workflow mutation/private PDF regression repeated. Existing layout installation help remains below Settings. Name remains unavailable by deliberate DTO reuse.
+
+### Phase 9.7.4 Anti-Slop During delivery gate
+
+- R-02 PASS: new UI copy has no em dashes; owner-required status wording retained in handoff.
+- R-03 PASS: all-role 360/1280 overflow checks and four inspected screenshots.
+- R-17 PASS: no statistics introduced.
+- R-18 PASS: no testimonials introduced.
+- R-23 PASS: owner-authorized Settings navigation only; existing branding retained.
+- R-24 PASS: Settings and existing navigation destinations clicked in browser runners.
+- R-25 PASS: measured Settings text contrast in both themes at both widths.
+- R-26 PASS: three theme choices, header popover, navigation and logout exercised.
+- R-27 PASS: unavailable account/name states and reused pending/error behavior verified.
+- R-28 PASS: no FAQ introduced.
+- R-32 PASS: native radio keyboard selection, visible focus and existing drawer focus tests pass.
+- R-33 PASS: source files edited directly; no external styling rewrite script.
+- R-34 PASS: both themes render at both widths with shared semantic tokens.
+- R-35 PASS: production build plus actual control click-through recorded above.
+- R-36 PASS: no invented security/performance/compliance claims.
+- R-37 PASS: approved academic Design Read/dials declared before source edits.
+- R-38 PASS: account email/role come from validated data; missing name explicitly unavailable.
+- R-01 PASS: no gradient/glow added.
+- R-04 PASS: gear communicates Settings using existing outline icon conventions.
+- R-06 PASS: existing Geist typography retained for application continuity.
+- R-07 PASS: no background pattern added.
+- R-08 PASS: no decorative arrows added.
+- R-09 PASS: no badges added.
+- R-10 PASS: no glass surfaces added.
+- R-12 PASS: only existing panel shadow inherited for consistent surface hierarchy.
+- R-13 PASS: no glow added.
+- R-14 PASS: four requested tasks use existing panels with content-specific interiors; no nested cards.
+- R-19 PASS: no new motion; existing reduced-motion navigation runner passes.
+- R-22 PASS: no illustrations added.
+- Liveliness/dials PASS: ENERGY 1 / RHYTHM 2 / MOTION 1 maintained.
+- Liveliness/focal point PASS: Settings heading leads the page.
+- Liveliness/spacing PASS: section and label/value gaps organize real content.
+- Liveliness/accent PASS: existing navy active/selected states highlight current location and preference.
+- Liveliness/identity PASS: existing academic typography, product branding and research-specific copy retained.
+- Liveliness/design read PASS: declared before implementation.
+- C-1 PASS: layout/color/type/spacing/surface/icon reasons recorded above.
+- C-2 PASS: all new interactive elements exercised.
+- C-3 PASS: only four owner-requested Settings sections introduced.
+- C-4 PASS: responsive themes, keyboard, unavailable account and logout states verified within stated limits.
+- C-5 PASS: evidence tied to executed checks; device/owner-review limits retained.
+- R-05 PASS: layout follows the four requested tasks and single-column requirement.
+- R-11 PASS: existing panel/control radii; no pill styling.
+- R-15 PASS: specific Settings/Logout and Light/Dark/System labels.
+- R-16 PASS: no AI marketing claims added.
+- R-20 PASS: approved academic application identity preserved.
+- R-21 PASS: shared System default with working explicit Light/Dark choices.
+- R-29 PASS: existing semantic navy/slate palette reused.
+- R-30 PASS: existing application is reference; no external product imitation.
+- R-31 PASS: major visual decisions have one-line reasons above.
+
+### Phase 9.7.4 Owner Approval and Closure - 2026-10-15
+
+- Automated implementation and focused acceptance: **PASS**, as recorded above. Owner manual visual review: **PASS**, explicitly confirmed by the owner in this closure request. Phase 9.7.4 is approved for closure and the single authorized commit. This approval supersedes earlier awaiting-owner-review statements for Phase 9.7.4; historical evidence remains intact. Phase 9 overall remains open.
+- Name editing remains outside this checkpoint. The optional Admin-managed Name Change Requests idea is deferred and must not be added to the current roadmap. No name-editing/request implementation or roadmap entry added.
+- Focused pre-commit audit PASS: reviewed shared Settings authorization/read-only account data/theme/logout/navigation, focused tests and complete staged scope; no material source defect or weakened authorization assertion found. Only obsolete no-Settings navigation expectations were updated. Existing Anti-Slop During per-rule PASS evidence above retained; no UI/source changes made in closure.
+- Retained validation: Settings unit/Chromium, navigation unit/Chromium, theme unit, lint, TypeScript, production build and whitespace checks PASS from implementation. No complete test-suite rerun for this documentation/staging-only closure; no new runtime test execution claimed. Physical-device, Safari, installed-PWA/HTTPS and comprehensive accessibility checks remain outstanding.
+- Commit scope: the reviewed Settings implementation, focused tests/navigation expectation updates and Phase 9.7.4 handoff/approval only. Original four pending Phase 9.6 tests remain byte-identical; their complete 67-line documentation addition is preserved in the working tree and excluded through selective document-blob staging. No secret/environment/generated/screenshot or unrelated file included.
+- Git baseline: feature/development at b412c65, seven modified/seven untracked files, empty initial staging. Authorized commit message: feat(phase9): add shared account settings page. Resolve actual commit hash with git log -1 --oneline after commit; expected final inventory is exactly the original five Phase 9.6 paths, unstaged. No push/merge/deployment, reset/clean/stash/revert or later-checkpoint work.
+- Next checkpoint: Phase 9.7.5 Notification Bell & Dropdown, pending separate owner authorization. Not started.

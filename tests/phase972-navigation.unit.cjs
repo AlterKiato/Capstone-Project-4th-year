@@ -26,12 +26,12 @@ const { dashboardDestination, dashboardLinks } = require('../lib/constants/dashb
         const links = dashboardLinks(role);
         assert.equal(links[0].href, `/dashboard/${path}`);
         assert.equal(links[0].exact, true);
-        assert.ok(links.every(link => !link.href.includes('settings')));
+        assert.equal(links.filter(link => link.href === '/dashboard/settings').length, 1);
         assert.ok(links.filter(link => /\/dashboard\/(admin|adviser|student)(\/|$)/.test(link.href))
             .every(link => link.href.startsWith(`/dashboard/${path}`)));
     }
     assert.equal(dashboardDestination(4), null);
-    assert.deepEqual(dashboardLinks(4).map(link => link.href), ['/dashboard', '/dashboard/repository']);
+    assert.deepEqual(dashboardLinks(4).map(link => link.href), ['/dashboard', '/dashboard/repository', '/dashboard/settings']);
     assert.equal(dashboardDestination(99), null);
     assert.deepEqual(dashboardLinks(99), []);
     assert.deepEqual(await getDashboardAccount(), { roleId: 3, email: account.email });

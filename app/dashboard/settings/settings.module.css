@@ -1,0 +1,7 @@
+.sections { max-width: 760px; }
+.sections h2 { margin-bottom: 0.75rem; }
+.sections p { margin-bottom: 1rem; }
+.account { display: grid; gap: 1rem; margin: 0; }
+.account div { min-width: 0; }
+.account dt { color: var(--muted); font-size: 0.875rem; }
+.account dd { margin: 0.25rem 0 0; overflow-wrap: anywhere; }

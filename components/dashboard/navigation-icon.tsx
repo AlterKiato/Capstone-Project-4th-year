@@ -13,6 +13,7 @@ const paths: Record<IconName, string> = {
     close: "m6 6 12 12 M6 18 18 6",
     collapse: "M4 3h16v18H4Z M9 3v18 m7-13-4 4 4 4",
     logout: "M9 3H4v18h5 M9 12h12 m-5-5 5 5-5 5",
+    settings: "m10 3 4 0 .6 3 2 .9 2.8-.9 2 3.5-2.2 2v2l2.2 2-2 3.5-2.8-.9-2 .9-.6 3h-4l-.6-3-2-.9-2.8.9-2-3.5 2.2-2v-2l-2.2-2 2-3.5 2.8.9 2-.9Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
 };
 
 export default function NavigationIcon({ name }: { name: IconName }) {
