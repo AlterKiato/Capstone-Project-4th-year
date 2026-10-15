@@ -1435,3 +1435,79 @@ This is proposed plain-language disclosure, not a finalized legal agreement. Whe
 - Next: Phase 9.7.2 Collapsible Sidebar & Role-Based Dashboard Routing **NOT STARTED**, subject to owner review and separate authorization. Phase 9.7.3 operational Dark Mode, 9.7.4 Settings, 9.7.5 notification dropdown and final focused acceptance/closure remain **PENDING / NOT IMPLEMENTED**. No automatic continuation.
 - Owner-authorized closure: commit only `app/page.tsx`, `app/page.module.css`, `tests/phase9-landing.browser.cjs` and Phase 9.7.1 sections of this document with message `feat(phase9): add and polish public landing page`. Selectively stage documentation so the pending Phase 9.6 acceptance handoff remains unstaged; preserve its three modified browser runners and untracked read-only acceptance runner. Earlier no-commit statements describe the implementation tasks, not this separately authorized closure.
 - Closure verification: source/scope review and unstaged/staged whitespace checks only; retain the recorded focused Chromium (360/1280), screenshots, lint, TypeScript and network-enabled production-build PASS evidence. No material source discrepancy or new implementation change required a test rerun. Actual commit hash and final pending inventory must be resolved with `git log -1 --oneline`, `git show --stat --oneline HEAD` and `git status --short`; no invented hash. Phase 9.6 manual testing and real-device/installed-PWA/HTTPS limitations remain open. No push, merge, deployment or Phase 9.7.2 implementation.
+
+## Handoff - 2026-10-15 - Phase 9.7.2 Collapsible Sidebar and Dashboard Routing
+
+- Status: PASS for the authorized implementation and focused local acceptance. Phase 9 remains open; Phase 9.7.3 requires owner approval.
+- Owner-authorized closure (2026-10-15): automated acceptance PASS and owner manual visual review PASS. Focused pre-commit audit PASS: AdminNavigation is superseded with no remaining imports/callers; existing destination role/service guards, verified session handling, active-account/current-role checks and secure logout are preserved. Sidebar data includes only existing authorized routes. Drawer changes remain confined to navigation. No dependency/configuration additions, weakened assertions, unrelated changes or source corrections were required. Retain the recorded focused unit/Chromium, lint, TypeScript, production-build and Anti-Slop PASS evidence; no full suite rerun for this documentation/commit task. Phase 9.7.2 closes upon successful scoped commit with message `feat(phase9): add role-aware collapsible dashboard navigation`; earlier no-commit statements describe implementation, not this separately authorized closure. Stage only Phase 9.7.2 source/tests and this checkpoint-specific documentation; preserve the pending Phase 9.6 section and four test files unstaged. Real-device/installed-PWA/HTTPS and comprehensive accessibility acceptance remain pending. Resolve the actual commit and final pending inventory from post-commit Git output. Phase 9.7.3 remains pending separate authorization; no push, merge, deployment or later-phase implementation.
+- Git: initial and final `feature/development` at `f3b6dd5`. Initial staging empty with exactly five pending Phase 9.6 paths. Final work remains unstaged/uncommitted. No stage, commit, push, merge, reset, clean, stash, deployment or migration.
+- Routing: `/dashboard` now redirects Student to `/dashboard/student`, Adviser to `/dashboard/adviser`, Admin to `/dashboard/admin`. Server-only `getDashboardAccount` reuses `requireAuth` and the user repository, checks positive session identity, active database account and matching current role, and memoizes only within the render. Anonymous access retains `/login`. Inactive/missing/stale-role/database-failure cases fail closed with a generic Workspace unavailable view and existing Logout; redirecting those sessions to login would loop because login already redirects signed sessions to dashboard. Existing page/service authorization remains authoritative.
+- Panel/unsupported: Panel retains its existing `/dashboard` Panel Workspace and `/dashboard/panel` access; sidebar exposes only Dashboard and its already-authorized Browse Repository. Unknown roles keep the existing Account Workspace fallback, receive no sidebar destinations and are never mapped into another role. No Panel evaluation or new permissions.
+- Architecture: shared authenticated `app/dashboard/layout.tsx` wraps every existing dashboard page with one stateful `DashboardShell`. Existing `DashboardNavigation` now renders the shared icon/label links; repeated page navigation and obsolete AdminNavigation were removed. `DashboardHeader` keeps page identity and welcome text; Logout moves into the shared sidebar. Installation help previously on the entry page is retained below authenticated content. Manifest still starts at `/dashboard`; manifest, icons, service workers and public landing page were not modified.
+- Destinations: Student: Dashboard, My Research & Submissions, Browse Repository, Notifications, System Guide. Adviser: Dashboard, Research Groups, Review Submissions, Browse Repository, Notifications, System Guide. Admin: Dashboard, Manage Users, Manage Groups, Repository Management, Reports, Browse Repository, Notifications, System Guide. All are existing authorized routes. Settings is absent; notification dropdown and Dark Mode are unimplemented.
+- Desktop/mobile: >=1024px uses a fixed 240px sidebar with labeled collapse control and 64px collapsed icon rail; in-memory state survives client navigation. Mobile defaults to a 64px direct-navigation rail; menu opens a 240px modal drawer over content with backdrop. Close, Escape, backdrop, link navigation and desktop resize dismiss it. Long lists scroll within the rail/drawer; body scrolling is restored after dismissal. No sidebar-state persistence or new dependencies.
+- Accessibility: icon links have accessible names and native title tooltips; controls announce expanded state; active routes use `aria-current=page`, exact dashboard matching and nested destination matching. Existing 3px focus styles retained. Native modal semantics/inert background plus explicit first/last Tab wrapping contain keyboard focus; close focuses the menu and navigation moves focus into content. Browser acceptance found native Tab could leave the control sequence, so explicit wrapping was added and passed in both directions. Motion is limited to 120ms color feedback and removed for reduced motion. Logout retains the original action, pending disabled/text state, cookie deletion and login push/refresh.
+- Design reasons: existing navy/slate/white colors match the approved academic landing and dashboard palette; existing Geist type preserves continuity; 64px rail provides 44px targets while preserving mobile content space; 240px expanded width accommodates existing labels with wrapping; matching outline home/document/group/book/bell/user/report/help icons identify actual destinations; whitespace and a pale active surface distinguish navigation from research content. No new cards, shadows, gradients, themes or dashboard redesign. ENERGY 1 / RHYTHM 2 / MOTION 1 retained; light-only owner scope takes precedence over R-21.
+- Files added: `app/dashboard/layout.tsx`; `components/dashboard/dashboard-shell.tsx`, `dashboard-shell.module.css`, `navigation-icon.tsx`; `lib/constants/dashboard-navigation.ts`; `lib/services/dashboard-account.service.ts`; `tests/phase972-navigation.unit.cjs`, `tests/phase972-navigation.browser.cjs`.
+- Files changed: `app/dashboard/page.tsx`; Admin overview/groups/users/reports/repository/notifications pages; Adviser overview/submissions/notifications pages; Student overview/submissions/notifications pages (navigation removal only outside entry routing); `components/dashboard/dashboard-navigation.tsx`, `dashboard-header.tsx`; `components/auth/logout-button.tsx`; this append. Deleted: `components/dashboard/admin-navigation.tsx`.
+- Focused unit: `node --import tsx tests/phase972-navigation.unit.cjs` PASS, exact role mappings/allowed destinations, Panel/unknown fallback, active/inactive/missing/stale-role/malformed identity and safe database failure. Service doubles only; zero database/provider activity.
+- Focused Chromium: `node --import tsx tests/phase972-navigation.browser.cjs` PASS against final production build on temporary loopback port 3026. Existing local synthetic Admin/Adviser/Student and Panel accounts only; signed sessions and read-only queries, no fixture creation or workflow writes. Three dashboard entry redirects, anonymous login redirect, wrong-role recovery, stale-role denial/logout, Panel workspace/Panel Area and denied Admin access PASS. All role-specific sidebar links clicked through; expanded/collapsed state, direct mobile icons, titles/names, >=44px targets, active/nested repository states, navigation focus, both-direction Tab wrapping/visible outline, close/Escape/backdrop/link/resize dismissal, short-height drawer scrolling and reduced motion PASS. Logout removed the cookie and subsequent dashboard access returned to login. No browser page/console/HTTP 5xx errors. Manifest HTTP check retained `/dashboard`.
+- Responsive/visual: 360px and 1280px checks PASS for all three primary roles; page starts after rail/sidebar, no document horizontal overflow. OS-temp `phase972-role*-1280.png`, `*-collapsed1280.png`, `*-360.png`, `*-drawer360.png` generated. Admin expanded desktop, Adviser collapsed desktop, Student mobile and Admin mobile drawer screenshots inspected: readable labels, contained cards/forms and no unintended overlap/clipping. Full-page screenshots show fixed navigation/backdrop only across viewport height, as expected. Artifacts stay outside Git; temporary server stopped.
+- Static: `npm.cmd run lint` PASS without warnings; `npx.cmd tsc --noEmit` PASS; final authorized network-enabled `npm.cmd run build` PASS (Next.js 16.2.9, 24 routes); `git diff --check` PASS before handoff, final preservation/whitespace checks recorded below. Restricted build initially failed only fetching existing Google Fonts. Source fixes were rebuilt before final Chromium acceptance; no unrelated suites repeated.
+- Preservation: all four pending Phase 9.6 test-file SHA-256 hashes match the initial values. All pre-task Master Context bytes are retained before this append, including Phase 9.6 and 9.7.1 handoffs. No changes to schema/migrations, auth/session actions, submission/review/repository services or permissions, private storage/signed URLs, notification delivery, AI consent/quotas/configuration or PWA behavior. Groq remains hard-disabled.
+- Limits: no inactive synthetic account existed for Chromium, so inactive/missing/database-failure cases use focused service doubles. Unknown-role fallback uses mapping checks, not a new database role. Password login/registration, real devices, installed-PWA/HTTPS and comprehensive accessibility/workflow acceptance were not repeated; existing Phase 9.6 manual gates remain open. Native title tooltips depend on browser behavior; accessible names are always present. The shared layout persists during client navigation; destination services retain their own authorization checks.
+- Next checkpoint: Phase 9.7.3 Dark Mode with per-device preference, pending owner approval. Stop here; no automatic later checkpoint or Git write operations.
+
+### Anti-Slop During delivery gate (changed navigation only)
+
+- R-02 PASS: new navigation copy has no em dashes.
+- R-03 PASS: Chromium 360/1280 overflow and sidebar clearance checks passed.
+- R-17 PASS: no statistics added; existing database counts preserved.
+- R-18 PASS: no testimonials added.
+- R-23 PASS: owner-authorized navigation; temporary book motif matches approved branding.
+- R-24 PASS: every role-specific sidebar destination clicked successfully.
+- R-25 PASS: measured sidebar text contrast >=4.5:1.
+- R-26 PASS: toggles, all destinations, dismiss controls and Logout exercised.
+- R-27 PASS: generic denied-account state and existing pending Logout retained.
+- R-28 PASS: no FAQ added.
+- R-32 PASS: Tab/Shift+Tab/Enter/Escape, visible focus and restoration exercised.
+- R-33 PASS: UI implemented directly in source using patches; no rewrite scripts.
+- R-34 PASS: approved light-only scope; no theme toggle added.
+- R-35 PASS: final production build and focused click-through passed.
+- R-36 PASS: no new security/compliance/performance claims in UI.
+- R-37 PASS: approved academic direction and dials declared before implementation.
+- R-38 PASS: no invented product content or records added.
+- R-01 PASS: no gradients or glows added.
+- R-04 PASS: destination-specific outline icons identify actual pages.
+- R-06 PASS: existing Geist typography retained for continuity.
+- R-07 PASS: no decorative patterns added.
+- R-08 PASS: no decorative action arrows added.
+- R-09 PASS: no badges added.
+- R-10 PASS: no glass surfaces added.
+- R-12 PASS: no new shadows added.
+- R-13 PASS: no glow effects added.
+- R-14 PASS: no new card templates added.
+- R-19 PASS: only brief color feedback, disabled for reduced motion.
+- R-22 PASS: no illustrations added.
+- Liveliness/dials PASS: ENERGY 1 / RHYTHM 2 / MOTION 1 held throughout.
+- Liveliness/focal point PASS: existing page heading remains primary.
+- Liveliness/spacing PASS: rail, scrollable destinations and footer separate tasks.
+- Liveliness/accent PASS: restrained navy identifies the current destination.
+- Liveliness/identity PASS: approved book motif and research-specific labels retained.
+- Liveliness/design read PASS: audience/style/dials declared before source edits.
+- C-1 PASS: layout, type, colors, spacing and icon reasons recorded above.
+- C-2 PASS: every new interactive control exercised.
+- C-3 PASS: only authorized navigation and preserved installation help added to shell.
+- C-4 PASS: desktop/mobile, keyboard, modal and reduced-motion checks passed.
+- C-5 PASS: no fabricated evidence or product claims.
+- R-05 PASS: existing content-driven pages preserved.
+- R-11 PASS: existing 8px control radius; no pill surfaces.
+- R-15 PASS: specific navigation/action labels.
+- R-16 PASS: no AI marketing copy added.
+- R-20 PASS: existing academic application identity retained.
+- R-21 PASS under owner precedence: Dark Mode belongs to separately gated 9.7.3.
+- R-29 PASS: existing navy/slate/white palette.
+- R-30 PASS: existing product design used, no external product clone.
+- R-31 PASS: major visual choices have written reasons above.
+
+- Final verification PASS: original Master Context byte-prefix SHA-256 matches the initial 9FCCD220ACF1FAABD13CF2D69D8C38A5C1809D78E43F0FFA447ABC5DD809EEE2; all four pending Phase 9.6 test hashes unchanged. Final tracked diff and untracked-source whitespace checks PASS; targeted ESLint for both new runners PASS. Final inventory: 20 modified, one deleted and nine untracked paths, all unstaged; the original five paths remain pending. HEAD remains f3b6dd5. No Git write operation performed.

@@ -2,7 +2,6 @@ import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import AdminNavigation from "@/components/dashboard/admin-navigation";
 import { getAdminDashboardStats, getAdminRecentActivities } from "@/lib/services/dashboard.service";
 
 export default async function AdminReportsPage() {
@@ -14,7 +13,6 @@ export default async function AdminReportsPage() {
     return (
         <main className="dashboard-page admin-surface">
             <DashboardHeader title="Admin Reports" email={session.email} />
-            <AdminNavigation />
             <p className="dashboard-context">Read-only counts and recorded activity from the existing system data.</p>
             {!statsResult.success || !stats ? <p className="form-message" role="alert">{statsResult.message}</p> : <>
                 <section className="dashboard-panel">

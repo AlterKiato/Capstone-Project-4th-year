@@ -1,6 +1,5 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
-import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import Link from "next/link";
 
@@ -9,15 +8,6 @@ import {
     getAdminRecentActivities,
 } from "@/lib/services/dashboard.service";
 
-const adminLinks = [
-    { href: "/dashboard/admin", label: "Overview" },
-    { href: "/dashboard/admin/groups", label: "Manage Groups" },
-    { href: "/dashboard/admin/users", label: "Manage Users" },
-    { href: "/dashboard/admin/reports", label: "Reports" },
-    { href: "/dashboard/admin/notifications", label: "Notifications" },
-    { href: "/dashboard/admin/repository", label: "Repository Management" },
-    { href: "/dashboard/repository", label: "Browse Repository" },
-];
 
 /**
  * Admin-only dashboard.
@@ -48,7 +38,6 @@ export default async function AdminPage() {
         return (
             <main className="dashboard-page">
                 <DashboardHeader title="Admin Dashboard" email={session.email} />
-                <DashboardNavigation links={adminLinks} />
 
                 <p className="form-message" role="alert">
                     {statisticsResult.message}
@@ -67,7 +56,6 @@ export default async function AdminPage() {
     return (
         <main className="dashboard-page">
             <DashboardHeader title="Admin Dashboard" email={session.email} />
-            <DashboardNavigation links={adminLinks} />
             <p className="dashboard-context">Oversee accounts, research groups and approved repository publication.</p>
             <section className="dashboard-panel">
                 <h2>Administration</h2>

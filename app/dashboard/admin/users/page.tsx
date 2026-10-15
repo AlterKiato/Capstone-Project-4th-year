@@ -1,6 +1,5 @@
 import AdminAccountCreation from "@/components/dashboard/admin-account-creation";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import AdminNavigation from "@/components/dashboard/admin-navigation";
 import { EligibilityDialog } from "@/components/dashboard/ai-governance-dialogs";
 import { getActiveAIAccount } from "@/lib/auth/ai-authorization";
 import { redirect } from "next/navigation";
@@ -31,7 +30,6 @@ export default async function AdminUsersPage() {
         return (
             <main className="dashboard-page admin-surface">
                 <DashboardHeader title="User Management" email={session.email} />
-                <AdminNavigation />
 
                 <p className="form-message" role="alert">
                     {result.message}
@@ -45,7 +43,6 @@ export default async function AdminUsersPage() {
     return (
         <main className="dashboard-page admin-surface">
             <DashboardHeader title="User Management" email={session.email} />
-            <AdminNavigation />
 
             <p>
                 Manage registered system users.

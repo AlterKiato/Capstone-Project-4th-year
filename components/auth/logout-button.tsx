@@ -8,7 +8,7 @@ import { logoutAction } from "@/lib/actions/auth.action";
 /**
  * Displays a button that logs out the current user.
  */
-export default function LogoutButton() {
+export default function LogoutButton({ icon, labelClassName, className }: { icon?: React.ReactNode; labelClassName?: string; className?: string }) {
     const router = useRouter();
 
     const [isPending, startTransition] = useTransition();
@@ -29,10 +29,13 @@ export default function LogoutButton() {
     return (
         <button
             type="button"
+            className={className}
+            aria-label={isPending ? "Logging out..." : "Logout"}
+            title="Logout"
             onClick={handleLogout}
             disabled={isPending}
         >
-            {isPending ? "Logging out..." : "Logout"}
+            {icon}<span className={labelClassName}>{isPending ? "Logging out..." : "Logout"}</span>
         </button>
     );
 }

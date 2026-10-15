@@ -5,7 +5,6 @@ import { getStudentResearchProjects } from "@/lib/services/student-research.serv
 import { getSubmissionsByStudent } from "@/lib/services/submission.service";
 import { getStudentFeedbackBySubmission } from "@/lib/services/student-feedback.service";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 import DownloadSubmissionButton from "./DownloadSubmissionButton";
 import SubmissionForm from "./SubmissionForm";
 
@@ -23,12 +22,6 @@ export default async function StudentSubmissionsPage() {
     return (
         <main className="dashboard-page research-workspace">
             <DashboardHeader title="Research Submissions" email={session.email} />
-            <DashboardNavigation links={[
-                { href: "/dashboard/student", label: "Overview" },
-                { href: "/dashboard/student/submissions", label: "My Research & Submissions" },
-                { href: "/dashboard/student/notifications", label: "Notifications" },
-                { href: "/dashboard/repository", label: "Browse Repository" },
-            ]} />
             <p className="dashboard-context">Submit a PDF and follow each version’s review status and Adviser feedback.</p>
             <section className="dashboard-panel">
                 <h2>Your Research Projects</h2>

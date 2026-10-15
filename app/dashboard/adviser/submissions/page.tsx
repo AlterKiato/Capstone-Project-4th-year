@@ -1,7 +1,6 @@
 import Link from "next/link";
 import LocalAIAssistance from "@/components/dashboard/local-ai-assistance";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import { getAdviserSubmissions } from "@/lib/services/adviser-submission.service";
@@ -13,13 +12,6 @@ export default async function AdviserSubmissionsPage() {
     return (
         <main className="dashboard-page research-workspace">
             <DashboardHeader title="Research Submissions" email={session.email} />
-            <DashboardNavigation links={[
-                { href: "/dashboard/adviser", label: "Overview" },
-                { href: "/dashboard/adviser/groups", label: "Research Groups" },
-                { href: "/dashboard/adviser/submissions", label: "Review Submissions" },
-                { href: "/dashboard/adviser/notifications", label: "Notifications" },
-                { href: "/dashboard/repository", label: "Browse Repository" },
-            ]} />
             <p className="dashboard-context">Open a submitted version to read its PDF, start review and record your feedback and decision.</p>
             <section className="dashboard-panel" aria-labelledby="submissions-heading">
                 <h2 id="submissions-heading">Submitted Research</h2>

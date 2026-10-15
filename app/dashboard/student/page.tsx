@@ -13,7 +13,6 @@ import {
 import {
     createStudentResearchAction,
 } from "@/lib/actions/student-research.action";
-import DashboardNavigation from "@/components/dashboard/dashboard-navigation";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import Link from "next/link";
 
@@ -39,12 +38,6 @@ export default async function StudentPage() {
         <main className="dashboard-page student-overview">
             <DashboardHeader title="Student Dashboard" email={session.email} />
 
-            <DashboardNavigation links={[
-                { href: "/dashboard/student", label: "Overview" },
-                { href: "/dashboard/student/submissions", label: "My Research & Submissions" },
-                { href: "/dashboard/student/notifications", label: "Notifications" },
-                { href: "/dashboard/repository", label: "Browse Repository" },
-            ]} />
 
             <p className="dashboard-context">Work with your assigned group, submit research versions and read your Adviser’s feedback.</p>
             <section className="dashboard-panel">

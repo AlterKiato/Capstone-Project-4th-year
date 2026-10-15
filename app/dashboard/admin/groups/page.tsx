@@ -1,7 +1,6 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import AdminNavigation from "@/components/dashboard/admin-navigation";
 
 import {
     getResearchGroups,
@@ -34,7 +33,6 @@ export default async function AdminGroupsPage() {
         return (
             <main className="dashboard-page admin-surface">
                 <DashboardHeader title="Research Groups" email={session.email} />
-                <AdminNavigation />
 
                 <p className="form-message" role="alert">
                     {result.message}
@@ -48,7 +46,6 @@ export default async function AdminGroupsPage() {
     return (
         <main className="dashboard-page admin-surface">
             <DashboardHeader title="Research Groups" email={session.email} />
-            <AdminNavigation />
 
             <p>
                 Monitor and manage research groups across
