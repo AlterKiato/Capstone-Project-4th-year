@@ -291,7 +291,7 @@ export default async function AdviserGroupsPage() {
                                             padding:
                                                 "20px",
                                             border:
-                                                "1px solid #ccc",
+                                                "1px solid var(--border)",
                                         }}
                                     >
                                         <h3>

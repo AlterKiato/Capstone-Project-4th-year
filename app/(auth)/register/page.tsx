@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import RegisterForm from "@/components/auth/register-form";
 import Link from "next/link";
+import ThemeSelector from "@/components/theme-selector";
 
 /**
  * Registration page.
@@ -19,6 +20,8 @@ export default async function RegisterPage() {
     }
 
     return (
+        <>
+        <header className="auth-appearance" aria-label="Theme"><ThemeSelector /></header>
         <main className="auth-page">
             <p className="product-name">ThesiSHS AI</p>
             <h1>Create a Student account</h1>
@@ -26,5 +29,6 @@ export default async function RegisterPage() {
             <RegisterForm />
             <p className="auth-switch">Already have an account? <Link href="/login">Login</Link></p>
         </main>
+        </>
     );
 }

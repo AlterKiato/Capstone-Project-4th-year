@@ -7,7 +7,7 @@ Owner direction updated on 2026-10-11. The committed Phase 9.1 implementation (`
 - Product: ThesiSHS AI.
 - Audience: Senior High School Students, Research Advisers and Administrators.
 - Style: Minimal, modern, professional academic application.
-- Theme: Light mode only.
+- Theme: Shared Light, Dark and System choices, default System (owner-authorized Phase 9.7.3, 2026-10-15). Preserve the approved light appearance and use restrained slate/navy dark surfaces.
 - Branding: Temporary text-based "ThesiSHS AI".
 - Platform: Responsive PWA-first web application; installation is still deferred to Phase 9.5.
 - Target browsers: Android Chrome, desktop Chrome/Edge and iPhone Safari. Targets do not imply completed device acceptance.
@@ -31,7 +31,7 @@ These are owner-supplied provisional settings, not evidence of a completed visua
 4. Approved ThesiSHS AI design decisions in this document.
 5. Applicable Anti-Slop design-quality rules.
 
-When Anti-Slop conflicts with an approved product decision, preserve that decision and report the relevant rule and design tradeoff. Light-only remains approved; no automatic dark mode. Decorative interactions must not interfere with research workflows. Production statistics and research records must be real; design references do not authorize invented data or new features.
+When Anti-Slop conflicts with an approved product decision, preserve that decision and report the relevant rule and design tradeoff. Phase 9.7.3 authorizes shared Light/Dark/System presentation preferences only. Decorative interactions must not interfere with research workflows. Production statistics and research records must be real; design references do not authorize invented data or new features.
 
 Existing AI restrictions remain binding: Student guidance stays static, Groq stays hard-disabled, and AI never makes academic decisions. Preserve active-account/current-role/ownership authorization, independent adult verification, versioned consent, k=5 suppression, quotas, provider isolation and safe fallback. Private research and signed URLs must not enter offline caches.
 
@@ -39,7 +39,7 @@ Existing AI restrictions remain binding: Student guidance stays static, Groq sta
 
 1. Read `AGENTS.md`, this document and `ANTISLOP.md`; use the existing application as the functional and visual baseline.
 2. Apply Anti-Slop in **During mode** for future owner-authorized UI/UX implementation checkpoints. This is an explicit project preference approved on 2026-10-11, not a machine-wide preference; no global settings change is required.
-3. Preserve the minimal academic style, light-only appearance, temporary text branding and ENERGY 1 / RHYTHM 2 / MOTION 1 dials.
+3. Preserve the minimal academic style, approved light appearance, temporary text branding and ENERGY 1 / RHYTHM 2 / MOTION 1 dials; Phase 9.7.3 adds an equivalent dark appearance and System preference.
 4. Reuse existing Next.js/React/Tailwind components and refine only the approved checkpoint's screens. Apply the quality filter while implementing and verify relevant responsive/accessibility behavior before delivery.
 5. Preserve approved workflows, authorization and AI restrictions; propose unresolved branding or scope decisions separately for owner review.
 

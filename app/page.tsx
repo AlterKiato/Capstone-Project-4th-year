@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./page.module.css";
+import ThemeSelector from "@/components/theme-selector";
 
 function BookSymbol() {
   return (
@@ -19,12 +20,7 @@ export default function Home() {
             <Link href="/login" className={styles.secondaryAction}>Log In</Link>
             <Link href="/register" className={styles.primaryAction}>Register</Link>
           </nav>
-          <button type="button" disabled className={styles.themePlaceholder} aria-label="Dark Mode — Coming Soon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" focusable="false">
-              <path d="M20 14A8.5 8.5 0 0 1 10 4a8.5 8.5 0 1 0 10 10Z" />
-            </svg>
-            <span>Dark Mode<small>Coming Soon</small></span>
-          </button>
+          <ThemeSelector />
         </div>
       </header>
 

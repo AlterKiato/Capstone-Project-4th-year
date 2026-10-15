@@ -2,7 +2,7 @@
 // Existing synthetic accounts only. Read-only lookup and signed browser sessions.
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
 const { join } = require('node:path');
 const { tmpdir } = require('node:os');
 require('dotenv/config');
@@ -18,6 +18,14 @@ const { createToken } = require('../lib/auth/jwt.ts');
 const { chromium, expect } = require('@playwright/test');
 const origin = 'http://127.0.0.1:3024';
 let browser, server;
+const approvedCss = execFileSync('git', ['show', 'f3b6dd5:app/page.module.css'], { encoding: 'utf8', windowsHide: true });
+function approved(selector, property) {
+    const start = approvedCss.indexOf(selector + ' {');
+    assert.ok(start >= 0, selector);
+    const block = approvedCss.slice(start + selector.length + 2, approvedCss.indexOf('}', start));
+    return block.match(new RegExp('(?:^|;)\\s*' + property + ':\\s*([^;]+)'))[1].trim();
+}
+const rgb = hex => `rgb(${[1, 3, 5].map(index => parseInt(hex.slice(index, index + 2), 16)).join(', ')})`;
 
 function contrast(a, b) {
     const luminance = value => {
@@ -89,12 +97,39 @@ async function main() {
         await expect(footer.getByText('Organization/contact details: To be confirmed', { exact: true })).toBeVisible();
         await expect(footer.getByText('Contact information is provisional and not yet an active support channel.', { exact: true })).toBeVisible();
         assert.equal(await page.locator('a[href^="mailto:"], a[href^="tel:"]').count(), 0);
-        const placeholder = page.getByRole('button', { name: 'Dark Mode — Coming Soon', exact: true });
-        await expect(placeholder).toBeDisabled();
-        await expect(placeholder.getByText('Coming Soon', { exact: true })).toBeVisible();
-        await placeholder.evaluate(el => el.click());
+        const appearance = page.getByRole('button', { name: 'Change theme', exact: true });
+        await expect(appearance).toBeEnabled();
+        await expect(appearance).toHaveAttribute('title', 'Theme: System');
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
         assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length), 0);
+        await appearance.click();
+        await page.getByRole('menuitemradio', { name: 'Light', exact: true }).click();
+        await expect(appearance).toHaveAttribute('title', 'Theme: Light');
+        await expect(page.getByRole('menu')).not.toBeVisible();
+        const lightPublicText = await page.locator('body').innerText();
+        assert.equal(await page.evaluate(() => localStorage.getItem('thesishs-theme')), 'light');
         assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light');
+        // Approved f3b6dd5 geometry and light colors, not merely theme state.
+        const primary = page.locator('header nav a').last();
+        const secondary = page.locator('header nav a').first();
+        assert.equal(await primary.evaluate(el => getComputedStyle(el).backgroundColor), rgb(approved('.primaryAction', 'background')));
+        assert.equal(await primary.evaluate(el => getComputedStyle(el).borderRadius), '8px');
+        assert.equal(await secondary.evaluate(el => getComputedStyle(el).color), rgb(approved('.secondaryAction', 'color')));
+        assert.equal(await secondary.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 255, 255)');
+        assert.equal(await preview.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(255, 255, 255)');
+        assert.equal(await preview.evaluate(el => getComputedStyle(el).borderTopColor), rgb(approved('.preview', 'border').split(' ').at(-1)));
+        const heading = page.locator('h1');
+        assert.equal(await heading.evaluate(el => getComputedStyle(el).color), rgb(approved('.hero h1', 'color')));
+        assert.equal(await heading.evaluate(el => getComputedStyle(el).fontWeight), '700');
+        const headline = await heading.boundingBox();
+        const previewLayout = await preview.boundingBox();
+        if (width === 1280) {
+            assert.ok(previewLayout.x > headline.x + headline.width, 'Approved split hero');
+            assert.equal(await page.locator('main section').first().evaluate(el => getComputedStyle(el).paddingTop), '44px');
+        } else assert.ok(previewLayout.y > headline.y + headline.height, 'Approved stacked mobile hero');
+        const triggerBounds = await appearance.boundingBox();
+        assert.equal(triggerBounds.width, 44);
+        assert.equal(triggerBounds.height, 44);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         const previewBounds = await preview.boundingBox();
         assert.ok(previewBounds.x >= 0 && previewBounds.x + previewBounds.width <= width);
@@ -103,7 +138,16 @@ async function main() {
         const destinations = ['/login', '/register', '/register', '/login', '/', '/login', '/register'];
         assert.deepEqual(await links.evaluateAll(elements => elements.map(el => el.getAttribute('href'))), destinations);
         for (let i = 0; i < destinations.length; i++) {
-            await page.keyboard.press('Tab');
+            if (i === 0) {
+                await links.first().focus();
+                await page.keyboard.press('Tab');
+                await page.keyboard.press('Shift+Tab');
+            }
+            else await page.keyboard.press('Tab');
+            if (i === 2) {
+                await expect(appearance).toBeFocused();
+                await page.keyboard.press('Tab');
+            }
             assert.equal(await links.nth(i).evaluate(el => el === document.activeElement), true);
             assert.ok(await links.nth(i).evaluate(el => el.matches(':focus-visible') && parseFloat(getComputedStyle(el).outlineWidth) >= 3));
             const bounds = await links.nth(i).boundingBox();
@@ -135,16 +179,16 @@ async function main() {
             const token = await createToken({ userId: users[i].id, roleId: users[i].role_id, email: 'phase9-synthetic@example.invalid' });
             await context.addCookies([{ name: 'thesishs_session', value: token, url: origin, httpOnly: true, sameSite: 'Lax' }]);
             await page.goto(origin);
-            assert.equal(await page.locator('body').innerText(), publicText, 'Same static public content with a session');
+            assert.equal(await page.locator('body').innerText(), lightPublicText, 'Same public content and preference with a session');
             for (const route of ['/login', '/register', '/dashboard']) {
                 await page.goto(origin + route);
-                await expect(page).toHaveURL(origin + '/dashboard');
-                await expect(page.getByRole('heading', { name: role + ' Workspace', exact: true })).toBeVisible();
+                await expect(page).toHaveURL(origin + '/dashboard/' + role.toLowerCase());
+                await expect(page.getByRole('heading', { name: role + ' Dashboard', exact: true })).toBeVisible();
             }
             await context.clearCookies();
         }
         await context.close();
-        console.log(`PASS ${width}px: approved headline/logo/feature icons, labeled static preview, provisional footer, disabled theme placeholder/no preference storage; seven link click-throughs, Enter navigation, ordered Tab/focus, contrast, 44px targets, no overflow, light theme; auth pages, three signed-session dashboard redirects, manifest launch.`);
+        console.log(`PASS ${width}px: f3b6dd5 light palette/hero/buttons/preview, approved content and icons, compact theme menu; seven link click-throughs, Enter navigation, ordered Tab/focus including theme trigger, contrast, 44px targets, no overflow; auth pages, three signed-session role destinations, manifest launch.`);
     }
     assert.deepEqual(errors, []);
     console.log('PASS: no page/console/HTTP 5xx errors or external requests. Screenshots in OS temp. No database/workflow writes; successful password login and registration not retested.');

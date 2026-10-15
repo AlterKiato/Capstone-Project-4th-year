@@ -1,0 +1,10 @@
+.control { position: relative; flex: 0 0 44px; width: 44px; height: 44px; }
+.trigger { display: grid; place-items: center; width: 44px; height: 44px; padding: 10px; border: 1px solid var(--border-strong); border-radius: 0.5rem; background: var(--surface); color: var(--brand); }
+.trigger:hover:not(:disabled) { background: var(--surface-hover); color: var(--heading); }
+.menu { position: absolute; z-index: 30; top: calc(100% + 0.5rem); right: 0; width: 168px; padding: 0.25rem; border: 1px solid var(--input-border); border-radius: 0.5rem; background: var(--surface); color: var(--foreground); }
+.option { display: flex; align-items: center; gap: 0.625rem; width: 100%; min-height: 44px; padding: 0.5rem 0.625rem; border: 0; border-radius: 0.25rem; background: var(--surface); color: var(--foreground); font-size: 0.875rem; text-align: left; }
+.option:hover:not(:disabled), .option:focus-visible { background: var(--surface-hover); color: var(--heading); }
+.option[aria-checked="true"] { font-weight: 700; }
+.option:focus-visible { outline-offset: -3px; }
+.check { margin-left: auto; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
