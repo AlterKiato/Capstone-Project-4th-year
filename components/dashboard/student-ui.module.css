@@ -7,6 +7,7 @@
 .selector select { display: block; width: 100%; margin-top: .4rem; }
 .toggle { color: var(--action); background: transparent; border-color: var(--border-strong); text-align: left; }
 .toggle:hover:not(:disabled) { background: var(--surface-hover); }
+.cancel { text-align: center; }
 .memberSection { margin-bottom: 1.25rem; }
 .members { margin-top: 1rem; padding-left: 1.25rem; list-style: disc; }
 .members li + li { margin-top: .5rem; }

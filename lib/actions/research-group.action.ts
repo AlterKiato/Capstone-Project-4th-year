@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import { requireActiveGroupAdviser } from "@/lib/services/adviser-groups.service";
 
 import {
     createResearchGroup,
@@ -23,11 +24,10 @@ import {
  */
 export async function createResearchGroupAction(
     formData: FormData
-): Promise<void> {
+): Promise<{ success: boolean; message: string }> {
     // Ensure that only Advisers can create research groups.
-    const session = await requireRole([
-        ROLE_IDS.ADVISER,
-    ]);
+    const session = await requireActiveGroupAdviser();
+    if (!session) return { success: false, message: "An active Adviser account is required." };
 
     // Validate the group information from the form.
     const parsed = createResearchGroupSchema.safeParse({
@@ -37,31 +37,23 @@ export async function createResearchGroupAction(
         schoolYear: formData.get("schoolYear"),
     });
 
-    // Stop if validation fails.
-    //
-    // We will improve form error handling later.
+    // Keep the existing schema messages visible in the creation dialog.
     if (!parsed.success) {
-        return;
+        return { success: false, message: parsed.error.issues.map(issue => issue.message).join(". ") };
     }
 
     // Create the research group using the logged-in
     // Adviser's ID from the authenticated session.
-    const result = await createResearchGroup(
-        parsed.data,
-        session.userId
-    );
-
-    // Stop if creation fails.
-    if (!result.success) {
-        return;
+    try {
+        const result = await createResearchGroup(parsed.data, session.userId);
+        if (!result.success) return { success: false, message: "The research group could not be created." };
+        revalidatePath("/dashboard/adviser/groups");
+        revalidatePath("/dashboard/admin");
+        revalidatePath("/dashboard/adviser");
+        return { success: true, message: result.message };
+    } catch {
+        return { success: false, message: "Creation could not be confirmed. Reload and check your groups before retrying." };
     }
-
-    // Refresh the Adviser's groups page.
-    revalidatePath("/dashboard/adviser/groups");
-
-    // Refresh the Admin Dashboard so recent activity
-    // and statistics can reflect the new group.
-    revalidatePath("/dashboard/admin");
 }
 
 /**

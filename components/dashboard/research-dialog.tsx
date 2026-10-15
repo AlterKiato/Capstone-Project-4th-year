@@ -2,10 +2,11 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import styles from "./student-ui.module.css";
 
-export default function ResearchDialog({ title, children, submitLabel, action, onSuccess, onClose }: {
+export default function ResearchDialog({ title, children, submitLabel, action, onSuccess, onClose, showCancel = false, submitDisabled = false, busy = false }: {
     title: string; children: ReactNode; submitLabel: string;
     action: (data: FormData) => Promise<{ success: boolean; message: string; projectId?: number }>;
     onSuccess: (projectId?: number) => void; onClose: () => void;
+    showCancel?: boolean; submitDisabled?: boolean; busy?: boolean;
 }) {
     const ref = useRef<HTMLDialogElement>(null);
     const locked = useRef(false);
@@ -26,13 +27,19 @@ export default function ResearchDialog({ title, children, submitLabel, action, o
         window.addEventListener("beforeunload", protect);
         return () => window.removeEventListener("beforeunload", protect);
     }, []);
+    useEffect(() => {
+        const dialog = ref.current;
+        if (!pending && !busy && dialog?.open && !dialog.contains(document.activeElement)) {
+            dialog.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus();
+        }
+    }, [pending, busy]);
     function dismiss() {
-        if (locked.current) return;
+        if (locked.current || busy) return;
         if (!dirty.current || window.confirm("Discard the information entered in this form?")) onClose();
     }
     async function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (locked.current) return;
+        if (locked.current || busy) return;
         const data = new FormData(event.currentTarget);
         locked.current = true; setPending(true); setMessage("");
         try {
@@ -54,9 +61,11 @@ export default function ResearchDialog({ title, children, submitLabel, action, o
         const bounds = ref.current.getBoundingClientRect();
         if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dismiss();
     }}>
-        <div className={styles.dialogHeader}><h2 id={id}>{title}</h2><button type="button" className={styles.toggle} onClick={dismiss} disabled={pending} aria-label={`Close ${title}`}>Close</button></div>
-        <form onSubmit={submit} onChange={() => { dirty.current = true; }} aria-busy={pending}>
-            <fieldset disabled={pending}>{children}<button type="submit">{pending ? "Saving…" : submitLabel}</button></fieldset>
+        <div className={styles.dialogHeader}><h2 id={id}>{title}</h2><button type="button" className={styles.toggle} onClick={dismiss} disabled={pending || busy} aria-label={`Close ${title}`}>Close</button></div>
+        <form onSubmit={submit} onChange={() => { dirty.current = true; }} aria-busy={pending || busy}>
+            <fieldset disabled={pending || busy}>{children}<button type="submit" disabled={submitDisabled}>{pending ? "Saving…" : submitLabel}</button>
+                {showCancel && <button type="button" className={`${styles.toggle} ${styles.cancel}`} onClick={dismiss}>Cancel</button>}
+            </fieldset>
             <p role="status" className={message ? "form-message" : undefined}>{message}</p>
         </form>
     </dialog>;

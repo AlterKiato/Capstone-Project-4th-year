@@ -1,104 +1,30 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
+import { getEligibleGroupStudents, mutateAdviserGroupMember } from "@/lib/services/adviser-groups.service";
 
-import { requireRole } from "@/lib/auth/authorization";
-import { ROLE_IDS } from "@/lib/auth/roles";
-
-import {
-    addGroupMember,
-    removeGroupMember,
-} from "@/lib/services/group-member.services";
-
-import {
-    findResearchGroupById,
-} from "@/lib/repositories/research-group.repository";
-
-/**
- * Adds a Student to an Adviser's research group.
- *
- * Only the Adviser who owns the group
- * can add members.
- */
-export async function addGroupMemberAction(
-    groupId: number,
-    userId: number
-): Promise<void> {
-    const session = await requireRole([
-        ROLE_IDS.ADVISER,
-    ]);
-
-    const group = await findResearchGroupById(
-        groupId
-    );
-
-    if (!group) {
-        return;
-    }
-
-    if (group.adviserId !== session.userId) {
-        return;
-    }
-
-    const result = await addGroupMember(
-        groupId,
-        userId
-    );
-
-    if (!result.success) {
-        return;
-    }
-
-    revalidatePath(
-        "/dashboard/adviser/groups"
-    );
-
-    revalidatePath(
-        `/dashboard/adviser/groups/${groupId}`
-    );
+export async function eligibleGroupStudentsAction(groupId: number) {
+    try {
+        const data = await getEligibleGroupStudents(groupId);
+        return data ? { success: true, message: "", data } : { success: false, message: "Students could not be retrieved." };
+    } catch { return { success: false, message: "Students could not be retrieved. Close this dialog and try again." }; }
 }
 
-/**
- * Removes a Student from an Adviser's
- * research group.
- *
- * Only the Adviser who owns the group
- * can remove members.
- */
-export async function removeGroupMemberAction(
-    groupId: number,
-    userId: number
-): Promise<void> {
-    const session = await requireRole([
-        ROLE_IDS.ADVISER,
-    ]);
+async function mutate(operation: "add" | "remove", groupId: number, userId: number) {
+    try {
+        const result = await mutateAdviserGroupMember(operation, groupId, userId);
+        if (result.success) {
+            revalidatePath("/dashboard/adviser/groups");
+            revalidatePath(`/dashboard/adviser/groups/${groupId}`);
+            revalidatePath("/dashboard/adviser");
+        }
+        return { success: result.success, message: result.message };
+    } catch { return { success: false, message: "The membership change could not be confirmed. Reload to check the current members before retrying." }; }
+}
 
-    const group = await findResearchGroupById(
-        groupId
-    );
+export async function addGroupMemberAction(groupId: number, userId: number) {
+    return mutate("add", groupId, userId);
+}
 
-    if (!group) {
-        return;
-    }
-
-    if (group.adviserId !== session.userId) {
-        return;
-    }
-
-    const result = await removeGroupMember(
-        groupId,
-        userId
-    );
-
-    if (!result.success) {
-        return;
-    }
-
-    revalidatePath(
-        "/dashboard/adviser/groups"
-    );
-
-    revalidatePath(
-        `/dashboard/adviser/groups/${groupId}`
-    );
+export async function removeGroupMemberAction(groupId: number, userId: number) {
+    return mutate("remove", groupId, userId);
 }

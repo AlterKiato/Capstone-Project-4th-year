@@ -1,0 +1,35 @@
+.page :global(.dashboard-welcome) { display: none; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem 1rem; margin: 1rem 0; }
+.toolbar p { margin: 0; }
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.metrics > div { margin: 0; padding: 1rem 1.25rem; }
+.metrics dt { font-weight: 600; }
+.metrics dd { font-size: 2rem; font-weight: 700; line-height: 1.3; margin-top: .35rem; }
+.directory { padding: 1.25rem; }
+.directory > label { display: block; margin-bottom: .35rem; }
+.directory > input { width: 100%; }
+.directory > button { margin-top: .5rem; }
+.groups { list-style: none; margin: 1rem 0 0; padding: 0; }
+.groups > li + li { border-top: 1px solid var(--border); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; padding: 1rem .25rem; border: 0; border-radius: 0; background: transparent; color: var(--foreground); text-align: left; }
+.row:hover:not(:disabled) { background: var(--surface-hover); }
+.summary { min-width: 0; }
+.summary strong { display: block; font-size: 1.05rem; }
+.metadata { display: block; margin-top: .35rem; font-weight: 400; font-size: .875rem; color: var(--muted); }
+.disclosure { flex-shrink: 0; color: var(--action); font-size: .875rem; }
+.details { padding: .25rem .25rem 1.25rem; }
+.details > p, .details > h4 { margin-top: .75rem; }
+.details h4 { font-weight: 650; }
+.detailHeader { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem 1rem; margin: .75rem 0; }
+.members, .projects { list-style: none; padding: 0; margin: .5rem 0; }
+.members li, .projects li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; padding: .6rem 0; }
+.members li + li, .projects li + li { border-top: 1px solid var(--border-subtle); }
+.members li > div { min-width: 0; flex: 1; }
+.members span { display: block; }
+.members, .projects { overflow-wrap: anywhere; }
+.empty { margin-top: 1rem; }
+@media (max-width: 640px) {
+    .metrics { grid-template-columns: 1fr; gap: .75rem; }
+    .metrics > div, .directory { padding: 1rem; }
+    .row { align-items: flex-start; gap: .5rem; }
+}
