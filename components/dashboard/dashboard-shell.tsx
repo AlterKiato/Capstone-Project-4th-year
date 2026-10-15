@@ -1,5 +1,4 @@
 "use client";
-import ThemeSelector from "@/components/theme-selector";
 
 import { useEffect, useRef, useState } from "react";
 import type { DashboardLink } from "@/lib/constants/dashboard-navigation";
@@ -55,7 +54,6 @@ export default function DashboardShell({ links, children }: { links: DashboardLi
             <div className={styles.footer}>{logout()}</div>
         </aside>
         <div ref={content} tabIndex={-1} className={styles.content} id="workspace-content">
-            <header className="workspace-appearance" aria-label="Workspace theme"><ThemeSelector /></header>
             {children}
         </div>
         <dialog ref={drawer} id="mobile-navigation-drawer" className={styles.drawer} aria-labelledby="navigation-heading" onKeyDown={event => {

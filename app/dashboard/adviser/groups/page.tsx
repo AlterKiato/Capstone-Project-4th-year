@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
 
 import {
     getResearchGroupsByAdviser,
@@ -112,9 +113,7 @@ export default async function AdviserGroupsPage() {
 
     return (
         <main>
-            <h1>
-                My Research Groups
-            </h1>
+            <DashboardHeader title="My Research Groups" email={session.email} />
 
             <p>
                 Create and manage your research

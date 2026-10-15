@@ -4,7 +4,8 @@
 .brand { display: flex; align-items: center; gap: 12px; min-height: 44px; margin-bottom: 12px; font-weight: 700; color: var(--brand); }
 .sidebar svg, .drawer svg { flex: 0 0 22px; }
 .brand svg { margin-left: 10px; }
-.navigation { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 6px 0; }
+.navigation { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 6px 0; scrollbar-width: none; }
+.navigation::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .navigation nav { display: grid; gap: 6px; }
 .navigation a, .logout, .desktopToggle, .mobileToggle { display: flex; align-items: center; gap: 12px; min-height: 44px; width: 100%; padding: 10px; color: var(--sidebar-text); background: var(--surface); border: 1px solid transparent; border-radius: 8px; text-align: left; text-decoration: none; font-size: 0.9375rem; line-height: 1.45; }
 .navigation a:hover, .logout:hover:not(:disabled), .desktopToggle:hover:not(:disabled), .mobileToggle:hover:not(:disabled) { background: var(--sidebar-hover); color: var(--heading); }

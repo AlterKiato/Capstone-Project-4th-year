@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
 
 /**
  * Temporary Panel-only page used to test RBAC.
@@ -13,11 +14,7 @@ export default async function PanelPage() {
 
     return (
         <main>
-            <h1>Panel Area</h1>
-
-            <p>
-                Welcome, {session.email}
-            </p>
+            <DashboardHeader title="Panel Area" email={session.email} />
 
             <p>
                 You have Panel access.
