@@ -1,8 +1,27 @@
-import { desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 
 import { notifications } from "@/db/schema";
+
+export async function markAllNotificationsAsRead(userId: number) {
+    await db.update(notifications).set({ isRead: true })
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+}
+
+// Bounded header data; never load the full history to calculate a badge.
+export async function findNotificationPreview(userId: number) {
+    const [recent, totals] = await Promise.all([
+        db.select({ id: notifications.id, title: notifications.title,
+            message: notifications.message, isRead: notifications.isRead,
+            createdAt: notifications.createdAt })
+            .from(notifications).where(eq(notifications.userId, userId))
+            .orderBy(desc(notifications.createdAt), desc(notifications.id)).limit(5),
+        db.select({ unreadCount: count() }).from(notifications)
+            .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false))),
+    ]);
+    return { recent, unreadCount: totals[0].unreadCount };
+}
 
 /**
  * Retrieves all notifications for a specific user.

@@ -1,6 +1,8 @@
 import LogoutButton from "@/components/auth/logout-button";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
+import NotificationProvider from "@/components/dashboard/notification-provider";
 import { dashboardLinks } from "@/lib/constants/dashboard-navigation";
+import { notificationHistoryHref } from "@/lib/constants/notification";
 import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -10,7 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <p role="alert">Your account access could not be verified. Log out and sign in again, or contact your Admin.</p>
         <LogoutButton />
     </main>;
-    return <DashboardShell links={dashboardLinks(account.roleId)}>{children}
+    return <NotificationProvider historyHref={notificationHistoryHref(account.roleId)}><DashboardShell links={dashboardLinks(account.roleId)}>{children}
         <div className="dashboard-page">
             <section className="installation-help" aria-labelledby="installation-heading">
                 <h2 id="installation-heading">Use ThesiSHS AI as an app</h2>
@@ -24,5 +26,5 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 </details>
             </section>
         </div>
-    </DashboardShell>;
+    </DashboardShell></NotificationProvider>;
 }

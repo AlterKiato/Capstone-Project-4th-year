@@ -46,12 +46,16 @@ export default function DashboardShell({ links, children }: { links: DashboardLi
     return <div className={`${styles.shell} ${collapsed ? styles.collapsed : ""}`}>
         <aside className={styles.sidebar} aria-label="Workspace sidebar">
             <span className={styles.brand} aria-label="ThesiSHS AI"><NavigationIcon name="book" /><span className={styles.label}>ThesiSHS AI</span></span>
-            <button className={styles.desktopToggle} type="button" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="desktop-navigation" onClick={() => setCollapsed(!collapsed)}>
-                <NavigationIcon name={collapsed ? "menu" : "collapse"} /><span className={styles.label}>Collapse sidebar</span>
-            </button>
             <button ref={menu} className={styles.mobileToggle} type="button" aria-label="Open navigation menu" title="Open navigation menu" aria-expanded={open} aria-controls="mobile-navigation-drawer" onClick={openDrawer}><NavigationIcon name="menu" /></button>
-            <div id="desktop-navigation" className={styles.navigation}><DashboardNavigation links={links} /></div>
-            <div className={styles.footer}>{logout()}</div>
+            <div id="desktop-navigation" className={styles.navigation}>
+                <DashboardNavigation links={links} />
+            </div>
+            <div className={styles.footer}>
+                {logout()}
+                <button className={styles.desktopToggle} type="button" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-expanded={!collapsed} aria-controls="desktop-navigation" onClick={() => setCollapsed(!collapsed)}>
+                    <NavigationIcon name={collapsed ? "menu" : "collapse"} />
+                </button>
+            </div>
         </aside>
         <div ref={content} tabIndex={-1} className={styles.content} id="workspace-content">
             {children}

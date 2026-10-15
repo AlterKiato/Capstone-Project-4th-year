@@ -1,3 +1,14 @@
+import { ROLE_IDS } from "@/lib/auth/roles";
+
+export function notificationHistoryHref(roleId: number): string | null {
+    switch (roleId) {
+        case ROLE_IDS.ADMIN: return "/dashboard/admin/notifications";
+        case ROLE_IDS.ADVISER: return "/dashboard/adviser/notifications";
+        case ROLE_IDS.STUDENT: return "/dashboard/student/notifications";
+        default: return null;
+    }
+}
+
 /**
  * Notification titles used by the system.
  *

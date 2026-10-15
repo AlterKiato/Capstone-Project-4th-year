@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
 
 import {
     requireRole,
@@ -27,12 +28,14 @@ import {
  */
 export async function createStudentResearchAction(
     formData: FormData
-): Promise<void> {
+): Promise<{ success: boolean; message: string; projectId?: number }> {
     const session =
         await requireRole([
             ROLE_IDS.STUDENT,
         ]);
 
+    const account = await getDashboardAccount();
+    if (!account || account.roleId !== ROLE_IDS.STUDENT) return { success: false, message: "Your account access could not be verified." };
     const parsed =
         createStudentResearchSchema.safeParse({
             groupId:
@@ -52,26 +55,24 @@ export async function createStudentResearchAction(
         });
 
     if (!parsed.success) {
-        return;
+        return { success: false, message: "Check the required group, title and abstract, and the field length limits." };
     }
 
-    const result =
-        await createStudentResearch(
+    let result;
+    try { result = await createStudentResearch(
             parsed.data,
             session.userId
-        );
+        ); } catch { return { success: false, message: "The research project could not be created. Please try again." }; }
 
     if (!result.success) {
-        return;
+        return { success: false, message: "The research project could not be created. Check your group assignment and try again." };
     }
 
-    revalidatePath(
+    try { revalidatePath(
         "/dashboard/student"
     );
 
-    revalidatePath(
-        "/dashboard/student/research"
-    );
+    revalidatePath("/dashboard/student/submissions");
 
     revalidatePath(
         "/dashboard/adviser"
@@ -80,4 +81,6 @@ export async function createStudentResearchAction(
     revalidatePath(
         "/dashboard/adviser/groups"
     );
+    } catch { return { success: true, message: "Research project created. Reload to view it.", projectId: result.data?.id }; }
+    return { success: true, message: "Research project created successfully.", projectId: result.data?.id };
 }

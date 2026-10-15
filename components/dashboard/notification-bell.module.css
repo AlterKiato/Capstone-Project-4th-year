@@ -1,0 +1,21 @@
+.control { position: relative; flex: 0 0 44px; width: 44px; height: 44px; }
+.trigger { position: relative; display: grid; place-items: center; width: 44px; height: 44px; padding: 10px; border: 1px solid var(--border-strong); border-radius: 0.5rem; background: var(--surface); color: var(--brand); }
+.trigger:hover:not(:disabled), .trigger[aria-expanded="true"] { background: var(--surface-hover); color: var(--heading); }
+.badge { position: absolute; top: -5px; right: -5px; min-width: 20px; padding: 1px 4px; border-radius: 0.25rem; background: var(--action); color: var(--on-action); font-size: 0.75rem; line-height: 18px; }
+.panel { position: absolute; z-index: 30; top: calc(100% + 0.5rem); right: -52px; width: min(340px, calc(100vw - 96px)); max-height: min(640px, 75dvh); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--input-border); border-radius: 0.5rem; background: var(--surface); color: var(--foreground); overflow-wrap: anywhere; }
+.heading { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border); }
+.panel { scrollbar-width: none; -ms-overflow-style: none; }
+.panel::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.markAll { min-height: 44px; margin-top: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.8125rem; }
+.heading h2 { margin: 0; font-size: 1rem; }
+.heading p, .meta { color: var(--muted); font-size: 0.75rem; margin-top: 0.25rem; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+.list h3 { font-size: 0.875rem; font-weight: 700; margin: 0; }
+.list button, .status button { margin-top: 0.5rem; font-size: 0.8125rem; padding: 0.5rem 0.75rem; }
+.list button { scroll-margin-bottom: 64px; }
+.unread { background: var(--notice); border-left: 3px solid var(--brand); }
+.message { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: 0.875rem; margin-top: 0.25rem; white-space: pre-wrap; }
+.status { padding: 1rem; font-size: 0.875rem; }
+.footer { position: sticky; bottom: 0; display: flex; align-items: center; min-height: 44px; padding: 0.75rem 1rem; border-top: 1px solid var(--border); background: var(--surface); font-size: 0.875rem; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

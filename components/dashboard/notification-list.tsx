@@ -6,7 +6,7 @@ export default function NotificationList({ notifications }: { notifications: Man
     return <ul className="notification-records">
         {notifications.map(notification => <li key={notification.id}>
             <article aria-labelledby={`notification-${notification.id}`}>
-                <h2 id={`notification-${notification.id}`}>{notification.title}</h2>
+                <h2 id={`notification-${notification.id}`} className="font-bold">{notification.title}</h2>
                 <p className="record-text">{notification.message}</p>
                 <p><strong>{notification.isRead ? "Read" : "Unread"}</strong> · Received <time dateTime={notification.createdAt.toISOString()}>{notification.createdAt.toLocaleString()}</time></p>
                 <div className="surface-actions">

@@ -4,13 +4,68 @@ import {
     findNotificationById,
     findNotificationsByUserId,
     markNotificationAsRead,
+    findNotificationPreview,
+    markAllNotificationsAsRead,
 } from "@/lib/repositories/notification.repository";
+import { requireAuth } from "@/lib/auth/authorization";
+import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
+import { ROLE_IDS } from "@/lib/auth/roles";
+import { z } from "zod";
 
 import {
     NOTIFICATION_TITLE,
 } from "@/lib/constants/notification";
 
 import type { ServiceResult } from "@/types/auth";
+
+export type NotificationPreview = {
+    recent: { id: number; title: string; message: string; isRead: boolean; createdAt: string }[];
+    unreadCount: number;
+};
+
+async function notificationAccount() {
+    const session = await requireAuth();
+    const account = await getDashboardAccount();
+    if (!account || !Object.values(ROLE_IDS).some(role => role === account.roleId)) return null;
+    return { userId: session.userId, roleId: account.roleId };
+}
+
+export async function markAllCurrentNotificationsAsRead(): Promise<ServiceResult> {
+    const account = await notificationAccount();
+    if (!account) return { success: false, message: "Notification access could not be verified." };
+    try {
+        await markAllNotificationsAsRead(account.userId);
+        return { success: true, message: "All notifications marked as read." };
+    } catch {
+        return { success: false, message: "Notifications could not be marked as read. Please try again." };
+    }
+}
+
+export async function getCurrentNotificationPreview(): Promise<ServiceResult<NotificationPreview>> {
+    const account = await notificationAccount();
+    if (!account) return { success: false, message: "Notification access could not be verified." };
+    try {
+        const preview = await findNotificationPreview(account.userId);
+        return { success: true, message: "Notifications loaded.", data: {
+            recent: preview.recent.map(item => ({ ...item, createdAt: item.createdAt.toISOString() })),
+            unreadCount: preview.unreadCount,
+        } };
+    } catch {
+        return { success: false, message: "Notifications could not be loaded. Please try again." };
+    }
+}
+
+export async function markCurrentNotificationAsRead(notificationId: number): Promise<ServiceResult> {
+    const account = await notificationAccount();
+    if (!account) return { success: false, message: "Notification access could not be verified." };
+    if (!z.number().int().positive().safe().safeParse(notificationId).success)
+        return { success: false, message: "Invalid notification." };
+    try {
+        return await markUserNotificationAsRead(notificationId, account.userId);
+    } catch {
+        return { success: false, message: "Notification could not be marked as read. Please try again." };
+    }
+}
 
 /**
  * Notification information safely exposed
