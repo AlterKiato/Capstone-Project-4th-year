@@ -2,8 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireRole } from "@/lib/auth/authorization";
-import { ROLE_IDS } from "@/lib/auth/roles";
 import { requireActiveGroupAdviser } from "@/lib/services/adviser-groups.service";
 
 import {
@@ -56,41 +54,15 @@ export async function createResearchGroupAction(
     }
 }
 
-/**
- * Changes the status of a research group.
- *
- * Only Admin users can archive or reactivate
- * research groups for system-wide oversight.
- */
-/**
- * Changes the status of a research group.
- *
- * Only Admin users can archive or reactivate
- * research groups for system-wide oversight.
- */
+/** The service independently derives and rechecks the acting Admin identity. */
 export async function changeResearchGroupStatusAction(
     groupId: number,
     status: string
-): Promise<void> {
-    // Ensure only Admin users can change
-    // research group statuses.
-    const session = await requireRole([
-        ROLE_IDS.ADMIN,
-    ]);
-
-    // Update the research group status and
-    // record the Admin responsible for the action.
-    const result = await changeResearchGroupStatus(
-        groupId,
-        status,
-        session.userId
-    );
-
-    // Stop if the operation fails.
-    if (!result.success) {
-        return;
+) {
+    const result = await changeResearchGroupStatus(groupId, status);
+    if (result.success) {
+        try { revalidatePath("/dashboard/admin/groups"); }
+        catch { return { ...result, message: `${result.message} Refresh the directory to see the current status.` }; }
     }
-
-    // Refresh the Admin groups page.
-    revalidatePath("/dashboard/admin/groups");
+    return result;
 }

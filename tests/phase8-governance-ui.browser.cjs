@@ -14,7 +14,7 @@ export async function recordAIConsentAction(input){window.__calls.push(input);s.
 export async function createManagedAccountAction(input){window.__calls.push({roleId:input.roleId});return {success:true,message:'Synthetic account created',data:{id:120}};}
 `;
 async function main(){
- const bundle=await build({write:false,bundle:true,platform:'browser',format:'iife',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Account from './components/dashboard/admin-account-creation';import {EligibilityDialog,ConsentDialog} from './components/dashboard/ai-governance-dialogs';createRoot(document.getElementById('root')).render(<><Account/><EligibilityDialog userId={20}/><ConsentDialog/></>);`},plugins:[{name:'synthetic-actions',setup(b){
+ const bundle=await build({write:false,outfile:'governance-ui.js',bundle:true,platform:'browser',format:'iife',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'},stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import Account from './components/dashboard/admin-account-creation';import {EligibilityDialog,ConsentDialog} from './components/dashboard/ai-governance-dialogs';function App(){const[mode,setMode]=useState(null);return <><button onClick={()=>setMode('create')}>New Account</button>{mode==='create'&&<Account onClose={()=>setMode(null)} onCreated={id=>setMode(id)}/>} {typeof mode==='number'&&<EligibilityDialog userId={mode} initiallyOpen onClose={()=>setMode(null)}/>}<EligibilityDialog userId={20}/><ConsentDialog/></>;}createRoot(document.getElementById('root')).render(<App/>);`},plugins:[{name:'synthetic-actions',setup(b){
  b.onResolve({filter:/^@\/lib\/actions\//},()=>({path:'actions',namespace:'mock'}));
  b.onResolve({filter:/^next\/navigation$/},()=>({path:'navigation',namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='actions'?mock:'export function useRouter(){return {refresh(){}}}',loader:'js'}));
@@ -25,21 +25,22 @@ async function main(){
   const page=await browser.newPage();const errors=[],external=[];
   page.on('pageerror',e=>errors.push(e.name));
   await page.route('**/*',r=>{external.push('external');return r.abort();});
-  await page.setContent('<div id="root"></div>');await page.addScriptTag({content:bundle.outputFiles[0].text});
+  await page.setContent('<div id="root"></div>');await page.addStyleTag({content:bundle.outputFiles.find(file=>file.path.endsWith('.css')).text});await page.addScriptTag({content:bundle.outputFiles.find(file=>file.path.endsWith('.js')).text});
   const firstUse=page.getByRole('dialog');await expect(firstUse.getByRole('heading',{name:'AI Terms & Consent'})).toBeVisible();await expect(firstUse.getByRole('checkbox')).not.toBeChecked();await firstUse.getByRole('button',{name:'Close',exact:true}).click();
-  const form=page.getByRole('region',{name:'Create Admin or Adviser account'});
+  await page.getByRole('button',{name:'New Account',exact:true}).click();
+  const form=page.getByRole('dialog',{name:'Create Account',exact:true});
   await form.getByLabel('First name').fill('Synthetic');await form.getByLabel('Last name').fill('Tester');await form.getByLabel('Email').fill('synthetic@example.invalid');
   await form.getByLabel('Password',{exact:true}).fill('Synthetic-only-password');await form.getByLabel('Confirm password').fill('Synthetic-only-password');
-  await form.getByRole('button',{name:'Create account'}).click();
+  await form.getByRole('button',{name:'Create account',exact:true}).click();
   let dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
   await expect(dialog.getByLabel('Eligibility decision')).toHaveValue('Pending Verification');
   await expect(dialog.getByRole('checkbox')).not.toBeChecked();await expect(dialog.getByRole('button',{name:'Record eligibility'})).toBeDisabled();
   await dialog.getByLabel('Eligibility decision').selectOption('Eligible');await dialog.getByRole('checkbox').check();await dialog.getByRole('button',{name:'Record eligibility'}).click();
   await expect(dialog.getByText('Current status: Eligible',{exact:true})).toBeVisible();await expect(dialog.getByRole('checkbox')).not.toBeChecked();
-  await dialog.getByRole('checkbox').check();await dialog.getByRole('button',{name:'Revoke eligibility'}).click();await expect(dialog.getByText('Current status: Not Eligible (revoked)',{exact:true})).toBeVisible();
-  await dialog.getByRole('button',{name:'Close',exact:true}).click();
+  await dialog.getByRole('checkbox').check();await dialog.getByRole('button',{name:'Revoke eligibility'}).click();await dialog.getByRole('button',{name:'Confirm revocation',exact:true}).click();await expect(dialog.getByText('Current status: Not Eligible (revoked)',{exact:true})).toBeVisible();
+  await dialog.getByRole('button',{name:'Close Institutional AI eligibility',exact:true}).click();
   await page.evaluate(()=>window.__state.canDecide=false);await page.getByRole('button',{name:'AI eligibility',exact:true}).last().click();
-  await expect(dialog.getByRole('button',{name:'Record eligibility'})).toBeDisabled();await expect(dialog.getByRole('checkbox')).toBeDisabled();await dialog.getByRole('button',{name:'Close',exact:true}).click();
+  await expect(dialog.getByRole('button',{name:'Record eligibility'})).toBeDisabled();await expect(dialog.getByRole('checkbox')).toBeDisabled();await dialog.getByRole('button',{name:'Close Institutional AI eligibility',exact:true}).click();
   await page.getByRole('button',{name:'AI Terms & Consent',exact:true}).click();
   await expect(dialog.getByText(/DRAFT: Institutional/)).toBeVisible();await expect(dialog.getByRole('checkbox')).not.toBeChecked();await expect(dialog.getByRole('button',{name:'Accept terms'})).toBeDisabled();
   await dialog.getByRole('checkbox').check();await dialog.getByRole('button',{name:'Accept terms'}).click();await expect(dialog.getByText('Consent: Accepted current version')).toBeVisible();

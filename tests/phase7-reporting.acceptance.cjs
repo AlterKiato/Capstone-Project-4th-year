@@ -86,8 +86,8 @@ async function main() {
         assert.equal(response.status, 200);
         const html = await response.text();
         const text = html.replace(/<[^>]*>/g, '');
-        assert.ok(text.includes('Total Users: ' + expected.users));
-        assert.ok(text.includes('Total Published Repository Papers: ' + expected.published));
+        assert.ok(text.includes('Total Users' + expected.users));
+        assert.ok(text.includes('Total Published Repository Papers' + expected.published));
         assert.ok(text.includes('Research Papers by Status'));
         assert.ok(!html.includes('research-submissions'));
         for (const roleId of [2, 3, 4]) {
@@ -99,7 +99,7 @@ async function main() {
             assert.equal(stale.status, 200);
             const body = await stale.text();
             assert.ok(body.includes('Admin reporting is unavailable.'));
-            assert.ok(!body.includes('Total Published Repository Papers:'));
+            assert.ok(!body.includes('<dt>Total Published Repository Papers</dt>'));
         }
         const anonymous = await request(null);
         assert.equal(anonymous.status, 307);

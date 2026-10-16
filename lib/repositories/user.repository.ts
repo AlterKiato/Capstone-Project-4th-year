@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { users } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray, asc } from "drizzle-orm";
 
 export async function findUserByEmail(email: string) {
     return db.query.users.findFirst({
@@ -120,5 +120,20 @@ export async function createManagedUserForAdmin(data: typeof users.$inferInsert,
         if (!actor?.isActive || actor.roleId !== 1) return null;
         const [created] = await tx.insert(users).values(data).returning({ id: users.id });
         return created;
+    });
+}
+
+// Lock both accounts in ID order so actor deactivation or role changes cannot
+// pass authorization and then race a privileged write.
+export async function updateManagedUserForAdmin(actorId: number, userId: number, change: { roleId: number } | { isActive: boolean }) {
+    return db.transaction(async tx => {
+        const accounts = await tx.select({ id: users.id, roleId: users.roleId, isActive: users.isActive })
+            .from(users).where(inArray(users.id, [actorId, userId])).orderBy(asc(users.id)).for("update");
+        const actor = accounts.find(account => account.id === actorId);
+        if (!actor?.isActive || actor.roleId !== 1 || actorId === userId) return { kind: "denied" } as const;
+        if (!accounts.some(account => account.id === userId)) return { kind: "missing" } as const;
+        const [updated] = await tx.update(users).set({ ...change, updatedAt: new Date() }).where(eq(users.id, userId))
+            .returning({ id: users.id, firstName: users.firstName, lastName: users.lastName });
+        return updated ? { kind: "updated", user: updated } as const : { kind: "missing" } as const;
     });
 }

@@ -157,6 +157,9 @@ body {
 
 /* Discovery controls reflow; long admin comparisons stay inside their own region. */
 .discovery-filters { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.discovery-filter-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
+.discovery-filter-actions > form { margin-left: auto; }
+.discovery-search-form { margin-top: 0; }
 .discovery-control, .managed-account-form input, .managed-account-form select { display: block; width: 100%; margin-top: 0.35rem; }
 .surface-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
 .surface-link, .repository-pagination a { display: inline-flex; align-items: center; min-height: 44px; }

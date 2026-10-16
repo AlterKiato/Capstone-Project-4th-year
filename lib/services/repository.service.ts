@@ -11,18 +11,24 @@ import {
 import type { RepositorySearchCriteria } from "@/types/repository";
 
 export async function getRepositoryManagementData(userId: number) {
+    const result = await getRepositoryManagementResult(userId);
+    return result.success ? result.data : null;
+}
+
+/** Keep failed retrieval distinct from an empty authorized directory. */
+export async function getRepositoryManagementResult(userId: number) {
     try {
-        if (!await isActivePublicationAdmin(userId)) return null;
+        if (!await isActivePublicationAdmin(userId)) return { success: false, message: "Repository management unavailable. An active Admin account is required." } as const;
         const [candidates, repositoryEntries] = await Promise.all([
             findApprovedPapersForRepository(), findRepositoryManagementEntries(),
         ]);
         const eligiblePapers = candidates
             .filter(paper => isSubmissionDocumentPath(paper.fileUrl, paper.paperId, paper.version))
             .map(({ paperId, title, groupName, createdAt }) => ({ paperId, title, groupName, createdAt }));
-        return { eligiblePapers, repositoryEntries };
+        return { success: true, data: { eligiblePapers, repositoryEntries } } as const;
     } catch {
         console.error("Repository management could not be retrieved.");
-        return null;
+        return { success: false, message: "Repository management could not be retrieved. Refresh to try again." } as const;
     }
 }
 

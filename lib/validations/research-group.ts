@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const researchGroupStatusSchema = z.object({
+    groupId: z.number().int().positive().max(2147483647),
+    status: z.enum(["active", "archived"]),
+}).strict();
+
 /**
  * Validates research group information.
  */

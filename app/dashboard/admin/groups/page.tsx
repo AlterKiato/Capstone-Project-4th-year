@@ -1,138 +1,16 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
+import AdminGroups from "@/components/dashboard/admin-groups";
+import { getResearchGroups } from "@/lib/services/research-group.services";
+import styles from "@/components/dashboard/admin-management.module.css";
 
-import {
-    getResearchGroups,
-} from "@/lib/services/research-group.services";
-
-import {
-    changeResearchGroupStatusAction,
-} from "@/lib/actions/research-group.action";
-
-/**
- * Admin Research Group Management page.
- *
- * Administrators have system-wide oversight of
- * research groups but do not create groups.
- *
- * Group creation and student assignment are handled
- * by Advisers.
- */
 export default async function AdminGroupsPage() {
-    // Ensure only Admin users can access this page.
-    const session = await requireRole([
-        ROLE_IDS.ADMIN,
-    ]);
-
-    // Retrieve all research groups.
+    const session = await requireRole([ROLE_IDS.ADMIN]);
     const result = await getResearchGroups();
-
-    // Handle unexpected service failures.
-    if (!result.success || !result.data) {
-        return (
-            <main className="dashboard-page admin-surface">
-                <DashboardHeader title="Research Groups" email={session.email} />
-
-                <p className="form-message" role="alert">
-                    {result.message}
-                </p>
-            </main>
-        );
-    }
-
-    const groups = result.data;
-
-    return (
-        <main className="dashboard-page admin-surface">
-            <DashboardHeader title="Research Groups" email={session.email} />
-
-            <p>
-                Monitor and manage research groups across
-                the system.
-            </p>
-
-            <section className="dashboard-panel">
-            <h2 id="groups-heading">Group Overview</h2>
-            <p className="form-help">Advisers create groups and assign students. Scroll within the table on narrow screens to reach every action.</p>
-            {groups.length === 0 ? (
-                <p>
-                    No research groups found.
-                </p>
-            ) : (
-                <div className="admin-table-scroll" role="region" aria-labelledby="groups-heading" tabIndex={0}>
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Group Name</th>
-                            <th>Strand</th>
-                            <th>Section</th>
-                            <th>School Year</th>
-                            <th>Adviser ID</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {groups.map((group) => (
-                            <tr key={group.id}>
-                                <td>
-                                    {group.id}
-                                </td>
-
-                                <td>
-                                    {group.groupName}
-                                </td>
-
-                                <td>
-                                    {group.strand}
-                                </td>
-
-                                <td>
-                                    {group.section}
-                                </td>
-
-                                <td>
-                                    {group.schoolYear}
-                                </td>
-
-                                <td>
-                                    {group.adviserId}
-                                </td>
-
-                                <td>
-                                    {group.status}
-                                </td>
-
-                                <td>
-                                    <form
-                                        action={async () => {
-                                            "use server";
-
-                                            await changeResearchGroupStatusAction(
-                                                group.id,
-                                                group.status === "active"
-                                                    ? "archived"
-                                                    : "active"
-                                            );
-                                        }}
-                                    >
-                                        <button type="submit">
-                                            {group.status === "active"
-                                                ? "Archive"
-                                                : "Reactivate"}
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                </div>
-            )}
-            </section>
-        </main>
-    );
+    return <main className={`dashboard-page admin-surface ${styles.page}`}>
+        <DashboardHeader title="Research Groups" email={session.email} />
+        {result.success && result.data ? <AdminGroups groups={result.data.map(({ id, groupName, strand, section, schoolYear, adviserId, status }) => ({ id, groupName, strand, section, schoolYear, adviserId, status }))} />
+            : <><p className="dashboard-context">Monitor and manage registered research groups.</p><p role="alert" className="form-message">{result.message}</p></>}
+    </main>;
 }

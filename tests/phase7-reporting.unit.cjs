@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const Module = require('node:module');
 const React = require('react');
+require.extensions['.css'] = module => { module.exports = {}; };
 global.React = React;
 const { renderToStaticMarkup } = require('react-dom/server');
 let session = { userId: 1, roleId: 1 };
@@ -11,6 +12,7 @@ let queries = 0;
 let failure = false;
 const query = value => async () => { queries++; if (failure) throw new Error('Private database details'); return value; };
 const mocks = {
+    '@/components/dashboard/dashboard-header': ({ title }) => React.createElement('h1', null, title),
     'server-only': {},
     '@/lib/auth/session': { getSession: async () => session },
     '@/lib/repositories/user.repository': { findUserById: async () => user },
@@ -27,6 +29,8 @@ const originalLoad = Module._load;
 Module._load = function(id, ...args) { return Object.hasOwn(mocks, id) ? mocks[id] : originalLoad.call(this, id, ...args); };
 const { getAdminDashboardStats, getAdminRecentActivities } = require('../lib/services/dashboard.service.ts');
 const ReportsPage = require('../app/dashboard/admin/reports/page.tsx').default;
+const DashboardPage = require('../app/dashboard/admin/page.tsx').default;
+const { AdminActivity, AdminMetrics } = require('../components/dashboard/admin-overview.tsx');
 async function denied() {
     const before = queries;
     for (const service of [getAdminDashboardStats, getAdminRecentActivities]) {
@@ -43,11 +47,21 @@ async function main() {
     assert.equal(stats.totalAdvisers, 0);
     assert.equal(stats.papersByStatus.find(row => row.status === 'Approved').count, 0);
     let html = renderToStaticMarkup(await ReportsPage());
-    assert.ok(html.includes('Total Users: 7'));
-    assert.ok(html.includes('Total Published Repository Papers: 0'));
+    assert.ok(html.includes('<dt>Total Users</dt><dd>7</dd>'));
+    assert.ok(html.includes('<dt>Total Published Repository Papers</dt><dd>0</dd>'));
     assert.ok(html.includes('Research Submission Approved'));
     assert.ok(html.includes('2026-10-08T00:00:00.000Z'));
     console.log('PASS Admin page renders overview, role/status totals and recent activity');
+    const dashboard = renderToStaticMarkup(await DashboardPage());
+    for (const label of ['Total Users', 'Research Groups', 'Research Papers', 'Published Repository Papers', 'Total Students', 'Total Advisers']) assert.ok(dashboard.includes('<dt>' + label + '</dt>'));
+    const empty = renderToStaticMarkup(React.createElement(AdminActivity, { title: 'Recent Activity', result: { success: true, data: [] } }));
+    const failed = renderToStaticMarkup(React.createElement(AdminActivity, { title: 'Recent Activity', result: { success: false, message: 'Admin reporting is unavailable.' } }));
+    assert.ok(empty.includes('No system activity has been recorded yet.'));
+    assert.ok(!failed.includes('No system activity')); assert.ok(failed.includes('role="alert"'));
+    const zeros = renderToStaticMarkup(React.createElement(AdminMetrics, { stats: { totalUsers: 0, totalGroups: 0, totalResearchPapers: 0, totalPublishedPapers: 0 } }));
+    assert.equal((zeros.match(/<dd>0<\/dd>/g) || []).length, 4);
+    assert.ok(html.includes('Oct 8, 2026, 8:00 AM'));
+    console.log('PASS Dashboard metrics/secondary totals, valid zeros, independent activity failure/empty states and Philippine timestamps');
     for (const roleId of [2, 3, 4, 999]) {
         session = { userId: 1, roleId }; user = { id: 1, roleId, isActive: true };
         await denied();

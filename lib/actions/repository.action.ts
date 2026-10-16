@@ -28,7 +28,10 @@ export async function publishRepositoryPaperAction(previous: PublicationResult, 
     const parsed = publicationIdSchema.safeParse(formData.get("paperId"));
     if (!parsed.success) return { success: false, message: "The publication request is invalid." };
     const result = await publishApprovedResearch(parsed.data, session.userId);
-    if (result.success) refreshRepository();
+    if (result.success) {
+        try { refreshRepository(); }
+        catch { return { ...result, message: `${result.message} Refresh to verify the current repository list.` }; }
+    }
     return result;
 }
 
@@ -40,7 +43,10 @@ export async function updateRepositoryPublicationAction(previous: PublicationRes
     const state = publicationStateSchema.safeParse(formData.get("publish"));
     if (!id.success || !state.success) return { success: false, message: "The publication request is invalid." };
     const result = await updateResearchPublication(id.data, state.data, session.userId);
-    if (result.success) refreshRepository();
+    if (result.success) {
+        try { refreshRepository(); }
+        catch { return { ...result, message: `${result.message} Refresh to verify the current repository list.` }; }
+    }
     return result;
 }
 

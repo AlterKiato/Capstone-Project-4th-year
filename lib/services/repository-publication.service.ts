@@ -6,7 +6,7 @@ import { findUserById } from "@/lib/repositories/user.repository";
 import { findPublicationById, withPublicationContext, writePublication } from "@/lib/repositories/repository-publication.repository";
 import { createResearchDocumentSignedUrl } from "@/lib/services/storage.service";
 
-export interface PublicationResult { success: boolean; message: string; }
+export interface PublicationResult { success: boolean; message: string; uncertain?: boolean; }
 const denied = (): PublicationResult => ({ success: false, message: "The publication request could not be completed." });
 
 export async function isActivePublicationAdmin(userId: number): Promise<boolean> {
@@ -17,6 +17,7 @@ export async function isActivePublicationAdmin(userId: number): Promise<boolean>
 
 /** Identity comes exclusively from the authenticated action session. */
 export async function publishResearch(paperId: number, userId: number, published = true, repositoryId?: number): Promise<PublicationResult> {
+    let writeAttempted = false;
     if (!publicationIdSchema.safeParse(paperId).success || !publicationIdSchema.safeParse(userId).success ||
         typeof published !== "boolean") return denied();
     try {
@@ -36,13 +37,14 @@ export async function publishResearch(paperId: number, userId: number, published
                 // Supabase signing verifies that the persisted private object exists; URL stays server-side.
                 await createResearchDocumentSignedUrl(submission.fileUrl, 300);
             } else if (!entry) return denied();
+            writeAttempted = true;
             const saved = await writePublication(tx, paper.id, entry?.id, published);
             if (!saved) return denied();
             return { success: true, message: published ? "Research published successfully." : "Research hidden successfully." };
         });
     } catch {
         console.error("Repository publication could not be completed.");
-        return denied();
+        return writeAttempted ? { success: false, uncertain: true, message: "Publication could not be confirmed. Refresh and verify repository visibility before retrying." } : denied();
     }
 }
 

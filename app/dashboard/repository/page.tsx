@@ -48,8 +48,9 @@ export default async function ResearchRepositoryPage({
             <p><Link className="surface-link" href="/dashboard">Back to Dashboard</Link></p>
             <p className="dashboard-context">Browse research approved by an Adviser and published by an Admin.</p>
 
-            <form method="get" action="/dashboard/repository" className="dashboard-panel dashboard-form" aria-describedby="filter-help">
-                <h2>Search and Filter</h2>
+            <section className="dashboard-panel" aria-labelledby="repository-filter-heading">
+            <form id="repository-search-form" method="get" action="/dashboard/repository" className="dashboard-form discovery-search-form" aria-describedby="filter-help">
+                <h2 id="repository-filter-heading">Search and Filter</h2>
                 <p id="filter-help" className="form-help">Search title, abstract or keywords. Combine filters to narrow the results; papers are shown newest first.</p>
                 <label>
                     Search title, abstract, or keywords
@@ -93,11 +94,14 @@ export default async function ResearchRepositoryPage({
                         </select>
                     </div>
                 </div>
-                <button type="submit">Search and filter</button>
             </form>
-            <form method="get" action="/dashboard/repository" className="surface-actions">
-                <button type="submit">Clear filters</button>
-            </form>
+            <div className="discovery-filter-actions">
+                <button type="submit" form="repository-search-form">Search and filter</button>
+                <form method="get" action="/dashboard/repository">
+                    <button type="submit">Clear filters</button>
+                </form>
+            </div>
+            </section>
 
             <p aria-live="polite" className="result-context">Showing {firstResult}–{lastResult} of {results.total} research papers</p>
             {results.items.length === 0 ? (

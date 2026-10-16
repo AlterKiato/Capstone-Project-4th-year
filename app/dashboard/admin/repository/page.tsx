@@ -1,14 +1,15 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
-import { getRepositoryManagementData } from "@/lib/services/repository.service";
+import { getRepositoryManagementResult } from "@/lib/services/repository.service";
 import RepositoryManagement from "./RepositoryManagement";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
+import styles from "@/components/dashboard/admin-management.module.css";
 
 export default async function AdminRepositoryPage() {
     const session = await requireRole([ROLE_IDS.ADMIN]);
-    const data = await getRepositoryManagementData(session.userId);
-    return <main className="dashboard-page admin-surface">
+    const result = await getRepositoryManagementResult(session.userId);
+    return <main className={`dashboard-page admin-surface ${styles.page}`}>
         <DashboardHeader title="Repository Management" email={session.email} />
-        {data ? <RepositoryManagement {...data} /> : <p role="alert" className="form-message">Repository management is not available for this account.</p>}
+        {result.success ? <RepositoryManagement {...result.data} /> : <><p className="dashboard-context">Manage approved research publication and repository visibility.</p><p role="alert" className="form-message">{result.message}</p></>}
     </main>;
 }

@@ -36,20 +36,20 @@ async function main() {
     };
     const page = await signedPage(admin);
     await page.goto(base.origin + '/dashboard');
-    await page.getByRole('link', { name: 'Open Admin Dashboard', exact: true }).click();
-    await page.getByRole('link', { name: 'Reports', exact: true }).click();
+    await expect(page).toHaveURL(base.origin + '/dashboard/admin');
+    await page.getByRole('navigation', { name: 'Dashboard pages' }).getByRole('link', { name: 'Reports', exact: true }).click();
     await expect(page).toHaveURL(base.origin + '/dashboard/admin/reports');
     for (const name of ['Admin Reports', 'System Overview', 'Users by Role', 'Research Papers by Status', 'Recent System Activity']) {
         await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
     }
     for (const label of ['Total Users', 'Total Research Groups', 'Total Research Papers', 'Total Published Repository Papers']) {
-        await expect(page.locator('main')).toContainText(new RegExp(label + ': \\d+'));
+        await expect(page.locator('dl[aria-label="System statistics"] dt', { hasText: label }).first()).toBeVisible();
     }
     await expect(page.locator('main')).not.toContainText('Admin reporting is unavailable.');
     await page.screenshot({ path: '.next/phase7-reporting-browser.png', fullPage: true });
     const denied = await signedPage(student);
     await denied.goto(base.origin + '/dashboard/admin/reports');
-    await expect(denied).toHaveURL(base.origin + '/dashboard');
+    await expect(denied).toHaveURL(base.origin + '/dashboard/student');
     await expect(denied.getByRole('heading', { name: 'Admin Reports', exact: true })).toHaveCount(0);
     assert.deepEqual(errors, [], 'No runtime, console or server-rendering errors');
     console.log('PASS Chromium: existing Admin navigates Dashboard -> Admin Dashboard -> Reports; reporting sections/metrics visible; no runtime/console/HTTP 5xx errors; existing Student direct URL redirects to Dashboard without reports');
