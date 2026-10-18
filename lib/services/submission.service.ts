@@ -1,3 +1,9 @@
+import "server-only";
+
+import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
+import { ROLE_IDS } from "@/lib/auth/roles";
+import { findUserById, findUserByIdForUpdate } from "@/lib/repositories/user.repository";
+
 import {
     findSubmissionsByPaperId,
     findSubmissionsByUserId,
@@ -176,6 +182,10 @@ export async function submitResearch(
 ): Promise<
     ServiceResult<ManagedSubmission>
 > {
+    if (!await getActiveResearchActor(ROLE_IDS.STUDENT, studentId)) {
+        return { success: false, message: "An active Student account is required to submit research." };
+    }
+
     const paper =
         await findResearchPaperById(
             paperId
@@ -245,6 +255,12 @@ export async function submitResearch(
         const submission = await withPaperSubmissionLock(
             paperId,
             async (tx) => {
+                // A queued per-paper lock may have outlived the initial account check.
+                // Do not hold an account row lock over the storage network request.
+                const currentStudent = await findUserById(studentId, tx);
+                if (!currentStudent?.isActive || currentStudent.roleId !== ROLE_IDS.STUDENT) {
+                    throw new Error("An active Student account is required to submit research.");
+                }
                 const existingSubmissions =
                     await findSubmissionsByPaperId(paperId, tx);
                 const latestSubmission =
@@ -269,6 +285,13 @@ export async function submitResearch(
                         version
                     );
                 uploadedPath = uploadedDocument.path;
+
+                // Observe revocation during upload, then hold the account lock through
+                // persistence/commit. Failure rolls back and uses the existing cleanup.
+                const committingStudent = await findUserByIdForUpdate(studentId, tx);
+                if (!committingStudent?.isActive || committingStudent.roleId !== ROLE_IDS.STUDENT) {
+                    throw new Error("An active Student account is required to submit research.");
+                }
 
                 return createSubmission(
                     {

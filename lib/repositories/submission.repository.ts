@@ -3,6 +3,8 @@ import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 
 import { submissions } from "@/db/schema";
+import { findUserByIdForUpdate } from "@/lib/repositories/user.repository";
+import { ROLE_IDS } from "@/lib/auth/roles";
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 const SUBMISSION_LOCK_NAMESPACE = 1296388936;
@@ -169,4 +171,17 @@ export async function updateSubmissionStatus(
         .returning();
 
     return submission;
+}
+
+/** Recheck the acting Adviser under an account lock through the status commit.
+ * The existing service ownership/status checks and unconditional update semantics remain.
+ */
+export async function updateSubmissionStatusForAdviser(id: number, status: string, adviserId: number) {
+    return db.transaction(async tx => {
+        const adviser = await findUserByIdForUpdate(adviserId, tx);
+        if (!adviser?.isActive || adviser.roleId !== ROLE_IDS.ADVISER) return undefined;
+        const [submission] = await tx.update(submissions).set({ status })
+            .where(eq(submissions.id, id)).returning();
+        return submission;
+    });
 }

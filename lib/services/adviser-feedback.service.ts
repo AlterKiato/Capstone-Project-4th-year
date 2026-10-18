@@ -1,3 +1,6 @@
+import "server-only";
+import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
+
 import {
     findResearchGroupsByAdviserId,
 } from "@/lib/repositories/research-group.repository";
@@ -9,10 +12,6 @@ import {
 import {
     persistAdviserDecision,
 } from "@/lib/repositories/feedback.repository";
-
-import {
-    findUserById,
-} from "@/lib/repositories/user.repository";
 
 import {
     ROLE_IDS,
@@ -61,27 +60,11 @@ export async function createAdviserFeedback(
         decision: string;
     }>
 > {
-    const adviser =
-        await findUserById(
-            adviserId
-        );
-
-    if (!adviser) {
+    if (!await getActiveResearchActor(ROLE_IDS.ADVISER, adviserId)) {
         return {
             success: false,
             message:
-                "Adviser account not found.",
-        };
-    }
-
-    if (
-        adviser.roleId !==
-        ROLE_IDS.ADVISER
-    ) {
-        return {
-            success: false,
-            message:
-                "Only Adviser users can provide feedback.",
+                "An active Adviser account is required to provide feedback.",
         };
     }
 
@@ -185,6 +168,10 @@ export async function createAdviserFeedback(
             ? `Submission ${submission.version} for research paper ${submission.paperId} was marked for revision.`
             : `Submission ${submission.version} for research paper ${submission.paperId} was approved.`,
     });
+
+    if (!feedback) {
+        return { success: false, message: "An active Adviser account is required to provide feedback." };
+    }
 
     const notificationResult = isRevisionRequired
         ? await notifyStudentSubmissionRevisionRequired(

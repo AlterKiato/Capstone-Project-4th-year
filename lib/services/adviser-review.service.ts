@@ -1,3 +1,6 @@
+import "server-only";
+import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
+
 import {
     findSubmissionForAdviser,
 } from "@/lib/repositories/adviser-submission.repository";
@@ -7,12 +10,8 @@ import {
 } from "@/lib/repositories/research-group.repository";
 
 import {
-    updateSubmissionStatus,
+    updateSubmissionStatusForAdviser,
 } from "@/lib/repositories/submission.repository";
-
-import {
-    findUserById,
-} from "@/lib/repositories/user.repository";
 
 import {
     ROLE_IDS,
@@ -42,27 +41,11 @@ export async function startSubmissionReview(
         status: string;
     }>
 > {
-    const adviser =
-        await findUserById(
-            adviserId
-        );
-
-    if (!adviser) {
+    if (!await getActiveResearchActor(ROLE_IDS.ADVISER, adviserId)) {
         return {
             success: false,
             message:
-                "Adviser account not found.",
-        };
-    }
-
-    if (
-        adviser.roleId !==
-        ROLE_IDS.ADVISER
-    ) {
-        return {
-            success: false,
-            message:
-                "Only Adviser users can review submissions.",
+                "An active Adviser account is required to review submissions.",
         };
     }
 
@@ -110,9 +93,10 @@ export async function startSubmissionReview(
     }
 
     const updatedSubmission =
-    await updateSubmissionStatus(
+    await updateSubmissionStatusForAdviser(
         submissionId,
-        SUBMISSION_STATUS.UNDER_REVIEW
+        SUBMISSION_STATUS.UNDER_REVIEW,
+        adviserId
     );
 
     if (!updatedSubmission) {

@@ -1,6 +1,8 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
+import { findUserByIdForUpdate } from "@/lib/repositories/user.repository";
+import { ROLE_IDS } from "@/lib/auth/roles";
 
 import {
     activityLogs,
@@ -83,6 +85,9 @@ export async function persistAdviserDecision(data: {
     activityDescription: string;
 }) {
     return db.transaction(async (tx) => {
+        const adviser = await findUserByIdForUpdate(data.teacherId, tx);
+        if (!adviser?.isActive || adviser.roleId !== ROLE_IDS.ADVISER) return null;
+
         const [feedback] = await tx
             .insert(feedbacks)
             .values({

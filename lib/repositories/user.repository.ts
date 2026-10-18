@@ -10,10 +10,19 @@ export async function findUserByEmail(email: string) {
     });
 }
 
-export async function findUserById(id: number) {
-    return db.query.users.findFirst({
+type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export async function findUserById(id: number, executor: typeof db | DbTransaction = db) {
+    return executor.query.users.findFirst({
         where: eq(users.id, id),
     });
+}
+
+/** Match Admin mutation ordering: serialize current-account checks with revocation. */
+export async function findUserByIdForUpdate(id: number, tx: DbTransaction) {
+    const [account] = await tx.select({ roleId: users.roleId, isActive: users.isActive })
+        .from(users).where(eq(users.id, id)).for("update");
+    return account;
 }
 
 export async function findAllUsers() {

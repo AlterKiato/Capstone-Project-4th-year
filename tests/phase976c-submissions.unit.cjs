@@ -20,6 +20,7 @@ const calls = [], feedbackCalls = [];
 let reviewStatus = 'Submitted', writes = 0;
 const mocks = {
     'server-only': {},
+    '@/lib/auth/session': { getSession: async () => session },
     '@/lib/auth/authorization': { requireRole: async roles => { assert.deepEqual(roles, [2]); if (!session || session.roleId !== 2) throw Error('redirect'); return session; } },
     './dashboard-account.service': { getDashboardAccount: async () => account },
     '@/lib/repositories/user.repository': { findUserById: async () => ({ roleId: 2, isActive: true }) },
@@ -28,7 +29,7 @@ const mocks = {
         findSubmissionsByGroupIds: async groups => { calls.push(groups); if (fail) throw Error('PRIVATE'); return groups[0] === 100 ? [{ ...records[0], submittedAt: new Date(records[0].submittedAt), fileUrl: 'PRIVATE', remarks: 'PRIVATE' }] : []; },
         findSubmissionForAdviser: async (id, groups) => { calls.push([id, groups]); return id === 1 && groups[0] === 100 ? { ...records[0], status: reviewStatus, submittedBy: 99 } : undefined; },
     },
-    '@/lib/repositories/submission.repository': { updateSubmissionStatus: async (id, status) => { writes++; reviewStatus = status; return { id, status }; } },
+    '@/lib/repositories/submission.repository': { updateSubmissionStatusForAdviser: async (id, status, actorId) => { assert.equal(actorId, session.userId); writes++; reviewStatus = status; return { id, status }; } },
     '@/lib/repositories/feedback.repository': { persistAdviserDecision: async data => { writes++; return { ...data, id: 1 }; } },
     '@/lib/services/notification.service': { notifyStudentSubmissionApproved: async () => ({ success: true }), notifyStudentSubmissionRevisionRequired: async () => ({ success: true }) },
     '@/lib/repositories/adviser-review-details.repository': { readOwnedSubmissionFeedback: async (id, adviserId) => { feedbackCalls.push([id, adviserId]); if (feedbackFail) throw Error('PRIVATE'); return [{ submissionId: id, comments: 'This exact version' }]; } },
