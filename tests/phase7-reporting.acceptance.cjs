@@ -17,7 +17,7 @@ Module._load = function(id, ...args) {
 const { db } = require('../lib/db.ts');
 const { sql } = require('drizzle-orm');
 const { getAdminDashboardStats, getAdminRecentActivities } = require('../lib/services/dashboard.service.ts');
-async function main() {
+async function main(signal) {
     const actors = await db.execute(sql`SELECT id, role_id FROM users WHERE is_active = true ORDER BY id`);
     const admin = actors.find(row => row.role_id === 1);
     assert.ok(admin, 'An active local Admin is required');
@@ -79,7 +79,7 @@ async function main() {
         const request = async (actor, roleId = actor?.role_id) => {
             const token = actor ? await createToken({ userId: actor.id, roleId, email: 'phase7-test@example.invalid' }) : null;
             return fetch(new URL('/dashboard/admin/reports', base), {
-                redirect: 'manual', headers: token ? { Cookie: 'thesishs_session=' + token } : {},
+                redirect: 'manual', headers: token ? { Cookie: 'thesishs_session=' + token } : {}, signal,
             });
         };
         const response = await request(admin);
@@ -107,8 +107,64 @@ async function main() {
         console.log('PASS actual HTTP Admin reports render correct totals; other roles/anonymous redirect and stale Admin claims disclose no reporting data');
     }
 }
-main().then(() => process.exit(0)).catch(error => {
-    console.error('FAIL Phase 7 acceptance: ' + error.name);
-    console.error(error.stack.split('\n').filter(line => line.trim().startsWith('at ')).join('\n'));
-    process.exit(1);
+// Local aggregates/role checks and optional sequential HTTP reads should fit in 30s,
+// including a cold development route. Cleanup has its own bounded allowance.
+const EXECUTION_TIMEOUT_MS = 30_000;
+const SHUTDOWN_TIMEOUT_SECONDS = 5;
+const CLEANUP_WATCHDOG_MS = 6_000;
+
+function reportFailure(label, error) {
+    // Preserve the original type/call sites without printing private SQL/error details.
+    console.error(label + ': ' + (error?.name || 'Error'));
+    if (error?.name === 'ReportingAcceptanceTimeout') console.error(error.message);
+    if (typeof error?.stack === 'string') {
+        console.error(error.stack.split('\n').filter(line => line.trim().startsWith('at ')).join('\n'));
+    }
+}
+
+async function run() {
+    const controller = new AbortController();
+    let deadlineTimer;
+    let workloadFailed = false;
+    const deadline = new Promise((_, reject) => {
+        deadlineTimer = setTimeout(() => {
+            const error = new Error('Phase 7 reporting acceptance exceeded its 30-second workload deadline.');
+            error.name = 'ReportingAcceptanceTimeout';
+            controller.abort(error);
+            reject(error);
+        }, EXECUTION_TIMEOUT_MS);
+    });
+    try {
+        await Promise.race([main(controller.signal), deadline]);
+    } catch (error) {
+        workloadFailed = true;
+        process.exitCode = 1;
+        reportFailure('FAIL Phase 7 acceptance', error);
+    } finally {
+        clearTimeout(deadlineTimer);
+        controller.abort();
+        // This is a last resort for a stalled shutdown or lingering owned handles.
+        // Ordinary success/failure exits naturally after the awaited driver shutdown.
+        const watchdog = setTimeout(() => {
+            console.error('FAIL Phase 7 cleanup: runner did not exit within its six-second cleanup allowance.');
+            process.exit(1);
+        }, CLEANUP_WATCHDOG_MS);
+        try {
+            // Unlike Promise.race alone, end rejects new queries and terminates
+            // pending database work after five seconds (Postgres.js 3.4.9).
+            await db.$client.end({ timeout: SHUTDOWN_TIMEOUT_SECONDS });
+        } catch (error) {
+            process.exitCode = 1;
+            reportFailure(workloadFailed ? 'ADDITIONAL Phase 7 cleanup failure' : 'FAIL Phase 7 cleanup', error);
+        } finally {
+            // Keep the watchdog referenced while cleanup is pending, then let a
+            // clean process exit immediately. It still bounds any lingering handles.
+            watchdog.unref();
+        }
+    }
+}
+
+run().catch(error => {
+    process.exitCode = 1;
+    reportFailure('FAIL Phase 7 runner', error);
 });
