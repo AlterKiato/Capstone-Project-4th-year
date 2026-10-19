@@ -3,7 +3,8 @@
 // Standalone media emulation is not an operating-system installation.
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const { spawn } = require('node:child_process');
+const { runBrowserAcceptance } = require('./helpers/phase96-lifecycle.cjs');
+const { navigation } = require('./helpers/phase96-navigation.cjs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 require('dotenv/config');
@@ -18,22 +19,16 @@ const { sql } = require('drizzle-orm');
 const { createToken } = require('../lib/auth/jwt.ts');
 const { chromium, expect } = require('@playwright/test');
 const origin = 'http://127.0.0.1:3023';
-let server, browser;
+let browser;
+const captureScreenshots = !process.argv.includes('--no-screenshots');
 
-async function main() {
+async function main(lifecycle) {
     const actors = await db.execute(sql`SELECT id, role_id FROM users WHERE is_active=true
         AND (email ILIKE '%test%' OR email ILIKE '%phase%') ORDER BY id`);
     const users = [1, 2, 3].map(role => actors.find(actor => actor.role_id === role));
     assert.ok(users.every(Boolean), 'Existing active synthetic Admin/Adviser/Student accounts required');
-    server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', '3023'], { windowsHide: true, stdio: 'ignore' });
-    let ready = false;
-    for (let i = 0; i < 60; i++) {
-        if (server.exitCode !== null) throw new Error('Temporary server exited');
-        try { if ((await fetch(origin + '/login')).ok) { ready = true; break; } } catch { /* startup */ }
-        await new Promise(resolve => setTimeout(resolve, 250));
-    }
-    assert.ok(ready, 'Production server ready');
-    browser = await chromium.launch();
+    await lifecycle.startServer(3023);
+    browser = await lifecycle.launchBrowser(chromium);
     const errors = [];
     for (const width of [360, 1280]) {
         const context = await browser.newContext({ viewport: { width, height: 900 } });
@@ -80,7 +75,7 @@ async function main() {
         }
         await expect(page.locator('meta[name="application-name"]')).toHaveAttribute('content', manifest.name);
         await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', manifest.theme_color);
-        await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'light');
+        await expect(page.locator('meta[name="color-scheme"]')).toHaveAttribute('content', 'light dark');
         await expect(page.locator('meta[name="mobile-web-app-capable"]')).toHaveAttribute('content', 'yes');
         await expect(page.locator('meta[name="apple-mobile-web-app-status-bar-style"]')).toHaveAttribute('content', 'default');
         const applePath = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href');
@@ -108,14 +103,14 @@ async function main() {
             for (const actor of users) {
                 await context.addCookies([{ name: 'thesishs_session', value: await createToken({ userId: actor.id, roleId: actor.role_id, email: 'phase95-synthetic@example.invalid' }), url: origin, httpOnly: true, sameSite: 'Lax' }]);
                 await page.goto(origin + manifest.start_url);
-                await expect(page.getByRole('heading', { level: 1 })).toHaveText('Dashboard');
                 const role = ['Admin', 'Adviser', 'Student'][actor.role_id - 1];
-                const workspace = page.getByRole('link', { name: `Open ${role} Dashboard`, exact: true });
-                await expect(workspace).toBeVisible();
+                await expect(page).toHaveURL(origin + '/dashboard/' + role.toLowerCase());
+                await expect(page.getByRole('heading', { level: 1 })).toHaveText(role + ' Dashboard');
                 if (actor.role_id === 3) {
                     const summary = page.locator('.installation-help summary');
                     // Reach the native disclosure through the actual keyboard tab order.
-                    for (let tab = 0; tab < 10; tab++) {
+                    const tabStops = await page.locator('a[href],button,input,select,textarea,summary,[tabindex]').evaluateAll(nodes => nodes.filter(node => node.tabIndex >= 0 && node.getClientRects().length).length);
+                    for (let tab = 0; tab <= tabStops; tab++) {
                         await page.keyboard.press('Tab');
                         if (await summary.evaluate(element => element === document.activeElement)) break;
                     }
@@ -127,15 +122,24 @@ async function main() {
                         await expect(page.getByText(platform, { exact: true })).toBeVisible();
                     }
                     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');
-                    await page.screenshot({ path: join(tmpdir(), `phase95-help-${width}-${standalone ? 'standalone' : 'browser'}.png`), fullPage: true });
+                    await expect(page.getByText(/An internet connection is required for research work/)).toBeVisible();
+                    if (captureScreenshots) await page.screenshot({ path: join(tmpdir(), `phase95-help-${width}-${standalone ? 'standalone' : 'browser'}.png`), fullPage: true });
                     await page.keyboard.press('Space');
                     await expect(page.locator('.installation-help details')).not.toHaveAttribute('open', '');
                     await page.goto(origin + '/dashboard/admin/reports');
-                    await expect(page).toHaveURL(origin + '/dashboard');
+                    await expect(page).toHaveURL(origin + '/dashboard/student');
                 }
-                await workspace.click();
+                await (await navigation(page)).getByRole('link', { name: 'Settings', exact: true }).click();
+                for (const [theme, effective] of [['Light', 'light'], ['Dark', 'dark'], ['System', 'dark']]) {
+                    if (theme === 'System') await page.emulateMedia({ colorScheme: 'dark' });
+                    await page.getByRole('radio', { name: theme, exact: true }).check();
+                    await expect(page.locator('html')).toHaveAttribute('data-theme', effective);
+                }
+                await page.emulateMedia({ colorScheme: 'light' });
+                await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+                await (await navigation(page)).getByRole('link', { name: 'Dashboard', exact: true }).click();
                 await expect(page).toHaveURL(origin + '/dashboard/' + role.toLowerCase());
-                await page.getByRole('button', { name: 'Logout', exact: true }).click();
+                await (await navigation(page)).getByRole('button', { name: 'Logout', exact: true }).click();
                 await expect(page).toHaveURL(origin + '/login');
                 assert.ok(!(await context.cookies()).some(cookie => cookie.name === 'thesishs_session'));
                 await page.goto(origin + manifest.start_url);
@@ -145,20 +149,16 @@ async function main() {
         const storage = await page.evaluate(async () => ({
             workers: (await navigator.serviceWorker.getRegistrations()).length,
             caches: await caches.keys(),
-            local: localStorage.length,
+            local: Object.keys(localStorage),
             session: sessionStorage.length,
             databases: (await indexedDB.databases()).length,
         }));
-        assert.deepEqual(storage, { workers: 0, caches: [], local: 0, session: 0, databases: 0 });
+        assert.deepEqual(storage, { workers: 0, caches: [], local: ['thesishs-theme'], session: 0, databases: 0 });
         await context.close();
     }
     assert.deepEqual(errors, []);
-    console.log('PASS: manifest JSON/MIME/fields, PNG dimensions/MIME, metadata, Chromium parser, 360/1280 keyboard disclosure and no overflow, ordinary Admin/Adviser/Student navigation/logout, anonymous redirect, Student Admin denial, no service workers or application offline stores.');
+    console.log('PASS: manifest/icons/current metadata, Chromium parser, 360/1280 keyboard guidance/online requirement, current role launch/navigation/logout, Settings Light/Dark/System, anonymous/role denial, no workers/caches/research stores; only the theme preference persisted.');
     console.log('LIMIT: standalone tested only if media emulation is supported, never as OS installation. No real Android/iPhone/Edge testing or installed cookie-lifecycle acceptance. No database mutations, storage/provider calls or private document visits.');
 }
 
-main().catch(error => { console.error(error); process.exitCode = 1; }).finally(async () => {
-    await browser?.close();
-    server?.kill();
-    process.exit(process.exitCode || 0);
-});
+runBrowserAcceptance(main, { client: db.$client, label: 'Phase 9.6 PWA', timeoutMs: 120000 });

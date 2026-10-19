@@ -3,13 +3,20 @@ import Link from "next/link";
 import styles from "@/components/dashboard/adviser-overview.module.css";
 import { getAdviserDashboard } from "@/lib/services/adviser-dashboard.service";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { ROLE_IDS } from "@/lib/auth/roles";
+import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
 
 /**
  * Adviser dashboard entry page.
  *
  * Only users with the Adviser role can access this page.
  */
-export default function AdviserPage() {
+export default async function AdviserPage() {
+    // Resolve the cached current account before the overview can stream its fallback.
+    const account = await getDashboardAccount();
+    if (!account) return null; // The shared layout renders the account-access error.
+    if (account.roleId !== ROLE_IDS.ADVISER) redirect("/dashboard");
     return <Suspense fallback={<main className="dashboard-page" aria-busy="true"><h1>Adviser Dashboard</h1><p role="status">Loading your research overview...</p></main>}><AdviserOverview /></Suspense>;
 }
 

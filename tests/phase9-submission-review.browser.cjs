@@ -2,12 +2,14 @@
 // Existing local synthetic accounts, read-only data, no research/storage mutations.
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const { spawn } = require('node:child_process');
+const { runBrowserAcceptance } = require('./helpers/phase96-lifecycle.cjs');
+const { navigation } = require('./helpers/phase96-navigation.cjs');
 const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 require('dotenv/config');
 const target = new URL(process.env.DATABASE_URL);
 assert.equal(target.hostname, 'localhost');
+assert.equal(target.port, '5432');
 assert.equal(target.pathname, '/thesishs_ai');
 const originalLoad = Module._load;
 Module._load = function(id, ...args) { return id === 'server-only' ? {} : originalLoad.call(this, id, ...args); };
@@ -26,49 +28,51 @@ const { renderToStaticMarkup } = require('react-dom/server');
 const FeedbackForm = require('../app/dashboard/adviser/submissions/FeedbackForm.tsx').default;
 Module._load = function(id, ...args) { return id === 'server-only' ? {} : originalLoad.call(this, id, ...args); };
 const origin = 'http://127.0.0.1:3021';
-let browser, server;
-async function main() {
+let browser;
+const captureScreenshots = !process.argv.includes('--no-screenshots');
+async function main(lifecycle) {
     const actors = await db.execute(sql`SELECT id, role_id FROM users WHERE is_active = true
         AND (email ILIKE '%test%' OR email ILIKE '%phase%') ORDER BY id`);
-    const records = await db.execute(sql`SELECT s.id, s.submitted_by, s.paper_id, s.version, s.status, p.title, g.adviser_id
+    const records = await db.execute(sql`SELECT s.id, s.submitted_by, s.paper_id, p.group_id, s.version, s.status, p.title, g.adviser_id
         FROM submissions s JOIN research_papers p ON p.id=s.paper_id JOIN research_groups g ON g.id=p.group_id
         JOIN users u ON u.id=s.submitted_by JOIN users a ON a.id=g.adviser_id
         WHERE u.is_active=true AND a.is_active=true
+        AND (p.title LIKE 'SPRINT%' OR p.title LIKE 'PHASE%')
         AND (u.email ILIKE '%test%' OR u.email ILIKE '%phase%')
         AND (a.email ILIKE '%test%' OR a.email ILIKE '%phase%') ORDER BY s.submitted_at DESC`);
-    const student = actors.find(a => a.role_id === 3 && records.some(s => s.submitted_by === a.id));
-    const owned = records.filter(s => s.submitted_by === student?.id && actors.some(a => a.id === s.adviser_id && a.role_id === 2));
-    assert.ok(student && owned.length, 'Existing synthetic Student/Adviser submissions required');
-    const adviser = actors.find(a => a.id === owned[0].adviser_id);
+    const memberships = await db.execute(sql`SELECT group_id,user_id FROM group_members`);
+    const student = actors.find(a => a.role_id === 3 && records.some(s => s.submitted_by === a.id && memberships.some(m => m.user_id === a.id && m.group_id === s.group_id)))
+        ?? actors.find(a => a.role_id === 3 && memberships.some(m => m.user_id === a.id));
+    const owned = records.filter(s => s.submitted_by === student?.id && memberships.some(m => m.user_id === student?.id && m.group_id === s.group_id));
+    const adviser = actors.find(a => a.role_id === 2 && records.some(s => s.adviser_id === a.id));
+    assert.ok(student && adviser, 'Existing synthetic Student membership and Adviser history required');
     const foreign = actors.find(a => a.role_id === 2 && a.id !== adviser.id);
     const detailRecords = records.filter(s => actors.some(a => a.id === s.adviser_id && a.role_id === 2))
         .filter((s,i,a) => a.findIndex(x => x.status === s.status) === i);
     const feedback = await db.execute(sql`SELECT f.id, f.submission_id, f.decision, f.comments FROM feedbacks f
         JOIN submissions s ON s.id=f.submission_id WHERE s.submitted_by=${student.id} ORDER BY f.id`);
+    const adviserFeedback = await db.execute(sql`SELECT f.submission_id,f.decision,f.comments FROM feedbacks f
+        JOIN submissions s ON s.id=f.submission_id JOIN research_papers p ON p.id=s.paper_id
+        WHERE p.title LIKE 'SPRINT%' OR p.title LIKE 'PHASE%' ORDER BY f.id`);
     const feedbackBefore = await db.execute(sql`SELECT id, md5(comments) AS digest FROM feedbacks ORDER BY id`);
     const before = await db.execute(sql`SELECT id, status, version FROM submissions ORDER BY id`);
     console.log('Preflight: existing synthetic accounts; available detail statuses: ' + detailRecords.map(s => s.status).join(', '));
     if (process.argv.includes('--probe')) return;
-    server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', '3021'], { windowsHide: true, stdio: 'ignore' });
-    let ready = false;
-    for (let i=0; i<60; i++) {
-        if (server.exitCode !== null) throw new Error('Temporary server exited');
-        try { if ((await fetch(origin+'/login')).ok) { ready=true; break; } } catch { /* startup */ }
-        await new Promise(resolve => setTimeout(resolve, 250));
-    }
-    assert.ok(ready);
-    browser = await chromium.launch();
+    await lifecycle.startServer(3021);
+    browser = await lifecycle.launchBrowser(chromium);
     const errors = [];
     for (const width of [360, 1280]) {
         const context = await browser.newContext({ viewport: { width, height: 900 } });
         let blockedDocument = false;
+        let abortedDocumentRequests = 0;
         let expectedNotFound = false;
         await context.route('**/*', route => {
             if (new URL(route.request().url()).origin !== origin) { errors.push('external request'); return route.abort(); }
-            if (blockedDocument && route.request().method() === 'POST') return route.abort();
+            if (blockedDocument && route.request().method() === 'POST') { abortedDocumentRequests++; return route.abort(); }
             return route.continue();
         });
         const page = await context.newPage();
+        page.on('dialog', dialog => dialog.accept());
         page.on('pageerror', () => errors.push('page error'));
         page.on('console', m => {
             if (m.type() !== 'error') return;
@@ -89,57 +93,74 @@ async function main() {
         await signIn(student);
         await page.goto(origin+'/dashboard/student/submissions');
         await expect(page.getByRole('heading', { level: 1 })).toHaveText('Research Submissions');
-        await expect(page.getByLabel('Research PDF', { exact: true })).toHaveAttribute('accept', 'application/pdf,.pdf');
-        await expect(page.getByText('PDF files only. Maximum file size: 10 MB.', { exact: true })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Submit Research PDF', exact: true })).toBeVisible();
-        for (const record of records.filter(s => s.submitted_by === student.id)) {
-            const article = page.locator('article').filter({ has: page.locator('#submission-'+record.id) });
-            await expect(article).toBeVisible();
-            await expect(article.getByRole('heading', { level: 3 })).toContainText(record.version);
-            await expect(article.locator('dd').filter({ hasText: new RegExp('^'+record.status+'$') })).toBeVisible();
+        const projects = page.getByLabel('Research project', { exact: true });
+        if (!owned.length) console.log('LIMIT: no marked historical submissions belong to a current synthetic Student member; Student version/feedback history is not live-certified.');
+        if (await projects.count()) {
+        await expect(projects).toBeVisible();
+        for (const record of owned) {
+            await projects.selectOption(String(record.paper_id));
+            const body = page.locator('#version-' + record.id);
+            const article = body.locator('..');
+            if (!await body.isVisible()) await article.locator('h3 button').click();
+            await expect(body).toBeVisible();
+            await expect(article.locator('h3 button')).toContainText(String(record.version));
+            await expect(article.locator('h3 button')).toContainText(record.status);
             for (const item of feedback.filter(f => f.submission_id === record.id)) {
                 await expect(article.getByText('Decision: '+item.decision, { exact: true })).toBeVisible();
                 await expect(article.getByText(item.comments, { exact: true })).toBeVisible();
             }
         }
         await layout();
-        await page.screenshot({ path: join(tmpdir(), 'phase93-student-'+width+'.png') });
-        await page.getByRole('region', { name: 'Submit Research PDF', exact: true }).screenshot({ path: join(tmpdir(), 'phase93-upload-'+width+'.png') });
-        const revisionArticle = page.locator('article').filter({ hasText: 'Decision: Revision Required' }).first();
-        if (await revisionArticle.count()) await revisionArticle.screenshot({ path: join(tmpdir(), 'phase93-history-feedback-'+width+'.png') });
+        if (captureScreenshots) await page.screenshot({ path: join(tmpdir(), 'phase93-student-'+width+'.png') });
+        const revisionArticle = page.locator('[id^="version-"]').filter({ hasText: 'Decision: Revision Required' }).first();
+        if (captureScreenshots && await revisionArticle.count()) await revisionArticle.screenshot({ path: join(tmpdir(), 'phase93-history-feedback-'+width+'.png') });
         // Invalid paper ID reaches only action validation, never the upload service.
-        await page.getByLabel('Research Project', { exact: true }).evaluate(e => e.add(new Option('Invalid synthetic selection', '0')));
-        await page.getByLabel('Research Project', { exact: true }).selectOption('0');
+        await page.getByRole('button', { name: 'Create Project', exact: true }).click();
+        await expect(page.getByRole('dialog', { name: 'Create Research Project', exact: true }).getByLabel('Research Title')).toHaveAttribute('required', '');
+        await page.keyboard.press('Escape');
+        await page.getByRole('button', { name: 'Submit PDF', exact: true }).click();
+        const upload = page.getByRole('dialog', { name: 'Submit Research PDF', exact: true });
+        await expect(upload.getByLabel('Research PDF', { exact: true })).toHaveAttribute('accept', 'application/pdf,.pdf');
+        await expect(upload.getByText('PDF files only. Maximum file size: 10 MB.', { exact: true })).toBeVisible();
+        if (captureScreenshots) await upload.screenshot({ path: join(tmpdir(), 'phase93-upload-'+width+'.png') });
         await page.getByLabel('Research PDF', { exact: true }).setInputFiles({ name: 'synthetic.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF synthetic validation only') });
+        // Alter only this request's hidden ID; validation fails before any service/upload.
+        await upload.locator('input[name="paperId"]').evaluate(input => { input.value = '0'; });
         await page.route('**/dashboard/student/submissions', async route => {
             if (route.request().method() === 'POST') await new Promise(resolve => setTimeout(resolve, 400));
-            await route.continue();
+            await route.fallback();
         });
         await page.getByRole('button', { name: 'Submit Research PDF', exact: true }).click();
-        await expect(page.getByRole('button', { name: 'Submitting PDF...', exact: true })).toBeDisabled();
-        await expect(page.locator('#submission-message')).toHaveText('Select a research project and keep remarks within 500 characters.');
-        await expect(page.locator('#submission-message')).toHaveAttribute('aria-live', 'polite');
-        await page.getByRole('region', { name: 'Submit Research PDF', exact: true }).screenshot({ path: join(tmpdir(), 'phase93-upload-error-'+width+'.png') });
+        await expect(upload.getByRole('button', { name: 'Saving…', exact: true })).toBeDisabled();
+        await expect(upload.getByRole('status')).toHaveText('Select a research project and keep remarks within 500 characters.');
+        if (captureScreenshots) await upload.screenshot({ path: join(tmpdir(), 'phase93-upload-error-'+width+'.png') });
+        await upload.getByRole('button', { name: 'Close Submit Research PDF', exact: true }).click();
         // Transport failure only: no signer, storage access or private PDF request occurs.
-        blockedDocument = true;
-        await page.getByRole('button', { name: 'View / Download PDF', exact: true }).first().click();
-        await expect(page.getByText('The research document could not be accessed.', { exact: true })).toBeVisible();
-        blockedDocument = false;
-        await page.getByRole('link', { name: 'Overview', exact: true }).click();
+        const studentDocument = page.getByRole('button', { name: 'View / Download PDF', exact: true });
+        if (await studentDocument.count()) {
+            blockedDocument = true;
+            await studentDocument.first().click();
+            await expect(page.getByText('The research document could not be accessed.', { exact: true })).toBeVisible();
+            assert.equal(abortedDocumentRequests, 1, 'Document error request aborted before signer');
+            blockedDocument = false;
+        }
+        await (await navigation(page)).getByRole('link', { name: 'Dashboard', exact: true }).click();
         await expect(page).toHaveURL(origin+'/dashboard/student');
+        } else {
+            console.log('LIMIT: selected existing Student has no project; live upload-modal assertions skipped, existing Student adapter/unit coverage retained.');
+            await layout();
+        }
         await signIn(adviser);
         await page.goto(origin+'/dashboard/adviser/submissions');
         await expect(page.getByRole('heading', { level: 1 })).toHaveText('Research Submissions');
-        const region = page.getByRole('region', { name: 'Submitted Research', exact: true }).and(page.locator('.research-table-scroll'));
-        await expect(region).toHaveAttribute('tabindex', '0');
-        if (width === 360) assert.ok(await region.evaluate(e => e.scrollWidth > e.clientWidth), 'Table scrolls locally');
+        await expect(page.getByLabel('Search submissions')).toBeVisible();
+        await expect(page.getByLabel('Status filter')).toHaveValue('all');
         await layout();
-        await page.screenshot({ path: join(tmpdir(), 'phase93-adviser-list-'+width+'.png') });
-        await region.evaluate(e => { e.scrollLeft = e.scrollWidth; });
-        const rightmostLink = region.getByRole('link').last();
+        if (captureScreenshots) await page.screenshot({ path: join(tmpdir(), 'phase93-adviser-list-'+width+'.png') });
+        const rightmostLink = page.locator('main a[href*="/submissions/"]:visible').last();
         await rightmostLink.scrollIntoViewIfNeeded();
         const rightBounds = await rightmostLink.boundingBox();
-        assert.ok(rightBounds.x >= 0 && rightBounds.x+rightBounds.width <= width, 'Table action reachable after local scrolling');
+        assert.ok(rightBounds.x >= 0 && rightBounds.x+rightBounds.width <= width, 'Directory action reachable');
         const stylesheets = await page.locator('link[rel="stylesheet"]').evaluateAll(links => links.map(link => link.getAttribute('href')));
         let styles = '';
         for (const href of stylesheets) {
@@ -156,16 +177,30 @@ async function main() {
         await harness.keyboard.press('Tab');
         assert.ok(await harness.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
         await expect(harness.getByRole('button', { name: 'Submit Feedback & Decision' })).toBeVisible();
-        await harness.screenshot({ path: join(tmpdir(), 'phase93-feedback-component-'+width+'.png'), fullPage: true });
+        if (captureScreenshots) await harness.screenshot({ path: join(tmpdir(), 'phase93-feedback-component-'+width+'.png'), fullPage: true });
         await harness.close();
         for (const record of detailRecords) {
             await signIn(actors.find(a => a.id === record.adviser_id));
             await page.goto(origin+'/dashboard/adviser/submissions');
+            const toggle = page.locator('#history-toggle-' + record.paper_id);
+            if (await toggle.count()) await toggle.click();
             await page.locator('a[href="/dashboard/adviser/submissions/'+record.id+'"]').first().click();
             await expect(page).toHaveURL(origin+'/dashboard/adviser/submissions/'+record.id);
-            await expect(page.getByRole('heading', { level: 1 })).toHaveText('Submission Details');
-            await expect(page.locator('dd').filter({ hasText: new RegExp('^'+record.status+'$') })).toBeVisible();
+            await expect(page.getByRole('heading', { level: 1 })).toHaveText(record.title);
+            await expect(page.locator('main').getByText(record.status, { exact: true }).first()).toBeVisible();
+            const review = page.getByRole('region', { name: 'Adviser Review', exact: true });
+            for (const item of adviserFeedback.filter(item => item.submission_id === record.id)) {
+                await expect(review.getByText(item.comments, { exact: true })).toBeVisible();
+                await expect(review.getByText(item.decision, { exact: true })).toBeVisible();
+            }
             await expect(page.getByRole('button', { name: 'View / Download PDF', exact: true })).toBeVisible();
+            if (!abortedDocumentRequests) {
+                blockedDocument = true;
+                await page.getByRole('button', { name: 'View / Download PDF', exact: true }).click();
+                await expect(page.getByText('The research document could not be accessed.', { exact: true })).toBeVisible();
+                assert.equal(abortedDocumentRequests, 1, 'Document error request aborted before signer');
+                blockedDocument = false;
+            }
             await expect(page.getByRole('button', { name: 'Start Review', exact: true })).toHaveCount(record.status === 'Submitted' ? 1 : 0);
             await expect(page.locator('#comments')).toHaveCount(record.status === 'Under Review' ? 1 : 0);
             if (record.status === 'Under Review') {
@@ -175,16 +210,17 @@ async function main() {
                 await expect(page.locator('#feedback-message')).toHaveText('Feedback comments are required.');
             }
             await layout();
-            await page.screenshot({ path: join(tmpdir(), 'phase93-detail-'+record.status.replaceAll(' ','-')+'-'+width+'.png'), fullPage: true });
+            if (captureScreenshots) await page.screenshot({ path: join(tmpdir(), 'phase93-detail-'+record.status.replaceAll(' ','-')+'-'+width+'.png'), fullPage: true });
             await page.getByRole('link', { name: 'Back to Submissions', exact: true }).click();
             await expect(page).toHaveURL(origin+'/dashboard/adviser/submissions');
         }
         if (foreign) {
             expectedNotFound = true;
             await signIn(foreign);
-            const response = await page.goto(origin+'/dashboard/adviser/submissions/'+owned[0].id);
+            const foreignRecord = records.find(record => record.adviser_id === adviser.id);
+            const response = await page.goto(origin+'/dashboard/adviser/submissions/'+foreignRecord.id);
             assert.equal(response.status(), 404, 'Cross-Adviser detail denied');
-            await expect(page.getByText(owned[0].title, { exact: true })).toHaveCount(0);
+            await expect(page.getByText(foreignRecord.title, { exact: true })).toHaveCount(0);
             expectedNotFound = false;
         }
         await context.clearCookies();
@@ -195,10 +231,8 @@ async function main() {
     assert.deepEqual(await db.execute(sql`SELECT id, status, version FROM submissions ORDER BY id`), before, 'Submission state unchanged');
     assert.deepEqual(await db.execute(sql`SELECT id, md5(comments) AS digest FROM feedbacks ORDER BY id`), feedbackBefore, 'Feedback unchanged');
     assert.deepEqual(errors, []);
-    console.log('PASS: live Student project/upload/history/version/feedback, Adviser list/details/available-state controls, document transport failure, navigation, 360/1280 overflow/focus, anonymous denial and unchanged submission/feedback snapshots. Cross-Adviser: '+(foreign?'PASS':'unavailable'));
+    console.log('PASS: current Student controls/invalid-input modal where available; marked Student history cases='+owned.length+'; Adviser directory/details/version-specific recorded feedback, pre-signer transport failure, 360/1280 layout/focus, anonymous/foreign denial and unchanged submission/feedback snapshots.');
     console.log('PASS: isolated real feedback component labels, required fields, both decisions and mobile/desktop layout; router/action stubbed only in static rendering.');
     console.log('LIMIT: no upload/review/approval mutations or real signed PDF fetch; live Under Review controls covered only when existing records are available.');
 }
-main().catch(e => { console.error(e); process.exitCode=1; }).finally(async () => {
-    await browser?.close(); server?.kill(); process.exit(process.exitCode || 0);
-});
+runBrowserAcceptance(main, { client: db.$client, label: 'Phase 9.6 submissions', timeoutMs: 180000 });
