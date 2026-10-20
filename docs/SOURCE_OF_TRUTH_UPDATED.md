@@ -651,3 +651,72 @@ Known non-blocking publication risks: storage verification holds the database tr
 Phase 5.5 repository document access is complete and runtime-accepted: authenticated active Student, Adviser, Admin and Panel accounts are permitted through database-account checks, published/approved database eligibility, shared strict persisted paper/version path validation, and existing server-only 300-second signing. Chromium view/download, exact PDF retrieval, failure/denial checks, Phase 5.3/5.4 regression, and independent cleanup passed. No schema/migration changes. Actual signed-token lifetime was exactly 300 seconds (exp - iat); Phase 5.5 did not repeat the full expiry wait already verified in Phase 5.3. Repository eligibility is independent of group ownership and does not weaken the separate Phase 5.3 Student/Adviser ownership rules. Unpublished research is denied. Issued URLs remain bearer access until expiry, including after unpublication; legacy path validation remains strict. See the latest Phase 5.5 handoff in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 Phase 5.6 practical final verification and Phase 5.7 documentation closure passed: upload -> revision -> v2 -> approval -> Admin publication -> authenticated repository listing/detail/view/download, basic security, preserved history and independent synthetic cleanup. Phase 5.1 through 5.7 and Phase 5 overall are complete. No schema/migration changes in this final pass; existing 0009 remains development/test-only. Known limitations remain: issued URLs last until expiry; objects may be removed after publication; strict nonconforming paths are rejected; approved-document resolution is dynamic. This is capstone-level validation, not enterprise production hardening. Phase 5 closure evidence is historical; the current next design target is in the Master Context. CI remains deferred.
+
+------------------------------------------------------------------------
+
+## 14. Planned Authentication and Account Management Improvements — Post-Phase 9.6
+
+**Owner-approved design direction (2026-10-21): planned improvements, not implemented functionality.** Finish Phase 9.6 manual core workflow testing first. This plan supports a practical 3–5 week college capstone deployment using the existing PostgreSQL-based authentication architecture. Implementation requires a separate review and authorization; current registration/login behavior is unchanged by this decision. Preserve earlier decisions as historical context. Detailed implementation progress and test evidence belong in `docs/MASTER_CONTEXT_UPDATED.md`.
+
+### A. Student registration
+
+- Students may register with personal email addresses, including Gmail, Outlook, Yahoo or other valid providers. Institutional email addresses are also acceptable but are not required.
+- Students continue to log in using email and password. The future implementation must require email ownership verification before permitting normal login.
+- Prefer a time-limited, single-use email verification link. Do not implement email OTP and verification links simultaneously.
+- Self-registration assigns the Student role only. After successful email verification, no additional Admin approval is required.
+- Advisers remain responsible for assigning Students to research groups.
+- Email verification proves mailbox ownership; it does not establish official enrollment status.
+
+### B. Admin account management
+
+- Preserve Admin-controlled creation of Admin and Adviser accounts. Each Admin and Adviser should use an individual email address under their control.
+- Future improvement: invite Admin-created users to verify their email and establish their own password.
+- Admin User Management should display registered email, email verification status and account status.
+- Admins must not be able to view plaintext passwords, verification tokens or personal inbox content.
+- A new Super Admin role requires separate owner approval.
+
+### C. Authentication security
+
+Preserve the existing PostgreSQL-based authentication architecture and server-side role protections. Future implementation must plan for:
+
+- Secure verification-token hashing and storage, with single-use, expiring verification links.
+- Reasonable verification resend and request limits.
+- Duplicate-email handling and email-change re-verification.
+- Secure transition of existing accounts when verification is introduced.
+- Consistent enforcement in authentication services; UI-only restrictions are insufficient.
+- Appropriate password recovery support and protection against unauthorized role assignment.
+
+The exact schema, email delivery provider, token lifetime, rate limits, existing-account transition and recovery workflow require implementation review. This decision does not select those technical details.
+
+### D. Deferred features
+
+The following require separate owner approval:
+
+- Google Sign-In.
+- Migration to Supabase Auth.
+- Multiple simultaneous verification methods.
+- Enterprise SSO.
+- A new Super Admin role.
+- Unnecessary authentication redesign.
+
+### E. Implementation sequence
+
+1. Finish Phase 9.6 manual core workflow testing.
+2. Review the existing authentication implementation and email delivery options.
+3. Implement Student email verification as a focused feature.
+4. Test registration, verification, login and existing research workflows.
+5. Implement Admin/Adviser account invitations only if approved and practical before deployment.
+6. Verify deployment readiness.
+
+Phase 9.6 remains manual-first. Gate A.2 remains **FROZEN — OPTIONAL TEST SUPPORT TOOLING**; this plan does not authorize Gate A.2b-VII, fixture provisioning or account/database/Storage writes. Preserve existing fixture files and protections. Live account preparation and testing require separate authorization.
+
+
+---
+
+## 2026-10-21 - Superseding Phase 9.6 closure and fixture-tooling removal
+
+Phase 9.6 is **PASS / CLOSED for the agreed owner-performed manual core-workflow acceptance scope**: the owner reports 11 PASS, 0 FAIL and no errors. Codex did not independently execute these steps. Production-load testing, hosted deployment verification and physical PWA installation are outside this result; detailed evidence and remaining deployment checks are recorded in the latest Master Context handoff.
+
+The owner has discontinued Gate A.2. The abandoned `tests/fixtures/phase96/` provisioning framework, dedicated tests and supporting scripts are removed from the current codebase to keep the project within practical capstone scope. Earlier frozen-tooling and preserve-fixture instructions above are historical and superseded by this removal authorization; the utility is no longer available. Existing useful acceptance tests and shared lifecycle/navigation/server helpers remain. External protected enrollment state is left untouched and requires separate authorization for deletion. Do not rebuild or restart Gate A.2.
+
+The approved authentication plan above remains preserved and unimplemented: Student personal-email registration with email/password; planned time-limited single-use verification links; no extra Admin approval after verification; Adviser-controlled group assignment; future Admin/Adviser invitations; deferred Google Sign-In; and existing PostgreSQL authentication. Student email verification is the next planned authentication improvement, requiring separate review and implementation authorization. This closure changes no authentication behavior, schema, database data or Storage objects.
