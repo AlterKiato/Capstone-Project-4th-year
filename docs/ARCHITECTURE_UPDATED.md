@@ -3,7 +3,9 @@
 **Purpose:** Technical reference for the current application's
 architecture, module boundaries, data flow, and security model.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 source/tests and handoff changes are uncommitted.
+**Current-state pointer (2026-10-21):** See `docs/MASTER_CONTEXT_UPDATED.md` for the verified `feature/development` / `6f02b7e` checkpoint, Phase 9 closure with documented limitations and proposed Phase 10 sequence. This technical reference does not establish production deployment, native-Mobile integration or Electron implementation. Older phase-status paragraphs below are historical and do not override that handoff.
+
+**Historical Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 source/tests and handoff changes are uncommitted.
 
 Phase 5.1, Phase 5.2, and Phase 5.3 are complete and runtime-accepted. Phase 5.3 completion/documentation audit is complete. No Phase 5.3 schema/migration change was needed or applied; `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
 
@@ -52,6 +54,14 @@ Pages/UI
 
 Business logic and authorization belong in services. Repositories remain
 focused on data access.
+
+### Existing client and proposed platform boundary (2026-10-21)
+
+The implemented client is the Next.js Web application with an online-first PWA manifest, icons and installation guidance. Desktop initially uses this same PWA. Physical installation/standalone and production HTTPS acceptance remain unverified; no offline academic workflow or private-document cache is provided.
+
+The separate Expo React Native repository `https://github.com/Genryux/thesishsai` is a candidate Mobile client only. Its ZIP-audit findings have not been verified against actual mobile source in this task. No mobile code is integrated here. Future integration would require a separately approved authenticated API entry layer, validation and existing services/repositories, sharing PostgreSQL and private Supabase Storage. Browser Server Actions are not an assumed Expo API contract. Mobile session validation, active-account/current-role/ownership checks and authorized temporary PDF access must be designed before integration; storing a token is not sufficient authorization.
+
+Specialized Mobile/Desktop features remain design candidates. The professor's requirement does not itself select Electron or prohibit PWA. Evaluate Electron only if justified by separately approved desktop capabilities. Current browser JWT/HTTP-only-cookie/bcrypt authentication remains unchanged; Student email verification and compatible future mobile authentication are planned, not implemented. See the latest Master Context for the proposed Phase 10.0-10.4 sequence and external audit risks.
 
 ------------------------------------------------------------------------
 

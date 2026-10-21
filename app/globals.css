@@ -119,6 +119,8 @@ body {
 .auth-form button { width: 100%; }
 .auth-form p:empty { display: none; }
 .auth-switch { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); }
+.auth-home { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 1rem; padding: 0.4rem 0.75rem; border: 1px solid var(--input-border); border-radius: 0.5rem; background: var(--surface-secondary); color: var(--foreground); font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+.auth-home:hover { background: var(--surface-hover); }
 .form-help, .dashboard-context { color: var(--muted); }
 .form-help { font-size: 0.875rem; }
 .form-message { padding: 0.75rem; border-left: 3px solid var(--error-border); background: var(--error-surface); color: var(--error-text); }

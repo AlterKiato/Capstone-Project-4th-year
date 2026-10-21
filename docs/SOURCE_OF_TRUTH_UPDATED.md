@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-09\
+**Last reviewed:** 2026-10-21 (platform/transition reconciliation only)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -57,9 +57,9 @@ Current model/terms findings, proposed limits, consent wording and approvals bel
 ------------------------------------------------------------------------
 ## 1A. Platform Strategy
 
-ThesiSHS AI follows a **PWA-first platform strategy**.
+ThesiSHS AI follows a **PWA-first platform strategy**. This remains the functioning Web/Desktop baseline; it is not evidence of production deployment or physical-device installation.
 
--   **Primary platform:** The system is developed and deployed as a
+-   **Primary platform:** The system is developed for delivery as a
     Progressive Web App (PWA), providing the main experience across
     desktop and mobile devices.
 -   **Mobile:** Mobile users should initially access ThesiSHS AI through
@@ -77,6 +77,10 @@ ThesiSHS AI follows a **PWA-first platform strategy**.
     underlying ThesiSHS AI backend, authorization rules, research data,
     submissions, repository records, and shared platform services rather
     than becoming a separate system.
+
+**Platform direction clarification (owner, 2026-10-21):** The professor expects specialized or unique Mobile and Desktop functionality beyond the ordinary Web experience; no explicit PWA prohibition or Electron requirement was reported. Preserve the existing Next.js PWA while evaluating that requirement. The separate Expo React Native repository `https://github.com/Genryux/thesishsai` is a candidate standalone Mobile client, not an approved or integrated application. Desktop initially remains the PWA; specialized capabilities and Electron require separate justification and authorization. No platform-specific feature is approved by this direction alone.
+
+Future clients must share the existing services, PostgreSQL, server-side authorization and private Supabase Storage. Expo cannot be assumed to reuse browser Server Actions directly: secured API contracts and compatible authentication must be designed and approved first. External mobile ZIP-audit findings are unverified against the actual mobile source; retain their provenance and integration risks in the Master Context. Do not attribute those findings to the Next.js application.
 
 ------------------------------------------------------------------------
 
@@ -584,14 +588,7 @@ Context or actual repository, not in this section.
 
 ## 12. Long-Term Product Direction
 
-Owner-aligned roadmap (2026-10-10): Phase 8 targets provisional closure
-for implemented static/mock-only assistance; operational Groq remains
-unfinished. Phase 9 is **UI/UX Refinement & PWA Integration**, consistent
-with the existing PWA-first strategy. Phase 10 **Deployment & System
-Integration** and Phase 11 **Final Testing, Evaluation & Documentation**
-are proposed later phases. This sequencing does not authorize AI
-activation or implementation of the later phases; verified completion
-and next-task scope belong in the Master Context.
+Owner-aligned direction (2026-10-21): retain Phase 8's static/mock-only boundary and hard-disabled Groq. Phase 9 **UI/UX Refinement & PWA Integration** moves to closure without further scope expansion; verified results and limitations belong in the Master Context. Phase 10 is proposed as **Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility**: 10.0 platform feasibility review, 10.1 Student email verification/authentication readiness, 10.2 production environment preparation, 10.3 Vercel deployment, and 10.4 deployment smoke testing. This is a working sequence subject to owner approval, not implementation or deployment authorization. Expo integration and desktop-specific/Electron implementation remain separately approved future work. Phase 11 **Final Testing, Evaluation & Documentation** retains final QA, user evaluation, capstone demonstration and documentation. The detailed roadmap and immediate next action belong in the Master Context.
 
 Retain the PWA-first shared research lifecycle, repository, in-app
 notifications, user-facing improvements, security, QA, release preparation,

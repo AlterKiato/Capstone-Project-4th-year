@@ -28,6 +28,7 @@ export default async function LoginPage() {
             <p className="dashboard-welcome">Sign in to your research workspace.</p>
             <LoginForm />
             <p className="auth-switch">Need a Student account? <Link href="/register">Create an account</Link></p>
+            <Link href="/" className="auth-home">Back to home</Link>
         </main>
         </>
     );

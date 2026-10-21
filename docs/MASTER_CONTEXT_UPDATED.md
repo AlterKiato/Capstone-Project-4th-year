@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-11
+**Last reconciled:** 2026-10-21
 **Current branch:** `feature/development`
-**HEAD checkpoint:** Anti-Slop documentation closure commit: `docs(design): integrate anti-slop UI standards` (resolve with `git log -1 --oneline`; predecessor `906bca0`)
-**Working tree:** The five reviewed Anti-Slop documentation files are captured by the owner-approved closure commit containing this handoff. Verify post-commit Git status. Phase 9.1 remains committed at `906bca0`; no application changes, push, merge or deployment in this closure.
+**HEAD checkpoint:** `6f02b7ebb0d7978c415bb3248f7008f662863d08` — `chore(phase9): remove unused fixture tooling and close manual acceptance`.
+**Working tree:** Dirty before this review: `app/(auth)/login/page.tsx`, `app/globals.css` and this document. Preserve the pending Back to home refinement and its verification limits. This task updates documentation only; no staging, commit, push, merge or deployment. Recheck Git status before continuing.
 
 > This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. Phase 9.1 is complete and committed at `906bca0`; Phase 9.2 and later checkpoints await separate implementation authorization. The active design references are the existing application, approved DESIGN.md decisions and ANTISLOP.md, with owner-selected During mode for future UI implementation. Figma Make inspection is cancelled. No later-phase implementation, push or merge is authorized by this documentation update.
+Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. **Phase 9 is PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope; the owner has ended UI scope expansion. Phase 9.6 is closed for owner-performed manual acceptance (11 PASS, 0 FAIL), not independently rerun by Codex. Device installation/standalone, hosted HTTPS and deployment reliability remain unverified. The active design references are the existing application, approved DESIGN.md decisions (including Light/Dark/System) and ANTISLOP.md, with owner-selected During mode for future authorized UI implementation. Figma Make inspection is cancelled. The proposed Phase 10 roadmap is recorded in the latest handoff; Phase 10.1 is ready for discussion only. No implementation, push, merge or deployment is authorized by this documentation update.
 
 ### Current phase status
 
@@ -33,7 +33,9 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 | 6 | Search, Filtering & Discovery | Lean implementation and focused runtime acceptance complete; see latest handoff |
 | 7 | Administration & Reporting | Complete; service/database/HTTP and final Chromium acceptance PASS |
 | 8 | Role-separated AI and static guidance | Provisionally complete for implemented static/mock-only scope; Chromium and focused safeguards PASS; operational Groq unfinished |
-| 9 | UI/UX Refinement & PWA Integration | Phase 9.1 complete at 906bca0; application/DESIGN.md/ANTISLOP.md references, During mode; Phase 9.2 onward await authorization |
+| 9 | UI/UX Refinement & PWA Integration | PASS WITH DOCUMENTED LIMITATIONS; accepted UI and online-first PWA foundation; Phase 9.6 owner manual scope 11 PASS, 0 FAIL; physical installation and hosted acceptance unverified |
+| 10 | Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility | Proposed Phase 10.0-10.4 sequence recorded; this documentation handoff does not authorize implementation |
+| 11 | Final Testing, Evaluation & Documentation | High-level final QA, user evaluation, demonstration and documentation retained; not started |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
 
 **Panel Evaluation:** excluded/deferred unless explicitly reopened.
@@ -43,16 +45,16 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 
 ## 2. Git / Rollback Boundary
 
-The current checkpoint is the commit containing this handoff:
+Verified checkpoint for the 2026-10-21 closure/transition review:
 
 ```text
 branch:      feature/development
-message:     feat(phase8): checkpoint provisional static and mock closure
-predecessor: ca95fd3 (Phase 7)
-resolve HEAD: git log -1 --oneline
+HEAD:        6f02b7ebb0d7978c415bb3248f7008f662863d08
+message:     chore(phase9): remove unused fixture tooling and close manual acceptance
+tree:        pre-existing login/CSS/Master Context changes; documentation review remains uncommitted
 ```
 
-The closure task verified feature/development at ca95fd3 before staging the reviewed Phase 8 changes. Source/test/migration artifacts and required handoffs are preserved in one owner-authorized commit; its own hash is resolved from Git rather than invented inside it. Prior handoffs retain historical evidence. No acceptance suite or database operations were repeated for this commit task.
+Earlier Phase 8/9 commit and acceptance handoffs remain historical evidence. This review changes documentation only and preserves the existing working tree; no acceptance suite, database operation or commit is performed. Current closure and next actions supersede older pending-phase labels without rewriting historical results.
 
 Before changing code, verify the actual checkout:
 
@@ -2719,8 +2721,96 @@ Repository-wide reference searches, including hidden/ignored maintained files an
 - No additional live workflow testing, database/Storage access or mutation, account creation, migrations, upload, server start, deployment, AI/Groq activation or replacement framework. Groq remains hard-disabled.
 - Git: one owner-authorized local commit, `chore(phase9): remove unused fixture tooling and close manual acceptance`. This handoff is part of that commit; resolve its actual hash with `git log -1 --oneline` and use the final report for post-commit status. No push, merge, reset, stash, rebase or history rewrite.
 
+## 2026-10-21 - Login page landing-page navigation
+
+- Added an owner-requested `Back to home` link styled as a secondary button below the login page's account-registration link. Destination: `/`, the existing public landing page. Files: `app/(auth)/login/page.tsx`, `app/globals.css`, and this handoff. Login/session behavior and schema/migrations are unchanged.
+- Design: existing academic styling, theme tokens, visible keyboard focus and a 44px minimum target; ENERGY 1 / RHYTHM 2 / MOTION 1, Anti-Slop During per project approval. The outlined treatment keeps Login as the primary action.
+- Verification PASS: targeted ESLint, `npx.cmd tsc --noEmit`, and `git diff --check`; Chromium at 390px reached `/` through the new link by click and Enter. Full light/dark visual checks remain unverified: the existing dev server served CSS without the new selector, and its theme control remained disabled during the attempted check. No production build or authentication submission was run.
+- Git: `feature/development`, starting HEAD `6f02b7e`; changes remain uncommitted. Next check: after the development server refreshes its CSS, inspect the button at mobile/desktop sizes in light/dark themes. No new automated test files or dependencies.
+- Owner refinement: made `Back to home` compact with inline-flex sizing, 14px text, smaller padding, a visible border and a subtle theme-aware background. Preserved its 44px touch target, keyboard focus and `/` destination. PostCSS parsing and `git diff --check` PASS; browser styling recheck could not complete because the existing server timed out waiting for network idle. No new test files, commit or server restart.
+
 ### Remaining scope and next actions
 
 This owner-performed result does not establish production-load testing, hosted deployment verification, physical-device/PWA installation, Safari or comprehensive screen-reader/accessibility acceptance. Practical deployment/environment/security/private-storage checks and real hosted login/PDF behavior remain deployment-specific gates; no production readiness claim is made here. No genuine workflow defect was reported by the owner.
 
 Student email verification is the next planned authentication improvement, subject to separate implementation review and authorization. Preserve the approved personal-email, email/password, single-use verification-link direction, no extra Admin approval after verification, Adviser-controlled group assignment, future Admin/Adviser invitations, deferred Google Sign-In and existing PostgreSQL authentication. No authentication feature is implemented by this closure. Next work is practical capstone deployment readiness and separately authorized authentication improvements, not Gate A.2.
+
+---
+
+## 2026-10-21 - Phase 9 closure and Phase 10 transition (documentation only)
+
+### Authority, checkout and closure decision
+
+Owner-authorized task: lean repository verification, documentation reconciliation and handoff only. The owner has stopped expanding Phase 9 UI requirements and selected deployment preparation as the next direction. **Phase 9 outcome: PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope. No material core-scope blocker was identified in this source/history/evidence review. This does not establish production readiness or completion of the deferred device/deployment checks below. This current handoff supersedes older pending-Phase-9, Phase-9.1-only, light-only and next-phase status labels; dated evidence remains historical.
+
+- Verified branch: `feature/development`.
+- Verified HEAD: `6f02b7ebb0d7978c415bb3248f7008f662863d08` (`chore(phase9): remove unused fixture tooling and close manual acceptance`). No new commit in this task.
+- Initial dirty paths: `app/(auth)/login/page.tsx`, `app/globals.css`, `docs/MASTER_CONTEXT_UPDATED.md`; nothing staged. The login/CSS changes and complete pre-existing login-navigation handoff are preserved. They are not newly accepted styling evidence from this review.
+- Read authority in order: AGENTS, Source of Truth, relevant current/Phase 9 Master Context handoffs, Architecture; then verified Git state. Inspected actual source, schema definitions where relevant, commit history and retained acceptance records. No database-state inspection was needed; Database documentation was not changed.
+
+### Implementation and retained evidence
+
+| Area | Current implementation and evidence supporting closure |
+|---|---|
+| Shared foundation/authentication | `906bca0` foundation; `e3bf3b3` auth/dashboard refinement; `f3b6dd5` public landing; `e04fb6c` role-aware responsive navigation; `e294ce7` approved Light/Dark/System; `f2ef9a9` shared Settings. Retained focused Chromium, keyboard/focus, theme and responsive evidence; not rerun here. Current login/register UI and custom auth source inspected. |
+| Student dashboard and Research Submissions | `e498819` accepted Student/notification refinement. Inspected `student-workspace.service.ts`, `student-research.tsx`, `student-research-view.ts`, research dialog/action/service/repository and paper schema. Multiple projects remain supported, sorted newest-created with ID tie-breaker; the compact selector scopes details, PDF paper ID, versions and permitted feedback together. Numeric version history, version-specific feedback, historical PDF control and safe modal outcomes remain. Existing Student unit/Chromium and owner visual acceptance support closure; no new upload or selector test claimed. |
+| Adviser | `d02443d` accepted overview, groups/members, project/version submission directory and review details. Existing A/B/C unit/Chromium, review outcomes, ownership denials and cleanup evidence retained. Current overview and role guard inspected. |
+| Admin/repository | `dae109b` accepted dashboard/reports, user/governance/group management and publication UI, with focused unit/Chromium/transactional evidence retained. Current Admin overview inspected. No role or publication-policy changes. |
+| PWA | `9222645` online-first foundation. Current `app/manifest.ts`, root layout, dashboard layout/help, icons and Next configuration inspected against installed manifest/PWA guidance. Manifest has `/dashboard` start, `/` scope and `standalone` display; PNG signatures/dimensions checked locally: 192x192, 512x512, Apple 180x180. Earlier MIME/manifest/parser, ordinary browser navigation/logout and responsive/keyboard PASS evidence retained, including the later current-theme reconciliation. These are not physical-installation results. |
+| Redirect regression | `f5183a5` retains the minimal pre-stream Adviser/Student authorization correction and reconciled tests. The 2026-10-19 handoff records fresh production build, all six cross-role redirects, normal auth/navigation runner and supplementary development matrix PASS after correction. Earlier React 310 failure/proposal is superseded by that correction; development HMR console limitations remain disclosed. |
+| Final core workflow | Phase 9.6 is **PASS / CLOSED for owner-performed manual scope: 11 PASS, 0 FAIL**, as recorded at `6f02b7e`: Student login, private Draft restriction, PDF v1, start review, revision feedback, PDF v2, preserved history, approval, Admin publication, repository/approved PDF and final unauthorized-access check. Codex did not independently execute or rerun those eleven steps; no new logs/screenshots are claimed. |
+
+Owner-approved multiple-project behavior is preserved. A Student's one-active-group rule does not impose one project per group. No archival/replacement rule or one-project restriction is proposed. Existing authorization, private PDFs/300-second signing, version history, original-submitter feedback visibility, notifications and human review decisions remain the implementation authority.
+
+### Nonblocking limits and unfinished release gates
+
+- Actual Android Chrome, iPhone Safari and desktop Chrome/Edge installation, standalone launch/navigation/logout/session lifecycle and device icon cropping are unverified. The earlier Chromium standalone override was unsupported. Production HTTPS, hosted authentication/PDF behavior and deployment smoke tests remain future gates; manifest configuration is not proof of installation.
+- Physical devices, Safari and comprehensive screen-reader/accessibility certification remain unverified. Retained 360px/1280px Chromium Light/Dark/keyboard/contrast evidence is bounded desktop-engine/mobile-viewport acceptance.
+- The pre-existing Back to home link/CSS refinement is uncommitted. Its recorded click/Enter navigation and static checks are retained, while final mobile/desktop Light/Dark styling verification remains pending after stale development CSS/timeouts. No review rerun or acceptance is claimed here; no core-workflow defect is established by this styling gap.
+- Workspace and reporting reads are not transaction-consistent snapshots; some directories/history remain unpaginated and workspace reads grow with project/version count. Historical local PostgreSQL connection exhaustion/pool-retention behavior is not fully explained, and sustained/hosted reliability is unverified. Carry these into practical deployment readiness; no new load test or pool change is authorized here.
+- Previously issued signed URLs can remain usable until their 300-second expiry; strict persisted-path validation and private-storage rules remain. Historical live PDF/expiry tests and owner PDF checks are retained evidence, not new retrieval/expiry tests in this review.
+- Groq remains hard-disabled in both application/pilot availability functions. Phase 8 remains static/mock-only; institutional verifier/consent/provider/deployment gates are unfinished. Student email verification, email delivery and native-Mobile/Desktop functionality are not implemented by this closure. Panel Evaluation remains excluded; CI remains deferred.
+- Gate A.2 is discontinued, not frozen for restart. `tests/fixtures/phase96/` is absent and was not recreated. External protected enrollment state remains untouched; no cleanup or access is authorized here.
+
+### Platform feasibility handoff (proposed, not integrated)
+
+**Expo mobile reuse is promising, but integration readiness is not established.** Owner-supplied candidate: `https://github.com/Genryux/thesishsai`. The preliminary uploaded-ZIP audit reported Expo React Native, Expo Router, TypeScript, NativeWind, Axios/TanStack React Query, Student-oriented screens, document/file handling, Secure Store and mock auth/API infrastructure. These are external findings requiring verification against actual mobile source; this task does not independently establish them and does not attribute them to the Next.js application.
+
+Preserved external integration concerns: mock-generated auth tokens; hardcoded Student-ID fallbacks; insecure mock-style profile/password operations; missing real Next.js mobile API integration; private PDF access requiring backend authorization; and navigation treating stored-token presence as sufficient. A future authorized source review must resolve these concerns before integration readiness can be claimed.
+
+| Platform | Working direction and boundary |
+|---|---|
+| Web | Existing Next.js application and functioning online-first PWA baseline. |
+| Desktop | Existing PWA initially. Evaluate specialized desktop capabilities; Electron only if justified and separately approved. |
+| Mobile | Separate Expo repository is a reuse candidate only; no approved integrated native application. |
+| Backend | Shared existing services, PostgreSQL, authorization and private Supabase Storage. Future Mobile requires secured API contracts, compatible authentication and server-enforced identity/role/ownership; browser Server Actions are not an assumed direct Expo interface. |
+
+The professor expects specialized/unique Mobile and Desktop functionality beyond ordinary Web. No explicit PWA prohibition or Electron mandate was reported. Candidate specialized features and exact interpretation remain design decisions for owner/professor discussion, not approved requirements. No native Mobile/Electron completion, requirement or deployment is claimed. No mobile repository was cloned, copied, merged, modified or installed.
+
+### Proposed Phase 10 working sequence (subject to owner approval)
+
+**Phase 10 — Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility.** This records a working roadmap only; no implementation or activation starts automatically.
+
+| Step | Proposed scope and required boundary |
+|---|---|
+| **10.0 — Platform Feasibility Review** | Preserve the external Expo audit, identify API/auth/private-document integration boundaries and security concerns, and clarify conditional Desktop/PWA/Electron direction and specialized-platform requirements. This handoff records the preliminary findings only; actual mobile-source verification and integration decisions remain unresolved. No implementation. |
+| **10.1 — Student Email Verification and Authentication Readiness** | Retain custom PostgreSQL/JWT/bcrypt. Plan expiring single-use verification links, hashed-token storage, server-side enforcement, resend/request limits and secure new/existing-Student transition, including existing sessions. Personal email remains permitted; verification proves mailbox ownership, not enrollment. No extra Admin approval after verification; Advisers assign groups. Preserve Admin/Adviser authentication; invitations remain a separately approved later improvement. Design future Mobile authentication compatibility. Provider, lifetime, schema, transition/recovery and delivery readiness require review; do not activate real sending beforehand. |
+| **10.2 — Production Environment Preparation** | Prepare a separate clean production PostgreSQL database, production private Supabase Storage, environment/secret separation, email-sender configuration, target-specific migration/bootstrap/backup plan, connection/resource readiness and deployment security review. Do not convert the development/test database into production or infer production migration state from local files. |
+| **10.3 — Vercel Deployment** | Separately authorize deployment of the existing Next.js PWA, verify production configuration and HTTPS, and preserve authorization/private-document rules and hard-disabled Groq. Does not include native Mobile or Electron. |
+| **10.4 — Deployment Smoke Testing** | Verify hosted authentication/Student verification; Student PDF submission and Adviser review; version/feedback history; repository/private PDF retrieval; basic Admin operations and safe failures. Carry forward role/ownership/session and device/PWA acceptance gaps; local/owner historical PASS is not hosted PASS. |
+
+**Future platform-specific implementation:** Evaluate Expo integration and desktop-specialized functionality against the professor's requirement as separately approved work. Do not expand Vercel deployment into a full native-Mobile/Electron project. **Phase 11 — Final Testing, Evaluation & Documentation** retains final QA, user evaluation, capstone demonstration and documentation; not started here.
+
+### Documentation, checks and exact next action
+
+- Files updated by this task: `docs/MASTER_CONTEXT_UPDATED.md` (current checkpoint, closure/evidence/limits and working roadmap); `docs/SOURCE_OF_TRUTH_UPDATED.md` (PWA-first clarification and durable platform direction); `docs/ARCHITECTURE_UPDATED.md` (existing client versus proposed authenticated Mobile boundary); `AGENTS.md` (misleading operational checkpoint/theme/next-action instructions). Historical milestones and the pre-existing login-navigation handoff are retained. No thesis manuscript edit.
+- Checks performed: read-only Git branch/HEAD/status/history/diff inspection; focused source/schema-definition and installed-framework-doc review; local icon signature/dimension inspection; source search for service workers/offline/push code and hard-disabled Groq gates; documentation diff review. Final `git diff --check` PASS. Preservation checks PASS: only the four authorized documents changed from the pre-edit snapshot; all 338 other tracked files match, including the existing login/CSS edits; historical AGENTS body and complete Master Context history/login handoff retained; unchanged HEAD/branch, empty index, no untracked files and no recreated fixture framework. No browser, manual workflow, unit/integration suite, lint, TypeScript or build rerun in this documentation task. Historical PASS results above remain attributed to their original runs or the owner.
+- Scope: no application code, schema/migrations, data/Storage, environment/secrets, packages, email provider, deployment or mobile repository modified. No staging, committing, pushing, merging or AI/provider calls. Final working tree has six modified paths: the four documentation files and two preserved pre-existing application files; nothing staged.
+- **Phase 10.1 is ready for owner discussion**, using the preserved approved authentication direction and current custom auth source. Registration currently creates a Student session immediately and login has no email-verification gate; the proposed future policy is not current behavior. Discuss delivery readiness, new/existing-account and session transition, token/rate-limit/recovery/schema decisions and future API compatibility, then obtain separate implementation authorization. Phase 10.0 findings can inform that discussion without authorizing integration. Stop after this handoff; do not start Phase 10.1 implementation automatically.
+
+## 2026-10-21 - Owner-requested sticky landing header
+
+- Scope: the owner separately authorized making the landing page header sticky. `app/page.module.css` adds `position: sticky`, `top: 0`, `z-index: 10` and the existing theme background token to `.header`. Existing responsive wrapping, spacing, branding and controls are preserved. No schema/migration or workflow changes.
+- Verification PASS: `npx.cmd tsc --noEmit`, `git diff --check`, and local Chromium checks against the existing development server at 360px/1280px in Light, Dark and System. In all six cases the header stayed at viewport top after scrolling, its background matched the page, it painted above underlying content and no horizontal overflow occurred. Theme selection, Enter/Escape and visible focus passed; all seven landing-page links reached their destinations. Scrolled mobile Light and desktop Dark screenshots were visually inspected. No production build or physical-device test was run.
+- Scoped Anti-Slop delivery gate: Hard Gate PASS (six responsive/theme cases, keyboard checks and seven link click-throughs); Purpose Gate PASS (opaque background and stacking keep scrolling content from obscuring navigation, no decorative additions); Liveliness PASS (approved academic direction and ENERGY 1 / RHYTHM 2 / MOTION 1 preserved); Craftsmanship PASS (four CSS declarations, existing tokens and controls, inspected mobile/desktop screenshots). Existing approved content/design is outside this narrow change.
+- Git: starting HEAD `6f02b7e`, branch `feature/development`; uncommitted. Preserved all pre-existing application/documentation edits. No staging, commit, deployment or database operations. Phase 10.1 remains ready for discussion only.
