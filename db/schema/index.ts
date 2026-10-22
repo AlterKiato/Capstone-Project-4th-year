@@ -10,3 +10,4 @@ export * from "./notification";
 export * from "./activity-log";
 export * from "./ai-governance";
 export * from "./ai-pilot-attempt";
+export * from "./email-verification";

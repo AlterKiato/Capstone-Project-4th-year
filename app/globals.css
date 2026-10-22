@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+.verification-email { overflow-wrap: anywhere; }
+.verification-message { padding: 0.75rem; border-left: 3px solid var(--action); background: var(--notice); color: var(--foreground); }
+
 :root {
   color-scheme: light;
   --background: #f6f8fb;

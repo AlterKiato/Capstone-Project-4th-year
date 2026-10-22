@@ -4,6 +4,7 @@ import ThemePreferences from "@/components/theme-preferences";
 import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
 import { getRoleName, ROLE_IDS } from "@/lib/auth/roles";
 import styles from "./settings.module.css";
+import Link from "next/link";
 
 export default async function SettingsPage() {
     const account = await getDashboardAccount();
@@ -23,6 +24,7 @@ export default async function SettingsPage() {
                     <div><dt>Email</dt><dd>{account.email}</dd></div>
                     <div><dt>Role</dt><dd>{getRoleName(account.roleId)}</dd></div>
                 </dl>
+                {account.roleId === ROLE_IDS.STUDENT && <p><Link href="/dashboard/student/verify-email">Email verification</Link></p>}
             </section>
             <section className="dashboard-panel" aria-labelledby="appearance-heading">
                 <h2 id="appearance-heading">Appearance</h2>

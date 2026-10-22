@@ -18,6 +18,8 @@ export const users = pgTable("users", {
 
     email: varchar("email", { length: 255 }).notNull().unique(),
 
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+
     password: varchar("password", { length: 255 }).notNull(),
 
     roleId: integer("role_id")

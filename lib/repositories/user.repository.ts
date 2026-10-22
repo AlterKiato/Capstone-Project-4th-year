@@ -2,10 +2,21 @@
 
 import { db } from "@/lib/db";
 import { users } from "@/db/schema";
-import { eq, desc, inArray, asc } from "drizzle-orm";
+import { eq, desc, inArray, asc, sql } from "drizzle-orm";
+
+// Stage 1 must also run BEFORE the verification migration is applied. Explicit
+// projections and INSERT columns keep legacy operations off the pending column.
+const legacyUserColumns = {
+    id: users.id, firstName: users.firstName, lastName: users.lastName,
+    email: users.email, password: users.password, roleId: users.roleId,
+    profileImage: users.profileImage, isActive: users.isActive, lastLogin: users.lastLogin,
+    createdAt: users.createdAt, updatedAt: users.updatedAt,
+};
+type LegacyUserInsert = Omit<typeof users.$inferInsert, "emailVerifiedAt">;
 
 export async function findUserByEmail(email: string) {
     return db.query.users.findFirst({
+        columns: { emailVerifiedAt: false },
         where: eq(users.email, email),
     });
 }
@@ -14,6 +25,7 @@ type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export async function findUserById(id: number, executor: typeof db | DbTransaction = db) {
     return executor.query.users.findFirst({
+        columns: { emailVerifiedAt: false },
         where: eq(users.id, id),
     });
 }
@@ -44,14 +56,29 @@ export async function findAllUsers() {
 }
 
 export async function createUser(
-    data: typeof users.$inferInsert
+    data: LegacyUserInsert
 ) {
-    const [user] = await db
-        .insert(users)
-        .values(data)
-        .returning();
+    return db.transaction(async tx => {
+        const { id } = await insertLegacyUser(data, tx);
+        const user = await findUserById(id, tx);
+        if (!user) throw new Error("Account creation could not be confirmed.");
+        return user;
+    });
+}
 
-    return user;
+// Drizzle includes every table column even when .values() omits it. Use its
+// parameterized SQL builder here until migration application is approved.
+async function insertLegacyUser(data: LegacyUserInsert, executor: DbTransaction) {
+    const entries = Object.entries(legacyUserColumns);
+    const values = entries.map(([key, column]) => {
+        const value = data[key as keyof LegacyUserInsert];
+        return value === undefined ? sql`default` : sql.param(value, column);
+    });
+    const [created] = await executor.execute<{ id: number }>(sql`insert into ${users}
+        (${sql.join(entries.map(([, column]) => sql.identifier(column.name)), sql`, `)})
+        values (${sql.join(values, sql`, `)}) returning ${users.id} as "id"`);
+    if (!created) throw new Error("Account creation could not be confirmed.");
+    return created;
 }
 
 /**
@@ -113,7 +140,7 @@ export async function findUsersByRoleId(
     roleId: number
 ) {
     return await db
-        .select()
+        .select(legacyUserColumns)
         .from(users)
         .where(
             eq(
@@ -123,12 +150,11 @@ export async function findUsersByRoleId(
         );
 }
 // Privileged creation locks and rechecks the acting Admin in the same transaction.
-export async function createManagedUserForAdmin(data: typeof users.$inferInsert, actorId: number) {
+export async function createManagedUserForAdmin(data: LegacyUserInsert, actorId: number) {
     return db.transaction(async tx => {
         const [actor] = await tx.select({roleId: users.roleId, isActive: users.isActive}).from(users).where(eq(users.id, actorId)).for("update");
         if (!actor?.isActive || actor.roleId !== 1) return null;
-        const [created] = await tx.insert(users).values(data).returning({ id: users.id });
-        return created;
+        return insertLegacyUser(data, tx);
     });
 }
 

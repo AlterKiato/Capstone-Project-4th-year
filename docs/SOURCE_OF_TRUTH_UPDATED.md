@@ -717,3 +717,27 @@ Phase 9.6 is **PASS / CLOSED for the agreed owner-performed manual core-workflow
 The owner has discontinued Gate A.2. The abandoned `tests/fixtures/phase96/` provisioning framework, dedicated tests and supporting scripts are removed from the current codebase to keep the project within practical capstone scope. Earlier frozen-tooling and preserve-fixture instructions above are historical and superseded by this removal authorization; the utility is no longer available. Existing useful acceptance tests and shared lifecycle/navigation/server helpers remain. External protected enrollment state is left untouched and requires separate authorization for deletion. Do not rebuild or restart Gate A.2.
 
 The approved authentication plan above remains preserved and unimplemented: Student personal-email registration with email/password; planned time-limited single-use verification links; no extra Admin approval after verification; Adviser-controlled group assignment; future Admin/Adviser invitations; deferred Google Sign-In; and existing PostgreSQL authentication. Student email verification is the next planned authentication improvement, requiring separate review and implementation authorization. This closure changes no authentication behavior, schema, database data or Storage objects.
+
+## 2026-10-21 — Phase 10.1B.1 Student verification backend foundation
+
+Owner-authorized Stage 1 backend implementation adds verification schema definitions, a generated **unapplied** migration, server-only request/explicit-confirmation services and a development/test delivery seam. This supersedes older statements that no verification code exists; it does not establish operational email delivery or mandatory verification. Detailed files, checks and limitations are in the latest Master Context handoff.
+
+Registration still creates a Student session immediately. Existing/new Students and Admins/Advisers retain their current password-login behavior, active-account checks and authorization. No registration/login hook sends verification messages; no verification UI, route, mobile API, normal-session creation on confirmation, real sender or enforcement is implemented. Existing accounts are not backfilled as verified. Email ownership remains separate from active status, enrollment and AI eligibility/consent; Groq stays hard-disabled.
+
+The approved policy for this foundation is a 60-minute opaque link, 60-second resend cooldown and five requests per account per rolling hour. Requests require a current authenticated active Student; confirmation requires the valid token and matching current active Student/email. Endpoint/IP abuse protection, link/referrer/log hygiene, delivery configuration, existing-account/session transition and any login enforcement must be reviewed before separately approved integration. No database migration was executed and no live account, membership, research history or Storage object was changed.
+
+
+## 2026-10-21 ? Phase 10.1B.1 development database acceptance
+
+The separately owner-authorized PostgreSQL acceptance supersedes the preceding UNAPPLIED status **for the verified local development/test database only**. Migration 0012 was applied once through Drizzle after local identity verification, exact 0000?0011 ledger reconciliation and explicit owner confirmation that the dataset contains no real Student data. Resulting schema/13-entry ledger and 15 focused PostgreSQL acceptance groups passed; run-owned synthetic records were cleaned and all pre-existing records preserved. See the latest Master Context for evidence and limits.
+
+Stage 1 remains unchanged: no required verification, automatic sending, UI/route, production provider or normal session creation on confirmation. Existing accounts were not automatically verified. Production/staging migration and email delivery remain unverified. Phase 10.1B.2 requires separate owner approval.
+
+
+## 2026-10-22 - Phase 10.1B.2 optional local verification experience
+
+The separately authorized checkpoint adds Student-only status/request UI, explicit public confirmation and development-only Mailpit capture using the existing foundation. Registration/login remain unchanged and verification remains optional. Settings is the sole new Student navigation entry; no research access gate or automatic send/verification is introduced.
+
+Generated links carry tokens in fragments, removed by the browser before explicit confirmation POST; GET never consumes a token and confirmation never creates a normal session. Current active-Student/database email checks and the existing cooldown/rolling quota remain authoritative. Production mutations and delivery are disabled even when the local flag is enabled. Process-local shared/account attempt limits are deliberately not represented as distributed/per-IP controls.
+
+Real local HTTP/cookies/PostgreSQL/SMTP/Chromium and production refusal/cache-header checks passed; complete evidence, exact changed files and limits are in the latest Master Context. Production responses are no-store/no-referrer; installed Next.js overrides development page caching to no-cache/must-revalidate, explicitly documented. No new schema/migration, existing-record mutation, real email, mobile API, deployment or mandatory enforcement occurred. Production sender, durable abuse controls, existing-account/session transition/recovery and dependency advisories require owner review before activation.

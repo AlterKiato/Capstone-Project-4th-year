@@ -2814,3 +2814,173 @@ The professor expects specialized/unique Mobile and Desktop functionality beyond
 - Verification PASS: `npx.cmd tsc --noEmit`, `git diff --check`, and local Chromium checks against the existing development server at 360px/1280px in Light, Dark and System. In all six cases the header stayed at viewport top after scrolling, its background matched the page, it painted above underlying content and no horizontal overflow occurred. Theme selection, Enter/Escape and visible focus passed; all seven landing-page links reached their destinations. Scrolled mobile Light and desktop Dark screenshots were visually inspected. No production build or physical-device test was run.
 - Scoped Anti-Slop delivery gate: Hard Gate PASS (six responsive/theme cases, keyboard checks and seven link click-throughs); Purpose Gate PASS (opaque background and stacking keep scrolling content from obscuring navigation, no decorative additions); Liveliness PASS (approved academic direction and ENERGY 1 / RHYTHM 2 / MOTION 1 preserved); Craftsmanship PASS (four CSS declarations, existing tokens and controls, inspected mobile/desktop screenshots). Existing approved content/design is outside this narrow change.
 - Git: starting HEAD `6f02b7e`, branch `feature/development`; uncommitted. Preserved all pre-existing application/documentation edits. No staging, commit, deployment or database operations. Phase 10.1 remains ready for discussion only.
+
+## 2026-10-21 — Phase 10.1B.1 Student email verification persistence/core services
+
+### Authority and baseline
+
+The owner's attached Phase 10.1B.1 request explicitly authorizes backend schema definitions, migration generation/review, core verification services, development/test delivery abstraction and focused tests. It authorizes no migration application, live data writes, UI/routes, auth enforcement, real sending, installation, deployment or commit. Phase 10.1A was a source-only inspection; this handoff records implementation of the next authorized checkpoint. Verified start: `feature/development`, HEAD `1c856b835e65e9beb46a43daf66ad81ae00e9886`, clean working tree and index. Read AGENTS, canonical authentication/planning handoffs, Architecture, Database, source, migrations/test patterns and installed Next.js authentication guidance. Phase 9 remains closed with documented limitations; Expo integration remains unimplemented.
+
+### Implemented scope and exact files
+
+- Schema: `db/schema/users.ts`, `db/schema/email-verification.ts`, `db/schema/index.ts`.
+- Generated only: `db/migrations/0012_student_email_verification.sql`, `db/migrations/meta/0012_snapshot.json`, `db/migrations/meta/_journal.json`.
+- Backend: `lib/repositories/email-verification.repository.ts`, `lib/services/email-verification.service.ts`, `lib/validations/email-verification.ts`, `lib/email/verification-delivery.ts`.
+- Stage 1 schema compatibility: `lib/repositories/user.repository.ts`, `lib/repositories/repository-publication.repository.ts`.
+- Tests: `tests/phase101b1-email-verification.unit.cjs`, `tests/phase101b1-email-verification-sql.unit.cjs`.
+- Documentation: this file, `docs/SOURCE_OF_TRUTH_UPDATED.md`, `docs/DATABASE (1).md`.
+
+Nullable timezone-aware `emailVerifiedAt` has no default/backfill. A single request row per user stores requested email, unique SHA-256 digest, expiry, optional consumed timestamp, last request time and up to five request timestamps. The timestamp array is the persisted rolling-window/count information: keep instants newer than one hour ago and reject if five remain. Requests at exactly the hour boundary age out. Primary key/FK, digest uniqueness and narrow validity checks are the only added constraints/indexes. Migration SQL is additive; no existing field/type/relationship is dropped or rewritten. It remains **UNAPPLIED**.
+
+`requestStudentEmailVerification(delivery)` accepts no caller-selected user ID/email. It resolves the signed-in Student and locks/rechecks the current database account, including active status, role, current email and absence of verification. It generates 32 cryptographically random bytes (64 canonical hex characters), persists only SHA-256, expires in 60 minutes and applies a 60-second cooldown/five-per-rolling-hour limit. Failed and uncertain deliveries retain quota; resend after limits permit replaces the prior token, without creating another account. Already verified accounts cannot request another link.
+
+`confirmStudentEmailVerification(token)` validates canonical token input, resolves its digest internally, then locks the same user before rereading the current token/account. Expired, consumed, superseded, changed-email, inactive, missing and non-Student states fail with controlled results. Digest/current-email/unused/expiry and active-Student conditions are rechecked on the updates. Consumption and the account verification timestamp commit together; failure throws through the transaction for rollback. Only the verification timestamp is changed on the account. Confirmation creates no normal session. There is no GET handler or automatic consumption on opening a link.
+
+All verification writers lock the user first, consistent with Admin role/status mutation ordering; database `clock_timestamp()` is read after acquiring the lock to avoid stale transaction-start time following a wait. Token lookup outside the transaction is revalidated under the lock. Delivery occurs only after commit and outside the lock. Consequently an email can arrive after a later resend and contain a superseded link; that old link is safely rejected. There is no queue/outbox or guaranteed delivery in this scope.
+
+Development delivery is an explicit injected callback carrying only recipient, subject and verification instructions/link. It has no default sender, SDK, real sending, routine logging or dependency addition. It rejects production/unset environments both when created and when used, and accepts only HTTP loopback page URLs without credentials/query/fragment. The mock callback captures synthetic messages in memory. A future local Mailpit adapter can use the seam; Mailpit is not installed or integrated here. Raw tokens/URLs are confined to transient server/delivery memory and are absent from service results and persistence.
+
+### Stage 1 preservation and migration compatibility
+
+Auth actions/services, bcrypt/JWT/cookies, registration sign-in, password login and active/role/ownership policies are unchanged. No auth path sends verification messages or requires `emailVerifiedAt`; no existing account is automatically verified/recreated and no live data/Storage is touched. Drizzle normally includes every schema column in full-row queries and even inserts with omitted values. Adding a pending column would therefore break existing operations before migration application. Narrow repository compatibility changes exclude the pending column from existing user reads and publication account reads, and use parameterized Drizzle SQL with explicit legacy columns for both public/managed inserts. Public creation reads its legacy projection within the same transaction. No client controls SQL identifiers; parameters retain column encoders/default handling. SQL-double coverage verifies these operations omit the pending column. New verification functions require the migrated schema but remain unconnected to the application.
+
+### Validation and limits
+
+- PASS: `node --import tsx --test tests/phase101b1-email-verification.unit.cjs tests/phase101b1-email-verification-sql.unit.cjs` — **24 reported tests, 0 failures** (22 behavior cases plus two parent tests). Real service/crypto/development transport, serialized transactional in-memory double and actual Drizzle SQL with a driver double; no database/network. Coverage includes digest-only storage, 60-minute expiry and boundaries, explicit confirmation/replay/malformed/tampered links, cooldown/resend invalidation, rolling-hour rollover, concurrent request/confirmation/resend cases, current-account/email checks, send/persistence/commit failure recovery, rollback callbacks and production transport refusal. Actual registration/login actions use real bcrypt against mocked persistence to confirm immediate registration session creation and unverified Student/Admin/Adviser password login; verification delivery remains untouched.
+- PASS: `node --import tsx tests/phase977b-users.unit.cjs` and `node --import tsx tests/phase977c-management.unit.cjs` — retained user/Admin/group/publication authorization/failure regression, synthetic persistence only.
+- PASS: targeted ESLint over changed schema/backend/test files; `tsc --noEmit --incremental false`; `drizzle-kit check --dialect=postgresql --out=./db/migrations`; whitespace diff review. Generation used explicit local schema/out/dialect arguments and `--name=student_email_verification`; no database connection or migration execution was required.
+- PASS: generated snapshot comparison preserves every existing table definition except the one nullable user column and adds only the request table. SQL review confirms exactly three additive statements: CREATE TABLE, ADD COLUMN and ADD CONSTRAINT. Final HEAD remains the baseline, index empty; 17 scoped files are modified/new and unstaged.
+- Production build **NOT PASSED**: `npm.cmd run build` failed fetching the existing Geist and Geist Mono Google Fonts due to a connection failure. No font/source workaround or network-enabled retry was made. TypeScript is independently PASS; this is not a build PASS.
+- Live PostgreSQL migration/constraint/locking/rollback and actual pre-migration registration acceptance were not run. Those require a separately approved isolated test database; no real/shared database was queried or mutated. SQL-double checks are not PostgreSQL acceptance. No browser/full-suite tests, Mailpit integration or real email delivery were run.
+
+### Remaining boundaries and exact next action
+
+Owner review comes next. Recommended Phase 10.1B.2 scope: approve an isolated test database and deliberate application of the reviewed pending migration there, verify actual database races/constraints/rollback and Stage 1 login, then separately authorize minimal explicit-confirmation UI/actions and loopback Mailpit wiring. Add endpoint/IP request and confirmation abuse controls before exposing routes; avoid token/referrer/access-log leakage and automatic GET consumption. No unrestricted account lookup or caller-supplied identity shortcut is authorized. Existing-account/session enforcement and production sender/recovery decisions remain separate; Stage 1 continues without mandatory verification. Future Expo can reuse confirmation and account/token persistence, but requests currently use the browser session wrapper; a secured mobile principal/API boundary remains future work. No JWT/bcrypt/session redesign, invitations, password recovery implementation, mobile API or provider activation was added.
+
+No migration SQL, migrate/push, seeds, real/shared database mutation, actual email, dependency installation, deployment, staging, commit or push occurred. Leave this checkpoint unstaged/uncommitted at the original HEAD and do not start Phase 10.1B.2 automatically.
+
+
+## 2026-10-21 ? Phase 10.1B.1 PostgreSQL migration and database acceptance
+
+### Authority and isolation
+
+Owner-authorized follow-up: inspect the configured existing isolated development/test PostgreSQL database, preflight/apply only migration 0012, create and clean run-owned synthetic records and execute focused database acceptance. Starting branch `feature/development`, HEAD `1c856b835e65e9beb46a43daf66ad81ae00e9886`, exactly the expected 17 modified/new files, empty index. All existing implementation work is preserved; the only new file is `tests/phase101b1-email-verification.acceptance.cjs`, plus appended updates to the three existing canonical handoffs.
+
+Read-only inspection found one consistent development configuration, loopback PostgreSQL on port 5432, database `thesishs_ai`, PostgreSQL 18.4, and the same database OID/cluster identity recorded in historical local testing. All 10 existing accounts have test markers; 5 of 18 papers and 9 of 12 groups lack explicit test markers. Codex therefore paused migration execution for the required data-provenance check. The owner explicitly confirmed: **?All data is development/test; no real Student data.?** Isolation rests on this owner attestation together with verified local identity/configuration/history, not on naming heuristics alone. No production/staging/Supabase database was contacted or modified. No credentials, URLs, raw tokens or account PII were printed.
+
+### Migration and resulting schema
+
+Before any write, the ledger contained exactly 12 entries whose hashes and timestamps matched local migrations 0000?0011. Migration 0012, its request table and the nullable user column were absent. Reviewed SQL has exactly three additive statements: CREATE request table/constraints, ADD nullable timezone-aware user column, ADD restrictive user FK. No unrelated migration was pending. Four uniquely marked synthetic accounts (two Students, one Admin, one Adviser) were created and successfully password-authenticated BEFORE migration application, exercising the explicit legacy-column repository path.
+
+**Migration `0012_student_email_verification.sql` was applied successfully to this verified development/test database only**, using the installed Drizzle PostgreSQL migrator. The resulting 13-entry ledger exactly matches all source hashes/timestamps; migration 0012 was applied once. The nullable `users.email_verified_at` has no default/backfill. The new request table has seven correctly typed fields including the timezone-aware timestamp array, its primary key, unique token digest, restrictive FK and four checks (plus PostgreSQL's required-field constraints). Actual constraint violations were verified. All pre-existing public-table column definitions, constraints and indexes compare unchanged after excluding the explicitly added column/table.
+
+### Actual acceptance and validation
+
+Command: `node --import tsx tests/phase101b1-email-verification.acceptance.cjs --confirmed-test-data --apply-reviewed-0012`.
+
+**PASS: 15 PostgreSQL acceptance groups, 0 failures, plus independent cleanup/preservation verification.** The runner uses a bounded real PostgreSQL pool and actual repositories/services/bcrypt/crypto. Browser request-session resolution and email delivery are isolated mocks; no provider/network email or normal authentication cookie is created. The explicit rollback fault is injected only in the test harness after both real verification updates, inside the actual database transaction.
+
+- Persistence: digest-only storage, exact 60-minute stored lifetime, requested-email binding and consumption/verification timestamp persistence.
+- Constraints: actual user FK, one row per user, digest uniqueness, expiry/consumption ordering, canonical digest and one-to-five request-times enforcement; invalid inserts roll back.
+- Confirmation: valid success, replay/expired/malformed/invalid/replaced-token denial; changed-email, inactive-account and non-Student denial; no session creation.
+- Concurrency: eight simultaneous confirmations yield exactly one committed success. Eight simultaneous first/resend requests yield one allowed request per cooldown stage, and no request after the fifth in-window issuance. Ageing out one request permits a replacement while retaining five in-window instants.
+- Transactions/locking: injected failure after BOTH updates rolls back account verification and consumption; retry succeeds. A real held account lock is observed through PostgreSQL lock-wait metadata; confirmation remains blocked, and a token expiring during the wait is denied after release.
+- Recovery: failed mock delivery retains quota and the unverified account; a later allowed resend replaces the token and confirms successfully.
+- Compatibility: synthetic Students/Admin/Adviser created before migration still password-authenticate afterward; unverified Student login remains allowed and registration sends no verification message. No password guesses, resets or login attempts against pre-existing owner accounts occurred. Their complete stored rows/password hashes remain unchanged; testing those accounts' actual credentials would require privately supplied owner credentials.
+- Time-based service tests age ONLY this run's synthetic request timestamps to avoid waiting 60 seconds/hour. The account-lock expiry test uses real elapsed time and PostgreSQL wall-clock time; no application clock override is used.
+
+PASS: the 24 focused verification unit/SQL-double tests; targeted acceptance-runner ESLint; `tsc --noEmit --incremental false`; non-mutating Drizzle migration check; `git diff --check`. No unrelated Phase 9 suite/browser testing or production-build retry was run; the prior Google Fonts build limitation remains historical, not a new build PASS.
+
+### Cleanup and preservation
+
+Only four run-owned synthetic accounts and their verification rows were deleted, guarded by exact run marker, intended synthetic email and returned IDs. No pre-existing fixture or research record was deleted. An independent connection confirmed zero run-owned accounts/requests remain and that complete pre-existing row fingerprints/counts match for all 13 original public tables (normalizing the newly added nullable verification field). Preserved counts: users 10; groups 12; memberships 5; papers 18; submissions 32; feedbacks 21; repository rows 12; notifications 23; activity logs 29. Existing eligibility/consent/quota/role rows are included in the preservation comparisons. Only the authorized schema and migration ledger persist; normal serial-sequence gaps from synthetic inserts are intentionally not reset.
+
+### Remaining boundaries and next action
+
+No application defect was discovered in this acceptance scope. This is local PostgreSQL/service acceptance, not hosted deployment, HTTP/cookie/browser or real-email acceptance. The authenticated session is mocked; no existing-account password or browser login is claimed. Production/staging migration state is unverified. The runner refuses unconfirmed/nonlocal targets, checks the exact local identity/ledger, and supports `--accept-applied` for separately authorized reruns without reapplying 0012.
+
+Phase 10.1B.1 database acceptance is PASS for this scope. Await owner review before Phase 10.1B.2. Recommended next scope: minimal Student request/resend and explicit-confirmation UI/actions, separately authorized local Mailpit integration and focused HTTP/password-session acceptance. Include endpoint/IP abuse controls and token/referrer/access-log hygiene before route exposure. Keep registration/login and mandatory-verification policy unchanged until separately approved. No UI, route, provider, Expo, auth-enforcement or deployment implementation was added; no staging, commit or push occurred.
+
+
+## 2026-10-22 - Phase 10.1B.2 optional verification UI, local Mailpit and HTTP acceptance
+
+### Authority, baseline and scope
+
+Owner-authorized UI/actions, local-only Mailpit, endpoint/confidentiality safeguards and focused HTTP/browser testing. Verified start: `feature/development`, HEAD `1c856b835e65e9beb46a43daf66ad81ae00e9886`, expected 18 changed/new files, empty index; Phase 10.1B.1 local database acceptance is retained. The same owner-confirmed isolated development/test database was reverified by loopback address, known database/cluster identity and all 13 exact ledger hashes/timestamps before synthetic fixture writes. No migration generation, application or reapplication occurred. Existing implementation is preserved; no mandatory verification, auth-provider replacement, production sending, mobile API, deployment or commit is authorized here.
+
+Read AGENTS, DESIGN/ANTISLOP, current canonical handoffs, foundation schema/services/tests and installed Next.js authentication/data-security/Server Action/header/cache/logging guidance. Anti-Slop During remains the approved project mode (ENERGY 1 / RHYTHM 2 / MOTION 1); no global preferences, additional design skills or Figma Make work were introduced.
+
+### Exact files changed or added in this checkpoint (27)
+
+- `app/(auth)/verify-email/page.tsx`
+- `app/dashboard/settings/page.tsx`
+- `app/dashboard/student/verify-email/page.tsx`
+- `app/globals.css`
+- `components/auth/verification-confirmation-form.tsx`
+- `components/auth/verification-request-form.tsx`
+- `docs/DATABASE (1).md`
+- `docs/MASTER_CONTEXT_UPDATED.md`
+- `docs/PHASE10_1B2_LOCAL_VERIFICATION.md`
+- `docs/SOURCE_OF_TRUTH_UPDATED.md`
+- `lib/actions/email-verification.action.ts`
+- `lib/auth/verification-endpoint-limit.ts`
+- `lib/email/mailpit-delivery.ts`
+- `lib/email/verification-delivery.ts`
+- `lib/repositories/email-verification.repository.ts`
+- `lib/services/email-verification-status.service.ts`
+- `next.config.ts`
+- `package-lock.json`
+- `package.json`
+- `scripts/mailpit-local.cjs`
+- `tests/helpers/phase101b2-server.cjs`
+- `tests/phase101b1-email-verification.acceptance.cjs`
+- `tests/phase101b1-email-verification.unit.cjs`
+- `tests/phase101b2-production-http.cjs`
+- `tests/phase101b2-verification.browser.cjs`
+- `tests/phase101b2-verification.unit.cjs`
+- `tsconfig.verification.json`
+
+The existing foundation refinements are limited to a current-account read projection, fragment-link generation and corresponding extraction helpers in two retained tests. The foundation request/confirmation business service, bcrypt/JWT/session/auth actions, schema definitions and all migration SQL/snapshots/journal are preserved. Dependency changes add Nodemailer 10.1.7 and its TypeScript definitions only, plus a local Mailpit npm script; no other locked package version was changed. SMTP needs a client and the installed stack had none; the small generic SMTP dependency avoids a custom SMTP protocol implementation. There is no provider SDK or production SMTP configuration.
+
+### Implemented experience and security boundaries
+
+Routes: `/dashboard/student/verify-email` displays only the current active Student's registered email and verified/unverified state, request/resend controls, actual expiry/cooldown/quota/recovery guidance and a dashboard return. Student Settings adds one Email verification link. `/verify-email` is a public confirmation shell requiring an explicit action POST; GET/rendering never consumes the token. Confirmation uses controlled success/failure copy and links to normal password login or a new request. Anonymous successful confirmation creates no session; an already-authenticated user's existing session is not replaced.
+
+Actions ignore client-selected account/email/previous-state fields. Requests check the trusted session and current active database Student before delegating to the existing service; already-verified accounts get a controlled completed result. The existing transaction/row-lock-backed 60-second cooldown and five-per-rolling-hour policy remain authoritative, including send failures. No login/registration hook sends email and no research workflow requires verification. Admin/Adviser login and all group/history/private-storage policies are unchanged.
+
+Exposed mutations require development mode, explicit `THESISHS_LOCAL_MAILPIT=enabled` and an exact configured HTTP loopback Origin/Host. Production refuses them even with the local flag enabled. Minimal process-local fixed-window attempt budgets: 120/minute overall, 60 request attempts/minute across sources, 10/minute per requesting account (anonymous attempts share a bucket), and 30 confirmation attempts/minute across sources. No forwarding/IP header supplies identity or a throttle key, no raw IP is retained, and the map expires/bounds entries. This is not distributed or a trustworthy per-IP limiter. Shared source budgets can temporarily deny other local callers; production mutations/sending stay disabled pending durable ingress/abuse controls.
+
+Links now use `#token=...`, so generated tokens are absent from HTTP URLs and request logs. A small client component captures/removes the fragment and supplies a hidden form value only on explicit POST; all validation/lookup/consumption remain server-side. Same-tab hash navigation resets the form per link, including Strict Mode double effects and replacement/replayed links. Raw tokens are never visible page text or returned service data. They necessarily exist transiently in browser memory/form data and the private local inbox; no protection against a compromised browser/same-origin script or exposed inbox is claimed.
+
+Both routes set no-referrer, noindex/nofollow/noarchive and a private/no-store policy. Production GET/POST no-store behavior is verified below. Installed Next.js hardcodes development page headers to `no-cache, must-revalidate` in base-server.js; that is the observed local limitation, not a dev no-store PASS. Confirmation GET HTML contains no token. Next.js can log Server Function arguments in development, so that logging is disabled to avoid password/token disclosure; verification-route request logging is suppressed as well. No analytics/third-party scripts were added; browser-visible font assets are local. Incorrect manually constructed query-string token URLs remain unsupported and can expose credentials to external logs; generated links use fragments.
+
+### Local Mailpit
+
+Mailpit v1.31.6 Windows binary was fetched from the official release, SHA-256 checked against GitHub asset metadata and installed only in ignored `node_modules/.cache/thesishs-mailpit/`; no system service, PATH/global install or administrator change. Workspace network access was needed; automatic review permitted the authorized downloads. The launcher clears inherited MP_* settings, binds SMTP 127.0.0.1:1025 and UI 127.0.0.1:8025, constrains hosts/recipients, disables relay/forwarding/webhooks/update checks/reverse DNS and blocks remote message CSS/fonts. Actual owned-process listening interfaces/ports and fresh inbox were verified. All acceptance recipients were synthetic .invalid addresses; the application adapter also refuses other recipients and production execution, has bounded SMTP timeouts and no fallback/auth/logging/file/URL access.
+
+Setup, commands, runtime flags, installation provenance and remaining boundaries are in `docs/PHASE10_1B2_LOCAL_VERIFICATION.md`. Runtime opt-in/origin settings were supplied to owned test processes only; no environment file or secret was committed. Acceptance starts/stops only its own Mailpit and Next/Chromium processes and deletes only its run-specific inbox. The installed binary remains available for owner-run `npm.cmd run mailpit:local`.
+
+### Actual checks and acceptance
+
+- PASS: `node --import tsx --test tests/phase101b1-email-verification.unit.cjs tests/phase101b1-email-verification-sql.unit.cjs` - 24 reported tests, zero failures; updated only fragment extraction in the relevant helper.
+- PASS: `node --import tsx --test tests/phase101b2-verification.unit.cjs` - 8 reported tests, zero failures (7 cases plus parent). Self-only status/actions, spoofed IDs/email, active/current-role denial, exact Origin/Host, forwarded-header non-bypass, bounded/expiring budgets, production/disabled refusal and fixed-loopback synthetic-only SMTP/fragment messages covered with isolated mocks.
+- PASS: `node --import tsx tests/phase101b2-verification.browser.cjs --confirmed-test-data` - **10 development HTTP/Chromium acceptance groups**, zero failures, plus independent cleanup. Real registration, ordinary password login/cookies, PostgreSQL, Server Actions and SMTP capture; session/delivery are not mocked in this runner. Covered Student-only status/navigation, no login/registration send, client-identifier non-redirection, resend/cooldown/hourly quota, anonymous/Admin/Adviser/inactive direct POST denial, explicit anonymous confirmation/no login cookie, replay/expiry/replacement/missing-link handling, SMTP failure and recovery, process-level burst throttling despite rotating spoofed forwarding headers, no raw token in observed URLs/server logs and no page errors.
+- Visual/keyboard PASS: both new pages at 360px/1280px in Light/Dark/System (12 page/theme/viewport combinations), no horizontal overflow, scoped normal/large text contrast and 44px enabled-button targets, visible focus, Enter confirmation and actual new-control/link click-through. Screenshots inspected: mobile Dark status/confirmation and desktop Light confirmation; screenshots for both routes and Light/Dark sizes remain in ignored `test-results/phase101b2/`. These are Chromium viewport results, not physical-device/Safari/screen-reader certification.
+- PASS: final production build, Next.js 16.2.9 compile/TypeScript/page generation; the previously blocked Google Fonts fetch succeeded with authorized network access. No deployment. Both new routes are dynamic.
+- PASS: `node tests/phase101b2-production-http.cjs` - real production GET/POST no-store and no-referrer, noindex, anonymous status redirect and actual server-action refusal even when the enabled flag is supplied and a disabled client button is bypassed. No fixture writes, SMTP server or email needed.
+- PASS: TypeScript (`tsc --noEmit --incremental false`), targeted ESLint and whitespace diff checks. No unrelated Phase 9/full browser suite or migration acceptance rerun.
+- npm advisory check: 18 vulnerabilities reported, including one critical; Nodemailer is not listed. No audit fix or unrelated dependency remediation was attempted. This remains a release-readiness issue for separately approved review.
+
+Initial harness runs could not start a second Next.js dev build because the owner's port-3000 server already held the default dev lock. A dedicated ignored build directory plus `tsconfig.verification.json` resolves that without stopping the existing server; Turbopack requires the config outside its ignored output directory. Browser acceptance then exposed the same-tab fragment-state bug, which was fixed and rerun successfully. A strict development no-store assertion was corrected only after inspecting the installed framework's hardcoded dev override; strict production no-store was separately tested and passed. Failed attempts also completed independent fixture cleanup. No unsafe policy was weakened to obtain a PASS.
+
+### Preservation, cleanup and next action
+
+Each successful/failed fixture-bearing run deletes only its four uniquely marked synthetic accounts and request rows; all pre-existing users, memberships, groups, papers, submissions, feedback, repository, notifications, activity and governance/quota rows match independently computed full-row fingerprints across all 14 existing public tables. No private Storage call/object or migration was touched. Synthetic cooldown/history/expiry changes affected only owned requests. Normal serial gaps remain; no sequence reset. All owned browsers/Mailpit/Next servers exited; the existing developer server was not force-stopped. The temporary alternate generated next-env reference is restored.
+
+Scoped Anti-Slop delivery gate:
+- Hard Gate PASS: real form/link outcomes, empty/loading/error/success/recovery states, 12 responsive/theme views, contrast/target/focus checks, no fabricated content/assets or private-token copy.
+- Purpose Gate PASS: existing academic tokens/fonts/panel spacing maintain continuity; the single status panel groups current account facts, one confirmation CTA prevents scanner consumption, email wrapping handles actual long addresses and semantic feedback uses existing notice/error tokens.
+- Liveliness PASS: approved ENERGY 1 / RHYTHM 2 / MOTION 1, text branding and one action accent retained; no decorative motion/layout expansion.
+- Craftsmanship PASS: inspected mobile/desktop screenshots and keyboard action; genuine data-driven status and version-specific failure/recovery states; existing component/radius/palette conventions retained.
+
+Phase 10.1B.2 is complete for the agreed **optional local development** scope, with the documented cache/abuse/platform/dependency limits. It is not a production verification or readiness claim. Recommended next checkpoint is owner review of this implementation and the existing-account/session transition, recovery, durable abuse controls, production sender and dependency advisories before any production activation/deployment work. Future Expo must supply a separately secured API/principal entry while reusing core verification rules; no mobile/bearer/refresh/deep-link code was added. No Phase 10.1C/10.2, enforcement, real email, staging, commit, push or deployment starts automatically.

@@ -12,13 +12,14 @@ export async function findPublicationById(id: number) {
 /** Hold the account and paper locks through eligibility checks and the publication write. */
 export async function withPublicationContext<T>(paperId: number, userId: number, operation: (context: {
     tx: Transaction;
-    user: typeof users.$inferSelect | undefined;
+    user: Pick<typeof users.$inferSelect, "roleId" | "isActive"> | undefined;
     paper: typeof researchPapers.$inferSelect | undefined;
     submission: typeof submissions.$inferSelect | undefined;
     entry: typeof repositories.$inferSelect | undefined;
 }) => Promise<T>): Promise<T> {
     return db.transaction(async tx => {
-        const [user] = await tx.select().from(users).where(eq(users.id, userId)).for("share");
+        const [user] = await tx.select({ roleId: users.roleId, isActive: users.isActive })
+            .from(users).where(eq(users.id, userId)).for("share");
         const [paper] = await tx.select().from(researchPapers).where(eq(researchPapers.id, paperId)).for("update");
         const [submission] = await tx.select().from(submissions).where(and(
             eq(submissions.paperId, paperId), eq(submissions.status, "Approved")
