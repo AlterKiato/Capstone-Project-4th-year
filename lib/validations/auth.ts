@@ -49,7 +49,9 @@ export const registerSchema = z
         password: z
             .string()
             .min(8, "Password must be at least 8 characters long")
-            .max(100, "Password must not exceed 100 characters"),
+            .max(100, "Password must not exceed 100 characters")
+            .refine(password => new TextEncoder().encode(password).length <= 72,
+                "Password must not exceed 72 UTF-8 bytes"),
 
         confirmPassword: z
             .string(),

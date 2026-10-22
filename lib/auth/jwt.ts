@@ -2,6 +2,7 @@ import "server-only";
 import "dotenv/config";
 
 import { SignJWT, jwtVerify } from "jose";
+import { z } from "zod";
 
 import type { AuthTokenPayload } from "@/types/auth";
 
@@ -16,6 +17,14 @@ if (!jwtSecret) {
 const secret = new TextEncoder().encode(jwtSecret);
 
 const JWT_ALGORITHM = "HS256";
+const timestamp = z.number().int().nonnegative().safe();
+const claimsSchema = z.object({
+    userId: z.number().int().positive().max(2147483647),
+    roleId: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+    email: z.email().max(255),
+    iat: timestamp,
+    exp: timestamp,
+}).passthrough();
 
 /**
  * Creates a signed JWT containing the authenticated user's
@@ -47,9 +56,13 @@ export async function verifyToken(
     try {
         const { payload } = await jwtVerify(token, secret, {
             algorithms: [JWT_ALGORITHM],
+            requiredClaims: ["exp", "iat"],
         });
 
-        return payload as AuthTokenPayload;
+        const claims = claimsSchema.safeParse(payload);
+        if (!claims.success || claims.data.iat > Math.floor(Date.now() / 1000) || claims.data.exp <= claims.data.iat)
+            return null;
+        return claims.data;
     } catch {
         return null;
     }

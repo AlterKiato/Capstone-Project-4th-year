@@ -2,7 +2,7 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
-import { getSession } from "@/lib/auth/session";
+import { getCurrentAccount } from "@/lib/auth/current-account";
 import type { AuthTokenPayload } from "@/types/auth";
 
 /**
@@ -12,7 +12,7 @@ import type { AuthTokenPayload } from "@/types/auth";
  * Returns the authenticated session when successful.
  */
 export async function requireAuth(): Promise<AuthTokenPayload> {
-    const session = await getSession();
+    const session = await getCurrentAccount();
 
     if (!session) {
         redirect("/login");

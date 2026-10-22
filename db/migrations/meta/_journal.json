@@ -92,6 +92,13 @@
       "when": 1792594071587,
       "tag": "0012_student_email_verification",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792646366460,
+      "tag": "0013_auth_rate_limit_buckets",
+      "breakpoints": true
     }
   ]
 }

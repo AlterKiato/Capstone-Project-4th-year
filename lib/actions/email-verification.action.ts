@@ -8,6 +8,8 @@ import { requestStudentEmailVerification, confirmStudentEmailVerification } from
 import { getCurrentStudentVerificationStatus } from "@/lib/services/email-verification-status.service";
 import { verificationUserIdSchema } from "@/lib/validations/email-verification";
 import type { ServiceResult } from "@/types/auth";
+import { allowAuthAttempt } from "@/lib/services/auth-rate-limit.service";
+import { AUTH_RETRY_MESSAGE } from "@/lib/auth/auth-rate-limit-config";
 
 const unavailable = (): ServiceResult => ({ success: false, message: "Email verification is unavailable. Wait a minute and try again, or return later." });
 async function localRequest() {
@@ -28,6 +30,8 @@ export async function requestVerificationAction(_previous: ServiceResult, _formD
         const session = await getSession();
         const id = verificationUserIdSchema.safeParse(session?.userId);
         if (!allowVerificationEndpoint("request", id.success ? id.data : undefined)) return unavailable();
+        if (!await allowAuthAttempt("verificationRequest", id.success ? String(id.data) : "anonymous"))
+            return { success: false, message: AUTH_RETRY_MESSAGE };
         const status = await getCurrentStudentVerificationStatus();
         if (!status) return unavailable();
         if (status.verified) return { success: true, message: "Your email is already verified." };
@@ -39,6 +43,7 @@ export async function confirmVerificationAction(_previous: ServiceResult, formDa
     void _previous;
     try {
         if (!await localRequest() || !allowVerificationEndpoint("confirm")) return unavailable();
+        if (!await allowAuthAttempt("verificationConfirm")) return { success: false, message: AUTH_RETRY_MESSAGE };
         // The core validates length/format before database lookup; no identity comes from this form.
         return await confirmStudentEmailVerification(formData.get("token"));
     } catch { return unavailable(); }

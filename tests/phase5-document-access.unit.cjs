@@ -62,9 +62,11 @@ async function main() {
     session = null; await assert.rejects(getSubmissionDownloadUrlAction(10), /REDIRECT \/login/);
     for (const roleId of [1, 4]) {
         session = { userId: 3, roleId };
+        actor = { id: 3, roleId, isActive: true };
         await assert.rejects(getSubmissionDownloadUrlAction(10), /REDIRECT \/dashboard/);
     }
     session = { userId: 3, roleId: 3 };
+    actor = { id: 3, roleId: 3, isActive: true };
     failure = true; assert.equal(await getSubmissionDownloadUrlAction(10), null); failure = false;
     const repository = mocks['@/lib/repositories/submission.repository'];
     const lookup = repository.findSubmissionById;

@@ -65,7 +65,7 @@ async function main() {
     for (const roleId of [2, 3, 4, 999]) {
         session = { userId: 1, roleId }; user = { id: 1, roleId, isActive: true };
         await denied();
-        await assert.rejects(ReportsPage(), /REDIRECT \/dashboard/);
+        await assert.rejects(ReportsPage(), roleId === 999 ? /REDIRECT \/login/ : /REDIRECT \/dashboard/);
     }
     session = null; await denied(); await assert.rejects(ReportsPage(), /REDIRECT \/login/);
     session = { userId: 1, roleId: 1 };

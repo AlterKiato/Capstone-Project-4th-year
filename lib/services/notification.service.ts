@@ -87,6 +87,8 @@ export interface ManagedNotification {
 export async function getUserNotifications(
     userId: number
 ): Promise<ServiceResult<ManagedNotification[]>> {
+    const account = await notificationAccount();
+    if (!account || account.userId !== userId) return { success: false, message: "Notification access could not be verified." };
     const notifications =
         await findNotificationsByUserId(
             userId
@@ -202,6 +204,9 @@ export async function markUserNotificationAsRead(
     notificationId: number,
     userId: number
 ): Promise<ServiceResult> {
+    const account = await notificationAccount();
+    if (!account || account.userId !== userId || !z.number().int().positive().max(2147483647).safeParse(notificationId).success)
+        return { success: false, message: "Notification access could not be verified." };
     const notification =
         await findNotificationById(
             notificationId
@@ -257,6 +262,9 @@ export async function removeUserNotification(
     notificationId: number,
     userId: number
 ): Promise<ServiceResult> {
+    const account = await notificationAccount();
+    if (!account || account.userId !== userId || !z.number().int().positive().max(2147483647).safeParse(notificationId).success)
+        return { success: false, message: "Notification access could not be verified." };
     const notification =
         await findNotificationById(
             notificationId

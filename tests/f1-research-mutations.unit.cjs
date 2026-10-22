@@ -172,7 +172,9 @@ async function main() {
         ]) {
             reset(); seed(status); actor(role); change();
             await noEffects(direct);
-            await noEffects(action, !session || session.roleId !== role);
+            // Invalid current accounts now fail at the shared action guard, before the service.
+            const current = accounts.find(row => row.id === session?.userId);
+            await noEffects(action, !session || session.roleId !== role || !current?.isActive || current.roleId !== session.roleId);
         }
         reset(); seed(status); actor(role); membership = ownGroup = false;
         await noEffects(direct); await noEffects(action);

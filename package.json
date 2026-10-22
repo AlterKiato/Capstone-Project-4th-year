@@ -16,7 +16,7 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.3",
-    "next": "16.2.9",
+    "next": "16.3.8",
     "nodemailer": "^10.1.7",
     "postgres": "^3.4.9",
     "react": "19.2.4",
@@ -33,7 +33,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
     "typescript": "^5"

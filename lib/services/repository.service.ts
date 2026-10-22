@@ -1,3 +1,6 @@
+import "server-only";
+import { requireRole } from "@/lib/auth/authorization";
+import { ROLE_IDS } from "@/lib/auth/roles";
 import { isSubmissionDocumentPath } from "@/lib/validations/submission-document";
 import { isActivePublicationAdmin } from "@/lib/services/repository-publication.service";
 import {
@@ -35,18 +38,22 @@ export async function getRepositoryManagementResult(userId: number) {
 export { publishResearch as publishApprovedResearch, changeResearchPublication as updateResearchPublication } from "@/lib/services/repository-publication.service";
 
 export async function getPublishedResearch(criteria: RepositorySearchCriteria) {
+    await requireRole(Object.values(ROLE_IDS));
     return findPublishedResearchPage(criteria);
 }
 
 export async function getPublishedResearchFilterOptions() {
+    await requireRole(Object.values(ROLE_IDS));
     return findPublishedRepositoryFilterOptions();
 }
 
 export async function getPublishedResearchDetails(paperId: number) {
+    await requireRole(Object.values(ROLE_IDS));
     return findPublishedRepositoryEntry(paperId);
 }
 
 export async function recordResearchRepositoryView(repositoryId: number) {
+    await requireRole(Object.values(ROLE_IDS));
     await incrementRepositoryViewCount(repositoryId);
 }
 
