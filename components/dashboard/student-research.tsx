@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type { StudentWorkspace } from "@/lib/services/student-workspace.service";
 import { resolveResearchTarget, type ResearchTarget } from "@/lib/student-research-view";
 import { createStudentResearchAction } from "@/lib/actions/student-research.action";
-import { submitResearchAction } from "@/lib/actions/submission.action";
+import SubmissionUploadDialog from "./submission-upload-dialog";
 import DownloadSubmissionButton from "@/app/dashboard/student/submissions/DownloadSubmissionButton";
 import ResearchDialog from "./research-dialog";
 import styles from "./student-ui.module.css";
@@ -78,11 +78,6 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
             <div><label htmlFor="category">Category (optional)</label><input id="category" name="category" maxLength={100} /></div>
             <div><label htmlFor="keywords">Keywords (optional)</label><input id="keywords" name="keywords" maxLength={500} /></div>
         </ResearchDialog>}
-        {modal === "upload" && project && <ResearchDialog title="Submit Research PDF" submitLabel="Submit Research PDF" action={submitResearchAction} onSuccess={success} onClose={() => setModal(null)}>
-            <p><strong>Research project:</strong> {project.title}</p><input type="hidden" name="paperId" value={project.id} />
-            <p className="form-help">Submit a revised version only after the latest version is marked Revision Required.</p>
-            <div><label htmlFor="file">Research PDF</label><input id="file" name="file" type="file" accept="application/pdf,.pdf" required aria-describedby="file-requirements" /><p id="file-requirements" className="form-help">PDF files only. Maximum file size: 10 MB.</p></div>
-            <div><label htmlFor="remarks">Remarks (optional)</label><textarea id="remarks" name="remarks" rows={4} maxLength={500} /></div>
-        </ResearchDialog>}
+        {modal === "upload" && project && <SubmissionUploadDialog project={project} onSuccess={() => success()} onClose={() => setModal(null)} />}
     </>;
 }

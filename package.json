@@ -9,7 +9,8 @@
     "mailpit:local": "node scripts/mailpit-local.cjs",
     "lint": "eslint",
     "db:seed:roles": "tsx db/seed/role.seed.ts",
-    "db:bootstrap:admin": "tsx scripts/bootstrap-admin.ts"
+    "db:bootstrap:admin": "tsx scripts/bootstrap-admin.ts",
+    "db:uploads:cleanup": "tsx scripts/submission-upload-cleanup.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

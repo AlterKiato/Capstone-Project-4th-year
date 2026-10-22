@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-21 (platform/transition reconciliation only)\
+**Last reviewed:** 2026-10-23 (Phase 10.2C closure and retained deployment gates)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -84,11 +84,25 @@ Future clients must share the existing services, PostgreSQL, server-side authori
 
 ------------------------------------------------------------------------
 
+## Approved Preview-first deployment and testing decision (2026-10-22)
+
+The owner-approved deployment sequence is **minimal test-environment preparation -> isolated Vercel Preview preparation -> separately approved Preview deployment -> owner-led manual acceptance -> focused corrections -> production readiness -> separately authorized production release**. It supersedes the earlier proposed 10.3 deployment / 10.4 smoke-test sequence. Current checkpoints and evidence belong in Master Context; roadmap approval alone does not authorize execution.
+
+- Keep Preview and production database/Storage targets and secrets isolated. Preview uses synthetic data only and never establishes production readiness by itself.
+- Local preparation is complete for the approved scope: migration 0014 APPLIED/verified, distinct operator/private recovery PASS and development bucket private/PDF-only/exactly 10 MiB. Direct upload is IMPLEMENTED, pending live/hosted acceptance; Preview and production are NOT DEPLOYED. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED. Independently verify anonymous private-document denial and signed-upload path isolation before Preview testing; the policy audit is required before production approval. Metadata verification does not establish policy preservation or upload behavior.
+- Preparation requires the existing guarded migration tooling, a private restorable backup, record-preservation checks and separately authorized migration execution. Operator credentials must remain distinct from runtime credentials; do not bypass target or recovery safeguards.
+- Supabase documents remain private, PDF-only, with an exact **10 MiB (10,485,760-byte)** bucket/file limit and server-side validation before academic finalization. Bucket and resource changes need their own approved scope.
+- Prefer owner-led manual browser acceptance of visible workflows. Use focused security/regression tests and appropriate TypeScript, lint, build and migration-integrity checks. Reuse explicitly approved synthetic accounts safely; avoid unnecessary fixtures.
+- Necessary browser automation must be sequential and bounded in time/concurrency; stop after significant infrastructure failure. Defer extensive Playwright matrices, repeated full-system acceptance, large fixture environments, parallel browser sessions, demo-stage load tests and generalized frameworks. Preserve useful tests/tools and historical evidence. Broader concurrency, reliability and load evidence may be required before genuine production use.
+- Mandatory Student email verification is deferred for initial deployment. Stage 1 verification remains optional; real outbound email is deferred. Groq remains hard-disabled. Production release, provider activation and native-platform work retain separate approval gates.
+
+------------------------------------------------------------------------
+
 ## 2. Technology Stack
 
 ### Core Framework & Language
 
--   **Next.js:** 16.2.9 (App Router)
+-   **Next.js:** 16.3.8 (App Router; verified package checkpoint)
 -   **React:** 19.2.4
 -   **TypeScript:** 5.x
 -   **Node.js:** Required by the Next.js application/runtime
@@ -123,13 +137,12 @@ Future clients must share the existing services, PostgreSQL, server-side authori
 
 ### Testing
 
--   **Playwright:** Browser automation and end-to-end acceptance testing
+-   Owner-led manual browser acceptance is preferred for visible workflows. Focused security/regression and static/build checks remain appropriate. Playwright is available for necessary bounded, sequential checks; extensive suites are deferred under the approved testing decision above.
 
 ### Deployment
 
--   **Target:** Vercel
--   Production deployment must use secure production environment
-    configuration.
+-   **Target:** Isolated Vercel Preview first; production release separately authorized.
+-   Preview and production require separate database/Storage mappings and secrets; configuration or local evidence alone does not establish deployed readiness.
 
 ------------------------------------------------------------------------
 
@@ -375,15 +388,18 @@ rather than creating an independent copy of the research workflow.
 -   **Bucket:** `research-submissions` (private)
 -   **Path pattern:** `research/{paperId}/{version}/{sanitizedFileName}`
 -   **Format:** PDF only
--   **Maximum size:** 10 MB
+-   **Maximum size:** 10 MiB (10,485,760 bytes)
 -   **Access:** 300-second / five-minute server-generated signed URLs
 
 ### Upload Flow
 
-1.  Validate the uploaded file as PDF and within the size limit
-2.  Generate the storage path
-3.  Upload through the server-side Supabase client
-4.  Store the storage path in the submission record
+Phase 10.2C.2 supersedes the File-bearing submission transport. The active Student interface creates an authenticated, durable upload intent from validated metadata, uploads directly to its exact private `staging/submissions/<intent-id>/upload.pdf` capability, then requires an explicit Submit research action. Uploading alone creates no academic submission. The old File-bearing action is blocked.
+
+Finalization accepts only the intent ID. The server rechecks current account, group membership and revision eligibility; verifies provider metadata, actual bounded PDF bytes, size, signature and encoding; persists a final-path/SHA-256 plan; writes those bytes without overwrite; and atomically inserts the existing submission record and completes the intent. Short per-paper transactions surround Storage I/O. Existing version uniqueness, review/history, publication and signed document access remain.
+
+Intent lifetime is 15 minutes, with two live intents per Student, one per Student/paper and ten new intents per rolling hour including cancelled/failed issuances. Signed upload capabilities can outlive the intent: persist their trusted provider expiration before exposure; never assume single use or revocation. Browser credentials are limited to the necessary publishable key and exact staging capability, held in memory. Only the opaque intent locator may be retained in session storage.
+
+Migration `0014_submission_upload_intents.sql` is **APPLIED and verified only on the approved local development/test database**, with all 15 ledger entries matching. Existing academic records/schema/public sequences were preserved; private backup and verified recovery evidence remain outside Git. The owner-approved development/test bucket metadata is private, `allowed_mime_types = ['application/pdf']`, `file_size_limit = 10485760`; only those two restrictions were changed. Policy catalog visibility is **NOT VERIFIED**, and no policy preservation claim follows from metadata. Live signed uploads, anonymous document denial, unrelated-path capability isolation, CORS and hosted acceptance remain unverified. Cleanup is operator-only, read-only dry-run, with a 25-intent batch and eligibility after the later intent/capability expiry plus ten minutes; destructive execution is deferred. See the latest Master Context for evidence and remaining gates.
 
 ### Submitted Document Access Flow
 
@@ -588,7 +604,7 @@ Context or actual repository, not in this section.
 
 ## 12. Long-Term Product Direction
 
-Owner-aligned direction (2026-10-21): retain Phase 8's static/mock-only boundary and hard-disabled Groq. Phase 9 **UI/UX Refinement & PWA Integration** moves to closure without further scope expansion; verified results and limitations belong in the Master Context. Phase 10 is proposed as **Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility**: 10.0 platform feasibility review, 10.1 Student email verification/authentication readiness, 10.2 production environment preparation, 10.3 Vercel deployment, and 10.4 deployment smoke testing. This is a working sequence subject to owner approval, not implementation or deployment authorization. Expo integration and desktop-specific/Electron implementation remain separately approved future work. Phase 11 **Final Testing, Evaluation & Documentation** retains final QA, user evaluation, capstone demonstration and documentation. The detailed roadmap and immediate next action belong in the Master Context.
+**Historical owner-aligned proposal (2026-10-21), superseded by the approved Preview-first decision above:** retain Phase 8's static/mock-only boundary and hard-disabled Groq. Phase 9 **UI/UX Refinement & PWA Integration** moves to closure without further scope expansion; verified results and limitations belong in the Master Context. Phase 10 is proposed as **Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility**: 10.0 platform feasibility review, 10.1 Student email verification/authentication readiness, 10.2 production environment preparation, 10.3 Vercel deployment, and 10.4 deployment smoke testing. This is a working sequence subject to owner approval, not implementation or deployment authorization. Expo integration and desktop-specific/Electron implementation remain separately approved future work. Phase 11 **Final Testing, Evaluation & Documentation** retains final QA, user evaluation, capstone demonstration and documentation. The detailed roadmap and immediate next action belong in the Master Context.
 
 Retain the PWA-first shared research lifecycle, repository, in-app
 notifications, user-facing improvements, security, QA, release preparation,

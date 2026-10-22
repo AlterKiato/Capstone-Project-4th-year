@@ -21,7 +21,7 @@ export async function inspectOperatorTarget(client: postgres.Sql, configuration:
         identity.read_only !== "off" || !identity.cluster || !identity.address) throw new Error("Target identity unavailable.");
     const source = readMigrationFiles({ migrationsFolder: "db/migrations" });
     const ledger = await client`select hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id`;
-    if (source.length !== 14 || ledger.length !== source.length ||
+    if (source.length !== 15 || ledger.length !== source.length ||
         ledger.some((row, index) => row.hash !== source[index].hash || row.created_at !== String(source[index].folderMillis)))
         throw new Error("Complete migration history required.");
     const fingerprint = createHash("sha256").update(JSON.stringify({ environment: configuration.environment,

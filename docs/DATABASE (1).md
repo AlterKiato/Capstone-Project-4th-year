@@ -2,7 +2,13 @@
 
 **Purpose:** Database/schema reference for AI agents and developers.
 
-**Current Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; Phase 5.4 is committed locally; Phase 5.5 source/tests and documentation remain uncommitted.
+**Latest schema checkpoint (2026-10-23):** Local migration 0014 is APPLIED and verified on the approved development/test database; all 15 ledger entries 0000-0014 match source hashes/timestamps. The initially empty `submission_upload_intents` table has three restrictive FKs, four unique constraints, eight validated/enforced CHECKs, its primary key and two explicit indexes (seven indexes including constraint backing). Existing migration SQL/snapshots 0000-0013, academic records/schema and public sequences were preserved. Earlier unapplied/preparation reports below are historical.
+
+**Current operations checkpoint (2026-10-23):** Phase 10.2C closure on `feature/development`, parent `556dde189d5881fc32258ef8c68ad4842b7d93c3`; resolve its commit using `git log -1 --oneline`. The distinct local operator and genuine private backup/disposable recovery verification passed; the verified run-owned restore was removed and backup/evidence retained outside Git. Checkpoint H applied only 0014 once with `applied-confirmed` and independent durable read-back; the ledger sequence advanced 14 to 15 as expected. No production/Preview database is established. Closure reuses that evidence and does not reconnect or execute migrations. See the [approved Preview-first roadmap](MASTER_CONTEXT_UPDATED.md#approved-phase-10-roadmap-2026-10-22).
+
+**Development Storage status (checkpoint I, 2026-10-23):** The previously owner-approved project fingerprint `2df59fc572539320` and existing private `research-submissions` bucket were verified. Exactly two metadata fields changed: `allowed_mime_types` from NULL to `["application/pdf"]`, and `file_size_limit` from NULL to `10485760`; independent read-back confirmed all other returned bucket metadata unchanged. No policy/object operations occurred. Storage policy catalog visibility is **NOT VERIFIED** by explicit owner deferral; metadata is not proof policies are unchanged. Live signed uploads, anonymous private-document denial, unrelated-path capability isolation and CORS remain **NOT VERIFIED**. Verify anonymous denial/path isolation before Preview testing and the policy catalog before production approval. Preview and production are **NOT DEPLOYED**.
+
+**Historical Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed. Phase 5.3 is complete and runtime-accepted; Phase 5.4 is committed locally; Phase 5.5 source/tests and documentation remain uncommitted.
 
 No Phase 5.3 or Phase 5.5 schema/migration changes were required, generated, or applied. `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks. Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
 
@@ -24,17 +30,13 @@ anything.
 -   Schema source: `db/schema/`
 -   Migration source: `db/migrations/`
 
-Typical commands:
+Offline integrity check:
 
-``` bash
+```sh
 npx drizzle-kit check
-npx drizzle-kit generate
-npx drizzle-kit migrate
 ```
 
-Do not run `migrate` against a target environment without first
-reviewing the generated migration and confirming that it is safe for
-that database.
+This checks migration history without connecting to a database. Schema generation is a separate authorized change, not a setup or inspection step. Current `drizzle.config.ts` permits only offline check/generate/export and refuses direct database commands, including `drizzle-kit migrate` and `push`. Do not bypass it. Reuse the guarded phase-specific 0014 runner only with separately approved execution, a distinct operator, verified target identity and private backup/recovery evidence. Do not replay historical example commands without current authorization.
 
 ------------------------------------------------------------------------
 
@@ -547,3 +549,143 @@ Direct Drizzle Kit database commands are blocked; offline check/generate/export 
 New `tests/phase102b-database.acceptance.ts` requires independently verified expected cluster/OID arguments, loopback-only identity, CREATE DATABASE capability, full read-only baseline fingerprints and a new randomly named owned template0 database. It verifies emptiness before Drizzle migrate. Source/ledger **14/14**, **15 empty tables**, **51 application constraints**, **26 indexes** pass; types/nullability/serial defaults, PK/unique/FK columns/actions, CHECK expressions and explicit index definitions/predicates match snapshot 0013. Real roles/idempotence/conflict/concurrency/sequence and secure Admin/bcrypt/duplicate/concurrent-first-Admin cases pass there.
 
 Every fixture-bearing attempt removed its own database after OID/owner/marker/cluster/no-session checks; no FORCE/drop of existing databases or session termination. Independent comparison confirms all pre-existing rows, columns, constraints, indexes, sequence values and ledger unchanged across the 15-table development database. Migrations 0000-0013, schema source and existing role/account/research/history records remain unchanged. No new migration, production/Preview/staging operation, Storage or email activity. See latest Master Context for exact files, tests and remaining gates.
+
+
+## 2026-10-22 - Phase 10.2C.2 upload-intent persistence (unapplied)
+
+New schema: db/schema/submission-upload-intent.ts, exported by db/schema/index.ts. Generated migration: db/migrations/0014_submission_upload_intents.sql; matching 0014 snapshot and one appended journal entry. No migration was applied and no PostgreSQL connection/acceptance was run. SQL creates only submission_upload_intents, its constraints and two indexes. Snapshot comparison confirms all 15 previous table definitions unchanged; migrations/snapshots 0000-0013 remain byte-identical.
+
+Columns: UUID primary ID; Student/paper IDs; UUID request key; exact staging path; sanitized filename (144 ASCII characters maximum); declared byte size; optional remarks; timezone-aware created/intent-expiry/capability-expiry timestamps; pending/completed/cancelled/rejected state; nullable completed submission ID; nullable prepared final path and SHA-256 digest. Expiration remains a timestamp rule, not another state.
+
+Three restrictive FKs reference users, research_papers and submissions. Four unique constraints protect staging path, final path, completed submission reference and (student_id, request_key). Eight CHECKs enforce 1..10,485,760 bytes, time ordering, allowed state, completed iff submission reference exists, paired nonnull final-path/digest with 64 lowercase hexadecimal characters and required completed plan, exact staging path/id, safe PDF filename and final path bound to paper/id. The digest CHECK explicitly rejects NULL when a final path exists; PostgreSQL CHECK's unknown result must not admit a half-plan. Indexes cover (student_id,created_at) and (expires_at,id). No existing academic/account table definition changes.
+
+Repository uses parameterized Drizzle Date encoders and database clock_timestamp after locks. The existing advisory namespace is now a shared constant without changing its value. Short transactions acquire current account/group/member/submission/paper/intent locks; they never perform Storage calls. Account locking serializes cross-paper issuance limits: 15-minute intent, two live per Student, one per Student/paper, ten new per rolling hour across all states. SQL uniqueness and scoped predicates backstop idempotency/ownership. Completion inserts the existing submissions row and links the intent atomically; no research, feedback or membership deletion/rewriting.
+
+The operator/replay source guards now require all 15 migration hashes/timestamps, and the future disposable replay harness reads snapshot 0014. It was NOT executed in this checkpoint. Existing targets with only 0000-0013 therefore fail the updated full-ledger operator guard, and new uploads fail closed without the intent table. Do not apply 0014 or weaken the guard automatically; use a separately reviewed owner-authorized acceptance/migration procedure.
+
+npm run db:uploads:cleanup is operator-only and read-only dry-run, using dedicated operator configuration, complete ledger/cluster fingerprint checks and a READ ONLY query. Default batch is 25 (26th row detects pagination), with an opaque --after UUID cursor. Report contains counts/cursor, not object paths or credentials. Eligibility is max(intent expiry, capability expiry)+10 minutes. Canonical paths and any submission reference protect final objects. No object deletion, row deletion or tombstone purge is available; --execute is refused before configuration. Provider late-write/deletion safety remains deferred.
+
+Offline schema/tooling checks and isolated transactional SQL doubles pass. Real SQL constraint enforcement, timestamp driver compatibility, advisory/row-lock contention, rollback/commit acknowledgement and migration replay require separately authorized Phase 10.2C.3. Earlier Phase 10.2B real PostgreSQL results above are historical and do not validate 0014.
+
+
+## 2026-10-22 - Phase 10.2C.3B.1 preparation only: migration/recovery and fixtures
+
+No database, backup, restoration, Storage or browser operation was executed in this checkpoint. The 0014 source/hash/snapshot and all earlier migrations remain unchanged. Earlier C.3A read-only evidence is retained: known local PostgreSQL 18.4 cluster/database identity, exact 14-entry ledger through 0013, 15 original tables, private development/test Supabase project (owner-confirmed) and private research-submissions bucket. Its PDF MIME and exact 10 MiB restrictions were unset. These are retained observations, not fresh live checks or permission to execute.
+
+### Narrow migration operator
+
+New scripts/migrate-upload-intents.ts is only for the independently confirmed loopback thesishs_ai database, port 5432, cluster 7652422818440234372 and database OID 16387. It rejects other environments/targets, requires explicit expected identity arguments, existing strict operator configuration and an operator username distinct from the runtime username. It never falls back to DATABASE_URL for writes. Existing scripts/database-operator.ts still requires the complete 15-entry ledger; it is not weakened or repurposed for a pre-0014 execution.
+
+Preparation commands (NOT executed here):
+
+    node --import tsx scripts/migrate-upload-intents.ts --inspect --expected-cluster 7652422818440234372 --expected-oid 16387
+
+Read-only inspection validates identity before reading records, the source prefix/order/snapshot, the approved migration SHA-256 and the approved pre-0014 catalog fingerprint. It outputs only target, record/schema/sequence fingerprints, applied status and migration hash. The approved schema pin is deliberately local/PG18-specific; a mismatch requires review, not bypass. Dedicated operator privileges must support pg_control_system(), SELECT on all application tables/sequences and ledger, migration DDL/REFERENCES and bounded table locking. Configuration/grants remain owner-controlled and unconfigured; do not copy runtime credentials into an operator URL.
+
+    node --import tsx scripts/migrate-upload-intents.ts --execute --expected-cluster 7652422818440234372 --expected-oid 16387 --confirm-target <inspection-fingerprint> --backup-file <absolute-private-archive> --confirm-backup <archive-sha256> --recovery-evidence <absolute-private-evidence>
+
+Execution requires a private interactive terminal and explicit target/backup confirmation. Source hash must remain 9077be13113496dfa894cfd376f0dd69b613eda6e1460da443990300152f71ab. The runner acquires a transaction advisory lock, locks the ledger and original tables, rechecks the exact 14-entry prefix/table absence/schema/records/sequences, then runs only source[14] SQL and its ledger insert in one transaction. Lock/statement timeouts are three/ten seconds. SHARE locks on all 15 original tables enforce a quiet window and can block application writers; keep the app stopped. Existing rows and public sequences must match before/after. New columns/nullability, FK targets/actions/columns, primary/unique keys, CHECK names/validation and index structure are inspected, along with full source ledger. Actual SQL constraint enforcement still needs separately authorized PostgreSQL acceptance.
+
+Commit uncertainty triggers one independent durable read, never automatic reapplication or DROP rollback. A complete matching applied state is reconciled; an intact 0013 state reports not-applied-review-before-retry. Partial/mismatched/unavailable state refuses confirmation. An already-applied 0014 is verified and never replayed, including when intents exist. No new migration/grant/schema relaxation is introduced.
+
+### Private backup and separate restore procedure (manual; separately authorize every operation)
+
+1. Stop application writers; independently confirm cluster/OID and run read-only inspection. Keep the source unchanged. Use compatible PostgreSQL 18 client tools (18.4 was found in C.3A).
+2. Prepare an absolute private directory outside this application and every Git checkout. On Windows remove broad inherited grants and allow only the current operator, SYSTEM and Administrators; on POSIX use directory 0700/files 0600. The runner checks file and directory ACL/mode and rejects in-repository artifacts/symlink files. Keep passwords/archives/credentials out of terminal output, shell history and Git. Use a protected external PGPASSFILE for client authentication and non-secret PGHOST/PGPORT/PGDATABASE/PGUSER settings; do not place a URL/password in command arguments or edit application env files.
+3. Only after backup authorization, use pg_dump --format=custom --no-owner --no-acl --file <private-archive> for the verified source, with no schema/table filters: include public, drizzle.__drizzle_migrations and sequences. Record archive SHA-256 privately and check the archive inventory privately with pg_restore --list. The runner requires the PGDMP custom-format header and matching archive digest. It does not create backups.
+4. Separately authorize creation of an empty template0 disposable database named thesishs_upload_restore_<32-lowercase-hex-run-id>, on the same confirmed cluster with a distinct OID. Revoke PUBLIC connection permission and restrict access to the approved operator before restoring. Restore the exact archive there using pg_restore --exit-on-error --single-transaction --no-owner --no-privileges. Never restore into thesishs_ai. No restore command is automated here.
+5. Prepare a zero-byte evidence file in the same private directory with restrictive permissions. Supply the distinct restore connection only through THESISHS_UPLOAD_RESTORE_URL in the operator process, using the approved operator username/loopback endpoint. This is a temporary process value, not a committed/env-file setting.
+
+    node --import tsx scripts/migrate-upload-intents.ts --verify-recovery --expected-cluster 7652422818440234372 --expected-oid 16387 --confirm-target <inspection-fingerprint> --backup-file <private-archive> --confirm-backup <archive-sha256> --recovery-evidence <private-zero-byte-evidence-file> --restore-database <owned-restore-name> --restore-oid <independently-verified-distinct-oid>
+
+Recovery verification performs only read-only database transactions, compares restored schema/ledger/public row and sequence digests against the unchanged original and records private recovery evidence. It creates/restores no database. It refuses the original DB/OID or an unexpected restore name/cluster. Evidence is an ACL-protected operator record, not a cryptographic signature or independent proof of who ran pg_restore; the operator must restore the named exact archive. Migration requires matching evidence no older than 24 hours and unchanged original fingerprints. If any writer changes the source, take and verify a fresh backup. Keep the disposable restore until migration acceptance; removal requires separate exact-identity authorization.
+
+### Run-owned acceptance fixtures
+
+scripts/upload-acceptance-fixtures.ts exports fixturePlan, createUploadFixtures and removePristineUploadFixtures; importing it performs no I/O. There is no automatic provisioning CLI/hook. A future separately authorized one-off operator invocation must use the verified dedicated connection, run UUIDv4, target fingerprint, explicit execute/operation/run/target confirmation and five privately generated credentials (minimum 16 characters, maximum 72 UTF-8 bytes). Save the UUID/credentials privately before creation; never log the return from an interactive credential entry.
+
+The minimum dedicated set is three Students (a/b together, c outside), one Adviser, one Admin, two groups and three papers (a/b in group a; c in group b). All records use UPLOAD_<run> markers/reserved example.invalid emails, fresh identities and existing canonical role IDs. No existing account is implicitly approved for reuse. Passwords use bcrypt12. Per-run advisory locking and exact email/name/role/group/title/membership checks make retry with the same private credentials reuse the same IDs without resetting passwords/memberships or duplicating records. A collision/changed record refuses and rolls back. Serial gaps are retained.
+
+The caller privately records the returned manifest (run/target/users/groups/papers) and credentials. Cleanup requires that exact manifest and separate remove-pristine authorization. It locks and validates every run-owned parent and exact membership; a foreign ID, renamed row, extra group paper/member or any upload intent/submission/notification/activity refuses the entire operation. Other FK conflicts roll back. Pristine teardown is idempotent and deletes no Storage objects. Research-bearing fixtures, intents/tombstones and objects are deliberately retained until separately reviewed Storage-aware cleanup; do not bypass restrictive FKs or bulk-delete by a loose name prefix.
+
+### Focused browser and bucket prerequisites
+
+New tests/phase102c3-browser.acceptance.cjs is standalone and opt-in (not an auto-discovered Playwright spec). It requires --execute, --run, --base-url, --confirm-base and --private-fixtures. The private JSON has a fixture manifest and a credentials map keyed student-a/student-b/student-c/adviser/admin. It must pass the same external private-file checks. Use node --import tsx to invoke it only after owner approval. No default URL/credentials or existing accounts are used.
+
+The harness accepts only an explicitly confirmed HTTP loopback origin with an unprivileged non-3000 port. It verifies DB identity/full ledger, exact marked fixture identities/groups/papers and absence of prior submissions, then launches its own Next dev child with pinned Development resources. It waits for that child's readiness and does not attach to an existing server. The Supabase origin is pinned to owner-confirmed test-project fingerprint 2df59fc572539320. Privileged operator/restore credentials are removed from the app child's environment. Each user has a separate Chromium context. Network access is restricted to the local app and canonical signed staging PUT/OPTIONS at that project. No global playwright.config.ts capture settings are inherited: trace/HAR/video/screenshots/storage-state export, body/console capture and API/protocol debug logging are absent/disabled. Child logs and raw errors are not printed.
+
+It exercises actual Student login, project selection, one deliberately aborted direct upload, status/retry, progress UI, a separate explicit Submit research click, history/DB confirmation and separate Adviser visibility. It retains all fixtures/objects and closes only its owned browser/server processes. It does not prove exact 10 MiB reliability, hostile authorization, real locking, timing/memory or hosted Preview behavior. Those acceptance cases remain separately gated. Do not run the harness until the bucket and source/fixture checks pass.
+
+Required Supabase checklist: known development/test project; existing research-submissions private; allowed MIME types exactly [application/pdf]; file_size_limit exactly 10485760; modern browser publishable key only; privileged secret server-only and absent from client bundles; actual exact-path/upsert:false capability behavior; anonymous/public document denial/RLS and CORS; random staging paths; private final paths; run-owned recovery/cleanup with expiry grace. Current known missing MIME/size settings require separate authorization to change. No provider call or bucket/object change was made by this preparation checkpoint.
+
+
+## Minimal operator preflight and next action (2026-10-22)
+
+Historical pre-provisioning report, superseded by the applied/recovery status at the top of this reference and the latest Master Context. Its commands are retained procedures, not instructions to repeat completed work.
+
+### Confirmed read-only findings
+
+The existing `scripts/migrate-upload-intents.ts`, `scripts/upload-acceptance-safety.ts`, `scripts/database-operator.ts` and `lib/db/config.ts` provide the required tooling; no new framework is needed. The runner has explicit inspect/recovery/execute modes, refuses runtime username reuse, pins the approved loopback target, verifies full source/ledger/schema/data/sequence fingerprints, and requires private recovery evidence before migration. It never creates a backup or restores a database itself.
+
+Fresh minimal inspection used the existing runtime credential **only for READ ONLY transactions**, not as an operator. Target identity was verified before catalog inspection: localhost:5432, database `thesishs_ai`, OID `16387`, cluster `7652422818440234372`. The ledger count was 14 and `submission_upload_intents` was absent. This count is not a fresh full ledger/hash audit; the prior full 0000-0013 verification remains historical evidence. No account contents, passwords, connection strings or raw tokens were printed or searched.
+
+`pg_roles` showed **zero other non-system LOGIN roles** and **one role administrator** (CREATEROLE or superuser). Thus no currently available separate login was identified for reuse; a privileged administrator must provision one. `THESISHS_DATABASE_ADMIN_URL` and `THESISHS_DATABASE_TARGETS_JSON` were absent. No role/grant/environment changes, backup/restore, migration, fixture or Storage operation occurred. The blocked Gate 1 was not resumed.
+
+### Recommended smallest setup - separate owner authorization required
+
+Have the existing PostgreSQL administrator create a dedicated local LOGIN with a privately generated credential, distinct from the runtime username. Role creation requires CREATEROLE or superuser authority; object grants also require an authorized owner/grantor. Do not make the migration login a superuser or role administrator. See PostgreSQL's [role attributes](https://www.postgresql.org/docs/18/role-attributes.html). No executable role/grant SQL is authorized by this documentation checkpoint.
+
+Review only the privileges needed by the existing runner and separately approved backup/restore steps:
+
+| Purpose | Proposed narrowly scoped access |
+|---|---|
+| Connect and create the new table | CONNECT on the approved test DB; USAGE on public/drizzle schemas; CREATE on public |
+| Inspect/preserve existing state and make a logical backup | SELECT on the exact 15 existing public tables and migration ledger; SELECT on existing public sequences; required metadata visibility |
+| Add intent foreign keys | REFERENCES on users, research_papers and submissions (the referenced IDs can be column-scoped) |
+| Append migration ledger | INSERT on drizzle.__drizzle_migrations; USAGE/SELECT on its serial sequence |
+| Identity guard | EXECUTE on pg_control_system(), as required by the existing cluster pin; refusal must not be bypassed |
+| Explicit migration locks | MAINTAIN on the exact existing public tables and ledger, subject to administrator review on the installed PostgreSQL 18 server |
+| Disposable restore | Administrator creates a uniquely named empty template0 database owned by the operator and restricts PUBLIC connection; operator restores/read-checks that database under separately approved recovery scope |
+
+The lock privilege matters: SELECT alone permits ACCESS SHARE and INSERT permits at most ROW EXCLUSIVE, while this runner takes SHARE on existing tables and EXCLUSIVE on the ledger. PostgreSQL 18 permits these locks with MAINTAIN (or broader UPDATE/DELETE/TRUNCATE). Prefer reviewed MAINTAIN grants rather than granting academic-record DML merely to obtain locks; MAINTAIN itself permits maintenance operations and must remain restricted to the operator. See [PostgreSQL LOCK privileges](https://www.postgresql.org/docs/18/sql-lock.html). This is a source-based recommendation, not a tested new role/grant configuration.
+
+An administrator-created disposable database avoids giving the operator permanent CREATEDB. The existing restore URL must use the same operator username and approved loopback cluster, with a distinct database name/OID. Required restore object/extension permissions must be reviewed against the actual archive; do not add broad privileges on assumption. Runtime access to the new operator-owned intent table and least-privilege runtime grants must also be reviewed before application acceptance; do not assume migration ownership grants application access.
+
+### Expected private configuration format
+
+Use a private operator terminal/process environment, or a separately reviewed owner-only external credential file loaded into that process. Do not change tracked/untracked environment files for this checkpoint, copy runtime credentials, place operator secrets in Vercel, or print connection strings. Preserve runtime `DATABASE_URL` unchanged. Required variable names:
+
+- `THESISHS_DATABASE_ENV=development`
+- `THESISHS_DATABASE_CONNECTION_MODE=direct` for the approved local endpoint
+- `THESISHS_DATABASE_ADMIN_URL`: private URL for the distinct operator; never log it
+- `THESISHS_DATABASE_TARGETS_JSON`: endpoint pins in the following placeholder-only shape
+
+```json
+{
+  "development": {
+    "identity": "<owner-approved-local-test-identity>",
+    "runtime": {
+      "host": "localhost", "port": 5432,
+      "database": "thesishs_ai", "user": "<runtime-user>"
+    },
+    "operator": {
+      "host": "localhost", "port": 5432,
+      "database": "thesishs_ai", "user": "<distinct-operator-user>"
+    }
+  }
+}
+```
+
+Use the exact approved host spelling matching the private URL, and different runtime/operator users. A configuration identity label is not proof of physical isolation; the runner additionally verifies actual cluster/OID/loopback identity. Hosted Preview/production configuration separately requires all three stage mappings and non-overlapping identities/endpoints; do not put production credentials into a local acceptance shell merely to plan those mappings.
+
+After separately authorized provisioning/configuration, start with the existing read-only runner inspection, **not migration execution**:
+
+```sh
+node --import tsx scripts/migrate-upload-intents.ts --inspect --expected-cluster 7652422818440234372 --expected-oid 16387
+```
+
+This command is documented, not run in this checkpoint. Once identity, privileges and the full state are verified, separately authorize private backup, disposable restore/read-back and evidence preparation using the existing procedure above. Migration 0014 still requires its own execution approval, fresh matching recovery evidence and record/sequence preservation checks. Stop safely if credentials or privileges remain unavailable; never weaken the distinct-operator or recovery guards.
+
+### Roadmap precedence and deferred tools
+
+The owner-approved lean roadmap supersedes the earlier mandatory dedicated-fixture/browser sequence. Existing B.1 fixture and browser tools are preserved but optional/deferred; explicitly approved synthetic accounts may instead be reused where safe. No new fixtures are needed just to unblock operator configuration. Preserve the backup/restore and identity gates. Isolated Storage configuration (private, PDF-only, exactly 10,485,760 bytes) and Preview mappings/deployment remain separately authorized work, followed by owner-led manual acceptance. Earlier isolated PASS does not establish live PDF upload or hosted readiness.

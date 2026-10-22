@@ -3,7 +3,26 @@
 **Purpose:** Technical reference for the current application's
 architecture, module boundaries, data flow, and security model.
 
-**Current-state pointer (2026-10-21):** See `docs/MASTER_CONTEXT_UPDATED.md` for the verified `feature/development` / `6f02b7e` checkpoint, Phase 9 closure with documented limitations and proposed Phase 10 sequence. This technical reference does not establish production deployment, native-Mobile integration or Electron implementation. Older phase-status paragraphs below are historical and do not override that handoff.
+**Latest upload checkpoint (2026-10-23):** Phase 10.2C implementation and local preparation are complete for the approved scope; the historical File-bearing upload diagrams below are superseded. Local migration 0014 is APPLIED and verified; the development/test bucket is private, PDF-only and limited to exactly 10,485,760 bytes. Direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED; no live or hosted upload acceptance has run. Verify anonymous denial and unrelated-path capability isolation before Preview testing, and finish the policy audit before production approval.
+
+**Current-state pointer (2026-10-23):** Phase 10.2C closure on `feature/development`, parent `556dde189d5881fc32258ef8c68ad4842b7d93c3`; resolve the owner-authorized closure commit with `git log -1 --oneline`. See the [approved Master Context roadmap](MASTER_CONTEXT_UPDATED.md#approved-phase-10-roadmap-2026-10-22) for current gates. Authentication/security preparation, database/Admin foundations and direct-upload source exist; hosted readiness is unverified. Older phase-status paragraphs are historical and do not override this checkpoint. Preview and production are NOT DEPLOYED; native-Mobile/Electron integration remains deferred.
+
+## Current deployment boundaries (2026-10-22)
+
+| Component | Implemented boundary | Deployment/validation status |
+|---|---|---|
+| Client/application | Next.js App Router online-first PWA; UI -> Server Actions -> validation -> services -> repositories | Local application exists; Vercel Preview configuration/deployment pending; physical PWA acceptance unverified |
+| Authentication | bcrypt passwords, signed JWT HTTP-only cookies, active database account/current role/ownership guards; shared PostgreSQL rate limiter | Local validation recorded; hosted origin/proxy/cookie/shared-limiter configuration requires review. Stage 1 email verification optional; real email deferred |
+| Data | PostgreSQL and Drizzle; runtime/operator separation and guarded target mappings | Approved local test database inspected; Preview/production physical separation, credentials and connection contracts not established |
+| PDF transfer | Browser -> exact signed private Supabase staging path; metadata/intent Server Actions; separate server-side bounded byte/signature/hash validation and finalization | Source implemented with isolated tests; local 0014 applied/verified and development bucket metadata configured; policy audit/live provider/CORS and hosted duration/memory acceptance pending |
+| PDF access | Current role/group/publication authorization followed by short-lived private signed URL | Existing historical acceptance retained; issued links may outlive revocation until expiry |
+| Environments | Preview uses synthetic data, separate database/Storage resources and secrets from production | Planned, not configured or deployed; Preview PASS cannot authorize production |
+
+The active upload flow is detailed at the end of this reference; the older File-through-Server-Action diagram describes the legacy transport. Private staging/final objects are not public, and successful transfer alone does not create a completed academic submission. The bucket must be private, PDF-only and limited to exactly 10,485,760 bytes (10 MiB); server finalization independently validates the bytes. No privileged Supabase credential reaches the browser.
+
+Preview preparation must establish runtime/connection/authentication/Storage/build readiness before separately approved deployment. Owner-led manual Preview acceptance follows deployment; necessary automated checks stay focused, sequential and bounded. Existing local fixture/browser tools remain available but optional/deferred. Extensive reliability/load validation may still be needed before production.
+
+PWA remains primary for Web/Mobile-browser/Desktop. Expo requires a separately designed secured API/actor adapter over reusable services/repositories; browser Server Actions are not an assumed mobile API. Electron requires separate capability justification. Neither native client is integrated. Groq stays hard-disabled; no provider or mandatory verification is activated by this architecture.
 
 **Historical Git checkpoint (2026-10-07):** `feature/development`, HEAD `70b8fb4` — `docs(phase5): close Phase 5.4 acceptance`. Phase 5.1/5.2 are committed; Phase 5.3 is committed; Phase 5.4 is committed locally; Phase 5.5 source/tests and handoff changes are uncommitted.
 
@@ -61,13 +80,13 @@ The implemented client is the Next.js Web application with an online-first PWA m
 
 The separate Expo React Native repository `https://github.com/Genryux/thesishsai` is a candidate Mobile client only. Its ZIP-audit findings have not been verified against actual mobile source in this task. No mobile code is integrated here. Future integration would require a separately approved authenticated API entry layer, validation and existing services/repositories, sharing PostgreSQL and private Supabase Storage. Browser Server Actions are not an assumed Expo API contract. Mobile session validation, active-account/current-role/ownership checks and authorized temporary PDF access must be designed before integration; storing a token is not sufficient authorization.
 
-Specialized Mobile/Desktop features remain design candidates. The professor's requirement does not itself select Electron or prohibit PWA. Evaluate Electron only if justified by separately approved desktop capabilities. Current browser JWT/HTTP-only-cookie/bcrypt authentication remains unchanged; Student email verification and compatible future mobile authentication are planned, not implemented. See the latest Master Context for the proposed Phase 10.0-10.4 sequence and external audit risks.
+Specialized Mobile/Desktop features remain design candidates. The professor's requirement does not itself select Electron or prohibit PWA. Evaluate Electron only if justified by separately approved desktop capabilities. Current browser JWT/HTTP-only-cookie/bcrypt authentication is implemented. Optional Stage 1 Student email verification is implemented locally; mandatory verification, real email and compatible future mobile API authentication remain deferred. See the latest Master Context for the approved Preview-first roadmap and separately recorded external audit risks.
 
 ------------------------------------------------------------------------
 
 ## 2. Technology Stack
 
--   Next.js 16.2.9
+-   Next.js 16.3.8 (verified package checkpoint)
 -   React Server Components and Client Components
 -   TypeScript
 -   PostgreSQL
@@ -77,7 +96,7 @@ Specialized Mobile/Desktop features remain design candidates. The professor's re
 -   JWT authentication
 -   Bcrypt password hashing
 -   Supabase Storage
--   Playwright for browser acceptance testing
+-   Owner-led manual acceptance; Playwright available for necessary focused, bounded sequential checks
 
 The project uses the Next.js App Router.
 
@@ -300,6 +319,8 @@ Students do not self-join groups.
 
 ### Submission workflow
 
+The following diagram records the historical internal File service, retained for compatibility regression. The active public action is blocked and the Student interface now uses the Phase 10.2C.2 intent/finalization workflow below; its transactions do not hold locks during Storage transfers.
+
 ``` text
 Student submits PDF
         ↓
@@ -388,6 +409,8 @@ Rules:
 -   Signed URL lifetime: 300 seconds / five minutes
 
 ### Upload flow
+
+Historical transport only; superseded by the Phase 10.2C.2 architecture below.
 
 ``` text
 PDF submitted
@@ -618,3 +641,26 @@ Runtime `lib/db.ts` is server-only and validates explicit connection policy thro
 Privileged initialization is a separate Node command path, never a route, Server Action or startup/build/migration hook. `scripts/database-operator.ts` uses only dedicated operator credentials, checks live database/cluster identity and the complete source ledger, then requires a matching fingerprint and interactive terminal for writes. The service reuses account validation/bcrypt; its repository receives the verified database explicitly and enforces canonical roles and transaction/table-lock-backed single-Admin creation. It never imports the runtime database. Direct Drizzle Kit database commands are blocked; offline history/schema tooling remains. Supported migration replay is confined to a newly owned disposable database.
 
 No authentication provider, JWT/cookie/limiter implementation, research rule, schema or private Storage integration changed. Future Expo can reuse existing backend services through a separately secured API; operator bootstrap/configuration are never mobile/client APIs. See Database/Master Context for configuration, command usage, real replay evidence and managed-provider/production-executor limitations.
+
+
+## 2026-10-22 - Phase 10.2C.2 direct private PDF upload boundary
+
+Historical C.2 implementation evidence: source replaces only the active Student upload transport. Migration 0014 was generated and unapplied during C.2; it was subsequently applied and verified under the separately approved local H checkpoint described above. This section's isolated validation is not live or hosted acceptance. Earlier File-through-Action diagrams and upload-held transaction descriptions are historical. The internal legacy service remains for compatibility regression; its public File action now authenticates and refuses upload.
+
+Flow: Student dialog -> metadata-only submission-upload actions -> server-only service wiring -> upload workflow -> injected intent repository / bounded Storage adapter. Browser XMLHttpRequest sends the File directly to the exact private signed staging URL with the necessary publishable key, no application JWT or cookies. It reports transfer progress and best-effort cancellation. A separate Submit research click calls finalization with only the opaque intent UUID. Transfer success alone never refreshes academic history as a completed submission.
+
+Initiation derives identity from the existing session/current-account guard, locks the account and paper scope, checks active Student/group/membership and current revision eligibility, validates strict metadata and durably creates the intent before minting. Per-Student account locking serializes quotas across papers. Limits are 15 minutes, two live per Student, one per Student/paper and ten new per rolling hour; failed capability issuance and cancelled rows still count. Request UUID retries freeze the initial metadata.
+
+The Storage adapter uses installed storage-js 2.116.0 with an abort-aware fetch wrapper. Before capability issuance, it reads bucket settings and requires private research-submissions, an exact 10,485,760-byte limit and PDF-only MIME policy. It requires SUPABASE_PUBLISHABLE_KEY in modern publishable-key form; no env file was changed. The signed response must match the configured origin, exact staging route/path and sole token query. Only trusted provider-returned JWT expiry is decoded server-side (not a client assertion); it must be future and at most approximately two hours. The bound is committed before exposure. Capabilities are neither assumed single-use nor revocable; cancellation/expiry blocks server finalization, not an already-issued Storage capability.
+
+Finalization uses Node runtime/maxDuration 60 at the active submissions page, a cooperative 55-second processing deadline, 20-second Storage request bounds and at most two expensive finalizations per process/workflow instance. SQL lock/statement bounds are three/five seconds. Actual provider metadata, response MIME/encoding/length when present and streamed bytes must agree with the declared nonzero size up to 10 MiB. A preallocated bounded buffer and actual byte counter enforce the limit; the existing %PDF- signature rule is retained. SHA-256 binds the validated bytes to a prepared final path before Storage writes. This is not full PDF parsing or malware scanning.
+
+Short prepare/commit transactions share the existing per-paper advisory namespace. Account UPDATE lock -> group/membership SHARE locks -> existing submission SHARE locks -> paper SHARE lock -> intent UPDATE lock is used after the advisory lock. Submission-before-paper ordering matches Adviser decisions. No Storage I/O runs in those transactions. Authorization, expiry, latest version and immutable plan are checked again at commit; submission insert plus intent completion commit atomically, with existing paper/version uniqueness as backstop. Other research statuses and Adviser decision transactions are unchanged.
+
+Final objects use research/<paper>/vN/<intent-id>-<safe-name>.pdf, compatible with existing document validators. Writes use upsert:false. An existing or uncertain write is reconciled by bounded read/size/hash; an uncertain DB acknowledgement triggers a fresh durable-state check. Completed retries return the original submission, never allocate another version, and never notify again. No final object is blindly removed after failure. A lost commit acknowledgement can omit the best-effort notification; no outbox or exactly-once delivery claim is made.
+
+Status/renew/cancel remain self-only and reauthorize against current DB scope. The dialog keeps capabilities and Files only in memory; session storage retains only the opaque per-paper intent locator for explicit status/retry recovery. Pending/closed/error state never grants final-path access. Existing submitted/repository document access, publication and HTTP-only JWT authentication remain unchanged. Future secured APIs can reuse service/workflow boundaries with a separately approved actor adapter; these Server Actions are not a mobile API.
+
+Cleanup is a separate operator command, read-only dry-run only, default maximum 25 intents and no public/scheduled hook. It verifies the complete 15-entry source ledger and target fingerprint, queries in a READ ONLY transaction, waits for max(intent expiry, recorded capability expiry)+10 minutes and protects committed references/canonical paths. Destructive execution is refused before configuration; provider late-upload behavior and a deletion recheck protocol require Phase 10.2C.3 acceptance. Tombstones are retained.
+
+The 10 MiB boundary, installed SDK response handling and recovery races pass isolated doubles. Development bucket configuration metadata was subsequently verified in checkpoint I; actual Supabase CORS/raw PUT/publishable-key acceptance, expiry/non-overwrite semantics, real upload lock scheduling, pooled endpoint behavior and Vercel duration/memory remain unverified. DB pool waits, uncertain COMMIT and post-commit best-effort notification are not hard-cancel guarantees; the platform budget still needs measurement. See Master Context for exact files and checks. The fail-closed bucket/migration prerequisites are satisfied locally; this is not a live upload or hosted-readiness claim.

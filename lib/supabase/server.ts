@@ -15,7 +15,7 @@ import {
  * so application-level authorization must
  * happen before calling this client.
  */
-export function getSupabaseServerClient() {
+export function getSupabaseServerClient(fetcher?: typeof fetch) {
     const supabaseUrl =
         process.env.SUPABASE_URL;
 
@@ -38,6 +38,7 @@ export function getSupabaseServerClient() {
         supabaseUrl,
         supabaseSecretKey,
         {
+            ...(fetcher ? { global: { fetch: fetcher } } : {}),
             auth: {
                 autoRefreshToken: false,
                 persistSession: false,

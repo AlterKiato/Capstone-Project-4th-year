@@ -5,9 +5,9 @@ import { db } from "@/lib/db";
 import { submissions } from "@/db/schema";
 import { findUserByIdForUpdate } from "@/lib/repositories/user.repository";
 import { ROLE_IDS } from "@/lib/auth/roles";
+import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/constants/submission-lock";
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
-const SUBMISSION_LOCK_NAMESPACE = 1296388936;
 
 /**
  * Serializes submission version decisions for a paper. The lock is held

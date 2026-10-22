@@ -1,174 +1,104 @@
-# ThesiSHS AI --- Documentation & Agent Handoff Guide
+# ThesiSHS AI
 
-**Purpose:** Navigation guide for the project's canonical documentation
-and AI coding-agent handoff.
+ThesiSHS AI is a Senior High School research management and repository system. It organizes groups and papers, preserves submission/revision history, supports Adviser review and feedback, and provides authenticated access to approved research. Admin tools support account, group, publication and reporting workflows.
 
-## Documentation Files
+## Platform and architecture
 
-### `docs/SOURCE_OF_TRUTH_UPDATED.md`
+Next.js App Router, React and TypeScript provide the online-first PWA for Web, Mobile browsers and initial Desktop use. PostgreSQL and Drizzle store academic records; private Supabase Storage holds PDFs. Custom bcrypt/JWT authentication uses HTTP-only cookies and server-side checks of current account status, role and ownership.
 
-Canonical reference for stable architecture, product rules, scope,
-roles, security rules, storage rules, and durable decisions.
+The layers are UI/pages -> Server Actions -> Zod validation -> services -> repositories -> Drizzle -> PostgreSQL. Business rules and authorization belong in services; hiding controls does not authorize an operation.
 
-### `docs/MASTER_CONTEXT_UPDATED.md`
+The implemented direct-upload flow transfers the PDF from the browser to private Supabase staging, then separately asks the server to validate and finalize a submission. Migration 0014 is applied and verified on the approved local test database. The development/test bucket is private, PDF-only and limited to exactly 10 MiB; live Storage/Preview acceptance remains pending. Vercel Preview and production are NOT DEPLOYED. Expo integration is deferred; Electron needs separately justified capabilities and authorization. Physical PWA installation remains unverified, and private documents are not cached offline.
 
-Living checkpoint for current development progress, completed
-milestones, blockers, testing evidence, roadmap status, and immediate
-next actions.
+## Roles and implemented functionality
 
-**Current Git checkpoint (2026-10-08):** `feature/development`, HEAD
-`482b112` ? `docs(phase5): close research repository phase`. Phase 5 is
-complete and committed. Lean Phase 6 reuses existing search/filter/SQL
-pagination with newest-first ordering; changes and focused acceptance
-evidence remain unstaged/uncommitted. See the latest handoff in
-`docs/MASTER_CONTEXT_UPDATED.md`; older Phase 6 start-gate notes below
-are historical. CI and `.github/` remain untouched.
-Check `git status` before changing or staging files.
+- **Student:** registration/login, assigned-group access, multiple research projects per group, project selection, PDF submissions/revisions, version/feedback history and in-app notifications. A Student belongs to at most one active group.
+- **Adviser:** own-group management, manual Student assignment/removal, submission review, revision/approval decisions, feedback and in-app notifications.
+- **Admin:** account/role/status management, group oversight, approved-research publication, dashboards and read-only reporting.
+- **Published repository:** authenticated search/filter/pagination, approved research details, authorized PDF view/download. Private signed document links last 300 seconds and can outlive revocation until expiry.
+- **Role-aware assistance:** static Student guidance and local/static Admin/Adviser foundations; fictional mock aggregate interpretation is historical test evidence only.
 
-### `docs/ARCHITECTURE_UPDATED.md`
+Panel exists as a role and may access eligible published repository documents; Panel Evaluation is excluded unless reopened by the owner. Existing versions and feedback are preserved. The new direct-upload transport is implemented but pending live validation; earlier core workflow acceptance does not establish its hosted readiness.
 
-Technical reference for the application layers, module responsibilities,
-authentication/authorization flow, storage flow, and implementation
-patterns.
+## AI status
 
-### `docs/DATABASE (1).md`
+The official project name remains **ThesiSHS AI**. Groq is hard-disabled; no operational generative provider integration is deployed. Student guidance stays static. Adult eligibility, consent and privacy safeguards remain required for any separately approved provider activation. Generative guidance and research summarization are retired from active scope; AI does not make academic decisions.
 
-Canonical database/schema reference. Use it for tables, relationships,
-constraints, migrations, and database-specific rules. Verify the actual
-repository/database state before applying migrations.
+## Development progress
 
-## Recommended Agent Reading Order
+Phase 10.2C closure (2026-10-23): `feature/development`, parent HEAD `556dde189d5881fc32258ef8c68ad4842b7d93c3`. The owner authorized one reviewed 43-file checkpoint and normal push. Resolve the closure commit with `git log -1 --oneline`; inspect actual Git state before continuing.
 
-``` text
-docs/SOURCE_OF_TRUTH_UPDATED.md
-        ↓
-docs/MASTER_CONTEXT_UPDATED.md
-        ↓
-git status / branch / HEAD
-        ↓
-docs/ARCHITECTURE_UPDATED.md
-        ↓
-docs/DATABASE (1).md (when database work is involved)
-        ↓
-actual source code
-```
+| Phase | Status |
+|---|---|
+| 0-7: foundation, auth, research, review, repository, discovery, administration | Completed for documented scope |
+| 8: assistance | Provisionally complete for static/mock-only scope; provider disabled |
+| 9: UI/PWA | PASS WITH DOCUMENTED LIMITATIONS; owner manual 11 PASS, 0 FAIL, not rerun by Codex |
+| 10.1: authentication/security preparation | Implemented and locally validated; production gates remain |
+| 10.2A: production preflight | Read-only preflight completed; infrastructure not provisioned |
+| 10.2B: database foundation / secure Admin bootstrap | Implemented and locally validated; production execution pending |
+| 10.2C: direct private PDF upload | Implemented, isolated checks passed; live validation pending |
+| 0014 / 10.2C.3: minimal environment preparation | Local 0014 applied/verified; distinct operator and private recovery PASS; development bucket private, PDF-only, exactly 10 MiB; live acceptance pending |
+| 10.2D / 10.2E: Preview preparation / deployment | Pending, separately gated |
+| 10.4: owner-led Preview manual acceptance | Pending |
+| Production readiness / release | Pending; release requires separate authorization |
+| Native Mobile / Electron | Deferred; no integration implemented |
 
-Before changing anything:
+Earlier isolated PASS results remain evidence of those specific checks. They do not establish live upload or manual Preview acceptance. CI remains deferred.
 
-``` bash
+## Local development
+
+Use a Node.js version supported by the installed Next.js release and the checked-in npm lockfile. Read [AGENTS.md](AGENTS.md) before contributing and the relevant installed Next.js guides before code changes.
+
+```sh
 git status --short
 git branch --show-current
 git log -1 --oneline
+npm ci
+npm run dev
 ```
 
-Do not assume documentation is newer than the actual checkout.
+Installation is a developer setup instruction, not an action performed in this documentation checkpoint. Configure only an approved isolated development target. Relevant variable names include `DATABASE_URL`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_PUBLISHABLE_KEY` and `THESISHS_AUTH_LIMIT_SECRET`. Hosted/shared-limiter configuration also requires database stage, connection mode and target mappings; see the [database reference](docs/DATABASE%20%281%29.md). Never commit environment files, credentials, connection strings or signed capabilities. Supabase privileged credentials remain server-only.
 
-## Current Development Status
+Local verification email can use the existing development-only Mailpit integration (`npm run mailpit:local`); follow its guarded local configuration. Verification is optional during Stage 1; mandatory Student verification and real outbound email are deferred for initial deployment.
 
-Phase 4 is complete. Phase 5.1 Document Storage Foundation and Phase
-5.2 Submission ↔ Document Integration are also complete and
-runtime-accepted. Phase 5.2 runtime acceptance was service-level, not
-browser-level. Phase 5.3 Secure Document Access is complete and runtime-accepted
-(`PHASE 5.3 PASS`); its completion/documentation audit is complete.
+Available validation and serving commands, to use as appropriate for an authorized change:
 
-Phase 4 was verified as an end-to-end workflow:
-
-``` text
-Student submission
-      ↓
-Adviser review
-      ↓
-Feedback / decision
-      ↓
-Revision Required or Approved
-      ↓
-Student notification
-      ↓
-Resubmission
-      ↓
-Final approval
-```
-
-Phase 5.2 uses per-paper transaction-scoped advisory locking for
-submission version eligibility/allocation, retains the unique
-`(paper_id, version)` constraint, and cleans an uploaded object if the
-submission insert fails. Adviser feedback, submission/research statuses,
-and activity logging are transactional. Notifications are attempted
-after commit and failure is non-blocking. Phase 5.2 required no schema or
-migration changes; migration `0009_repository_paper_unique.sql` was not
-applied during Phase 5.2. It was subsequently applied only to the designated development/test database during Phase 5.4.
-
-Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer for 300 seconds in private bucket `research-submissions`; no client-supplied paper, path, version, identity, or role is trusted.
-
-Phase 5.3 acceptance passed actual PDF retrieval (HTTP 200, `application/pdf`,
-exact uploaded-byte match), Chromium access/denial checks, real 300-second
-expiry (HTTP 400 afterward), anonymous public/unsigned denial (HTTP 400),
-safe process-local storage failure, service-level review/version regression,
-and independently verified fixture cleanup. No Phase 5.3 schema/migration
-change was needed; `0009_repository_paper_unique.sql` was applied in Phase 5.4 to the designated development database after safety checks.
-See `docs/MASTER_CONTEXT_UPDATED.md` for executed evidence.
-
-Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
-
-Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
-
-Publication requires an authenticated, active database Admin and validated identifiers. The service verifies approved research, an approved submission, its persisted paper/version path, and private object existence. A per-paper transaction row lock plus `UNIQUE (paper_id)` serialize requests and prevent duplicate rows; repeated publication preserves the original timestamp. All 14 Phase 5.4 cases and Chromium authorization coverage passed, including Student/Adviser/Panel/anonymous denial and safe database failure. The Student upload -> Adviser review -> Revision Required -> v2 -> Approved -> Admin publication regression passed with history and Phase 5.3 protections preserved. Synthetic database/storage fixtures were removed and independently checked. Detailed accepted evidence is recorded in `docs/MASTER_CONTEXT_UPDATED.md`.
-
-Known non-blocking publication risks: storage verification holds the database transaction during a network request; an object can be deleted after publication; repository records dynamically resolve an approved submission. Production migration state is unverified.
-
-Phase 5.5 repository document access is complete and runtime-accepted: authenticated active Student, Adviser, Admin and Panel accounts are permitted through database-account checks, published/approved database eligibility, shared strict persisted paper/version path validation, and existing server-only 300-second signing. Chromium view/download, exact PDF retrieval, failure/denial checks, Phase 5.3/5.4 regression, and independent cleanup passed. No schema/migration changes. Actual signed-token lifetime was exactly 300 seconds (exp - iat); Phase 5.5 did not repeat the full expiry wait already verified in Phase 5.3. Repository eligibility is independent of group ownership and does not weaken the separate Phase 5.3 Student/Adviser ownership rules. Unpublished research is denied. Issued URLs remain bearer access until expiry, including after unpublication; legacy path validation remains strict. See the latest Phase 5.5 handoff in `docs/MASTER_CONTEXT_UPDATED.md`.
-
-## Critical Rules
-
--   Authorization is enforced server-side; UI visibility is never the
-    security boundary.
--   Always verify user/group/resource ownership.
--   Preserve all research submission versions.
--   Students do not self-join research groups; advisers assign students.
--   One active group membership per student.
--   Panel Evaluation is excluded unless explicitly reopened.
--   Notifications are currently in-app only. Phase 4's notification
-    failure deferral remains scoped to that closure audit; Phase 5.2
-    post-commit notification failure was separately runtime-verified as
-    non-blocking.
--   Research documents are stored in private Supabase Storage.
--   Store storage paths, not permanent public document URLs.
--   Signed document URLs are generated server-side for 300 seconds / five minutes.
--   Never commit secrets such as `JWT_SECRET` or `SUPABASE_SECRET_KEY`.
--   Do not apply a generated migration without checking its
-    applicability to the target database.
--   Do not invent test evidence or mark a phase complete without
-    verification.
--   Preserve unrelated existing working-tree changes when committing a
-    scoped documentation update.
-
-## Validation
-
-Use the project's existing checks as appropriate:
-
-``` bash
+```sh
 npm run lint
 npx tsc --noEmit
 npm run build
-git diff --check
+npm run start
 npx drizzle-kit check
+git diff --check
 ```
 
-Use Playwright for browser acceptance when the feature being verified is
-browser-facing.
+`start` serves an already-built application. Drizzle `check` validates migration history offline; it does not apply schema changes. There is no `npm test` script; use relevant existing focused tests.
 
-## Historical Chat Policy
+Database setup is privileged, not an automatic step after installation. `npm run db:seed:roles`, `npm run db:bootstrap:admin` and `npm run db:uploads:cleanup` require their documented operator safeguards; cleanup currently supports read-only dry-run only. Do not run migrations or seeds blindly against an existing database. Direct Drizzle database commands are disabled. Reuse the guarded 0014 runner only after separate approval, a distinct operator, verified target and private recovery evidence; see the [operator preflight](docs/DATABASE%20%281%29.md#minimal-operator-preflight-and-next-action-2026-10-22).
 
-The former large development chat is historical context only. The
-documentation set plus the actual Git checkout should be sufficient for
-normal agent handoff.
+## Approved roadmap and testing
 
-When historical context conflicts with the current checkout, the current
-checkout and current project documentation take precedence unless the
-owner explicitly asks to restore a reverted feature.
+**Minimal environment preparation -> Vercel Preview configuration -> Preview deployment -> Owner-led manual acceptance -> Focused corrections -> Production readiness -> Separately approved production release.**
 
-------------------------------------------------------------------------
+Local preparation completed the private backup/disposable recovery verification, separately approved migration 0014, record-preservation checks and development private PDF-only bucket limited to **10 MiB (10,485,760 bytes)**. Do not repeat these operations automatically. Preview and production database/Storage resources and secrets must remain separate. Reuse explicitly approved synthetic accounts where safe; avoid unnecessary fixtures.
 
-**End of Documentation Guide**
+The owner will test deployed Preview authentication, group/project selection, normal and near-10-MiB PDFs, version history, Adviser review/feedback, unauthorized document rejection, relevant Admin functions and basic PWA behavior. Manual acceptance remains pending.
 
-Phase 5.6 practical final verification and Phase 5.7 documentation closure passed: upload -> revision -> v2 -> approval -> Admin publication -> authenticated repository listing/detail/view/download, basic security, preserved history and independent synthetic cleanup. Phase 5.1 through 5.7 and Phase 5 overall are complete. No schema/migration changes in this final pass; existing 0009 remains development/test-only. Known limitations remain: issued URLs last until expiry; objects may be removed after publication; strict nonconforming paths are rejected; approved-document resolution is dynamic. This is capstone-level validation, not enterprise production hardening. Phase 6 is next; CI remains deferred.
+Prefer focused security/regression checks and appropriate lint, TypeScript, build and migration-integrity checks. Necessary browser automation should be sequential, bounded and limited in concurrency; stop after significant infrastructure failure. Extensive Playwright matrices, repeated full-system runs, large fixtures, parallel browser sessions, demo-stage load testing and new generalized frameworks are deferred. Preserve useful tests/tools. Extensive concurrency, reliability and load validation may still be required before genuine production use.
+
+The authoritative sequence/gates are in the [Master Context roadmap](docs/MASTER_CONTEXT_UPDATED.md#approved-phase-10-roadmap-2026-10-22), with durable decisions in the [Source of Truth](docs/SOURCE_OF_TRUTH_UPDATED.md#approved-preview-first-deployment-and-testing-decision-2026-10-22).
+
+## Current limitations
+
+Preview and production are NOT DEPLOYED. Local migration 0014 and development bucket metadata are verified; direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit is NOT VERIFIED and is required before production approval; bucket metadata does not prove policies unchanged. Live signed-upload behavior, anonymous document-access denial and capability isolation from unrelated paths are NOT VERIFIED; independently check the latter two before Preview testing. Preview resource mappings, hosted authentication/connections/build readiness, CORS, upload duration/memory and comprehensive concurrency/load reliability remain open. Mandatory verification, real email, AI activation and native Mobile integration are deferred. Pending capabilities and validation limits are distinct from confirmed defects.
+
+## Documentation and handoff
+
+- [Source of Truth](docs/SOURCE_OF_TRUTH_UPDATED.md): durable scope, product and security rules.
+- [Master Context](docs/MASTER_CONTEXT_UPDATED.md): current status, evidence, blockers and next checkpoint.
+- [Architecture](docs/ARCHITECTURE_UPDATED.md): layers and authentication/Storage boundaries.
+- [Database reference](docs/DATABASE%20%281%29.md): schema, migration history and guarded operations.
+- [AGENTS.md](AGENTS.md): contributor instructions and handoff precedence.
+- [DESIGN.md](DESIGN.md) and [ANTISLOP.md](ANTISLOP.md): approved UI direction and design filter; attribution remains in [ANTISLOP.LICENSE](ANTISLOP.LICENSE).
+
+Read current handoffs and actual source before relying on historical phase labels. Preserve academic history, ownership rules, multiple projects per group and private Storage. No roadmap entry alone authorizes database/Storage mutations, email/AI activation, deployment, staging, commits or pushes.

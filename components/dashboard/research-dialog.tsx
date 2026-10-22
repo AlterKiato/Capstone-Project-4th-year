@@ -2,17 +2,19 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import styles from "./student-ui.module.css";
 
-export default function ResearchDialog({ title, children, submitLabel, action, onSuccess, onClose, showCancel = false, submitDisabled = false, busy = false }: {
+export default function ResearchDialog({ title, children, submitLabel, action, onSuccess, onClose, showCancel = false, submitDisabled = false, busy = false, transferControls }: {
     title: string; children: ReactNode; submitLabel: string;
-    action: (data: FormData) => Promise<{ success: boolean; message: string; projectId?: number }>;
+    action: (data: FormData) => Promise<{ success: boolean; message: string; projectId?: number; keepOpen?: boolean }>;
     onSuccess: (projectId?: number) => void; onClose: () => void;
     showCancel?: boolean; submitDisabled?: boolean; busy?: boolean;
+    transferControls?: ReactNode;
 }) {
     const ref = useRef<HTMLDialogElement>(null);
     const locked = useRef(false);
     const dirty = useRef(false);
     const [pending, setPending] = useState(false);
     const [message, setMessage] = useState("");
+    const [positive, setPositive] = useState(false);
     const id = useId();
     useEffect(() => {
         const previous = document.activeElement as HTMLElement | null;
@@ -44,8 +46,8 @@ export default function ResearchDialog({ title, children, submitLabel, action, o
         locked.current = true; setPending(true); setMessage("");
         try {
             const result = await action(data);
-            if (result.success) { dirty.current = false; onSuccess(result.projectId); }
-            else setMessage(result.message);
+            if (result.success && !result.keepOpen) { dirty.current = false; onSuccess(result.projectId); }
+            else { setMessage(result.message); setPositive(result.success); }
         } catch { setMessage("The request could not be confirmed. Check your connection and reload before retrying."); }
         finally { locked.current = false; setPending(false); }
     }
@@ -66,7 +68,8 @@ export default function ResearchDialog({ title, children, submitLabel, action, o
             <fieldset disabled={pending || busy}>{children}<button type="submit" disabled={submitDisabled}>{pending ? "Saving…" : submitLabel}</button>
                 {showCancel && <button type="button" className={`${styles.toggle} ${styles.cancel}`} onClick={dismiss}>Cancel</button>}
             </fieldset>
-            <p role="status" className={message ? "form-message" : undefined}>{message}</p>
+            {transferControls}
+            <p role="status" className={message ? positive ? "form-help" : "form-message" : undefined}>{message}</p>
         </form>
     </dialog>;
 }

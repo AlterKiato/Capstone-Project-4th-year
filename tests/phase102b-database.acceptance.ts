@@ -40,7 +40,7 @@ async function fingerprint(client: postgres.Sql) {
 }
 
 async function verifySchema(client: postgres.Sql) {
-    const snapshot = JSON.parse(readFileSync("db/migrations/meta/0013_snapshot.json", "utf8"));
+    const snapshot = JSON.parse(readFileSync("db/migrations/meta/0014_snapshot.json", "utf8"));
     const tables = await client`select tablename from pg_tables where schemaname='public' order by tablename`;
     assert.deepEqual(tables.map(row => row.tablename), Object.values(snapshot.tables).map((t: unknown) => (t as { name: string }).name).sort());
     let constraintCount = 0, indexCount = 0;
@@ -156,15 +156,15 @@ async function main() {
         await migrate(db, { migrationsFolder: "db/migrations" });
         const source = readMigrationFiles({ migrationsFolder: "db/migrations" });
         const ledger = await replay`select hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id`;
-        assert.equal(source.length, 14); assert.equal(ledger.length, 14);
+        assert.equal(source.length, 15); assert.equal(ledger.length, 15);
         assert.deepEqual(ledger.map(r => [r.hash, r.created_at]), source.map(r => [r.hash, String(r.folderMillis)]));
-        console.log("PASS fresh empty owned database; migrations 0000–0013 replayed with Drizzle; all 14 ledger hashes/timestamps match.");
+        console.log("PASS fresh empty owned database; migrations 0000–0014 replayed with Drizzle; all 15 ledger hashes/timestamps match.");
         await verifySchema(replay);
         const pin = { identity: marker, runtime: { ...configuration.endpoint, database: name }, operator: { ...configuration.endpoint, database: name } };
         const operatorConfiguration = databaseConfiguration({ NODE_ENV: 'test', THESISHS_DATABASE_ENV: 'development',
             THESISHS_DATABASE_ADMIN_URL: replayUrl.toString(), THESISHS_DATABASE_TARGETS_JSON: JSON.stringify({ development: pin }) }, 'operator');
         const inspection = await inspectOperatorTarget(replay, operatorConfiguration); assert.match(inspection.fingerprint, /^[a-f0-9]{64}$/);
-        assert.equal(inspection.migrations, 14);
+        assert.equal(inspection.migrations, 15);
         const input = { firstName: "Synthetic", lastName: "Admin", email: " REPLAY-ADMIN@EXAMPLE.INVALID ",
             password: randomUUID(), confirmPassword: "" }; input.confirmPassword = input.password;
         assert.equal((await bootstrapInitialAdmin(db, input)).success, false); // No roles yet.

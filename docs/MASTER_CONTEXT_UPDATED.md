@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-21
+**Last reconciled:** 2026-10-23
 **Current branch:** `feature/development`
-**HEAD checkpoint:** `6f02b7ebb0d7978c415bb3248f7008f662863d08` — `chore(phase9): remove unused fixture tooling and close manual acceptance`.
-**Working tree:** Dirty before this review: `app/(auth)/login/page.tsx`, `app/globals.css` and this document. Preserve the pending Back to home refinement and its verification limits. This task updates documentation only; no staging, commit, push, merge or deployment. Recheck Git status before continuing.
+**Closure parent HEAD:** `556dde189d5881fc32258ef8c68ad4842b7d93c3`. Resolve the resulting owner-authorized closure commit with `git log -1 --oneline`.
+**Closure scope:** Verified incoming baseline: 19 modified + 24 new = 43 unstaged paths, empty index. The owner authorized review, minimum factual corrections in the six existing documentation files, focused offline checks, one commit (`feat(phase10): prepare secure direct PDF uploads for preview`) and a normal push to `origin/feature/development`. Application/tooling/migration bytes are preserved. No database/Storage connection, browser acceptance or deployment is authorized by closure; stop for review afterward.
 
 > This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. **Phase 9 is PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope; the owner has ended UI scope expansion. Phase 9.6 is closed for owner-performed manual acceptance (11 PASS, 0 FAIL), not independently rerun by Codex. Device installation/standalone, hosted HTTPS and deployment reliability remain unverified. The active design references are the existing application, approved DESIGN.md decisions (including Light/Dark/System) and ANTISLOP.md, with owner-selected During mode for future authorized UI implementation. Figma Make inspection is cancelled. The proposed Phase 10 roadmap is recorded in the latest handoff; Phase 10.1 is ready for discussion only. No implementation, push, merge or deployment is authorized by this documentation update.
+Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. **Phase 9 is PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope; the owner has ended UI scope expansion. Phase 9.6 is closed for owner-performed manual acceptance (11 PASS, 0 FAIL), not independently rerun by Codex. Device installation/standalone, hosted HTTPS and deployment reliability remain unverified. The active design references are the existing application, approved DESIGN.md decisions (including Light/Dark/System) and ANTISLOP.md, with owner-selected During mode for future authorized UI implementation. Figma Make inspection is cancelled. Phase 10.1 authentication/security preparation and Phase 10.2B database/Admin foundations are implemented with local validation; production gates remain. Phase 10.2C.2 direct private PDF upload is implemented with isolated checks, not live acceptance. Local migration 0014 is APPLIED and verified with all 15 ledger entries matching; distinct operator and private backup/disposable recovery verification passed. The approved development/test bucket is private, PDF-only and exactly 10,485,760 bytes. Direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED; Preview and production are NOT DEPLOYED. The approved Preview-first roadmap below supersedes earlier sequences; historical blocked/preparation reports are retained within their dated scope.
 
 ### Current phase status
 
@@ -34,7 +34,13 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 | 7 | Administration & Reporting | Complete; service/database/HTTP and final Chromium acceptance PASS |
 | 8 | Role-separated AI and static guidance | Provisionally complete for implemented static/mock-only scope; Chromium and focused safeguards PASS; operational Groq unfinished |
 | 9 | UI/UX Refinement & PWA Integration | PASS WITH DOCUMENTED LIMITATIONS; accepted UI and online-first PWA foundation; Phase 9.6 owner manual scope 11 PASS, 0 FAIL; physical installation and hosted acceptance unverified |
-| 10 | Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility | Proposed Phase 10.0-10.4 sequence recorded; this documentation handoff does not authorize implementation |
+| 10.1 | Authentication/security preparation | Implemented and locally validated; production gates remain; mandatory verification deferred |
+| 10.2A / 10.2B | Production preflight / database and Admin foundations | Preflight complete; foundations implemented and locally validated; no production provisioning |
+| 10.2C.2 | Direct private PDF upload | Implemented, isolated checks passed; live validation pending |
+| 10.2C.3 | Minimal test-environment preparation | Approved local scope complete: operator/private recovery PASS, 0014 applied/verified, development bucket configured; live/security acceptance pending |
+| 10.2D / 10.2E | Preview preparation / deployment | Pending, separately gated |
+| 10.4 | Owner-led Preview manual acceptance | Pending; no hosted PASS |
+| Production | Readiness and release | Pending; separate release authorization required |
 | 11 | Final Testing, Evaluation & Documentation | High-level final QA, user evaluation, demonstration and documentation retained; not started |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
 
@@ -43,18 +49,38 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 
 ---
 
+## Approved Phase 10 roadmap (2026-10-22)
+
+This owner-approved sequence replaces the earlier extensive automated upload-acceptance plan and proposed 10.3 deployment / 10.4 smoke-test sequence. Those plans remain historical evidence; no additional 10.3 or native-client scope is inferred.
+
+| Checkpoint | Required scope and gate | Current status |
+|---|---|---|
+| **10.2C.3 -> Minimal Test Environment Preparation** | Resolve distinct operator configuration; reuse guarded 0014 runner; establish a private restorable backup; apply 0014 only after separate execution approval; verify existing-record preservation. Separately configure isolated dev/test Storage: private, PDF-only, exactly 10,485,760 bytes (10 MiB). Reuse explicitly approved synthetic accounts where safe, avoiding needless fixtures. | Approved local preparation complete: distinct operator/private recovery PASS; 0014 applied/verified; development bucket private, PDF-only, exactly 10 MiB. Policy audit and live/hosted acceptance remain pending |
+| **10.2D -> Vercel Preview Preparation** | Review isolated Preview variables and database/Storage mappings; prove separation from production; resolve runtime, connection, authentication, Storage and build blockers. | Pending; no Vercel configuration performed |
+| **10.2E -> Preview Deployment** | Separately authorize deployment after configuration review, synthetic data only; minimal startup/connectivity checks. | Pending; Preview is not production approval |
+| **10.4 -> Manual Acceptance** | Owner tests deployed Preview: Student auth; group/project selection; normal and near-10-MiB PDF submission; version history; Adviser review/feedback; unauthorized PDF rejection; relevant Admin functions; basic PWA. Targeted debugging/tests only as needed. | Pending; do not label unexecuted acceptance PASS |
+| **Corrections -> Production readiness -> Release** | Fix identified defects; review security/infrastructure, physically isolated production database/Storage, migrations, backup/restore, least-privilege access and secrets; resolve critical blockers. Release requires separate owner authorization. | Pending; Preview alone cannot establish production readiness |
+
+**Approved testing decision:** Prefer owner-led manual visible workflows, focused Codex security/regression tests and appropriate TypeScript/lint/build/migration checks. Keep synthetic records minimal. Necessary automation should be sequential with bounded duration/concurrency; stop after significant infrastructure failure. The owner reported excessive resource usage/freezing during earlier testing; this is not a diagnosed root cause. Defer extensive Playwright matrices, repeated full-system acceptance, large fixture environments, parallel sessions, demo-stage load tests and generalized frameworks. Preserve useful tests/tools and earlier isolated PASS evidence; concurrency, reliability and load validation may still be needed before genuine production.
+
+**Preserved tooling:** The guarded migration runner remains the supported 0014 path. The B.1 fixture generator and local browser harness are available but deferred/optional, not mandatory gates for the lean Preview demonstration. Their existence does not authorize provisioning or execution. Existing synthetic accounts require explicit approval for safe reuse. No mandatory Student email verification for initial deployment; real email is deferred; Groq stays hard-disabled. PWA is primary; Expo/Electron remain deferred and separately authorized.
+
+**Next recommended checkpoint:** After the authorized Phase 10.2C Git checkpoint, separately authorize Phase 10.2D isolated Vercel Preview preparation: review database/Storage separation, environment/secret mappings, runtime/connection/authentication/build readiness and remaining Storage gates. Do not repeat operator/backup/restore/migration/bucket configuration or deploy automatically. Before Preview testing, independently verify anonymous private-document denial and signed-upload isolation from unrelated paths. Storage policy catalog visibility is NOT VERIFIED; complete that audit before production approval. The [minimal operator preflight](DATABASE%20%281%29.md#minimal-operator-preflight-and-next-action-2026-10-22) is historical setup evidence, not the next action.
+
+---
+
 ## 2. Git / Rollback Boundary
 
-Verified checkpoint for the 2026-10-21 closure/transition review:
+Verified incoming checkpoint for this 2026-10-22 roadmap review:
 
 ```text
 branch:      feature/development
-HEAD:        6f02b7ebb0d7978c415bb3248f7008f662863d08
-message:     chore(phase9): remove unused fixture tooling and close manual acceptance
-tree:        pre-existing login/CSS/Master Context changes; documentation review remains uncommitted
+HEAD:        556dde189d5881fc32258ef8c68ad4842b7d93c3
+index:       empty
+tree:        17 modified + 24 new = 41 existing unstaged paths
 ```
 
-Earlier Phase 8/9 commit and acceptance handoffs remain historical evidence. This review changes documentation only and preserves the existing working tree; no acceptance suite, database operation or commit is performed. Current closure and next actions supersede older pending-phase labels without rewriting historical results.
+This documentation checkpoint adds README/AGENTS modifications to that existing set, yielding 19 modified + 24 new = 43 pending paths. The four canonical references were already modified. Existing implementation/tooling, migration history and environment files are preserved. No acceptance suite or commit is performed. Earlier Phase 8/9 and Phase 10 handoffs retain historical evidence; current roadmap and gates supersede their next-step instructions.
 
 Before changing code, verify the actual checkout:
 
@@ -2787,7 +2813,7 @@ Preserved external integration concerns: mock-generated auth tokens; hardcoded S
 
 The professor expects specialized/unique Mobile and Desktop functionality beyond ordinary Web. No explicit PWA prohibition or Electron mandate was reported. Candidate specialized features and exact interpretation remain design decisions for owner/professor discussion, not approved requirements. No native Mobile/Electron completion, requirement or deployment is claimed. No mobile repository was cloned, copied, merged, modified or installed.
 
-### Proposed Phase 10 working sequence (subject to owner approval)
+### Historical proposed Phase 10 working sequence (superseded 2026-10-22)
 
 **Phase 10 — Deployment Preparation, Authentication Hardening, and Multi-Platform Feasibility.** This records a working roadmap only; no implementation or activation starts automatically.
 
@@ -3072,3 +3098,172 @@ All fixture writes were confined to the newly created replay database. Cleanup c
 Owner review is next; **do not begin Phase 10.2C automatically**. Provider selection, actual direct/session endpoint contract (including prepared statements, transactions/advisory locks, TLS trust and capacity), verified physical Development/Preview/Production isolation, least-privilege runtime grants, secure operator credential delivery, backup/restore and a reviewed production migration executor remain unestablished. Cluster inspection currently requires access to pg_control_system(); managed-provider denial fails closed and requires a separately reviewed identity method, not a bypass. Endpoint pins/configured identities alone cannot prove infrastructure isolation or exclude DNS aliases/provider routing.
 
 Existing production secret/ingress, private Storage and PDF upload transport/request-size gates from Phase 10.2A remain; production email/mandatory verification, provider activation and Expo are outside scope. Local production-mode HTTP fixtures now need an approved isolated environment instead of silently reusing a development URL; they were not rerun. No production/Preview/staging provisioning or mutation, existing-record writes, environment changes, real email, Storage calls, browser/full research suite, deployment, staging, commit or push occurred. Changes remain unstaged and uncommitted.
+
+
+## 2026-10-22 - Phase 10.2C.2 direct PDF upload implementation; live acceptance deferred
+
+Owner-authorized source, generated migration, isolated tests and canonical handoffs only. Verified clean baseline: feature/development, HEAD 556dde189d5881fc32258ef8c68ad4842b7d93c3, empty index and synchronized origin/feature/development. HEAD/branch remain unchanged; all checkpoint changes are unstaged/uncommitted. Recommend PASS WITH DOCUMENTED LIMITATIONS for this implementation checkpoint, awaiting owner review. Phase 10.2C.3 has not started.
+
+### Implemented behavior
+
+Active Student UI now selects a PDF, creates an intent using metadata only, directly uploads its File to private staging with progress/best-effort abort, then requires a separate Submit research click. Ready-to-submit never means academically submitted. Existing compact project selector, version history, feedback, status labels, dialog accessibility conventions and approved themes remain. Frozen metadata, own-status/renew/cancel and same-intent explicit retry/reload recovery are provided. Only the opaque locator is kept in session storage; Files, signed URLs and publishable capabilities stay in memory. Unknown results instruct status/history checks before starting anew. The obsolete public File-bearing submission action is authenticated and blocked; the old internal service remains for regression fixtures.
+
+New server-only wiring derives the actor from the existing JWT session/current-account Student guard; the workflow rechecks locked current account/group/membership, paper scope and first-submission/latest-Revision-Required eligibility. Strict Zod metadata excludes paths, versions and actor substitution. Intent UUID/staging path are server-generated. Durable quotas are 15-minute lifetime, two live per Student, one per Student/paper and ten new per rolling hour, including rows whose capability issuance fails or which are cancelled. Per-Student account locking serializes cross-paper issuance; request UUID and frozen metadata make initiation idempotent.
+
+Private research-submissions capability is confined to staging/submissions/<intent-id>/upload.pdf, upsert:false. Issuance reads bucket policy and requires private, PDF-only and exact 10 MiB limit, plus a modern SUPABASE_PUBLISHABLE_KEY. No configuration/env file changed. The trusted provider response's exact origin/path/query and approximately two-hour expiry are validated; expiration is committed before exposure. No application JWT or privileged secret reaches the browser. An issued capability may outlive cancellation/intent expiry and is not assumed single-use or revocable.
+
+Finalization accepts intent UUID only. The Storage adapter checks provider top-level metadata, actual response MIME/encoding/length and bounded streamed bytes, enforcing nonempty <=10,485,760 bytes and the existing %PDF- signature. Server SHA-256 and an immutable research/<paper>/vN/<intent-id>-<safe-file>.pdf plan are persisted before writing the same validated bytes without overwrite. Short prepare/commit transactions share the existing advisory namespace and consistent account/group/member/submission-before-paper/intent row locks; no Storage I/O runs while holding those transactions. Current authorization, expiry and latest version are checked again before the existing submission insert and completed-intent update commit atomically. Existing (paper_id,version) uniqueness remains.
+
+Retries reconcile existing final bytes/digest and uncertain database acknowledgements. A completed intent returns its original submission, even after expiry, subject to current authorization. No blind final-object deletion follows errors. Best-effort Adviser notification is attempted only by a fresh acknowledged commit; completed retries do not notify. A lost commit acknowledgement can omit this notification. Existing research status semantics, multiple projects, reviews/feedback/history, publication and signed document access are retained; no outbox, new authentication or mandatory verification.
+
+Node runtime/maxDuration 60 is configured on the active submissions page. Processing has a cooperative 55-second deadline, Storage requests have 20-second abort bounds, expensive finalizations/issuances are limited to two per process instance, and transaction statements/locks have five/three-second bounds. Buffering is bounded by the declared validated size, including exactly 10 MiB. These are source controls, not hosted performance measurements or hard cancellation of pool waits, uncertain COMMIT or post-commit notification.
+
+### Migration and cleanup boundary
+
+Generated and reviewed db/migrations/0014_submission_upload_intents.sql creates only the new intent table, three restrictive FKs, four unique constraints, eight CHECKs and two indexes. Matching snapshot/journal are included. Plan CHECK explicitly requires a nonnull digest for a nonnull final path. Snapshot comparison preserves every previous table. Earlier migration SQL/snapshots 0000-0013 are byte-identical. No migrate/push/replay or live PostgreSQL operation ran. Existing account/research tables are not modified by the SQL.
+
+Operator/replay guards now require the full 15-entry source ledger and future replay checks snapshot 0014; the acceptance harness was updated but NOT executed. Existing 0013-only targets fail the new full-ledger operator guard. New uploads intentionally fail closed until separately authorized migration/configuration acceptance; the obsolete upload path is not a fallback. Authentication, reading history and document-access source are preserved.
+
+npm run db:uploads:cleanup is operator-only read-only dry-run. It verifies target/ledger, uses a READ ONLY transaction, defaults to 25 rows, supports an opaque pagination cursor and reports counts without object paths/tokens. Eligibility starts after max(intent expiry,capability expiry)+10 minutes. Canonical-path checks and any committed submission reference protect final paths. Destructive --execute is refused before configuration. No automatic schedule/public endpoint, Storage deletion, intent purge or tombstone loss. Destructive cleanup is expressly deferred until real provider late-upload semantics and deletion rechecks are reviewed/accepted.
+
+### Fresh isolated validation
+
+- New upload tests: 28 cases across workflow (15), installed-SDK fetch/stream doubles (6), Drizzle transactional SQL double (1), actual controller with React/action/XHR doubles (3), offline migration/operator guards (3). Covers authorization/injection, quotas/idempotency, expiry/cancellation, exact size/encoding/signature, no File action transport, concurrent same-intent/same-paper outcomes, review/revocation during transfer, rollback/uncertain acknowledgement, hash reconciliation, no duplicate submission/notification and cleanup protection. All I/O is doubled; concurrency does not prove PostgreSQL scheduling.
+- Final consolidated focused run: **72/72 reported Node cases PASS, 0 FAIL**, including parent containers and existing script-file containers (28 new, 44 compatibility). Command: node --import tsx --test with the five phase102c2 unit files plus phase102b-database, phase101d1-auth, phase101b2-verification, phase101d2-auth-security, phase9-submission-result, phase5-document-access, phase5-repository-document, phase975-student, phase976a-adviser and phase976c-submissions unit files. Separate F1 command: node --import tsx --conditions=react-server tests/f1-research-mutations.unit.cjs.
+- Focused compatibility: authentication/verification/security, database foundation, retired/new action results, Student/Adviser workspaces and submitted/repository document access. The separate F1 synthetic mutation regression passes all nine printed assertion groups plus cleanup: role/ownership denial, queued and in-transfer revocation, validation, v1 -> review -> revision -> v2 -> approval, exact feedback/status/activity/history and notification-failure rollback behavior. It uses the retained internal legacy fixture only for those old mutation regressions; new transport is covered by new tests.
+- TypeScript no-emit and targeted ESLint PASS, including the new tooling test. Production build PASS: Next.js 16.3.8, all 25 generated pages. Build child used synthetic non-routable approved target mappings and ephemeral test secrets only; no env file edits or application database contact.
+- Offline Drizzle history check PASS. Diff/whitespace and final SHA-256 preservation check accompany the final report. Environment files and package-lock/dependency versions remain unchanged. Earlier failed checks were test-harness issues: React Server Component condition applied to a normal renderer, FK ON DELETE RESTRICT mistaken for a destructive SQL statement, and an overly short child startup timeout during concurrent build. Corrected invocation/assertion/timeout passed; no application or schema control was weakened.
+
+### Remaining gates and proposed Phase 10.2C.3 (owner authorization required)
+
+1. Independently verify an isolated disposable PostgreSQL/Storage target; preserve pre-existing fingerprints, credentials and all history. Review/apply 0014 only to that explicitly approved target and verify complete 15-entry ledger/constraints. Update a reviewed migration operator procedure; do not bypass strict guards.
+2. Verify private bucket/anonymous denial/RLS, PDF-only/exact 10 MiB policy, modern publishable-key raw signed PUT, CORS, actual signed expiry and upsert:false/late-capability behavior. Never use real Student records/documents.
+3. Run real multi-connection same-intent/same-paper/review/revocation races and DB/Storage failure/acknowledgement recovery with owned fixtures and independent cleanup. Confirm final path validators, versions, feedback, notification and repository publication/access end to end.
+4. Focused browser acceptance: explicit two-step workflow, size feedback, progress/cancel, ready/finalizing states, reload/uncertain-result recovery, multiple projects and responsive keyboard/dialog behavior across approved themes. No browser acceptance ran in C.2.
+5. Measure Vercel Node 60-second timing/peak memory at exactly 10 MiB and contended pool/provider behavior. Process-local admission is not a distributed resource quota. Existing signature validation is not malware scanning. Existing final objects/tombstones may accumulate while destructive cleanup is deferred. Revisit deletion only after provider behavior is verified; keep committed paths protected.
+
+No database/Storage mutations or real uploads, migration application, dependency installation, email, environment edits, provisioning/deployment, staging/commit/push, Expo integration, mandatory verification or Phase 10.2C.3 execution occurred. Owner review is the next action.
+
+### Exact changed/new files
+
+Modified (17):
+
+- `app/dashboard/student/submissions/page.tsx`
+- `components/dashboard/research-dialog.tsx`
+- `components/dashboard/student-research.tsx`
+- `db/migrations/meta/_journal.json`
+- `db/schema/index.ts`
+- `docs/ARCHITECTURE_UPDATED.md`
+- `docs/DATABASE (1).md`
+- `docs/MASTER_CONTEXT_UPDATED.md`
+- `docs/SOURCE_OF_TRUTH_UPDATED.md`
+- `lib/actions/submission.action.ts`
+- `lib/repositories/submission.repository.ts`
+- `lib/supabase/server.ts`
+- `package.json`
+- `scripts/database-operator.ts`
+- `tests/f1-research-mutations.unit.cjs`
+- `tests/phase102b-database.acceptance.ts`
+- `tests/phase9-submission-result.unit.cjs`
+
+New (19):
+
+- `components/dashboard/submission-upload-dialog.tsx`
+- `db/migrations/0014_submission_upload_intents.sql`
+- `db/migrations/meta/0014_snapshot.json`
+- `db/schema/submission-upload-intent.ts`
+- `lib/actions/submission-upload.action.ts`
+- `lib/constants/submission-lock.ts`
+- `lib/repositories/submission-upload.repository.ts`
+- `lib/services/submission-upload-storage.service.ts`
+- `lib/services/submission-upload.service.ts`
+- `lib/uploads/browser-upload.ts`
+- `lib/uploads/cleanup-plan.ts`
+- `lib/uploads/contract.ts`
+- `lib/uploads/submission-upload-workflow.ts`
+- `scripts/submission-upload-cleanup.ts`
+- `tests/phase102c2-repository.unit.cjs`
+- `tests/phase102c2-storage.unit.cjs`
+- `tests/phase102c2-tooling.unit.cjs`
+- `tests/phase102c2-ui.unit.cjs`
+- `tests/phase102c2-upload.unit.cjs`
+
+
+## 2026-10-22 - Phase 10.2C.3B.1 lean acceptance tooling/recovery preparation
+
+Verified feature/development, HEAD 556dde189d5881fc32258ef8c68ad4842b7d93c3, empty index and exact prior 17-modified/19-new C.2 manifest. All 36 prior changes are preserved; only this Master Context and Database handoff are extended. This checkpoint implements preparation only, with no live PostgreSQL/Storage/browser/backup/restore operation or provisioning. Phase 10.2C.3B.2 has not started. Earlier C.2 build/72-case workflow evidence and C.3A read-only metadata/isolation evidence remain historical, not newly rerun.
+
+### Exact additional scope
+
+New files:
+
+- `scripts/upload-acceptance-safety.ts` - narrow local identity/source/catalog/fingerprint/private-file/recovery/browser-origin guards and migration outcome reconciliation.
+- `scripts/migrate-upload-intents.ts` - opt-in read-only inspection, separate-restoration read-back/evidence and 0014-only execution modes; no automatic backup or restore.
+- `scripts/upload-acceptance-fixtures.ts` - explicit run-owned five-account/two-group/three-paper setup and pristine-only teardown helpers; no import-time I/O or automatic CLI.
+- `tests/phase102c3-browser.acceptance.cjs` - standalone opt-in Chromium harness; explicit loopback origin/private fixtures; self-owned Development server, no captures/default resource target.
+- `tests/phase102c3-tooling.unit.cjs` - pure guards, command-refusal checks and transactional doubles only.
+
+Modified documentation only: docs/MASTER_CONTEXT_UPDATED.md and docs/DATABASE (1).md. No application/auth/Storage service change, package/dependency change, existing operator-guard change, migration/snapshot/journal change, configuration/env-file edit or unrelated refactoring. Final manifest is 17 modified and 24 new files, all unstaged/uncommitted (41 total paths, because both edited handoffs were already in the C.2 manifest).
+
+### Safeguards and execution boundary
+
+Migration tool accepts only the independently confirmed prior loopback database/cluster/OID and explicit Development operator mapping, with an operator username different from runtime. It validates the exact 14-entry prefix and immutable approved 0014 SHA-256, approved original catalog, table absence and private recovery record. It serializes the migration, locks ledger/original tables for a quiet window, rechecks prerequisites, then executes only migration 0014 and its ledger insert atomically. Bounded lock/statement waits and full post-checks cover columns/nullability, FK/unique/index structure, CHECK names/validation and the complete 15-entry ledger. Original records and public sequence definitions/values/is_called must match. Existing strict 15-entry roles/Admin/cleanup guards remain unchanged. Wrong or partially applied state fails closed. Uncertain commit gets a fresh durable read, never automatic replay or blind DROP rollback; already-applied state is verified and never re-executed.
+
+Private backup is a manual operator procedure, not a backup framework or schedule. Use compatible PostgreSQL 18 custom-format pg_dump of the complete verified database, including public/drizzle ledger and sequences, into a protected directory outside every Git checkout. Keep credentials out of command arguments/output/history; use a protected external password file and temporary operator-process configuration. Restore only into a separately authorized empty disposable database with a distinct OID and prescribed run-owned name. The verifier reads that restored database and the unchanged original, requires matching catalog/ledger/record/sequence digests, verifies archive SHA/custom-format header and writes private recovery evidence. File/directory ACL checks allow only the current Windows operator/SYSTEM/Administrators, or private POSIX modes. Migration requires matching evidence no older than 24 hours and explicit target/archive confirmations. Evidence is an operator attestation protected by ACL, not a cryptographic signature; the operator must restore the exact named archive. Full commands, artifact handling and prerequisites are in the final Database section.
+
+Fixtures use a UUIDv4, reserved synthetic emails, UPLOAD_<run> names, five private random credentials and bcrypt12. No existing account is implicitly approved for reuse; no existing memberships/papers are moved. Same-run retries verify private credentials and frozen ownership, reuse IDs and refuse collisions without password resets. Setup/deletion require explicit operation/run/target confirmation, verified current target/schema and per-run transaction locking. Teardown validates every exact owned row/membership, refuses unrelated/tampered/extra records and refuses any upload intent, submission, notification or activity. It only removes pristine fixtures, idempotently. Research-bearing fixtures, objects and durable tombstones remain until separate Storage-aware cleanup review; no Storage deletion is implemented.
+
+Browser harness requires explicit execute/run/base/confirm-base/private-fixtures arguments, rejects non-loopback/production or ambiguous URLs, verifies exact live fixture/target relationships and launches its own Next Development child on a dedicated non-3000 port. It removes operator/restore credentials from the app child and pins the owner-confirmed test Supabase project fingerprint. Per-user contexts are separate; service workers and downloads are blocked; request destinations are constrained. Trace/HAR/video/screenshots/storage-state export/body/console capture and API/protocol debug logging are absent or disabled. Raw errors/child logs never print. Planned UI steps cover Student login/project selection, deliberate network failure/status retry, progress, uploaded-but-unsubmitted state, explicit Submit research, history/DB confirmation and separate Adviser visibility. Owned processes close; fixtures/objects remain. This is source-ready, not browser-accepted.
+
+### Validation and limitations
+
+Focused new tooling tests cover wrong identity before record reads, wrong source hash/ledger/schema, missing/stale/mismatched backup evidence, missing execution/target approval, already-applied state, acknowledged/lost/failed commit outcomes without replay, preservation checks, safe browser URLs, private in-repository artifact refusal, controlled CLI output, same-run fixture retries/password collision refusal, foreign/research-bearing teardown refusal, and no-capture harness structure. Database/transaction/fixture boundaries are isolated doubles; real bcrypt is used. Initial fixture test failure was a tag-driver double treating SQL identifier/list helpers as tagged queries; corrected the double without weakening production ownership checks.
+
+Final focused checks and preservation evidence accompany the completion report: new tooling plus existing C.2 tooling and B database guards; no broad workflow/browser suite or production build rerun because application source/dependencies are unchanged. Actual Windows private-artifact ACL checks, restoration matching, migration SQL/locking/reconciliation, fixture SQL and browser/provider behavior still require separately authorized live execution; passing doubles do not establish them.
+
+Fresh evidence: **29/29 focused Node cases PASS** (14 new B.1 cases plus 15 existing C.2-tooling/B database guard cases); final new-case rerun 14/14 PASS after the last private-file guard refinements. TypeScript no-emit, targeted ESLint and offline Drizzle history check PASS. Final diff/whitespace check PASS. SHA-256 comparison confirms 405 of 407 starting repository files byte-identical; only the two authorized handoffs differ, with their entire previous content preserved as prefixes. Exactly five new files were added. All migration SQL/snapshots/journal through 0014, prior application/test/operator/config/dependency files and environment files are unchanged. HEAD/branch/index remain the baseline. No live service was contacted by these checks.
+
+### Remaining blockers and recommended minimal C.3B.2
+
+1. Authorize dedicated operator configuration/grants and a quiet window; independently verify the same local identity/source/catalog. Existing operator URL/mapping were absent in C.3A. Do not copy runtime credentials or weaken guards.
+2. Separately authorize private backup, owned disposable restore creation/restoration and read-back verification/evidence. No archive, restore database or recovery record has been created here. Stop if recovery or original fingerprints differ.
+3. Authorize the 0014-only execution after reviewing its inspect fingerprint and recovery evidence. Confirm post-commit ledger/schema and unchanged original records/sequences before allowing fixture/application writes.
+4. Authorize private run credentials and the minimum five-account/two-group/three-paper setup; persist only its exact private run manifest. No existing account reuse is assumed.
+5. Authorize the development/test bucket's missing PDF-only and exactly 10,485,760-byte settings. Keep it private; verify publishable-only browser configuration, no secret in bundles, RLS/anonymous denial, CORS and scoped non-overwrite capability behavior. No bucket/object was read or changed by B.1.
+6. Only after these gates pass, separately authorize the focused browser/direct-upload acceptance. Retain research-bearing fixtures/tombstones until owned-path/grace/commit-safe cleanup is reviewed. Exact 10 MiB, real concurrency/failure scheduling and hosted Preview duration/memory remain separate acceptance work; no deployment or production activation is authorized by these tooling commands.
+
+All changes remain unstaged/uncommitted; no migration, live connection, backup/restore, fixture write, Storage request/object change, email, environment change, dependency installation, browser/server execution, deployment, staging, commit or push occurred in this checkpoint. Return to owner review before C.3B.2.
+
+
+## Handoff - 2026-10-22 - Phase 10 roadmap alignment and minimal operator inspection
+
+- Incoming branch/HEAD/index and all 41 pending paths matched the expected checkpoint and prior content hashes. Only README, AGENTS and the four canonical references are updated here. Existing implementation, useful tests, B.1 tooling and migration history remain preserved and unstaged.
+- Phase 10.2C.2 remains implemented with historical isolated validation, not live upload acceptance. B.1 tooling preparation remains complete. The previous B.2 Gate 1 stopped before database execution; no backup/restore artifacts or migration were produced. Earlier extensive fixture/browser next steps are superseded by the approved lean roadmap above.
+- Fresh minimal catalog inspection used the existing runtime connection only inside READ ONLY transactions against the approved localhost test database. Database OID 16387 / cluster 7652422818440234372 matched; ledger count was 14, and the intent table was absent. This was a count check, not a fresh full migration-hash audit. No password catalog/search, writes, Storage calls or operational Gate 1 execution occurred.
+- No other non-system LOGIN role was available; one role administrator was visible. Dedicated operator URL and target mapping configuration were absent. Recommend administrator-created distinct local operator with reviewed minimal grants and private process configuration; do not reuse runtime identity or weaken safeguards. Detailed lock/role privileges and configuration format are in the Database reference.
+- Remaining Preview gates: operator/recovery/migration acceptance, private PDF-only exact-10-MiB bucket settings and live provider behavior, isolated Preview database/Storage/secrets mapping, hosted authentication/connection/runtime/build readiness, then separate deployment approval. Manual Preview/PWA acceptance and production readiness remain pending.
+- Validation scope: documentation consistency, actual package scripts/configuration, local documentation links, changed-file/content preservation and whitespace checks only. No application tests, browser suites, dependency installation, migrations, backup/restore, provider activation, deployment, staging or commit.
+- Validation result: PASS for current roadmap/status consistency, README script accuracy, local links/new section anchors, Markdown fences and `git diff --check`. Content hashes confirm only the six authorized documentation files changed; all other incoming files and the environment file are unchanged. Final manifest: 19 modified + 24 new = 43 unstaged paths; index empty and branch/HEAD unchanged.
+
+## 2026-10-23 - Phase 10.2C closure: implementation/local preparation complete; live acceptance pending
+
+Owner-authorized closure reviews the existing 43 paths (19 modified, 24 new), entering on `feature/development` at `556dde189d5881fc32258ef8c68ad4842b7d93c3` with an empty index. Only the six existing documentation files receive factual status corrections during closure; application, tests, tooling, migrations and environment files are preserved. The approved single commit message is `feat(phase10): prepare secure direct PDF uploads for preview`, with a normal push only to `origin/feature/development`. Resolve the resulting commit using Git; the final owner-facing report records the actual commit/push result rather than inventing a self-referential SHA in this document.
+
+### Reused verified preparation evidence
+
+- Distinct local operator provisioning/configuration and private backup/recovery passed under separate approvals. Gate G/GR restored the retained archive successfully and verified schema, all 14 prior ledger entries, records/counts, relationships and all 13 sequences. Four CHECK deparser round-trip differences were confirmed harmless using catalog types/operators/dependencies, binary varchar-to-text casts and 48 rolled-back behavioral cases (96 inserts) in the disposable database. The narrow per-constraint formatting exceptions retain the original complete schema pin and reject changed operators, values, columns, missing constraints and validation/enforcement changes; no broad SQL normalizer was introduced. Genuine recovery PASS evidence and backup remain privately outside Git; the exact run-owned restore was verified and removed.
+- Checkpoint H applied only migration 0014 through the guarded dedicated operator once, returning `applied-confirmed`; independent durable read-back verified all 15 source-matching ledger entries. Migration SHA-256: `9077be13113496dfa894cfd376f0dd69b613eda6e1460da443990300152f71ab`. The empty new table had three restrictive FKs, four unique constraints, eight validated/enforced CHECKs, a primary key and two explicit indexes (seven including constraint backing). Existing records, table counts, academic schema and 12 public sequences were unchanged; the ledger sequence advanced from 14 to 15 as expected. No role/grant/ownership changes occurred in H.
+- Checkpoint I verified owner-approved development/test project fingerprint `2df59fc572539320` and private bucket `research-submissions`. One HTTP 200 update changed only `allowed_mime_types: null -> ['application/pdf']` and `file_size_limit: null -> 10485760`. Independent metadata read-back confirmed the same identity/private visibility and every other returned field unchanged. No object or policy operations occurred. The owner explicitly deferred policy catalog inspection; **Storage policy visibility is NOT VERIFIED**, and metadata does not establish policy preservation.
+- The recorded C.2 production build passed with Next.js 16.3.8 and 25 generated pages using synthetic non-routable configuration. It is reused as historical local build evidence, not a fresh closure or hosted build. Application/build inputs were not edited during closure; subsequent recovery changes are confined to operator tooling and isolated tests, checked afresh below.
+
+### Fresh closure validation
+
+- TypeScript: `npx tsc --noEmit --incremental false` PASS. Targeted ESLint over all 33 candidate TypeScript/TSX/CJS files PASS.
+- Sequential isolated run: **57/57 reported Node tests PASS, 0 FAIL**, using `node --import tsx --test --test-concurrency=1` with the five `phase102c2-*.unit.cjs` files, `phase102c3-tooling.unit.cjs`, `phase9-submission-result.unit.cjs` and `f1-research-mutations.unit.cjs`. Workflow/SDK/stream/XHR/SQL and recovery/fixture operations use doubles; CLI refusal checks do not launch a browser or connect to services. These checks do not establish live provider behavior or PostgreSQL upload-race scheduling.
+- Offline `npx drizzle-kit check` PASS. All 28 existing 0000-0013 SQL/snapshot files are byte-identical to the parent commit; the original 14 journal entries are unchanged, with only 0014 appended. The new snapshot preserves all 15 previous table definitions and adds only upload-intent persistence. Approved 0014 hash and additive SQL reviewed.
+- Candidate review found no real credentials, signed capabilities, personal data, binary/local artifacts or private recovery files. Explicit synthetic fixture strings/random in-memory credentials and an existing reserved-domain contact placeholder are test/documentation examples. Environment files remain outside the manifest. Documentation consistency, local links, unstaged/staged whitespace and exact staged/committed manifests are closure checks; final Git evidence is reported after execution.
+- No live database/Storage connection, migration, backup/restore, fixture creation, upload/browser acceptance, dependency installation, provider activation or deployment occurs in closure. Real email and mandatory verification remain deferred; Groq stays hard-disabled.
+
+### Remaining gates / Phase 10.2D handoff
+
+Direct upload is **IMPLEMENTED, pending live/hosted acceptance**; no live PDF PASS is claimed. Preview and production are **NOT DEPLOYED**. Extensive browser automation remains deferred under the approved lean roadmap. Next, separately authorize isolated Preview preparation: resource separation from production, reviewed variables/secrets, runtime database privileges and direct/session connection compatibility, auth/cookie/origin/shared-limiter configuration and hosted build/runtime budgets. Before Preview testing, independently verify anonymous private-document denial and signed-upload capabilities cannot reach unrelated object paths. Actual signed PUT/publishable-key/CORS/expiry/non-overwrite behavior and owner-led PDF/review/history/PWA acceptance remain pending. Complete the deferred Storage policy catalog audit before production approval. Destructive cleanup, broad reliability/load work, production release, email/AI activation and native integrations retain separate approval gates. Do not start Phase 10.2D or deploy automatically after this Git checkpoint.

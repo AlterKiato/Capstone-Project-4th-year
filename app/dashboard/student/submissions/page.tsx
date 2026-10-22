@@ -2,6 +2,9 @@ import DashboardHeader from "@/components/dashboard/dashboard-header";
 import StudentResearch from "@/components/dashboard/student-research";
 import { getStudentWorkspace } from "@/lib/services/student-workspace.service";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export default async function StudentSubmissionsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
     const workspace = await getStudentWorkspace();
     if (!workspace) return <main className="dashboard-page"><h1>Research Submissions</h1><p role="alert">Your account access could not be verified.</p></main>;

@@ -12,3 +12,4 @@ export * from "./ai-governance";
 export * from "./ai-pilot-attempt";
 export * from "./email-verification";
 export * from "./auth-rate-limit";
+export * from "./submission-upload-intent";

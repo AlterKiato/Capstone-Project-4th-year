@@ -145,6 +145,8 @@ const { startSubmissionReviewAction } = require('../lib/actions/adviser-review.a
 const { createAdviserFeedbackAction } = require('../lib/actions/adviser-feedback.action.ts');
 const form = entries => { const value = new FormData(); for (const [key, data] of Object.entries(entries)) value.set(key, data); return value; };
 const uploadForm = () => form({ paperId: '10', remarks: 'Synthetic F1', file: pdf(), userId: '99', roleId: '1', isActive: 'true' });
+// Preserve the legacy service's research/review regression; its File-bearing public action is now blocked.
+const submitServiceFixture = () => submitResearch(10, 30, pdf(), 'Synthetic F1');
 const feedbackForm = decision => form({ submissionId: '1', comments: 'Version-specific feedback', decision, adviserId: '99', roleId: '1', isActive: 'true' });
 const seed = status => state.submissions.push({ id: 1, paperId: 10, submittedBy: 30, version: 'v1', fileUrl: 'research/10/v1/history.pdf', status });
 const snapshot = () => JSON.stringify({ state, objects: [...objects].map(([path, bytes]) => [path, bytes.toString('hex')]) });
@@ -184,7 +186,7 @@ async function main() {
     // Revoke after initial verification, before upload or persistence lock.
     for (const revoke of [() => { accounts[1].isActive = false; }, () => { accounts[1].roleId = 4; }, () => { accounts.splice(1, 1); }]) {
         reset(); onPaperLock = revoke;
-        await noEffects(() => submitResearchAction(uploadForm()));
+        await noEffects(submitServiceFixture);
     }
     for (const decision of [null, 'Approved', 'Revision Required']) {
         for (const revoke of [() => { accounts[0].isActive = false; }, () => { accounts[0].roleId = 3; }, () => { accounts.splice(0, 1); }]) {
@@ -197,20 +199,20 @@ async function main() {
 
     for (const revoke of [() => { accounts[1].isActive = false; }, () => { accounts[1].roleId = 2; }, () => { accounts.splice(1, 1); }]) {
         reset(); const before = snapshot(); onUpload = revoke;
-        assert.equal((await submitResearchAction(uploadForm())).success, false);
+        assert.equal((await submitServiceFixture()).success, false);
         assert.equal(snapshot(), before); assert.ok(events.includes('cleanup')); assert.ok(events.includes('rollback'));
         assert.ok(!events.some(event => event.startsWith('write:') || event === 'notification'));
     }
     reset(); failInsert = true; const beforeFailure = snapshot();
-    assert.equal((await submitResearchAction(uploadForm())).success, false); assert.equal(snapshot(), beforeFailure);
+    assert.equal((await submitServiceFixture()).success, false); assert.equal(snapshot(), beforeFailure);
     reset(); onUpload = () => { accounts[1].isActive = false; }; failCleanup = true;
-    assert.equal((await submitResearchAction(uploadForm())).success, false);
+    assert.equal((await submitServiceFixture()).success, false);
     assert.equal(state.submissions.length, 0); assert.equal(state.notifications.length, 0); assert.equal(objects.size, 2);
     assert.ok(events.includes('cleanup')); // Explicit best-effort limit: the object can remain if deletion fails.
     objects.delete('research/10/v1/synthetic.pdf'); assert.equal(objects.size, 1);
     console.log('PASS upload-time revocation + insert failure: rollback and exact owned-object cleanup; failed cleanup limit exercised and synthetic object removed.');
 
-    reset(); groupActive = false; await noEffects(() => submitResearchAction(uploadForm()));
+    reset(); groupActive = false; await noEffects(submitServiceFixture);
     for (const invalid of [new File(['%PDF-1'], 'x.pdf', { type: 'text/plain' }), new File(['bad header'], 'x.pdf', { type: 'application/pdf' }), new File([], 'empty.pdf', { type: 'application/pdf' }), new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'large.pdf', { type: 'application/pdf' })]) {
         reset(); await noEffects(() => submitResearch(10, 30, invalid));
     }
@@ -220,11 +222,11 @@ async function main() {
     console.log('PASS existing active-group/PDF MIME/signature/empty/size/input/decision validation before external effects.');
 
     reset();
-    assert.equal((await submitResearchAction(uploadForm())).success, true);
+    assert.equal((await submitServiceFixture()).success, true);
     assert.equal(state.submissions[0].version, 'v1'); assert.equal(state.submissions[0].submittedBy, 30);
     assert.ok(objects.get('research/10/v1/synthetic.pdf').equals(Buffer.from('%PDF-1.7\nsynthetic F1')));
     const originalV1 = { ...state.submissions[0] };
-    events = []; await noEffects(() => submitResearchAction(uploadForm()));
+    events = []; await noEffects(submitServiceFixture);
     actor(2); assert.equal((await startSubmissionReviewAction(1)).success, true);
     assert.equal(state.submissions[0].status, 'Under Review');
     assert.equal((await createAdviserFeedbackAction(feedbackForm('Revision Required'))).success, true);
@@ -232,7 +234,7 @@ async function main() {
     assert.equal(state.submissions[0].status, 'Revision Required');
     const history = structuredClone({ submission: state.submissions[0], feedback: state.feedbacks[0] });
     assert.equal(history.feedback.teacherId, 20); assert.equal(history.feedback.submissionId, 1);
-    actor(3); events = []; assert.equal((await submitResearchAction(uploadForm())).success, true);
+    actor(3); events = []; assert.equal((await submitServiceFixture()).success, true);
     assert.equal(state.submissions[1].version, 'v2'); assert.equal(state.submissions[1].submittedBy, 30);
     assert.deepEqual({ submission: state.submissions[0], feedback: state.feedbacks[0] }, history);
     assert.ok(objects.has(originalV1.fileUrl));
