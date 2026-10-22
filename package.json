@@ -8,7 +8,8 @@
     "start": "next start",
     "mailpit:local": "node scripts/mailpit-local.cjs",
     "lint": "eslint",
-    "db:seed:roles": "tsx db/seed/roles.seed.ts"
+    "db:seed:roles": "tsx db/seed/role.seed.ts",
+    "db:bootstrap:admin": "tsx scripts/bootstrap-admin.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

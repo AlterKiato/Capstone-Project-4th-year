@@ -18,6 +18,7 @@ const cookieStore = {
 const originalLoad = Module._load;
 const mocks = {
     'server-only': {},
+    '@/lib/db': { db: {} }, // Limiting is disabled here; importing it must not initialize a runtime connection.
     'dotenv/config': {},
     'next/headers': { cookies: async () => cookieStore },
     'next/navigation': { redirect: path => { throw Error('REDIRECT ' + path); } },

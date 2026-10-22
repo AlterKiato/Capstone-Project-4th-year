@@ -7,6 +7,7 @@ const previousEnvironment = { node: process.env.NODE_ENV, enabled: process.env.T
 const originalLoad = Module._load;
 const mocks = {
     'server-only': {},
+    '@/lib/db': { db: {} }, // Repository boundary stays isolated from runtime connection policy.
     'next/headers': { headers: async () => requestHeaders },
     '@/lib/auth/session': { getSession: async () => session },
     '@/lib/repositories/email-verification.repository': { readVerificationAccount: async id => { lastAccount = id; return account; } },

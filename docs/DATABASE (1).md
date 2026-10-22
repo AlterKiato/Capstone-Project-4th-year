@@ -508,3 +508,42 @@ Same isolated loopback identity/cluster/OID and 14 exact source/ledger hashes/ti
 Real first admission now persists correct HMAC counters, aligned 15-minute starts and 75-minute expiry. Final applied-mode acceptance passes **18 groups plus independent cleanup**, including actual constraints/thresholds/two-pool concurrency (20 attempts, exactly five winners), transactional rollback, previous-window admission, at-most-64 cleanup and concurrent cleanup preserving active counters. Expiry tests age only owned synthetic timestamps; no elapsed 75-minute claim. Isolated limiter-driver failure denies auth while healthy read-only research access continues. Synthetic account/notification/verification regression also passes; only Next request/cookie/navigation and delivery boundaries are doubles.
 
 Independent cleanup verifies no owned user/notification/verification records, zero limiter buckets, all 14 original table fingerprints/structure unchanged and ledger preserved. Existing passwords/roles/groups/research/version/feedback/history are intact; no Storage/real email, production configuration or sequence reset. Earlier serialization blocker is resolved without migration edits. See latest [D.2F report](PHASE10_1D2_AUTH_HARDENING.md) for scope, runner assertion correction and remaining production gates. No deployment or production/staging migration claim.
+
+## 2026-10-22 - Phase 10.2B initialization rules and operator usage
+
+**Confirmed local foundation only; no production database provisioned.** Canonical role IDs are 1 Admin, 2 Adviser, 3 Student, 4 Panel. Initialize only a separately approved target with complete migrations 0000-0013. Missing compatible roles may be inserted; either-direction ID/name conflicts abort and require a separately authorized recovery. Extra unrelated roles and existing role metadata/references are preserved. A role-table lock and transaction serialize operations. Sequence repair uses transactional ALTER SEQUENCE RESTART only when lagging; no existing sequence is rewound. Panel remains outside active feature scope.
+
+### Server-only configuration
+
+| Variable | Meaning |
+| --- | --- |
+| `DATABASE_URL` | Runtime credentials only; normal local development/test URL remains supported. |
+| `THESISHS_DATABASE_ADMIN_URL` | Operator credentials only; no runtime fallback. Must be absent from hosted runtime configuration. |
+| `THESISHS_DATABASE_ENV` | Explicit `development`, `preview` or `production`; optional only for ordinary local runtime. Must match VERCEL_ENV when present. |
+| `THESISHS_DATABASE_CONNECTION_MODE` | `direct` or `session`; required for Preview/Production. Transaction pooling refused pending separate review. |
+| `THESISHS_DATABASE_TARGETS_JSON` | Strict approved-target map described below; always required for operator commands and hosted runtime. Never public/client configuration. |
+
+The target map has optional keys `development`, `preview`, `production`. Each supplied value is exactly `{ identity, runtime, operator }`; identity is a nonempty operator-verified environment data-identity label. Both endpoint objects are exactly `{ host, port, database, user }`, with lowercase host, numeric port and explicit database/user. No passwords/URLs belong in this map. All three profiles are required for hosted Preview/Production: distinct identity labels and no cross-environment host/port/database overlap, including operator/runtime endpoints and regardless of username. Preview/Production operator and runtime usernames must differ. Verify aliases, provider project/branch identity and grants separately; arbitrary labels are not evidence of physical isolation. Profiles may specify differing runtime and operator endpoints only after the operator confirms they route to the same intended environment data.
+
+Only postgres/postgresql URLs with explicit username/password/database are supported. URL options are limited to sslmode=require/verify-full (disable permitted only for development); no implicit multi-host routing or other options. Remote TLS always validates certificates, even with sslmode=require. There is no insecure certificate fallback/custom-provider assumption. Pools: hosted runtime 2, local runtime 10, operator 1; connect timeout 5s, idle timeout 20s, maximum lifetime 300s; prepare=true. Provider session/direct compatibility, CA trust, real least-privilege roles and aggregate serverless connection capacity still require hosted verification.
+
+### Controlled initialization commands
+
+Run from the repository root after privately provisioning operator configuration outside source control. Commands load normal operator process environment (dotenv does not override it); this checkpoint created/edited no environment file. Keep privileged configuration off Vercel runtime. Verify the target in the provider/control plane before accepting a fingerprint; a fingerprint is an identity binding, not authorization to initialize an arbitrary database.
+
+1. Read-only inspection: `npm.cmd run db:seed:roles -- --inspect`.
+2. Review/confirm the approved database identity and reported fingerprint, then `npm.cmd run db:seed:roles -- --confirm-target <fingerprint>`.
+3. Read-only inspection: `npm.cmd run db:bootstrap:admin -- --inspect`.
+4. `npm.cmd run db:bootstrap:admin -- --confirm-target <fingerprint>`, entering names/email/password/confirmation privately in an interactive terminal. No input is echoed.
+
+Inspection requires the selected database/user, database OID, server address, cluster system identifier and exact complete 14-entry source ledger. Fingerprints exclude passwords/connection URLs; output contains only environment/count/fingerprint. The operator must have pg_control_system() access; absence fails closed. Each command rechecks the live fingerprint. No argument/default confirmation, redirected input/output or mismatched fingerprint permits writes. Do not automatically retry uncertain results: inspect the approved database first.
+
+Admin requires successful canonical role validation and rejects **any existing role-1 account, including inactive Admins**. The locked transaction checks case-insensitive duplicate email, creates an active Admin only, stores bcrypt cost12 hash and never emits credentials/hash. Names/account/password use current validation, email is trimmed/lowercased, and new passwords must fit 72 UTF-8 bytes. No public endpoint, default account, auto-login, startup/build hook or automatic migration seed exists. Recovery/replacement is outside scope.
+
+Direct Drizzle Kit database commands are blocked; offline check/generate/export retain schema/history tooling, subject to owner authorization for generation. Do not substitute DATABASE_URL for operator credentials. The future production migration executor/confirmation and backup/restore procedure still need owner review; no production command was run.
+
+### Replay evidence and preservation
+
+New `tests/phase102b-database.acceptance.ts` requires independently verified expected cluster/OID arguments, loopback-only identity, CREATE DATABASE capability, full read-only baseline fingerprints and a new randomly named owned template0 database. It verifies emptiness before Drizzle migrate. Source/ledger **14/14**, **15 empty tables**, **51 application constraints**, **26 indexes** pass; types/nullability/serial defaults, PK/unique/FK columns/actions, CHECK expressions and explicit index definitions/predicates match snapshot 0013. Real roles/idempotence/conflict/concurrency/sequence and secure Admin/bcrypt/duplicate/concurrent-first-Admin cases pass there.
+
+Every fixture-bearing attempt removed its own database after OID/owner/marker/cluster/no-session checks; no FORCE/drop of existing databases or session termination. Independent comparison confirms all pre-existing rows, columns, constraints, indexes, sequence values and ledger unchanged across the 15-table development database. Migrations 0000-0013, schema source and existing role/account/research/history records remain unchanged. No new migration, production/Preview/staging operation, Storage or email activity. See latest Master Context for exact files, tests and remaining gates.
