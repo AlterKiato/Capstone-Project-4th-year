@@ -689,3 +689,81 @@ This command is documented, not run in this checkpoint. Once identity, privilege
 ### Roadmap precedence and deferred tools
 
 The owner-approved lean roadmap supersedes the earlier mandatory dedicated-fixture/browser sequence. Existing B.1 fixture and browser tools are preserved but optional/deferred; explicitly approved synthetic accounts may instead be reused where safe. No new fixtures are needed just to unblock operator configuration. Preserve the backup/restore and identity gates. Isolated Storage configuration (private, PDF-only, exactly 10,485,760 bytes) and Preview mappings/deployment remain separately authorized work, followed by owner-led manual acceptance. Earlier isolated PASS does not establish live PDF upload or hosted readiness.
+
+
+## Hosted Preview initialization and identity contract (Phase 10.2D.2A, 2026-10-23)
+
+Implemented, isolated-tested operator/runtime compatibility only. No hosted database exists or was contacted by this checkpoint; no migrations, roles, accounts, grants or provider settings were executed. Local 0014 and retained recovery evidence remain unchanged. Preview and production remain NOT DEPLOYED.
+
+### Expected metadata, not connection authorization by label
+
+`THESISHS_DATABASE_TARGETS_JSON` retains Development, Preview and Production entries. Each active hosted profile now needs `observed`: `provider` (`postgres` or `supabase`), `databaseOid`, distinct `runtimeRole`/`operatorRole`, and either native `cluster` or managed `projectRef`. Native identities require the cluster identifier; a Supabase profile requires its exact 20-character project ref and provider-supported route. Active profiles participating in hosted isolation checks, including the Development metadata, require these pins. The existing local Development URL/mapping behavior is retained.
+
+Future Production may be exactly `{ "identity": "future-production-reservation", "reserved": true }`. This contains no endpoint or credentials and CANNOT be selected for a connection. Missing entries, incomplete active pins, a selected reservation, duplicate identity labels, duplicate known cluster/database-OID pairs and any reused Supabase project ref are refused. No actual Production password or project is needed to prepare Preview. Shared pooler host/port/database strings may be equal only when independently approved Supabase project routes differ; username strings alone do not prove different databases or privileges.
+
+Illustrative metadata (angle-bracket placeholders are deliberately invalid until independently observed; no secrets belong here):
+
+```json
+{
+  "development": {
+    "identity": "approved-local-development",
+    "runtime": { "host": "localhost", "port": 5432, "database": "thesishs_ai", "user": "<local-runtime-role>" },
+    "operator": { "host": "localhost", "port": 5432, "database": "thesishs_ai", "user": "<local-operator-role>" },
+    "observed": { "provider": "postgres", "databaseOid": "<observed-oid>", "cluster": "<observed-cluster>", "runtimeRole": "<local-runtime-role>", "operatorRole": "<local-operator-role>" }
+  },
+  "preview": {
+    "identity": "approved-isolated-preview",
+    "runtime": { "host": "db.<project-ref>.supabase.co", "port": 5432, "database": "postgres", "user": "preview_runtime" },
+    "operator": { "host": "db.<project-ref>.supabase.co", "port": 5432, "database": "postgres", "user": "preview_operator" },
+    "observed": { "provider": "supabase", "projectRef": "<project-ref>", "databaseOid": "<observed-oid>", "runtimeRole": "preview_runtime", "operatorRole": "preview_operator" }
+  },
+  "production": { "identity": "future-production-reservation", "reserved": true }
+}
+```
+
+### Independent provider verification procedure - required before execution
+
+1. The owner verifies the project's ref, organization, intended Preview use and physical separation in the authenticated Supabase control plane (Dashboard or supported read-only Management API). Keep approval and observations privately; a variable name, fabricated pin or copied hostname is not evidence. Do not deploy Management API credentials.
+2. Copy direct/session endpoints from that project's Connect panel. Direct uses `db.<project-ref>.supabase.co:5432` and the actual PG role. Supported shared-session routes use the provided `aws-<index>-<region>.pooler.supabase.com:5432` and `<actual-role>.<project-ref>`. The configured `observed` roles are the actual, possibly dotted, PG names; no generic split-at-dot normalization is used. Runtime and operator may use different routes to this same approved project, with purpose-specific connection modes in their separate processes.
+3. Independently inspect each dedicated connection READ ONLY: `current_database()`, database OID from `pg_database`, `current_user`, `session_user`, both roles' attributes and `pg_auth_members`. Confirm the expected database, effective login and role separation. Observe `has_function_privilege(current_user,'pg_catalog.pg_control_system()','EXECUTE')` before considering that function. If executable, record/compare its actual system identifier; an execution failure or wrong cluster fails closed. Never grant a reserved privilege just to satisfy this check.
+4. Where the managed role cannot execute that function, only the explicit Supabase fallback is accepted: control-plane-approved project ref, canonical certificate-verified project route, actual database OID and effective-role/catalog checks together. A known cluster pin is still checked by roles that can read it; other roles use the managed route proof. This is a provider trust boundary, not an independently queried cluster proof, and its real behavior is NOT VERIFIED here. Native PostgreSQL has no such fallback. Stop if routing, role semantics, catalog visibility or certificate trust cannot be established; prefer a validated direct connection where session pooling cannot meet the contract.
+
+Hosted runtime queries are lazy: build/import does not connect. The Drizzle adapter verifies the selected database and both roles on the SAME transaction connection before application SQL. Individual statements use an autocommit-equivalent transaction; explicit transactions/savepoints retain their scope and advisory locks. Pending queries execute once. Only safe Drizzle transaction settings precede observation. Both PG roles must be LOGIN, non-superuser/non-CREATEDB/non-CREATEROLE/non-replication/non-BYPASSRLS and have no role memberships (including SET ROLE paths). Runtime cannot own the database/application schemas or objects, or CREATE in the database/public/drizzle. Other missing DML privileges fail normally; least-privilege grants still need live verification.
+
+Hosted TLS remains certificate-verified, prepared statements stay enabled, transaction pooling remains refused, and the pool/timeouts remain runtime 2/operator 1, connect 5 seconds, idle 20 seconds and lifetime 300 seconds. Hosted search path is fixed to `pg_catalog,public`. No certificate-validation bypass or unsupported pooler port is accepted. `NODE_ENV=production` with `VERCEL_ENV=preview` selects explicit `THESISHS_DATABASE_ENV=preview`, never the Production reservation. Runtime refuses `THESISHS_DATABASE_ADMIN_URL`.
+
+### Explicit initializer - commands are documentation, NOT executed here
+
+Use a private operator process with the approved metadata and separate `THESISHS_DATABASE_ADMIN_URL`; do not place that URL in Vercel. `scripts/initialize-preview-database.ts` accepts Preview only. First inspect:
+
+```sh
+node --import tsx scripts/initialize-preview-database.ts --inspect
+```
+
+Only after separately approved provider verification, an empty application namespace, permissions and disabled/unexposed Data API have been confirmed, use an interactive private terminal and the returned non-sensitive fingerprints:
+
+```sh
+node --import tsx scripts/initialize-preview-database.ts --execute --confirm-target <inspection-fingerprint> --confirm-source f917e170f56d4623e085b8d3b70e8ba0758bb21c1994506dba51c6813954e031 --confirm-data-api-disabled yes
+```
+
+The Data API flag is an explicit operator attestation, NOT an API audit performed by the tool. The tool rechecks identity/permissions, rejects existing application relations/routines/types or any migration ledger (including an empty leftover ledger), pins all 15 committed SQL hashes/timestamps plus journal/snapshot bytes, acquires a bounded migration advisory lock, and rechecks the empty-state fingerprint. The supported Drizzle migrator applies 0000-0014 sequentially within one outer transaction; its inner transaction is a postgres-js savepoint. That DDL transaction sets its local search path to `public` so unqualified committed CREATE TABLE statements target the application schema; PostgreSQL still searches implicit `pg_catalog` first. No role/account seed runs. Three-second lock and ten-second statement limits apply.
+
+Before commit, PostgreSQL catalogs are checked against snapshot 0014: exact columns/order/types/nullability/defaults, PK/unique/FK columns and public targets/actions, CHECK identity/validation/enforcement and expressions, indexes including predicates/order, object kinds/ownership, empty table counts and initial serial sequences. PostgreSQL canonicalizes trusted source CHECK/default/index SQL using empty temporary probes; no general SQL-text normalizer or dropped integrity check is used. Probes are removed inside the transaction. A separate durable inspection verifies the exact ledger and catalog/count/sequence fingerprint. Ambiguous acknowledgement, partial schema or verification failure causes inspection and controlled refusal, never automatic retry, DROP/restore or account creation. Review durable state before any separately approved recovery.
+
+### Minimum privileges and subsequent bootstrap
+
+| Identity | Required reviewed privileges | Must not receive |
+|---|---|---|
+| Runtime dedicated LOGIN | CONNECT, public USAGE; SELECT on role and application tables; required INSERT/UPDATE/DELETE for existing workflows (including shared limiter cleanup/upsert); USAGE/SELECT on application serial sequences | Database/schema CREATE, application ownership, migration ledger writes, memberships/escalation or provider-reserved roles |
+| Operator dedicated LOGIN | CONNECT, public USAGE/CREATE, TEMP; database CREATE only if needed to create the absent drizzle schema (otherwise its pre-created USAGE/CREATE); catalog/identity reads; owns newly created app tables/sequences and ledger | Superuser, CREATEDB, CREATEROLE, replication, BYPASSRLS, provider-reserved memberships |
+| Operator after migration | Exact full ledger SELECT; app ownership/DML needed by unchanged role/Admin tools; role sequence ownership for transactional restart | Runtime credentials fallback or public/bootstrap HTTP routes |
+
+No grants are executed by this implementation. Runtime grants must be provisioned separately after migration; do not expose the operator-owned tables through the Data API. Provider restrictions on catalog visibility, `pg_control_system`, schema creation, TEMP, locks and role/sequence ownership remain live checks. Unavailable privileges are blockers, not a reason to elevate the operator.
+
+After verified initialization, role seeding and Admin bootstrap remain separate private-terminal `db:seed:roles` / `db:bootstrap:admin` inspect-and-confirm operations. The hosted operator check uses the observed PG role, not the pooler routing username, preserves writable-session and full-ledger guards, and retains conflict rejection, deterministic Admin=1/Adviser=2/Student=3/Panel=4 IDs, bcrypt and hidden Admin input. There is no default password or deployment seed. Local-only fixture tools are not implicitly authorized or generalized to cloud targets.
+
+### Data API and remaining hosted gates
+
+Prefer disabling the unused database Data API in the Preview project's supported settings before application migrations. The application uses PostgreSQL TCP and the separate Storage API, not Supabase REST/GraphQL application-table access. Otherwise use an independently reviewed provider-supported exposure/grant boundary that makes application tables unreachable to unintended API roles; broad RLS is not implemented here. Verify the actual setting and Storage compatibility before execution; private bucket metadata does not protect public-schema database tables. See [Supabase Data API security](https://supabase.com/docs/guides/api/securing-your-api), [connection formats](https://supabase.com/docs/guides/database/connecting-to-postgres) and [managed-role limits](https://supabase.com/docs/guides/database/postgres/roles-superuser).
+
+All hosted TLS/routing/effective-role/catalog permissions, actual migration rollback/canonicalization, least-privilege runtime access and pooler scheduling remain NOT VERIFIED by isolated doubles or the synthetic build. No Vercel/project/bucket/credential changes occurred. Before Preview PDF testing, independently verify anonymous private-document denial, unrelated-path signed-upload denial and privileged-key exclusion from browser output. Full Storage policy audit remains required before production. Next: owner review, then separately authorize the minimum D.2B hosted provisioning/identity/privilege/Data API and explicit initialization steps; deployment remains a later approval.

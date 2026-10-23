@@ -12,7 +12,8 @@ const endpoint = (host, database, user) => ({ host, port: 5432, database, user }
 function remote() {
     const profiles = {};
     for (const stage of ['development', 'preview', 'production']) profiles[stage] = { identity: stage,
-        runtime: endpoint(`${stage}.example.invalid`, stage, 'runtime'), operator: endpoint(`${stage}.example.invalid`, stage, 'operator') };
+        runtime: endpoint(`${stage}.example.invalid`, stage, 'runtime'), operator: endpoint(`${stage}.example.invalid`, stage, 'operator'),
+        observed: { provider: 'postgres', cluster: String(100 + ['development','preview','production'].indexOf(stage)), databaseOid: '5', runtimeRole: 'runtime', operatorRole: 'operator' } };
     return { NODE_ENV: 'production', VERCEL_ENV: 'production', THESISHS_DATABASE_ENV: 'production',
         DATABASE_URL: 'postgres://runtime:synthetic@production.example.invalid:5432/production',
         THESISHS_DATABASE_CONNECTION_MODE: 'session', THESISHS_DATABASE_TARGETS_JSON: JSON.stringify(profiles) };

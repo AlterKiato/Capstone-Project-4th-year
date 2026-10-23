@@ -76,6 +76,8 @@ git diff --check
 
 Database setup is privileged, not an automatic step after installation. `npm run db:seed:roles`, `npm run db:bootstrap:admin` and `npm run db:uploads:cleanup` require their documented operator safeguards; cleanup currently supports read-only dry-run only. Do not run migrations or seeds blindly against an existing database. Direct Drizzle database commands are disabled. Reuse the guarded 0014 runner only after separate approval, a distinct operator, verified target and private recovery evidence; see the [operator preflight](docs/DATABASE%20%281%29.md#minimal-operator-preflight-and-next-action-2026-10-22).
 
+Hosted Preview uses a separate operator-only initializer for a newly verified empty application database; the existing 0014 runner remains local-only. Read the [hosted identity, reservation, privilege and initialization procedure](docs/DATABASE%20%281%29.md#hosted-preview-initialization-and-identity-contract-phase-102d2a-2026-10-23) before setup. No migrations run during build/startup, and no cloud execution is authorized by this implementation.
+
 ## Approved roadmap and testing
 
 **Minimal environment preparation -> Vercel Preview configuration -> Preview deployment -> Owner-led manual acceptance -> Focused corrections -> Production readiness -> Separately approved production release.**

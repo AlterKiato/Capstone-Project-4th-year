@@ -10,15 +10,22 @@ import * as schema from "@/db/schema";
 import { databaseConfiguration } from "@/lib/db/config";
 import { initializeRoles } from "@/lib/repositories/database-initialization.repository";
 import { bootstrapInitialAdmin } from "@/lib/services/database-initialization.service";
+import { verifyDatabaseIdentity, type IdentitySql } from "@/lib/db/identity";
 
 export async function inspectOperatorTarget(client: postgres.Sql, configuration: ReturnType<typeof databaseConfiguration>) {
-    const [identity] = await client`select current_database() as database, current_user as username,
+    const identity: Record<string, unknown> = configuration.environment !== "development" ? await verifyDatabaseIdentity(client as unknown as IdentitySql, configuration) :
+        (await client`select current_database() as database, current_user as username,
         inet_server_addr()::text as address, inet_server_port() as port,
         (select oid::text from pg_database where datname=current_database()) as oid,
         (select system_identifier::text from pg_control_system()) as cluster,
-        current_setting('transaction_read_only') as read_only`;
-    if (!identity || identity.database !== configuration.endpoint.database || identity.username !== configuration.endpoint.user ||
-        identity.read_only !== "off" || !identity.cluster || !identity.address) throw new Error("Target identity unavailable.");
+        current_setting('transaction_read_only') as read_only`)[0];
+    if (configuration.environment === "development" && (!identity || identity.database !== configuration.endpoint.database ||
+        identity.username !== configuration.endpoint.user || identity.read_only !== "off" || !identity.cluster || !identity.address))
+        throw new Error("Target identity unavailable.");
+    if (configuration.environment !== "development") {
+        const [session] = await client`select current_setting('transaction_read_only') as read_only`;
+        if (session?.read_only !== "off") throw new Error("Writable operator session required.");
+    }
     const source = readMigrationFiles({ migrationsFolder: "db/migrations" });
     const ledger = await client`select hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id`;
     if (source.length !== 15 || ledger.length !== source.length ||
