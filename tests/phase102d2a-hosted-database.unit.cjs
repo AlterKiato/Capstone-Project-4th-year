@@ -4,16 +4,25 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { readFileSync } = require('node:fs');
 const { spawnSync } = require('node:child_process');
+const { createRequire } = require('node:module');
+const path = require('node:path');
+const vm = require('node:vm');
+const { X509Certificate } = require('node:crypto');
+const tls = require('node:tls');
+const postgres = require('postgres');
 const { drizzle } = require('drizzle-orm/postgres-js');
 const { sql } = require('drizzle-orm');
 const { databaseConfiguration } = require('../lib/db/config.ts');
 const { verifyDatabaseIdentity } = require('../lib/db/identity.ts');
 const { guardedRuntimeClient } = require('../lib/db/guarded-client.ts');
 const { previewMigrationSource, verifyPreviewLedger } = require('../scripts/preview-migration-source.ts');
-const { initializePreview } = require('../scripts/preview-initialization.ts');
-const { inspectPreviewState, applyPreviewMigrations } = require('../scripts/initialize-preview-database.ts');
+const { initializePreview, previewFailure } = require('../scripts/preview-initialization.ts');
+const { main, inspectPreviewState, applyPreviewMigrations } = require('../scripts/initialize-preview-database.ts');
+const { verifyPreviewColumnNames } = require('../scripts/preview-schema.ts');
 const { inspectOperatorTarget } = require('../scripts/database-operator.ts');
 const ref = 'a'.repeat(20), otherRef = 'b'.repeat(20);
+// Public trust material from the approved Dashboard link; not a runtime fallback.
+const ca = readFileSync('tests/fixtures/tls/supabase-root-2021.crt', 'utf8');
 const endpoint = (host, user) => ({ host, port: 5432, database: 'postgres', user });
 function fixture(mode = 'direct') {
     const development = { identity: 'local', runtime: endpoint('localhost', 'local_runtime'), operator: endpoint('localhost', 'local_operator'),
@@ -24,11 +33,63 @@ function fixture(mode = 'direct') {
         observed: { provider: 'supabase', projectRef: ref, databaseOid: '5', runtimeRole: 'app_runtime', operatorRole: 'app_operator' } };
     const profiles = { development, preview, production: { identity: 'future-production', reserved: true } };
     const env = { NODE_ENV: 'production', VERCEL_ENV: 'preview', THESISHS_DATABASE_ENV: 'preview',
+        THESISHS_DATABASE_CA_PEM: ca,
         THESISHS_DATABASE_CONNECTION_MODE: mode, THESISHS_DATABASE_TARGETS_JSON: JSON.stringify(profiles),
         DATABASE_URL: `postgresql://${preview.runtime.user}:synthetic-fixture-only@${host}:5432/postgres?sslmode=verify-full` };
     return { profiles, env };
 }
 const mapped = (f, changes = {}) => ({ ...f.env, ...changes, THESISHS_DATABASE_TARGETS_JSON: JSON.stringify(f.profiles) });
+
+test('R4A hosted runtime and operator load explicit CA trust into the actual lazy driver', async () => {
+    for (const mode of ['direct', 'session']) for (const purpose of ['runtime', 'operator']) {
+        const f = fixture(mode), env = { ...f.env };
+        if (purpose === 'operator') {
+            env.THESISHS_DATABASE_ADMIN_URL = env.DATABASE_URL.replace('app_runtime', 'app_operator');
+            delete env.DATABASE_URL;
+        }
+        const c = databaseConfiguration(env, purpose), client = postgres(c.url, c.options);
+        try {
+            assert.equal(client.options.ssl.ca, ca);
+            assert.equal(client.options.ssl.rejectUnauthorized, true);
+            assert.equal(client.options.ssl.checkServerIdentity, undefined);
+            assert.doesNotThrow(() => tls.createSecureContext(client.options.ssl));
+        } finally { await client.end({ timeout: 1 }); }
+    }
+});
+test('R4A missing, malformed, bundled, private-key and oversized CA inputs fail without echoing inputs', () => {
+    const f = fixture();
+    for (const value of [undefined, '', 'sensitive-input-marker', '/operator/root.crt', 'x'.repeat(16385),
+        ca + ca, ca + 'unexpected trailer', ca.replace('CERTIFICATE', 'PRIVATE KEY'),
+        '-----BEGIN CERTIFICATE-----\nnot-a-certificate\n-----END CERTIFICATE-----']) {
+        assert.throws(() => databaseConfiguration({ ...f.env, THESISHS_DATABASE_CA_PEM: value }),
+            error => error.message === 'Database configuration is missing or not approved for this environment.');
+    }
+});
+test('R4A CA validity dates are enforced and CRLF PEM is accepted', t => {
+    const f = fixture(), certificate = new X509Certificate(ca);
+    assert.equal(databaseConfiguration({ ...f.env, THESISHS_DATABASE_CA_PEM: ca.replaceAll('\n', '\r\n') }).options.ssl.ca, ca);
+    for (const now of [Date.parse(certificate.validFrom) - 1, Date.parse(certificate.validTo)]) {
+        t.mock.method(Date, 'now', () => now);
+        assert.throws(() => databaseConfiguration(f.env));
+        t.mock.restoreAll();
+    }
+});
+test('R4A verification overrides and transaction pooling remain refused', () => {
+    const f = fixture('session');
+    for (const change of [{ NODE_TLS_REJECT_UNAUTHORIZED: '0' }, { THESISHS_DATABASE_CONNECTION_MODE: 'transaction' },
+        { DATABASE_URL: f.env.DATABASE_URL.replace('5432', '6543') },
+        { DATABASE_URL: f.env.DATABASE_URL.replace('verify-full', 'disable') },
+        { DATABASE_URL: f.env.DATABASE_URL + '&rejectUnauthorized=false' },
+        { DATABASE_URL: f.env.DATABASE_URL + '&checkServerIdentity=disabled' }])
+        assert.throws(() => databaseConfiguration({ ...f.env, ...change }));
+});
+test('R4A Development ignores hosted CA input and retains existing TLS opt-in behavior', () => {
+    const env = { NODE_ENV: 'development', DATABASE_URL: 'postgres://local:synthetic@localhost/app', THESISHS_DATABASE_CA_PEM: 'not-used' };
+    assert.equal(databaseConfiguration(env).options.ssl, false);
+    assert.deepEqual(databaseConfiguration({ ...env, DATABASE_URL: env.DATABASE_URL + '?sslmode=verify-full' }).options.ssl,
+        { rejectUnauthorized: true });
+});
+
 function driver(config, changes = {}) {
     const state = { queries: [], application: 0, identities: 0, begins: 0, commits: 0, rollbacks: 0, ...changes };
     const row = { database: config.endpoint.database, username: config.observed.runtimeRole, login: config.observed.runtimeRole,
@@ -72,7 +133,7 @@ function driver(config, changes = {}) {
 test('isolated Preview accepts production-mode Next and an explicitly non-connectable Production reservation', () => {
     const f = fixture(), c = databaseConfiguration(f.env);
     assert.equal(c.environment, 'preview'); assert.equal(c.options.max, 2); assert.equal(c.options.prepare, true);
-    assert.deepEqual(c.options.ssl, { rejectUnauthorized: true });
+    assert.deepEqual(c.options.ssl, { rejectUnauthorized: true, ca });
     assert.throws(() => databaseConfiguration({ ...f.env, VERCEL_ENV: 'production', THESISHS_DATABASE_ENV: 'production' }));
     for (const edit of [p => { delete p.preview.observed; }, p => { delete p.preview.observed.databaseOid; },
         p => { delete p.preview.observed.projectRef; }, p => { delete p.development; }, p => { p.production = { identity: 'placeholder' }; }]) {
@@ -184,11 +245,119 @@ test('full immutable migration sources and every ledger hash/timestamp are requi
     for (const rows of [ledger.slice(1), ledger.map((r, i) => i === 5 ? { ...r, hash: 'changed' } : r),
         ledger.map((r, i) => i === 4 ? { ...r, created_at: '0' } : r)]) assert.throws(() => verifyPreviewLedger(rows));
 });
-test('supported Drizzle migrator sequentially applies exactly all 15 sources inside the outer transaction', async () => {
-    const c = databaseConfiguration(fixture().env), d = driver(c);
-    await d.client.begin(tx => applyPreviewMigrations(tx));
-    assert.equal(d.state.migrationRows.length, 15); assert.equal(d.state.begins, 1); assert.equal(d.state.commits, 1);
-    assert.deepEqual(d.state.migrationRows.map(p => p[0]), previewMigrationSource().migrations.map(m => m.hash));
+test('R4C actual Postgres.js transaction shape keeps the supported Drizzle migrator inside its savepoint', async () => {
+    // Expose the installed driver's original transaction SQL factory in memory only. No dependency files change.
+    // Unlike the old double, these callable clients have neither root options nor begin/end/reserve methods.
+    const entry = require.resolve('postgres'), localRequire = createRequire(entry);
+    const source = readFileSync(entry, 'utf8').replaceAll('\r\n', '\n');
+    const marker = '  return sql\n\n  function Sql(handler)';
+    assert.equal(source.split(marker).length, 2);
+    const instrumented = source.replace(marker, "  sql.transactionFactory = handler => Sql(handler);\n" + marker);
+    let connections = 0;
+    const confinedRequire = name => name === './connection.js' ? (...args) => {
+        const connection = localRequire(name)(...args);
+        connection.connect = () => { connections++; throw Error('Offline network access prohibited'); };
+        return connection;
+    } : localRequire(name);
+    const moduleObject = { exports: {} };
+    vm.runInThisContext(`(function(require,module,exports,__filename,__dirname){${instrumented}\n})`, { filename: entry })(
+        confinedRequire, moduleObject, moduleObject.exports, entry, path.dirname(entry));
+    for (const failMigration of [false, true]) {
+        const root = moduleObject.exports({ host: 'diagnostic.invalid', database: 'synthetic', username: 'synthetic',
+            password: 'synthetic', max: 1, no_subscribe: true });
+        const state = { queries: [], ledger: [], commits: 0, rollbacks: 0, savepoints: 0, savepointRollbacks: 0, rootQueries: 0 };
+        root.unsafe = () => { state.rootQueries++; throw Error('Root query escape'); };
+        const transaction = scope => {
+            const tx = root.transactionFactory(query => {
+                const text = query.strings.join(''); state.queries.push({ scope, text });
+                if (failMigration && text.trimStart().startsWith('CREATE TABLE "role"')) {
+                    query.reject(Object.assign(Error('synthetic-private-password postgresql://private'), { code: '42601' }));
+                } else {
+                    if (text.includes('insert into "drizzle"."__drizzle_migrations"')) state.ledger.push(query.args);
+                    query.resolve([]);
+                }
+            });
+            tx.savepoint = async callback => {
+                state.savepoints++;
+                try { return await callback(transaction('savepoint')); }
+                catch (error) { state.savepointRollbacks++; throw error; }
+            };
+            assert.equal(tx.options, undefined); assert.equal(tx.begin, undefined);
+            return tx;
+        };
+        try {
+            const outer = transaction('outer');
+            assert.throws(() => drizzle(outer), /Cannot read properties of undefined.*parsers/);
+            try { await applyPreviewMigrations(outer, root.options); state.commits++; }
+            catch (error) {
+                state.rollbacks++; state.ledger = [];
+                assert.equal(failMigration, true);
+                assert.deepEqual(previewFailure(error), { classification: 'postgresql', code: '42601' });
+            }
+            assert.equal(state.savepoints, 1); assert.equal(state.rootQueries, 0); assert.equal(connections, 0);
+            assert.ok(state.queries.slice(0, 3).every(q => q.scope === 'outer')); // Ledger setup/lookup also stay in the outer transaction.
+            assert.ok(state.queries.slice(3).length > 0 && state.queries.slice(3).every(q => q.scope === 'savepoint'));
+            assert.equal(state.commits, failMigration ? 0 : 1); assert.equal(state.rollbacks, failMigration ? 1 : 0);
+            assert.equal(state.savepointRollbacks, failMigration ? 1 : 0);
+            assert.deepEqual(state.ledger.map(p => p[0]), failMigration ? [] : previewMigrationSource().migrations.map(m => m.hash));
+        } finally { await root.end({ timeout: 1 }); }
+    }
+});
+
+test('R4C.3 committed users column order passes without changing the input arrays', () => {
+    const expected = Object.values(previewMigrationSource().snapshot.tables['public.users'].columns).map(c => c.name);
+    const create = readFileSync('db/migrations/0001_adorable_killmonger.sql', 'utf8').split('\n);')[0];
+    const actual = [...create.matchAll(/^\s*"([^"]+)"\s+/gm)].map(m => m[1]);
+    for (const file of ['0002_harsh_madame_web.sql', '0012_student_email_verification.sql'])
+        for (const match of readFileSync(`db/migrations/${file}`, 'utf8').matchAll(/ALTER TABLE "users" ADD COLUMN "([^"]+)"/g)) actual.push(match[1]);
+    assert.notDeepEqual(actual, expected);
+    const savedActual = [...actual], savedExpected = [...expected];
+    verifyPreviewColumnNames('users', actual, expected);
+    assert.deepEqual(actual, savedActual); assert.deepEqual(expected, savedExpected);
+});
+
+for (const [label, change, assertion] of [
+    ['missing', columns => columns.slice(1), 'column-count'],
+    ['extra', columns => [...columns, 'unexpected_column'], 'column-count'],
+    ['renamed', columns => columns.map(name => name === 'email' ? 'synthetic-private-column' : name), 'column-names'],
+]) test(`R4C.3 ${label} column is rejected with a safe table/assertion identifier`, () => {
+    const expected = Object.values(previewMigrationSource().snapshot.tables['public.users'].columns).map(c => c.name);
+    assert.throws(() => verifyPreviewColumnNames('users', change(expected), expected), error => {
+        const safe = previewFailure(new Error('synthetic private URL postgresql://private', { cause: error }));
+        assert.deepEqual(safe, { classification: 'schema-assertion', schemaObject: 'public.users', schemaAssertion: assertion });
+        assert.ok(!JSON.stringify(safe).includes('synthetic')); assert.ok(!JSON.stringify(safe).includes('postgresql://'));
+        return true;
+    });
+});
+
+test('R4C failed migration retains only safe classification through durable inspection failure', async () => {
+    const secret = 'synthetic-private-password postgresql://private';
+    const cause = Object.assign(Error(secret), { code: '42501', query: secret, parameters: [secret] });
+    let writes = 0, reads = 0;
+    await assert.rejects(initializePreview({
+        inspect: async () => { if (reads++) throw Error(secret); return { target: 'target', empty: true, ledger: [], catalog: 'empty' }; },
+        apply: async () => { writes++; throw new Error(secret, { cause }); },
+    }, { execute: true, target: 'target', source: 'source' }, 'source'), error => {
+        const safe = previewFailure(error);
+        assert.deepEqual(safe, { classification: 'postgresql', code: '42501' });
+        assert.ok(!JSON.stringify(safe).includes(secret)); return true;
+    });
+    assert.equal(writes, 1); assert.equal(reads, 2);
+    assert.deepEqual(previewFailure(new TypeError(secret)), { classification: 'type-error' });
+    assert.deepEqual(previewFailure(Object.assign(Error(secret), { code: 'ERR_ASSERTION' })), { classification: 'schema-assertion' });
+});
+
+test('R4C CLI refusal returns numeric failure status and explicit execution/commit state without private inputs', async () => {
+    const savedError = console.error, savedCode = process.exitCode, output = [];
+    try {
+        console.error = message => output.push(message);
+        const result = await main(['--invalid', 'synthetic-private-password postgresql://private']);
+        assert.equal(result.exitStatus, 1); assert.equal(process.exitCode, 1); assert.equal(result.stage, 'arguments');
+        assert.equal(result.executionBegan, false); assert.equal(result.commitConfirmed, false);
+        assert.equal(result.durableInspectionRequired, false);
+        assert.ok(!output.join('\n').includes('synthetic-private-password'));
+        assert.deepEqual(JSON.parse(output[1]), result);
+    } finally { console.error = savedError; process.exitCode = savedCode; }
 });
 test('empty-only explicit initialization and independent durable verification never retry uncertain writes', async () => {
     const source = previewMigrationSource(), ledger = source.migrations.map(m => ({ hash: m.hash, created_at: String(m.folderMillis) }));

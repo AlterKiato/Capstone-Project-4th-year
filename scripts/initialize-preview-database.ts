@@ -7,14 +7,16 @@ import { databaseConfiguration } from "@/lib/db/config";
 import { verifyDatabaseIdentity, type IdentitySql, type DatabaseConfiguration } from "@/lib/db/identity";
 import { previewMigrationSource } from "./preview-migration-source";
 import { verifyPreviewSchema } from "./preview-schema";
-import { initializePreview, type PreviewState } from "./preview-initialization";
+import { initializePreview, previewFailure, type PreviewState } from "./preview-initialization";
 
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const refused = () => new Error("Preview initialization prerequisites not satisfied.");
 
-export async function applyPreviewMigrations(tx: postgres.TransactionSql) {
+export async function applyPreviewMigrations(tx: postgres.TransactionSql, options: postgres.Sql["options"]) {
     // Preserve the supported ORM migrator; its inner transaction becomes a postgres-js savepoint.
+    // Real transaction clients omit options. Borrow only parser/serializer metadata, never root SQL methods.
     const nested = new Proxy(tx, { get(target, key) {
+        if (key === "options") return options;
         return key === "begin" ? target.savepoint.bind(target) : Reflect.get(target, key);
     } });
     await migrate(drizzle(nested as unknown as postgres.Sql), { migrationsFolder: "db/migrations" });
@@ -60,8 +62,16 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
         catalog: digest({ relations, routines, types, columns, constraints, indexes, sequences, ledger, counts }) };
 }
 
-export async function main(args = process.argv.slice(2)) {
+export type PreviewInitializerDiagnostic = {
+    stage: string; exitStatus: number; executionBegan: boolean; commitConfirmed: boolean;
+    durableInspectionRequired: boolean; error?: ReturnType<typeof previewFailure>;
+};
+
+export async function main(args = process.argv.slice(2)): Promise<PreviewInitializerDiagnostic> {
     let client: postgres.Sql | undefined;
+    let failureStage: string | undefined;
+    const diagnostic: PreviewInitializerDiagnostic = { stage: "arguments", exitStatus: 0,
+        executionBegan: false, commitConfirmed: false, durableInspectionRequired: false };
     try {
         const mode = args.shift();
         if (mode !== "--inspect" && mode !== "--execute" || args.length % 2) throw refused();
@@ -73,41 +83,72 @@ export async function main(args = process.argv.slice(2)) {
         if (mode === "--inspect" && options.size || mode === "--execute" && options.size !== 3) throw refused();
         if (mode === "--execute" && (!process.stdin.isTTY || !process.stdout.isTTY)) throw refused();
         // Load only after explicit valid arguments; no implicit runtime credential fallback.
+        diagnostic.stage = "configuration and migration source";
         (await import("dotenv")).config({ quiet: true });
         const config = databaseConfiguration(process.env, "operator"), source = previewMigrationSource();
         if (config.environment !== "preview" || config.purpose !== "operator") throw refused();
         client = postgres(config.url, { ...config.options, onnotice: () => {} });
         const sql = client;
-        const inspect = () => sql.begin("isolation level repeatable read read only", async tx => {
-            await tx`set local statement_timeout='10s'`;
-            return inspectPreviewState(tx as unknown as postgres.Sql, config);
-        });
+        const inspect = () => {
+            diagnostic.stage = diagnostic.executionBegan ? "durable-state inspection" : "preflight inspection";
+            return sql.begin("isolation level repeatable read read only", async tx => {
+                await tx`set local statement_timeout='10s'`;
+                return inspectPreviewState(tx as unknown as postgres.Sql, config);
+            });
+        };
         if (mode === "--inspect") {
             const state = await inspect();
             console.log(JSON.stringify({ target: state.target, emptyApplicationSchema: state.empty, ledgerEntries: state.ledger.length, source: source.hash }));
-            return;
+            return diagnostic;
         }
         if (options.get("--confirm-data-api-disabled") !== "yes") throw refused();
-        const outcome = await initializePreview({ inspect, apply: before => sql.begin(async tx => {
-            await tx`set local lock_timeout='3s'`; await tx`set local statement_timeout='10s'`;
-            // Unqualified committed CREATE TABLE statements must create in public, never pg_catalog.
-            // PostgreSQL still searches pg_catalog implicitly first for names when it is omitted here.
-            await tx`set local search_path=public`;
-            await tx`select pg_advisory_xact_lock(1296388937,15)`;
-            const current = await inspectPreviewState(tx as unknown as postgres.Sql, config);
-            if (!current.empty || current.target !== before.target || current.catalog !== before.catalog) throw refused();
-            await applyPreviewMigrations(tx);
-            await verifyPreviewSchema(tx as unknown as postgres.Sql);
-            const verified = await inspectPreviewState(tx as unknown as postgres.Sql, config);
-            if (verified.ledger.length !== 15) throw refused();
-            return verified.catalog;
-        }) }, { execute: true, target: options.get("--confirm-target") ?? "", source: options.get("--confirm-source") ?? "" }, source.hash);
+        const outcome = await initializePreview({ inspect, apply: async before => {
+            diagnostic.executionBegan = true;
+            diagnostic.stage = "transaction start";
+            try {
+                return await sql.begin(async tx => {
+                    diagnostic.stage = "transaction guards";
+                    await tx`set local lock_timeout='3s'`; await tx`set local statement_timeout='10s'`;
+                    // Unqualified committed CREATE TABLE statements must create in public, never pg_catalog.
+                    // PostgreSQL still searches pg_catalog implicitly first for names when it is omitted here.
+                    await tx`set local search_path=public`;
+                    await tx`select pg_advisory_xact_lock(1296388937,15)`;
+                    const current = await inspectPreviewState(tx as unknown as postgres.Sql, config);
+                    if (!current.empty || current.target !== before.target || current.catalog !== before.catalog) throw refused();
+                    diagnostic.stage = "migration application";
+                    await applyPreviewMigrations(tx, sql.options);
+                    diagnostic.stage = "schema verification";
+                    await verifyPreviewSchema(tx as unknown as postgres.Sql);
+                    diagnostic.stage = "precommit verification";
+                    const verified = await inspectPreviewState(tx as unknown as postgres.Sql, config);
+                    if (verified.ledger.length !== 15) throw refused();
+                    diagnostic.stage = "transaction commit";
+                    return verified.catalog;
+                });
+            } catch (error) { failureStage = diagnostic.stage; throw error; }
+        } }, { execute: true, target: options.get("--confirm-target") ?? "", source: options.get("--confirm-source") ?? "" }, source.hash);
+        diagnostic.commitConfirmed = true; // Includes the unchanged independent durable catalog/ledger comparison.
         console.log(`Preview database: ${outcome}. Roles/accounts were not initialized. No automatic retry.`);
-    } catch {
+    } catch (error) {
+        diagnostic.stage = failureStage ?? diagnostic.stage;
+        diagnostic.exitStatus = 1;
+        diagnostic.error = previewFailure(error);
+        diagnostic.durableInspectionRequired = diagnostic.executionBegan && !diagnostic.commitConfirmed;
         console.error("Preview initialization not confirmed. Inspect target identity, permissions, source and durable state before further action. No automatic retry; private inputs suppressed.");
+        console.error(JSON.stringify(diagnostic));
         process.exitCode = 1;
     } finally {
-        try { await client?.end({ timeout: 2 }); } catch { process.exitCode = 1; }
+        try { await client?.end({ timeout: 2 }); } catch (error) {
+            if (!diagnostic.exitStatus) {
+                diagnostic.stage = "connection close"; diagnostic.error = previewFailure(error);
+                diagnostic.exitStatus = 1;
+                diagnostic.durableInspectionRequired = diagnostic.executionBegan && !diagnostic.commitConfirmed;
+                console.error(JSON.stringify(diagnostic));
+            }
+            process.exitCode = 1;
+        }
+        if (!diagnostic.exitStatus) diagnostic.stage = "complete";
     }
+    return diagnostic;
 }
 if (process.argv[1]?.replaceAll("\\", "/").endsWith("/initialize-preview-database.ts")) void main();

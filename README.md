@@ -78,11 +78,15 @@ Database setup is privileged, not an automatic step after installation. `npm run
 
 Hosted Preview uses a separate operator-only initializer for a newly verified empty application database; the existing 0014 runner remains local-only. Read the [hosted identity, reservation, privilege and initialization procedure](docs/DATABASE%20%281%29.md#hosted-preview-initialization-and-identity-contract-phase-102d2a-2026-10-23) before setup. No migrations run during build/startup, and no cloud execution is authorized by this implementation.
 
+Hosted runtime and operator connections require server-only `THESISHS_DATABASE_CA_PEM`: one valid, currently in-date CA certificate as multiline PEM, at most 16,384 characters. Obtain approved trust material from the provider; the public test fixture is not an automatic runtime fallback. Certificate/hostname verification stays enabled; local Development behavior is unchanged. See the [R4A trust and provider checkpoint](docs/DATABASE%20%281%29.md#r4a-postgresql-ca-trust-and-data-api-checkpoint-2026-10-23).
+
 ## Approved roadmap and testing
 
 **Minimal environment preparation -> Vercel Preview configuration -> Preview deployment -> Owner-led manual acceptance -> Focused corrections -> Production readiness -> Separately approved production release.**
 
 Local preparation completed the private backup/disposable recovery verification, separately approved migration 0014, record-preservation checks and development private PDF-only bucket limited to **10 MiB (10,485,760 bytes)**. Do not repeat these operations automatically. Preview and production database/Storage resources and secrets must remain separate. Reuse explicitly approved synthetic accounts where safe; avoid unnecessary fixtures.
+
+The owner approved existing test Supabase project reuse: local Development PostgreSQL remains separate; hosted PostgreSQL in `cbkplqkkjuoglpimwmib` is the initialized Preview target; Development and Preview share its test Storage trust boundary. Production will receive separate clean resources. R4A disabled the unused Data API and verified persisted configuration and unchanged bucket metadata. REST/RPC probes denied access (401/503), but definitive endpoint-denial verification remains unresolved. Subsequent owner-operated R4B/R4C/R4D checkpoints removed the optional auto-RLS pair and verified dedicated identities, 15 migrations, runtime grants, four canonical roles and one synthetic Admin with password comparison PASS. Actual browser login, Vercel configuration/protection, a successful fresh production build and separately approved deployment remain pending; see the latest Master Context. Do not replay initialization.
 
 The owner will test deployed Preview authentication, group/project selection, normal and near-10-MiB PDFs, version history, Adviser review/feedback, unauthorized document rejection, relevant Admin functions and basic PWA behavior. Manual acceptance remains pending.
 

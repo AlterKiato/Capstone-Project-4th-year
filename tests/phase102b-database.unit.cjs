@@ -5,16 +5,19 @@ const { test } = require('node:test');
 const Module = require('node:module');
 const { PassThrough } = require('node:stream');
 const { spawnSync } = require('node:child_process');
+const { readFileSync } = require('node:fs');
 const { databaseConfiguration } = require('../lib/db/config.ts');
 const { missingCanonicalRoles } = require('../lib/repositories/database-initialization.repository.ts');
 const { requirePrivateTerminal, privateAdminInput } = require('../scripts/database-operator.ts');
 const endpoint = (host, database, user) => ({ host, port: 5432, database, user });
+const ca = readFileSync('tests/fixtures/tls/supabase-root-2021.crt', 'utf8');
 function remote() {
     const profiles = {};
     for (const stage of ['development', 'preview', 'production']) profiles[stage] = { identity: stage,
         runtime: endpoint(`${stage}.example.invalid`, stage, 'runtime'), operator: endpoint(`${stage}.example.invalid`, stage, 'operator'),
         observed: { provider: 'postgres', cluster: String(100 + ['development','preview','production'].indexOf(stage)), databaseOid: '5', runtimeRole: 'runtime', operatorRole: 'operator' } };
     return { NODE_ENV: 'production', VERCEL_ENV: 'production', THESISHS_DATABASE_ENV: 'production',
+        THESISHS_DATABASE_CA_PEM: ca,
         DATABASE_URL: 'postgres://runtime:synthetic@production.example.invalid:5432/production',
         THESISHS_DATABASE_CONNECTION_MODE: 'session', THESISHS_DATABASE_TARGETS_JSON: JSON.stringify(profiles) };
 }
@@ -27,7 +30,7 @@ test('local runtime behavior and bounded defaults', () => {
     assert.equal(c.options.connect_timeout, 5); assert.equal(c.options.idle_timeout, 20); assert.equal(c.options.max_lifetime, 300);
 });
 test('hosted runtime and operator enforce verified TLS and separate credentials', () => {
-    const c = databaseConfiguration(remote()); assert.deepEqual(c.options.ssl, { rejectUnauthorized: true }); assert.equal(c.options.max, 2);
+    const c = databaseConfiguration(remote()); assert.deepEqual(c.options.ssl, { rejectUnauthorized: true, ca }); assert.equal(c.options.max, 2);
     assert.equal(databaseConfiguration({ ...remote(), THESISHS_DATABASE_ADMIN_URL:
         'postgres://operator:synthetic@production.example.invalid:5432/production' }, 'operator').options.max, 1);
 });

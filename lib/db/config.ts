@@ -1,5 +1,6 @@
 // Pure server/operator configuration validation. Runtime access is guarded by lib/db.ts's server-only boundary.
 import { z } from "zod";
+import { X509Certificate } from "node:crypto";
 import type { Options } from "postgres";
 
 const endpointSchema = z.strictObject({
@@ -29,6 +30,17 @@ const localHost = (host: string) => host === "localhost" || host.endsWith(".loca
     /^127\./.test(host) || ["[::1]", "::1"].includes(host) || /^\[::ffff:7f[0-9a-f]{2}:/.test(host);
 const sameDatabase = (a: z.infer<typeof endpointSchema>, b: z.infer<typeof endpointSchema>) =>
     a.host.toLowerCase() === b.host.toLowerCase() && a.port === b.port && a.database === b.database;
+
+function hostedCertificateAuthority(raw: string | undefined) {
+    if (!raw || raw.length > 16384) throw unavailable();
+    const pem = raw.trim();
+    // One explicit public CA certificate, never a key, bundle, path or SSL options object.
+    if (!/^-----BEGIN CERTIFICATE-----\r?\n(?:[A-Za-z0-9+/=]+\r?\n)+-----END CERTIFICATE-----$/.test(pem)) throw unavailable();
+    const certificate = new X509Certificate(pem);
+    const from = Date.parse(certificate.validFrom), until = Date.parse(certificate.validTo), now = Date.now();
+    if (!certificate.ca || !Number.isFinite(from) || !Number.isFinite(until) || now < from || now >= until) throw unavailable();
+    return certificate.toString();
+}
 
 function verifyProfile(target: z.infer<typeof targetSchema>, stage: string) {
     const pin = target.observed;
@@ -103,11 +115,14 @@ export function databaseConfiguration(env: Environment, purpose: DatabasePurpose
         }
         if (environment !== "development" && target?.observed?.provider === "supabase" &&
             mode !== (endpoint.host.endsWith(".pooler.supabase.com") ? "session" : "direct")) throw unavailable();
+        if (environment !== "development" && env.NODE_TLS_REJECT_UNAUTHORIZED === "0") throw unavailable();
+        const ca = environment !== "development" ? hostedCertificateAuthority(env.THESISHS_DATABASE_CA_PEM) : undefined;
         const tls = environment !== "development" || ["require", "verify-full"].includes(url.searchParams.get("sslmode") ?? "");
         const options: Options<Record<string, never>> = {
             max: purpose === "operator" ? 1 : environment === "development" ? 10 : 2,
             connect_timeout: 5, idle_timeout: 20, max_lifetime: 300,
-            ssl: tls ? { rejectUnauthorized: true } : false,
+            // Postgres.js supplies the endpoint servername; retain Node's default hostname verifier.
+            ssl: tls ? { rejectUnauthorized: true, ...(ca ? { ca } : {}) } : false,
             prepare: true, debug: false,
             ...(environment !== "development" ? { connection: { search_path: "pg_catalog,public" } } : {}),
         };
