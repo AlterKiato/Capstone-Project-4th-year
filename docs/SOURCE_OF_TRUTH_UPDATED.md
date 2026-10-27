@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-23 (Phase 10.2C closure and retained deployment gates)\
+**Last reviewed:** 2026-10-27 (Phase 10.2E.3 hosted Preview Admin acceptance and retained gates)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -52,6 +52,54 @@ ThesiSHS AI is a college capstone deployment project. Prioritize a functional, s
 - Capstone simplicity never relaxes active-account/current-role authorization, independent adult verification, explicit versioned consent, suppression, fixed-input/output validation, provider isolation or safe fallback. Student guidance remains static; AI never makes academic decisions.
 - Separate a bounded local synthetic-data demonstration from deployment authorization. Local test evidence does not prove shared Vercel quotas, network controls or real-data readiness. Resolve genuine deployment blockers with the smallest feasible existing service, not a speculative enterprise platform.
 
+### Research Before Implementation Policy (Owner Decision, 2026-10-27)
+
+This permanent development policy applies to future Codex tasks within the owner's authorized scope. Operational instructions are in [AGENTS.md](../AGENTS.md#research-before-implementation-policy). Research does not authorize implementation, dependencies, external services or separately gated database, Storage, environment, migration, AI or deployment operations.
+
+**Research triggers.** Conduct preliminary research before implementing unfamiliar, technically uncertain, security-sensitive or architecturally significant features. Routine UI refinements, simple bug fixes and established project patterns do not require external research unless a material uncertainty is identified.
+
+**Research priority.** Consult these sources in order, stopping when sufficient evidence is available:
+
+1. Existing ThesiSHS AI source code and implementation patterns.
+2. Canonical project documentation and approved architectural decisions.
+3. Official framework, library and provider documentation.
+4. Relevant, reputable open-source GitHub implementations.
+5. Custom implementation when existing approaches are unsuitable.
+
+Third-party examples must never override established project requirements. Existing source is evidence of implementation, not permission to bypass approved requirements or security rules. Retain the requirement to read the relevant installed Next.js guide in `node_modules/next/dist/docs/` before writing code.
+
+**Exact use case.** Before searching external implementations, define the problem, expected feature behavior, relevant stack, existing architecture and integration constraints, authentication/authorization/privacy requirements, and performance/maintainability considerations. Formulate specific search queries from these details rather than generic feature names.
+
+**GitHub evaluation.** When open-source comparisons are useful, shortlist approximately **2–3 relevant candidates** by default. For each, evaluate and report:
+
+- Repository name and URL.
+- License type, intended-reuse restrictions, attribution and compliance obligations.
+- Most recent commit date and, especially, latest relevant implementation activity; distinguish unrelated repository activity from maintenance of the selected approach.
+- Maintenance status and potential abandonment indicators.
+- Framework and dependency compatibility with the actual project stack.
+- Security concerns supported by verifiable evidence.
+- Suitability for ThesiSHS AI's use case and constraints.
+
+GitHub stars alone are not evidence of quality. Explicitly label license, maintenance or security information **unverified** when it cannot be verified; do not imply that absence of known findings proves security. Do not copy externally licensed code until the license permits the intended reuse and relevant attribution/compliance obligations are satisfied. Unknown or incompatible licensing requires owner approval and appropriate review before copying; owner approval does not replace valid license permission.
+
+**Implementation selection.** Compare architectural compatibility, security/privacy, maintainability, performance, licensing, dependency complexity and implementation effort. Prefer adapting established patterns over copying entire implementations. Avoid new dependencies or architectural changes when the existing codebase can safely satisfy the requirement.
+
+**Research efficiency.** Keep research proportional to the task. Prefer official documentation when sufficient, avoid unnecessary repeated searches and limit GitHub comparisons to 2–3 strong candidates by default. Do not conduct extended research for routine changes or add testing frameworks solely to validate a borrowed pattern. If external browsing is unavailable, report the limitation and rely on verified local resources, recording remaining uncertainties. Research should improve implementation quality without unnecessarily delaying development.
+
+**Security and preservation.** All adopted approaches must preserve server-side role and ownership authorization; the existing PostgreSQL/Drizzle layered architecture; JWT authentication and established session security; Supabase private document access; research submission version history; Student, Adviser and Admin workflow rules; approved AI eligibility/privacy restrictions; and environment isolation/migration safeguards. Do not weaken security or introduce external services without explicit authorization. All existing non-negotiable security controls and separate execution gates remain in force, including hard-disabled Groq.
+
+**Implementation reporting.** When external research materially influences a development task, include a concise summary of:
+
+1. The exact use case.
+2. Sources or repositories consulted, with links.
+3. License and latest relevant commit information for shortlisted GitHub repositories, with supporting evidence and any unverified details.
+4. Approaches compared.
+5. Selected approach and justification.
+6. Security or compatibility considerations.
+7. Remaining uncertainties.
+
+Do not claim a repository, vulnerability, license or dependency has been verified without evidence. Research findings and task-specific evidence belong in the task report and, when a current checkpoint actually changes, Master Context; this durable policy does not require duplicating it there.
+
 Current model/terms findings, proposed limits, consent wording and approvals belong in Master Context; they do not constitute provider activation or completed deployment evidence.
 
 ------------------------------------------------------------------------
@@ -89,8 +137,8 @@ Future clients must share the existing services, PostgreSQL, server-side authori
 The owner-approved deployment sequence is **minimal test-environment preparation -> isolated Vercel Preview preparation -> separately approved Preview deployment -> owner-led manual acceptance -> focused corrections -> production readiness -> separately authorized production release**. It supersedes the earlier proposed 10.3 deployment / 10.4 smoke-test sequence. Current checkpoints and evidence belong in Master Context; roadmap approval alone does not authorize execution.
 
 - Keep Preview and production database/Storage targets and secrets isolated. Preview uses synthetic data only and never establishes production readiness by itself.
-- Approved reuse clarification (2026-10-23, R4A): local Development PostgreSQL remains separate from the proposed hosted Preview PostgreSQL in existing test Supabase project `cbkplqkkjuoglpimwmib`. Development/Preview intentionally share test Storage and its privileged-key trust boundary; Production receives separate clean database/Storage resources. Hosted connections require explicit server-only CA trust with certificate and hostname verification. The unused Data API is disabled; detailed verification limits and remaining initialization gates are recorded in Master Context.
-- Local preparation is complete for the approved scope: migration 0014 APPLIED/verified, distinct operator/private recovery PASS and development bucket private/PDF-only/exactly 10 MiB. Direct upload is IMPLEMENTED, pending live/hosted acceptance; Preview and production are NOT DEPLOYED. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED. Independently verify anonymous private-document denial and signed-upload path isolation before Preview testing; the policy audit is required before production approval. Metadata verification does not establish policy preservation or upload behavior.
+- Approved reuse clarification (2026-10-23, R4A): local Development PostgreSQL remains separate from the initialized hosted Preview PostgreSQL in existing test Supabase project `cbkplqkkjuoglpimwmib`. Development/Preview intentionally share test Storage and its privileged-key trust boundary; Production receives separate clean database/Storage resources. Hosted connections require explicit server-only CA trust with certificate and hostname verification. The unused Data API is disabled; detailed verification limits and completed initialization evidence are recorded in Master Context.
+- Local preparation is complete for the approved scope: migration 0014 APPLIED/verified, distinct operator/private recovery PASS and development bucket private/PDF-only/exactly 10 MiB. Direct upload is IMPLEMENTED, pending live/hosted acceptance. Protected Vercel Preview is now online with owner-reported Admin acceptance; production is not deployed and Phase 10 remains open. See the [10.2E.3 handoff](MASTER_CONTEXT_UPDATED.md#phase-102e3---hosted-preview-admin-acceptance-2026-10-27) for evidence and remaining workflow gates. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED. Independently verify anonymous private-document denial and signed-upload path isolation before Preview testing; the policy audit is required before production approval. Metadata verification does not establish policy preservation or upload behavior.
 - Preparation requires the existing guarded migration tooling, a private restorable backup, record-preservation checks and separately authorized migration execution. Operator credentials must remain distinct from runtime credentials; do not bypass target or recovery safeguards.
 - Supabase documents remain private, PDF-only, with an exact **10 MiB (10,485,760-byte)** bucket/file limit and server-side validation before academic finalization. Bucket and resource changes need their own approved scope.
 - Prefer owner-led manual browser acceptance of visible workflows. Use focused security/regression tests and appropriate TypeScript, lint, build and migration-integrity checks. Reuse explicitly approved synthetic accounts safely; avoid unnecessary fixtures.

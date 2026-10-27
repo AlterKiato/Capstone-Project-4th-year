@@ -8,7 +8,7 @@ Next.js App Router, React and TypeScript provide the online-first PWA for Web, M
 
 The layers are UI/pages -> Server Actions -> Zod validation -> services -> repositories -> Drizzle -> PostgreSQL. Business rules and authorization belong in services; hiding controls does not authorize an operation.
 
-The implemented direct-upload flow transfers the PDF from the browser to private Supabase staging, then separately asks the server to validate and finalize a submission. Migration 0014 is applied and verified on the approved local test database. The development/test bucket is private, PDF-only and limited to exactly 10 MiB; live Storage/Preview acceptance remains pending. Vercel Preview and production are NOT DEPLOYED. Expo integration is deferred; Electron needs separately justified capabilities and authorization. Physical PWA installation remains unverified, and private documents are not cached offline.
+The implemented direct-upload flow transfers the PDF from the browser to private Supabase staging, then separately asks the server to validate and finalize a submission. Migration 0014 is applied and verified on the approved local test database. The development/test bucket is private, PDF-only and limited to exactly 10 MiB; live PDF/Storage acceptance remains pending. Protected Vercel Preview is online with owner-reported Admin acceptance; production is not deployed. Expo integration is deferred; Electron needs separately justified capabilities and authorization. Physical PWA installation remains unverified, and private documents are not cached offline.
 
 ## Roles and implemented functionality
 
@@ -26,7 +26,7 @@ The official project name remains **ThesiSHS AI**. Groq is hard-disabled; no ope
 
 ## Development progress
 
-Phase 10.2C closure (2026-10-23): `feature/development`, parent HEAD `556dde189d5881fc32258ef8c68ad4842b7d93c3`. The owner authorized one reviewed 43-file checkpoint and normal push. Resolve the closure commit with `git log -1 --oneline`; inspect actual Git state before continuing.
+Phase 10.2E.3 (2026-10-27): `feature/development`, base HEAD `ea096be44f8a74882787591de444f5423ec14683`. Protected Preview is online for Vercel project `thesishs-ai`; `main` remains reserved for Production. Vercel Authentication is configured according to the owner. Functions now run in Singapore (`sin1`) alongside the regional Supabase PostgreSQL target, using the Session Pooler on port 5432 with verified TLS. Detailed evidence and limitations are in the [current handoff](docs/MASTER_CONTEXT_UPDATED.md#phase-102e3---hosted-preview-admin-acceptance-2026-10-27).
 
 | Phase | Status |
 |---|---|
@@ -38,12 +38,12 @@ Phase 10.2C closure (2026-10-23): `feature/development`, parent HEAD `556dde189d
 | 10.2B: database foundation / secure Admin bootstrap | Implemented and locally validated; production execution pending |
 | 10.2C: direct private PDF upload | Implemented, isolated checks passed; live validation pending |
 | 0014 / 10.2C.3: minimal environment preparation | Local 0014 applied/verified; distinct operator and private recovery PASS; development bucket private, PDF-only, exactly 10 MiB; live acceptance pending |
-| 10.2D / 10.2E: Preview preparation / deployment | Pending, separately gated |
-| 10.4: owner-led Preview manual acceptance | Pending |
+| 10.2D / 10.2E: Preview preparation / deployment | Hosted database preparation verified; protected Preview online, Admin acceptance owner-reported PASS |
+| 10.4: owner-led Preview manual acceptance | Admin subset PASS (owner-reported); Student/Adviser and PDF/Storage checks pending |
 | Production readiness / release | Pending; release requires separate authorization |
 | Native Mobile / Electron | Deferred; no integration implemented |
 
-Earlier isolated PASS results remain evidence of those specific checks. They do not establish live upload or manual Preview acceptance. CI remains deferred.
+Earlier isolated PASS results remain evidence of those specific checks. They do not establish live upload or the remaining manual Preview workflows. CI remains deferred.
 
 ## Local development
 
@@ -86,9 +86,9 @@ Hosted runtime and operator connections require server-only `THESISHS_DATABASE_C
 
 Local preparation completed the private backup/disposable recovery verification, separately approved migration 0014, record-preservation checks and development private PDF-only bucket limited to **10 MiB (10,485,760 bytes)**. Do not repeat these operations automatically. Preview and production database/Storage resources and secrets must remain separate. Reuse explicitly approved synthetic accounts where safe; avoid unnecessary fixtures.
 
-The owner approved existing test Supabase project reuse: local Development PostgreSQL remains separate; hosted PostgreSQL in `cbkplqkkjuoglpimwmib` is the initialized Preview target; Development and Preview share its test Storage trust boundary. Production will receive separate clean resources. R4A disabled the unused Data API and verified persisted configuration and unchanged bucket metadata. REST/RPC probes denied access (401/503), but definitive endpoint-denial verification remains unresolved. Subsequent owner-operated R4B/R4C/R4D checkpoints removed the optional auto-RLS pair and verified dedicated identities, 15 migrations, runtime grants, four canonical roles and one synthetic Admin with password comparison PASS. Actual browser login, Vercel configuration/protection, a successful fresh production build and separately approved deployment remain pending; see the latest Master Context. Do not replay initialization.
+The owner approved existing test Supabase project reuse: local Development PostgreSQL remains separate; hosted PostgreSQL in `cbkplqkkjuoglpimwmib` is the initialized Preview target; Development and Preview share its test Storage trust boundary. Production will receive separate clean resources. R4A disabled the unused Data API and verified persisted configuration and unchanged bucket metadata. REST/RPC probes denied access (401/503), but definitive endpoint-denial verification remains unresolved. Subsequent owner-operated R4B/R4C/R4D checkpoints removed the optional auto-RLS pair and verified dedicated identities, 15 migrations, runtime grants, four canonical roles and one synthetic Admin with password comparison PASS. The owner subsequently configured protected Preview and corrected its runtime connection value after Session Pooler password authentication failed. Private runtime verification passed, and synthetic Admin login succeeded after redeployment; the exact original entry/encoding mistake was not proven. No authentication safeguard was bypassed. Fresh local production-build verification remains separate from this hosted deployment evidence; see the latest Master Context. Do not replay initialization.
 
-The owner will test deployed Preview authentication, group/project selection, normal and near-10-MiB PDFs, version history, Adviser review/feedback, unauthorized document rejection, relevant Admin functions and basic PWA behavior. Manual acceptance remains pending.
+The owner reports PASS for synthetic Admin login, expected initial dashboard data, session persistence after refresh, logout, unauthenticated application access protection and Admin navigation/responsiveness. These browser checks were not independently rerun by Codex. Five limited manual request samples averaged about 5.99 seconds before region alignment and 122 milliseconds afterward; this is not load-test or production-performance evidence. Hosted Student/Adviser authentication and workflows, PDF/private-Storage checks and physical PWA behavior remain pending.
 
 Prefer focused security/regression checks and appropriate lint, TypeScript, build and migration-integrity checks. Necessary browser automation should be sequential, bounded and limited in concurrency; stop after significant infrastructure failure. Extensive Playwright matrices, repeated full-system runs, large fixtures, parallel browser sessions, demo-stage load testing and new generalized frameworks are deferred. Preserve useful tests/tools. Extensive concurrency, reliability and load validation may still be required before genuine production use.
 
@@ -96,7 +96,7 @@ The authoritative sequence/gates are in the [Master Context roadmap](docs/MASTER
 
 ## Current limitations
 
-Preview and production are NOT DEPLOYED. Local migration 0014 and development bucket metadata are verified; direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit is NOT VERIFIED and is required before production approval; bucket metadata does not prove policies unchanged. Live signed-upload behavior, anonymous document-access denial and capability isolation from unrelated paths are NOT VERIFIED; independently check the latter two before Preview testing. Preview resource mappings, hosted authentication/connections/build readiness, CORS, upload duration/memory and comprehensive concurrency/load reliability remain open. Mandatory verification, real email, AI activation and native Mobile integration are deferred. Pending capabilities and validation limits are distinct from confirmed defects.
+Protected Preview is online; production is not deployed and Phase 10 remains open. Local migration 0014 and development bucket metadata are verified; direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit is NOT VERIFIED and is required before production approval; bucket metadata does not prove policies unchanged. Live signed-upload behavior, anonymous document-access denial and capability isolation from unrelated paths are NOT VERIFIED; independently check the latter two before Preview testing. Broader hosted role/ownership acceptance, CORS, upload duration/memory and concurrency/load reliability remain open. Vercel Authentication configuration and Admin application access checks do not prove every authorization or deployment-protection boundary. Mandatory verification, real email, AI activation and native Mobile integration are deferred. Pending capabilities and validation limits are distinct from confirmed defects.
 
 ## Documentation and handoff
 
@@ -105,6 +105,7 @@ Preview and production are NOT DEPLOYED. Local migration 0014 and development bu
 - [Architecture](docs/ARCHITECTURE_UPDATED.md): layers and authentication/Storage boundaries.
 - [Database reference](docs/DATABASE%20%281%29.md): schema, migration history and guarded operations.
 - [AGENTS.md](AGENTS.md): contributor instructions and handoff precedence.
+- [Research Before Implementation Policy](docs/SOURCE_OF_TRUTH_UPDATED.md#research-before-implementation-policy-owner-decision-2026-10-27): proportional research, source priority, GitHub/license evaluation and evidence reporting for future development.
 - [DESIGN.md](DESIGN.md) and [ANTISLOP.md](ANTISLOP.md): approved UI direction and design filter; attribution remains in [ANTISLOP.LICENSE](ANTISLOP.LICENSE).
 
 Read current handoffs and actual source before relying on historical phase labels. Preserve academic history, ownership rules, multiple projects per group and private Storage. No roadmap entry alone authorizes database/Storage mutations, email/AI activation, deployment, staging, commits or pushes.

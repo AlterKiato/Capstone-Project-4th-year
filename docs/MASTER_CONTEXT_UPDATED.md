@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-23
+**Last reconciled:** 2026-10-27
 **Current branch:** `feature/development`
-**Current base HEAD:** `7c64b8e43a53583c3a94c58c80e885c42f6f05c7`, synchronized with `origin/feature/development` before Phase 10.2D.2A. Phase 10.2C closure is committed.
-**Current scope:** Phase 10.2D.2A hosted Preview configuration/identity and empty-database initializer compatibility is implemented with isolated validation. Its owner-authorized Git closure covers exactly 15 reviewed files, one commit (`feat(phase10): prepare hosted preview database initialization`) and a normal push to `origin/feature/development`; resolve the resulting SHA with `git log -1 --oneline`. No database, role, credential, Storage, Vercel or deployment changes are authorized or performed. Hosted verification remains pending; stop for owner review before separately approved D.2B.
+**Current base HEAD:** `ea096be44f8a74882787591de444f5423ec14683`, verified locally for Phase 10.2E.3. Index empty; incoming research-policy edits to AGENTS.md, README.md and Source of Truth are preserved. Remote synchronization was not rechecked in this documentation-only checkpoint.
+**Current scope:** Phase 10.2E.3 documents the protected hosted Preview and owner-reported Admin acceptance, the runtime connection correction and regional performance measurements. Documentation-only Git checkpoint preparation; stop before staging/commit/push until the exact proposed file set is approved. No infrastructure, application behavior, account setup or new acceptance execution is authorized. Hosted Student/Adviser and PDF/Storage acceptance remain next separately approved work; production and the overall Phase 10 roadmap remain open.
 
 > This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
 
@@ -11,7 +11,7 @@
 
 ## 1. Current Project State
 
-Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval, live synthetic testing and Vercel activation remain unfinished. **Phase 9 is PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope; the owner has ended UI scope expansion. Phase 9.6 is closed for owner-performed manual acceptance (11 PASS, 0 FAIL), not independently rerun by Codex. Device installation/standalone, hosted HTTPS and deployment reliability remain unverified. The active design references are the existing application, approved DESIGN.md decisions (including Light/Dark/System) and ANTISLOP.md, with owner-selected During mode for future authorized UI implementation. Figma Make inspection is cancelled. Phase 10.1 authentication/security preparation and Phase 10.2B database/Admin foundations are implemented with local validation; production gates remain. Phase 10.2C.2 direct private PDF upload is implemented with isolated checks, not live acceptance. Local migration 0014 is APPLIED and verified with all 15 ledger entries matching; distinct operator and private backup/disposable recovery verification passed. The approved development/test bucket is private, PDF-only and exactly 10,485,760 bytes. Direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED; Preview and production are NOT DEPLOYED. The approved Preview-first roadmap below supersedes earlier sequences; historical blocked/preparation reports are retained within their dated scope.
+Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval and live AI testing remain unfinished. Protected Vercel Preview is now online, as recorded in the latest handoff. **Phase 9 is PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope; the owner has ended UI scope expansion. Phase 9.6 is closed for owner-performed manual acceptance (11 PASS, 0 FAIL), not independently rerun by Codex. Device installation/standalone and broader deployment reliability remain unverified; the current protected hosted Preview and Admin subset are owner-reported below. The active design references are the existing application, approved DESIGN.md decisions (including Light/Dark/System) and ANTISLOP.md, with owner-selected During mode for future authorized UI implementation. Figma Make inspection is cancelled. Phase 10.1 authentication/security preparation and Phase 10.2B database/Admin foundations are implemented with local validation; production gates remain. Phase 10.2C.2 direct private PDF upload is implemented with isolated checks, not live acceptance. Local migration 0014 is APPLIED and verified with all 15 ledger entries matching; distinct operator and private backup/disposable recovery verification passed. The approved development/test bucket is private, PDF-only and exactly 10,485,760 bytes. Direct upload is IMPLEMENTED, pending live/hosted acceptance. Storage policy catalog audit and live signed-upload/document-access denial are NOT VERIFIED. Protected Preview is online with owner-reported Admin acceptance PASS; production is not deployed. Full hosted workflow and production readiness are not established. The approved Preview-first roadmap below supersedes earlier sequences; historical blocked/preparation reports are retained within their dated scope.
 
 ### Current phase status
 
@@ -38,8 +38,8 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 | 10.2A / 10.2B | Production preflight / database and Admin foundations | Preflight complete; foundations implemented and locally validated; no production provisioning |
 | 10.2C.2 | Direct private PDF upload | Implemented, isolated checks passed; live validation pending |
 | 10.2C.3 | Minimal test-environment preparation | Approved local scope complete: operator/private recovery PASS, 0014 applied/verified, development bucket configured; live/security acceptance pending |
-| 10.2D / 10.2E | Preview preparation / deployment | D.1 preflight complete; D.2A compatibility implemented with isolated validation; hosted setup and deployment remain separately gated |
-| 10.4 | Owner-led Preview manual acceptance | Pending; no hosted PASS |
+| 10.2D / 10.2E | Preview preparation / deployment | Hosted database preparation verified; protected Preview online; 10.2E.3 Admin subset owner-reported PASS |
+| 10.4 | Owner-led Preview manual acceptance | Admin subset PASS (owner-reported); hosted Student/Adviser, PDF/Storage and remaining acceptance pending |
 | Production | Readiness and release | Pending; separate release authorization required |
 | 11 | Final Testing, Evaluation & Documentation | High-level final QA, user evaluation, demonstration and documentation retained; not started |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
@@ -56,22 +56,24 @@ This owner-approved sequence replaces the earlier extensive automated upload-acc
 | Checkpoint | Required scope and gate | Current status |
 |---|---|---|
 | **10.2C.3 -> Minimal Test Environment Preparation** | Resolve distinct operator configuration; reuse guarded 0014 runner; establish a private restorable backup; apply 0014 only after separate execution approval; verify existing-record preservation. Separately configure isolated dev/test Storage: private, PDF-only, exactly 10,485,760 bytes (10 MiB). Reuse explicitly approved synthetic accounts where safe, avoiding needless fixtures. | Approved local preparation complete: distinct operator/private recovery PASS; 0014 applied/verified; development bucket private, PDF-only, exactly 10 MiB. Policy audit and live/hosted acceptance remain pending |
-| **10.2D -> Vercel Preview Preparation** | Review isolated Preview variables and database/Storage mappings; prove separation from production; resolve runtime, connection, authentication, Storage and build blockers. | D.2A identity/initializer compatibility implemented and isolated-tested; actual hosted setup/verification pending; no Vercel configuration performed |
-| **10.2E -> Preview Deployment** | Separately authorize deployment after configuration review, synthetic data only; minimal startup/connectivity checks. | Pending; Preview is not production approval |
-| **10.4 -> Manual Acceptance** | Owner tests deployed Preview: Student auth; group/project selection; normal and near-10-MiB PDF submission; version history; Adviser review/feedback; unauthorized PDF rejection; relevant Admin functions; basic PWA. Targeted debugging/tests only as needed. | Pending; do not label unexecuted acceptance PASS |
+| **10.2D -> Vercel Preview Preparation** | Review isolated Preview variables and database/Storage mappings; prove separation from production; resolve runtime, connection, authentication, Storage and build blockers. | Hosted migrations 15/15, dedicated runtime grants, canonical roles and synthetic Admin previously verified; owner completed protected Vercel configuration; do not replay preparation |
+| **10.2E -> Preview Deployment** | Separately authorize deployment after configuration review, synthetic data only; minimal startup/connectivity checks. | Protected Preview online; function region sin1 and Admin subset PASS per owner; Preview is not production approval |
+| **10.4 -> Manual Acceptance** | Owner tests deployed Preview: Student auth; group/project selection; normal and near-10-MiB PDF submission; version history; Adviser review/feedback; unauthorized PDF rejection; relevant Admin functions; basic PWA. Targeted debugging/tests only as needed. | Admin subset owner-reported PASS; Student/Adviser, PDF/Storage, PWA and remaining checks pending; do not label unexecuted acceptance PASS |
 | **Corrections -> Production readiness -> Release** | Fix identified defects; review security/infrastructure, physically isolated production database/Storage, migrations, backup/restore, least-privilege access and secrets; resolve critical blockers. Release requires separate owner authorization. | Pending; Preview alone cannot establish production readiness |
 
 **Approved testing decision:** Prefer owner-led manual visible workflows, focused Codex security/regression tests and appropriate TypeScript/lint/build/migration checks. Keep synthetic records minimal. Necessary automation should be sequential with bounded duration/concurrency; stop after significant infrastructure failure. The owner reported excessive resource usage/freezing during earlier testing; this is not a diagnosed root cause. Defer extensive Playwright matrices, repeated full-system acceptance, large fixture environments, parallel sessions, demo-stage load tests and generalized frameworks. Preserve useful tests/tools and earlier isolated PASS evidence; concurrency, reliability and load validation may still be needed before genuine production.
 
 **Preserved tooling:** The guarded migration runner remains the supported 0014 path. The B.1 fixture generator and local browser harness are available but deferred/optional, not mandatory gates for the lean Preview demonstration. Their existence does not authorize provisioning or execution. Existing synthetic accounts require explicit approval for safe reuse. No mandatory Student email verification for initial deployment; real email is deferred; Groq stays hard-disabled. PWA is primary; Expo/Electron remain deferred and separately authorized.
 
-**Next recommended checkpoint:** Review Phase 10.2D.2A below, then separately authorize D.2B isolated hosted Preview setup: independently verify project/database identity, Data API isolation, dedicated runtime/operator privileges and direct/session behavior before explicit initialization. Keep roles/Admin setup and deployment as explicit subsequent operations. Do not repeat completed local preparation automatically. Before Preview testing, independently verify anonymous private-document denial and signed-upload isolation from unrelated paths. Storage policy catalog visibility is NOT VERIFIED; complete that audit before production approval. The [minimal operator preflight](DATABASE%20%281%29.md#minimal-operator-preflight-and-next-action-2026-10-22) is historical setup evidence, not the next action.
+**Next recommended checkpoint:** Obtain approval for the exact documentation checkpoint file set, then separately authorize minimal hosted Student/Adviser acceptance using explicitly approved synthetic accounts. Reuse compatible existing synthetic accounts where safe; do not copy the local database or unrelated records. Before document acceptance, independently verify anonymous private-document denial and unrelated-path signed-upload isolation; Storage policy catalog audit remains required before production. See the latest 10.2E.3 handoff for the proposed representative workflow. Do not replay completed migrations, grants, role/Admin bootstrap or deployment.
 
 ---
 
 ## 2. Git / Rollback Boundary
 
-Verified incoming checkpoint for this 2026-10-22 roadmap review:
+Current 10.2E.3 checkpoint (2026-10-27): branch feature/development, base HEAD ea096be44f8a74882787591de444f5423ec14683, empty index. Three incoming research-policy documentation edits are preserved. This checkpoint proposes five documentation paths only; staging/commit/push require owner approval of that exact set. Ignored private evidence stays outside Git.
+
+Historical incoming checkpoint for the 2026-10-22 roadmap review:
 
 ```text
 branch:      feature/development
@@ -277,7 +279,7 @@ Every handoff should record:
 
 ## 10. Immediate Next Action
 
-Phase 8.3 Admin and Phase 8.4 Adviser design proposals are recorded. Owner review of allowlisted metrics, k=5 suppression, independently verified adult eligibility, ownership/cache isolation, combined quotas and provider/deployment controls is next. Any Phase 8.5 work requires separate authorization. No application implementation or Groq activation authorized; any further phase requires a separate request. Do not stage, commit or push.
+Review the Phase 10.2E.3 documentation diff and exact five-file checkpoint proposal below. After separate approval, the next small scope is synthetic hosted Student/Adviser acceptance, not repeated database provisioning. No next-checkpoint execution, staging/commit/push, infrastructure change or AI activation is authorized here. Historical Phase 8 proposals and consent/privacy gates remain recorded below; Groq stays hard-disabled.
 
 ## 10A. Merged Phase 8 Update - 2026-10-09
 
@@ -3431,3 +3433,40 @@ tests/fixtures/tls/supabase-root-2021.crt
 ```
 
 Proposed message: `fix(phase10): secure hosted preview database readiness`. Git checkpoint review is prepared; staging/commit/push remain separately authorized. Before protected Preview deployment approval, privately configure/verify Preview variables, runtime target and project framework/Node/protection settings, and resolve the outstanding fresh build verification through an owner/Vercel build. Browser login and document-access smoke tests follow the protected deployment; broader policy/reliability checks remain production gates. Only ephemeral non-account build fixtures were generated; no real credentials generated/changed, database connection/write, operator revocation, migrations, grants, role/account bootstrap, Storage/Data API change, browser suite, dependency installation, staging/commit/push, Vercel configuration or deployment occurred in R4E. STOP for owner review.
+
+## Phase 10.2E.3 - Hosted Preview Admin acceptance (2026-10-27)
+
+Status: **PASS for the owner-reported Admin subset; Phase 10 remains OPEN.** The owner reports the protected Vercel Preview is online for project `thesishs-ai`, branch `feature/development`, environment Preview. `main` remains reserved for Production, which is not deployed. Vercel Authentication is configured for deployment protection according to the owner; this documentation checkpoint did not independently audit its settings or prove all protection/authorization boundaries. Hosted PostgreSQL is the approved Supabase test project `cbkplqkkjuoglpimwmib` in Singapore, using Session Pooler port 5432, verified certificate/hostname TLS and dedicated runtime role `thesishs_preview_runtime`. Current functions run in Singapore (`sin1`). Prior verified evidence for all 15 migrations, the approved runtime grant matrix, four canonical roles and the synthetic Admin is retained; no database operation was replayed.
+
+Initial login returned the generic 15-minute temporary-unavailability message. The login Server Action reached the application; its shared authentication limiter failed closed before Admin account verification. Session Pooler logs at 2026-10-27 14:53:31 PHT reported password authentication failure for the runtime role, closely correlating with the failed request at 14:53:29 PHT. Subsequent private runtime credential verification passed. The owner corrected Preview-scoped `DATABASE_URL` and redeployed; synthetic Admin login then succeeded. This supports a runtime connection credential/configuration failure rather than a proven account lockout. The exact original password-entry or URI-encoding mistake was **not proven**. No limiter reset, credential disclosure or safeguard bypass is claimed; credentials, connection URLs and private diagnostic outputs are excluded from this handoff.
+
+The owner subsequently moved functions from Washington, D.C. (`iad1`) to Singapore (`sin1`) and redeployed. Limited owner-reported manual execution-time samples:
+
+| Request | Before (iad1) | After (sin1) |
+|---|---:|---:|
+| Admin Dashboard | 9.87 s | 217 ms |
+| Browse Repository | 7.03 s | 102 ms |
+| Admin Repository | 5.31 s | 137 ms |
+| Manage Groups | 5.06 s | 88 ms |
+| Reports action | 2.66 s | 65 ms |
+| Mean of these five samples | approximately 5.99 s | approximately 122 ms |
+
+These are five manual samples, not a controlled benchmark, load test, general latency guarantee or production-performance claim.
+
+Owner-reported browser acceptance (not independently rerun by Codex):
+
+| Check | Result |
+|---|---|
+| Synthetic Admin login | PASS |
+| Dashboard with expected initial hosted data | PASS |
+| Session persistence after refresh | PASS |
+| Logout | PASS |
+| Unauthenticated application access protection | PASS |
+| Admin page navigation | PASS |
+| Improved navigation responsiveness | PASS, limited measurements above |
+
+Pending: hosted Student/Adviser workflow acceptance; PDF upload/private Storage, anonymous document denial and unrelated-path capability isolation; Storage policy catalog audit before production; physical PWA acceptance; broader concurrency/reliability and production readiness; institutional eligibility/consent and operational AI testing. Groq remains hard-disabled. Vercel Authentication configuration and the Admin access check do not prove every role/ownership, proxy/header, limiter or Storage boundary. Prior restricted local-build limitations remain historical evidence; no new local build or independent deployment audit was run here.
+
+Next small checkpoint, proposed only: approve one compatible synthetic Adviser and one synthetic Student, preferring safe reuse without copying unrelated local records. Keep excluded local Admin LOCAL-U4 excluded. Any account transfer/creation needs its own explicit approval and private handling. Then owner-test separate logins/current roles, one Adviser-owned group with Student assignment, Student group/project selection, and one representative submission -> revision/feedback -> next version -> approval cycle once the private-document security prerequisites have passed under separate authorization. Reuse minimal existing synthetic group/project data where available. Check one representative cross-role/ownership denial; avoid extensive fixtures or browser matrices. Near-limit PDF and remaining document/PWA checks retain their own acceptance scope. No accounts, groups, files or tests are created/executed by this preparation.
+
+Git/checkpoint: feature/development at ea096be44f8a74882787591de444f5423ec14683, index empty. Incoming AGENTS.md, README.md and Source of Truth research-policy edits are preserved unchanged within the proposed combined diff. Exact proposed file set: `AGENTS.md`, `README.md`, `docs/SOURCE_OF_TRUTH_UPDATED.md`, `docs/MASTER_CONTEXT_UPDATED.md`, `docs/ARCHITECTURE_UPDATED.md`. This task adds status reconciliation in the three incoming paths plus Master Context and Architecture (five documentation paths total). Proposed message: `docs(phase10): record hosted preview admin acceptance`. Review the exact combined five-file diff before authorizing staging/commit/push; private evidence remains ignored. No source, database, credential, environment, Storage, Vercel or deployment change was performed. Validation is limited to documentation diff/path/secret review and `git diff --check`; no build, lint, TypeScript, database or browser test was run. Stop for owner approval; no commit or push is authorized yet.
