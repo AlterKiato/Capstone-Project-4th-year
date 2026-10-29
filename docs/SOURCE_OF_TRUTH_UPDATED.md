@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-28 (Phase 10.2E controlled Preview closure and deferred hosted security gates)\
+**Last reviewed:** 2026-10-29 (Phase 10.2F owner-reported Windows/Android PWA acceptance; retained Preview security gates)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -105,7 +105,7 @@ Current model/terms findings, proposed limits, consent wording and approvals bel
 ------------------------------------------------------------------------
 ## 1A. Platform Strategy
 
-ThesiSHS AI follows a **PWA-first platform strategy**. This remains the functioning Web/Desktop baseline; it is not evidence of production deployment or physical-device installation.
+ThesiSHS AI follows a **PWA-first platform strategy**. Phase 10.2F records owner-reported physical-device acceptance on protected Preview: Windows 6/6 PASS and Android Chrome 6/6 PASS, total 12 PASS, 0 FAIL, 0 BLOCKED; Codex did not independently execute these checks. The tested scope covers installation/launch, Student session reopening and logout protection, plus Windows standalone launch and Android mobile layout/navigation. This acceptance does not establish offline support, push notification reliability, Expo React Native readiness or production release approval. Existing 10.2E hosted-security deferrals and synthetic-data restrictions remain unchanged. See the [PWA acceptance handoff](MASTER_CONTEXT_UPDATED.md#phase-102f-pwa-acceptance-closure-2026-10-29).
 
 -   **Primary platform:** The system is developed for delivery as a
     Progressive Web App (PWA), providing the main experience across
