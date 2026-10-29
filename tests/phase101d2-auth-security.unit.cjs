@@ -32,7 +32,10 @@ const mocks = {
         hashPassword: async password => { hashes++; return bcrypt.hash(password, 12); },
         comparePassword: async (password, hash) => { comparisons++; order.push('bcrypt'); return bcrypt.compare(password, hash); },
     },
-    '@/lib/services/auth-rate-limit.service': { allowAuthAttempt: async (...args) => { limitCalls.push(args); order.push('limit'); return allowed; } },
+    '@/lib/services/auth-rate-limit.service': {
+        allowAuthAttempt: async (...args) => { limitCalls.push(args); order.push('limit'); return allowed; },
+        checkAuthAttempt: async (...args) => { limitCalls.push(args); order.push('limit'); return { status: allowed ? 'allowed' : 'limited' }; },
+    },
     '@/lib/repositories/notification.repository': {
         findNotificationsByUserId: query(notices.slice(0, 1)), findNotificationPreview: query({ recent: [], unreadCount: 0 }),
         findNotificationById: async id => { protectedReads++; return notices.find(n => n.id === id); },
