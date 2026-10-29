@@ -1,5 +1,5 @@
 import "server-only";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, jwtVerify, errors } from "jose";
 import { z } from "zod";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import type { AuthUser } from "@/types/auth";
@@ -26,6 +26,11 @@ export type MobileTokenOutcome =
     | { status: "invalid" }
     | { status: "unavailable" };
 
+/** Safe classification only; never contains signing configuration. */
+export class MobileAuthenticationUnavailableError extends Error {
+    constructor() { super("Mobile authentication unavailable."); }
+}
+
 /** Lazy and server-only: missing mobile configuration must not break web startup. */
 function configuration() {
     const value = process.env.THESISHS_MOBILE_JWT_SECRET;
@@ -34,7 +39,7 @@ function configuration() {
     if (!value || value.trim() !== value || new TextEncoder().encode(value).length < 32 ||
         value.length > 4096 || !webSecret || value === webSecret ||
         !issuer || issuer.length > 255 || /\s/.test(issuer))
-        throw new Error("Mobile authentication unavailable.");
+        throw new MobileAuthenticationUnavailableError();
     return { key: new TextEncoder().encode(value), issuer };
 }
 
@@ -62,7 +67,11 @@ export async function createMobileToken(user: AuthUser): Promise<{ token: string
 export async function verifyMobileToken(token: string): Promise<MobileTokenOutcome> {
     let config: ReturnType<typeof configuration>;
     try { config = configuration(); }
-    catch { return { status: "unavailable" }; }
+    catch (error) {
+        if (error instanceof MobileAuthenticationUnavailableError) return { status: "unavailable" };
+        throw error;
+    }
+    if (typeof token !== "string" || !token) return { status: "invalid" };
     try {
         const { payload, protectedHeader } = await jwtVerify(token, config.key, {
             algorithms: [ALGORITHM],
@@ -78,7 +87,9 @@ export async function verifyMobileToken(token: string): Promise<MobileTokenOutco
             claims.data.exp - claims.data.iat !== MOBILE_TOKEN_LIFETIME_SECONDS)
             return { status: "invalid" };
         return { status: "valid", claims: claims.data };
-    } catch {
-        return { status: "invalid" };
+    } catch (error) {
+        if (error instanceof errors.JOSEError) return { status: "invalid" };
+        // Programming/crypto-runtime failures must reach the HTTP boundary's generic 500.
+        throw error;
     }
 }
