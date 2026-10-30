@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-10-29 (Phase 10.2F owner-reported Windows/Android PWA acceptance; retained Preview security gates)\
+**Last reviewed:** 2026-10-30 (Phase 10.P1 CLOSED — PASS for agreed local scope; retained Preview security gates)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -104,6 +104,10 @@ Current model/terms findings, proposed limits, consent wording and approvals bel
 
 ------------------------------------------------------------------------
 ## 1A. Platform Strategy
+
+**Installed PWA direction (owner-authorized P.1, 2026-10-30):** Keep one Next.js application and shared backend. Regular browsers retain the existing core interface; standalone presentation adapts to available width and input capabilities using the shared dashboard shell. Display mode is a best-effort presentation signal, never installation proof or an authorization boundary. Expo React Native is frozen. P.1 adds only this foundation; Desktop PDF review (P.2), Mobile QR navigation (P.3), Admin publication oversight (P.4) and the shared Research Progress Tracker (R.1-R.3) require separate implementation authorization. See the [P.1 handoff](MASTER_CONTEXT_UPDATED.md#phase-p1-installed-pwa-platform-foundation-2026-10-30) for the contract and verification limits.
+
+**Phase 10.P1 closure (2026-10-30): CLOSED — PASS for the agreed local implementation and manual acceptance scope.** The owner reports six manual checks, **6 PASS, 0 FAIL**, with no observed browser, navigation, layout or runtime errors; these were not independently executed by Codex. Earlier Codex automated/static evidence remains separate. Production build and broader cross-device/browser acceptance, including physical Android/iOS, remain pending/deferred. This closure authorizes the reviewed local eight-file commit only; no push, deployment, provider activation or P.2 implementation. See the [closure evidence](MASTER_CONTEXT_UPDATED.md#phase-10p1-closure-and-local-git-checkpoint-2026-10-30).
 
 ThesiSHS AI follows a **PWA-first platform strategy**. Phase 10.2F records owner-reported physical-device acceptance on protected Preview: Windows 6/6 PASS and Android Chrome 6/6 PASS, total 12 PASS, 0 FAIL, 0 BLOCKED; Codex did not independently execute these checks. The tested scope covers installation/launch, Student session reopening and logout protection, plus Windows standalone launch and Android mobile layout/navigation. This acceptance does not establish offline support, push notification reliability, Expo React Native readiness or production release approval. Existing 10.2E hosted-security deferrals and synthetic-data restrictions remain unchanged. See the [PWA acceptance handoff](MASTER_CONTEXT_UPDATED.md#phase-102f-pwa-acceptance-closure-2026-10-29).
 

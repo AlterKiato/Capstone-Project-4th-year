@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-29
+**Last reconciled:** 2026-10-30
 **Current branch:** `feature/development`
-**Current base HEAD:** `080126c6608ff461cd5059ba56e63580f2c9aae3`, verified locally for M.3C; M.3A is committed/pushed. The owner now authorizes one local nine-file M.3C checkpoint; no push or deployment. Resolve its resulting SHA with `git log -1 --oneline` rather than treating this parent SHA as the new commit.
-**Current scope:** M.3C Student login/session HTTP adapters, isolated local acceptance only. The owner-approved contract reconciliation/amendment replaces the unrecovered M.3B envelope choices; no historical standalone M.3B contract is claimed. No Expo changes, native transport activation or hosted acceptance. Phase 10 remains independent.
+**Closure parent HEAD:** `b83b37fc583f6e267d7a647a40d9da7a4f0cabef`, independently verified on `feature/development`. Closure entry: exactly the eight reviewed P.1 paths pending, empty index, no unrelated changes. The owner authorizes one local commit, `feat(phase10): close PWA platform foundation`; resolve its resulting SHA with `git log -1 --oneline`. No push, merge or deployment is authorized.
+**Current scope:** **Phase 10.P1 (P.1) — CLOSED — PASS** for the agreed local implementation and manual acceptance scope. The owner reports **6 PASS, 0 FAIL**, with no observed browser, navigation, layout or runtime errors; Codex did not independently execute those manual checks. Earlier isolated detector/SSR, auth regression, TypeScript and targeted ESLint evidence is retained separately. Production build and cross-device/browser acceptance, including physical Android/iOS, remain pending. Expo React Native is frozen; M.3C HTTP contracts and optional verification/disabled Resend work are preserved. See the [closure](#phase-10p1-closure-and-local-git-checkpoint-2026-10-30). P.2/P.3/P.4 and R.1-R.3 do not start automatically; retained Phase 10 deployment/security gates remain independent.
 **Retained Phase 10.2F scope (historical):** Phase 10.2F physical PWA acceptance **PASS - owner-reported Windows 6/6 and Android Chrome 6/6; total 12 PASS, 0 FAIL, 0 BLOCKED**. Record the manual results only; Codex did not independently execute them. This acceptance does not establish offline support, push notification reliability, Expo React Native readiness or production release approval. Phase 10.2E remains accepted for controlled Preview testing with its hosted security gates deferred to production readiness. No tests, infrastructure/application changes or commit/push occur in this documentation checkpoint.
 
 > This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
@@ -73,7 +73,7 @@ This owner-approved sequence replaces the earlier extensive automated upload-acc
 
 ## 2. Git / Rollback Boundary
 
-Current 10.2F documentation checkpoint (2026-10-29): feature/development at base HEAD c3be85cd59ba516c89e113d8547b6901739ff978; entry tree clean, index empty. Phase 10.2E documentation was committed/pushed as c3be85c in the prior checkpoint. Current changes are limited to five unstaged documentation paths: AGENTS.md, README.md, docs/MASTER_CONTEXT_UPDATED.md, docs/SOURCE_OF_TRUTH_UPDATED.md and docs/ARCHITECTURE_UPDATED.md. Preserve research-policy sections and all ignored evidence; no staging, commit or push until separately authorized.
+Historical 10.2F documentation checkpoint (2026-10-29): feature/development at base HEAD c3be85cd59ba516c89e113d8547b6901739ff978; entry tree clean, index empty. Phase 10.2E documentation was committed/pushed as c3be85c in the prior checkpoint. Changes at that checkpoint were limited to five unstaged documentation paths: AGENTS.md, README.md, docs/MASTER_CONTEXT_UPDATED.md, docs/SOURCE_OF_TRUTH_UPDATED.md and docs/ARCHITECTURE_UPDATED.md. Preserve research-policy sections and all ignored evidence; current Git state and authorization are recorded in the latest P.1 handoff.
 
 Historical incoming checkpoint for the 2026-10-22 roadmap review:
 
@@ -3668,3 +3668,73 @@ Focused offline validation: `node --import tsx --test --test-concurrency=1 tests
 `npx.cmd tsc --noEmit --incremental false`, targeted `npx.cmd eslint lib/email/resend-delivery.ts tests/phase10-resend-delivery.unit.cjs`, `git diff --check` and whitespace checks for both new files: PASS. Final scope is two modified documentation files and two untracked source/test files, with empty index and unchanged branch/HEAD. No real email/provider API operation, database/Storage operation, environment change, deployment, dependency installation or Git staging/commit/push occurred.
 
 Before any future activation, obtain separate approval for the environment-scoped design, domain/DNS sender verification, fixed confirmation origin and Preview protection access, private sending key, recipient/budget restrictions and failure operations. Then review the code needed to replace the hard refusal and wire the transport. No live setting/flag is available in this preparation. Stop for owner review; no commit/push or next phase starts automatically.
+
+## Phase P.1 installed PWA platform foundation (2026-10-30)
+
+**Historical implementation handoff, before the closure below: implementation and isolated checks PASS; browser/physical-device acceptance was PENDING.** Owner-authorized P.1 only. Entry preflight independently confirmed `feature/development`, HEAD `b83b37fc583f6e267d7a647a40d9da7a4f0cabef`, clean working tree and empty index. No pre-existing changes were overwritten. At that implementation handoff branch/HEAD were unchanged; all eight P.1 paths were unstaged and index empty. No commit, push, merge or deployment occurred during implementation. The subsequent Phase 10.P1 closure supersedes this local-acceptance status only.
+
+### Existing architecture and chosen integration
+
+Read AGENTS, current Source of Truth/Master Context/Architecture, the approved Phase 10 roadmap, DESIGN/ANTISLOP, installed Next.js server/client-component, use-client and CSS guides, plus actual manifest/root/dashboard layouts, shell/navigation/header, theme and PWA tests. Existing manifest requests standalone with `/dashboard` start URL and `/` scope. Existing metadata/icons and optional online-only installation guidance are retained. Dashboard authorization already precedes the client shell; its role links and authorized server children are passed into the same sidebar/drawer. The shell already supports collapse, a <1024px compact rail, modal navigation, focus restoration, keyboard handling and responsive content. No display-mode utility existed.
+
+Use case: distinguish best-effort standalone presentation from responsive layout in this existing React 19.2.4/Next.js 16.3.8 application, without changing security, routing, dependencies or business behavior. Adapted the established theme provider's external-store pattern. Compared a state/effect detector plus JavaScript width tracking against a stable external-store snapshot plus CSS profiles; selected the latter to preserve SSR/hydration consistency and native resize handling. No material architectural conflict required changes to server boundaries.
+
+Official references consulted: [React external-store server/hydration snapshots](https://react.dev/reference/react/useSyncExternalStore#adding-support-for-server-rendering), [display-mode semantics](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/display-mode), [primary-pointer queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/pointer), and [deprecated legacy media-query listener guidance](https://developer.mozilla.org/en-US/docs/Web/API/MediaQueryList/addListener). These were sufficient; no third-party implementation, GitHub code copying, new package or license obligation was introduced. The initial unknown/server snapshot choice is an application design based on React's contract, not evidence of browser acceptance.
+
+### Platform contract and adaptive behavior
+
+- `useDisplayMode()` returns `unknown`, `browser` or `standalone`. Server and initial hydration use stable `unknown` with no window/navigator read; client snapshots use the exact standalone media query or boolean iOS `navigator.standalone` fallback. Modern change events and paired legacy WebKit listeners support live updates and cleanup. Missing/partial/throwing media APIs safely retain ordinary presentation.
+- `DashboardShell` exposes `data-display-mode` and renders the same links, controls and authorized children for every mode. Detection never reveals another role's content. Its existing breakpoint listener now tolerates missing media APIs and pairs legacy/modern listener cleanup.
+- CSS exposes inherited `--dashboard-layout-profile` and `--dashboard-content-max-width`. Unknown/browser use profile `browser` with the unchanged 1100px maximum. Standalone defaults to compact `standalone-mobile`; >=1024px plus primary fine pointer/hover selects `standalone-desktop` with a 1280px maximum. These profile names describe presentation, not hardware identity.
+- Existing responsive navigation is reused. CSS handles resize/orientation/capability changes without JS viewport tracking. Narrow desktop windows get compact presentation without touch assumptions. Only a reported coarse pointer increases standalone navigation/close target minimums to 48px; existing fine-pointer targets stay 44px. Safe-area spacing uses available inset values. Tablets/hybrid devices retain all shared navigation under their reported capabilities.
+- No OS/user-agent classification, query-parameter flag, fullscreen inference or saved installation preference. Unsupported profile media queries retain a usable ordinary responsive fallback. No redesign, bottom navigation, new screen, placeholder research record, branding/theme change or new interactive control.
+
+### Exact changed files
+
+Added:
+
+- `lib/pwa/display-mode.ts`
+- `lib/pwa/use-display-mode.ts`
+- `tests/phaseP1-display-mode.unit.cjs`
+
+Modified:
+
+- `components/dashboard/dashboard-shell.tsx`
+- `components/dashboard/dashboard-shell.module.css`
+- `docs/SOURCE_OF_TRUTH_UPDATED.md`
+- `docs/ARCHITECTURE_UPDATED.md`
+- `docs/MASTER_CONTEXT_UPDATED.md`
+
+### Actual verification and limits
+
+- `node --import tsx --test --test-concurrency=1 tests/phaseP1-display-mode.unit.cjs tests/phase101d1-auth.unit.cjs tests/phase101d2-auth-security.unit.cjs`: **PASS, 25 reported tests, 0 failures** (23 leaf checks plus two existing parent tests). Seven new cases cover unknown/server rendering with forbidden browser access, actual-shell SSR/role-link preservation, browser/standalone reads, boolean iOS fallback, unsupported APIs, modern changes/cleanup and legacy changes/cleanup. Existing regressions exercise real bcrypt/JWT/session/authorization code with synthetic repository/cookie boundaries: role login, inactive/deleted/stale-role denial, logout, tampered/expired tokens and ownership checks. No DB connection or live account operation.
+- After tightening paired-listener feature checks, the new seven-case file was rerun: **7/7 PASS**. This overlaps the earlier 25 and is not an additional unique-test count.
+- `npx.cmd tsc --noEmit --incremental false`: **PASS**. Targeted `npx.cmd eslint lib/pwa/display-mode.ts lib/pwa/use-display-mode.ts components/dashboard/dashboard-shell.tsx tests/phaseP1-display-mode.unit.cjs`: **PASS**. `git diff --check` and direct new-file whitespace/final-newline checks: **PASS**.
+- A temporary actual-shell SSR/client Chromium fixture could not bundle: the sandbox denied reading a parent directory. One configuration correction encountered the same denial; stopped before browser launch, without requesting escalation or retrying browser infrastructure. Removed the unexecuted runner rather than retaining new browser infrastructure. **No Chromium smoke, visual screenshot, runtime hydration, keyboard, resize/orientation or overflow acceptance is claimed.** Existing PWA tests requiring live DB/account access were not run.
+- Production build **not run**: no new Next.js rendering boundary/API or configuration change; actual-shell SSR, isolated hook checks and TypeScript provide focused compilation/render evidence. No broad suite, migration check, provider call, hosted request, database/Storage operation, account setup or environment/credential inspection/change. No dependency installation, Expo or mobile HTTP change. Resend remains disabled, optional verification unchanged, Groq hard-disabled, research/publication/private-PDF authorization untouched, deferred hosted security gates retained.
+
+Display-mode detection is a presentation hint, not installation proof or a security boundary. Fallback-only iOS may lack a live event, so its navigator signal is sampled on client snapshot reads. Modern/legacy signals were simulated in isolated tests; no actual iOS/Safari, Android, Windows, Linux, Brave, Firefox or Edge P.1 compatibility is established. The pre-existing theme provider and HTML dialog still define broader app browser requirements. Safe-area insets may be zero without browser/viewport support. Existing owner-reported Windows/Android 10.2F acceptance is historical and does not validate the new P.1 presentation changes.
+
+**Anti-Slop scoped source gate:** Hard-gate source review PASS: no new UI copy/assets/controls or changed navigation semantics; SSR retains all supplied links, and no statistics/claims are fabricated. Purpose-gate PASS: only responsive width, safe-area spacing and capability-based target sizing added; no decorative technique. Direction PASS: existing academic branding/themes, ENERGY 1 / RHYTHM 2 / MOTION 1, page hierarchy/accent retained. Craftsmanship source review PASS: shared shell/controls reused, no duplicated screens or fake features. Full rendered visual/interactive acceptance remains pending; these source/SSR checks do not substitute for it.
+
+### Acceptance proposed at the implementation handoff (historical)
+
+The implementation handoff proposed a small owner-led check of normal browser and installed PWA at wide/narrow widths, resize/orientation, Light/Dark/System, navigation focus/keyboard access, coarse-pointer controls and the console for hydration/runtime errors. The owner has since reported six manual passes for the agreed local scope, as recorded below; an individual step/browser/device breakdown was not supplied. Safari/iOS fallback and tablet/hybrid behavior still need actual target-environment checks. No large matrix or new live fixture environment is required by this handoff.
+
+P.2 is ready for owner scope/design review using the shared mode/profile hooks. Its implementation is **not authorized or started**. The closure below resolves the P.1 local manual-acceptance checkpoint, without establishing broader device compatibility. Existing private-PDF authorization and online-only behavior remain requirements; document viewing must have the ordinary shared-workflow fallback. P.3 QR navigation needs separately scoped camera/capability/permission handling; P.4 publication oversight retains Admin authorization; R.1-R.3 business requirements and implementation remain separate. Expo React Native is frozen. Stop for owner review without advancing to another checkpoint.
+
+## Phase 10.P1 closure and local Git checkpoint (2026-10-30)
+
+**CLOSED — PASS for the agreed local implementation and manual acceptance scope.** Phase 10.P1 and P.1 refer to the same Installed PWA Platform Foundation checkpoint. The owner reports **six manual checks: 6 PASS, 0 FAIL**, with **no observed browser, navigation, layout or runtime errors**. These are owner-led results, not tests independently executed by Codex. No individual check descriptions, browser versions or device breakdown were supplied; no additional environment-specific acceptance is inferred.
+
+Evidence remains separated:
+
+- Earlier Codex implementation validation: **25 reported tests PASS** (23 leaf checks plus two parent tests), final overlapping **seven-case rerun PASS**, TypeScript, targeted ESLint and Git whitespace checks PASS. The seven-case rerun is not added to the 25 as a unique-test total. These earlier checks were not rerun for the documentation/Git closure.
+- Owner-led manual acceptance: **6 PASS, 0 FAIL**, as reported above. This closes the agreed local manual scope; it does not change the provenance of the earlier isolated tests or the historical blocked Codex smoke attempt.
+- Closure validation: exact eight-file inventory and empty incoming index independently confirmed; implementation/test contents reviewed and preserved. Working-tree and staged `git diff --check`, staged path/content review and a bounded added-content secret-pattern review are the checks for this checkpoint. No unrelated path, environment file, credential or generated artifact is included.
+
+**Remaining acceptance limits:** production build was not executed and remains pending. Broader cross-device/browser compatibility, physical Android/iOS, Safari/iOS fallback and tablet/hybrid behavior remain pending/deferred. Codex's earlier Chromium smoke stopped during sandbox-restricted bundling before browser launch and was not replayed. The six manual passes do not establish a new independently executed Codex browser/hydration result, physical-device matrix, offline support, push reliability or production release approval. Historical Phase 10.2F owner-reported Windows/Android evidence and deferred 10.2E hosted security gates retain their separate recorded scopes.
+
+**Git checkpoint:** entry branch `feature/development`, parent HEAD `b83b37fc583f6e267d7a647a40d9da7a4f0cabef`; exactly the eight files listed in the implementation handoff above, no extra paths and empty incoming index. Closure edits affect only Master Context, Source of Truth and Architecture; the five implementation/test files are preserved. This handoff is included in the owner-authorized local commit **`feat(phase10): close PWA platform foundation`**. Resolve the resulting commit SHA from `git log -1 --oneline`; verify the committed eight-file inventory and clean working tree/index after committing. No remote operation is authorized.
+
+Authentication, optional Student verification, Resend/Gmail SMTP, research/review/publication logic, private PDF controls, schema/migrations, Storage, mobile HTTP contracts, deployment configuration and dependencies are unchanged by closure. Resend remains disabled, Groq hard-disabled and Expo frozen. No new build/test/browser run, database/Storage operation, provider activation or deployment is performed here. No push, merge or P.2 implementation. Stop after the local commit and final Git verification.

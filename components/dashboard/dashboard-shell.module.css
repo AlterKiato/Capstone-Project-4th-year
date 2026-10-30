@@ -1,4 +1,4 @@
-.shell { --sidebar-width: 240px; min-height: 100dvh; padding-left: var(--sidebar-width); }
+.shell { --sidebar-width: 240px; --dashboard-layout-profile: browser; --dashboard-content-max-width: 1100px; min-height: 100dvh; padding-left: var(--sidebar-width); }
 .collapsed { --sidebar-width: 64px; }
 .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; display: flex; flex-direction: column; width: var(--sidebar-width); padding: 16px 10px; border-right: 1px solid var(--border); background: var(--surface); }
 .brand { display: flex; align-items: center; gap: 12px; min-height: 44px; margin-bottom: 12px; font-weight: 700; color: var(--brand); }
@@ -15,7 +15,7 @@
 .label { min-width: 0; overflow-wrap: anywhere; }
 .footer { padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--border); }
 .content { min-width: 0; }
-.content > main { width: 100%; max-width: 1100px; margin: auto; padding: 2rem 1.25rem; overflow-wrap: anywhere; }
+.content > main { width: 100%; max-width: var(--dashboard-content-max-width); margin: auto; padding: 2rem 1.25rem; overflow-wrap: anywhere; }
 .content:focus { outline: none; }
 .collapsed .sidebar .label, .collapsed .sidebar nav span { display: none; }
 .mobileToggle { display: none; }
@@ -30,6 +30,36 @@
     .sidebar .label, .sidebar nav span, .desktopToggle { display: none; }
     .mobileToggle { display: flex; }
     .content > main { padding: 1.25rem 0.75rem; }
+}
+/* Layout profiles describe presentation, never device identity or permissions.
+   Unknown and unsupported detection retain the ordinary browser layout. */
+.shell[data-display-mode="standalone"] {
+    --dashboard-layout-profile: standalone-mobile;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: calc(var(--sidebar-width) + env(safe-area-inset-left, 0px));
+    padding-right: env(safe-area-inset-right, 0px);
+}
+.shell[data-display-mode="standalone"] .sidebar,
+.shell[data-display-mode="standalone"] .drawer {
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-left: calc(10px + env(safe-area-inset-left, 0px));
+}
+.shell[data-display-mode="standalone"] .sidebar { width: calc(var(--sidebar-width) + env(safe-area-inset-left, 0px)); }
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+    .shell[data-display-mode="standalone"] {
+        --dashboard-layout-profile: standalone-desktop;
+        --dashboard-content-max-width: 1280px;
+    }
+}
+/* A narrow desktop window stays compact without implying touch hardware. */
+@media (pointer: coarse) {
+    .shell[data-display-mode="standalone"] .navigation a,
+    .shell[data-display-mode="standalone"] .logout,
+    .shell[data-display-mode="standalone"] .mobileToggle,
+    .shell[data-display-mode="standalone"] .desktopToggle,
+    .shell[data-display-mode="standalone"] .drawerHeading button { min-height: 48px; }
 }
 @media (prefers-reduced-motion: no-preference) {
     .navigation a, .logout { transition: background-color 120ms ease; }

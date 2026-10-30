@@ -5,9 +5,11 @@ import type { DashboardLink } from "@/lib/constants/dashboard-navigation";
 import DashboardNavigation from "./dashboard-navigation";
 import NavigationIcon from "./navigation-icon";
 import LogoutButton from "@/components/auth/logout-button";
+import { useDisplayMode } from "@/lib/pwa/use-display-mode";
 import styles from "./dashboard-shell.module.css";
 
 export default function DashboardShell({ links, children }: { links: DashboardLink[]; children: React.ReactNode }) {
+    const displayMode = useDisplayMode();
     const [collapsed, setCollapsed] = useState(false);
     const [open, setOpen] = useState(false);
     const drawer = useRef<HTMLDialogElement>(null);
@@ -30,11 +32,16 @@ export default function DashboardShell({ links, children }: { links: DashboardLi
 
     useEffect(() => {
         const dialog = drawer.current;
-        const desktop = window.matchMedia("(min-width: 1024px)");
-        const onChange = () => { if (desktop.matches) dialog?.close(); };
-        desktop.addEventListener("change", onChange);
+        const desktop = typeof window.matchMedia === "function" ? window.matchMedia("(min-width: 1024px)") : null;
+        const onChange = () => { if (desktop?.matches) dialog?.close(); };
+        // Pair supported listener APIs; older WebKit has only add/removeListener.
+        const modern = typeof desktop?.addEventListener === "function" && typeof desktop.removeEventListener === "function";
+        const legacy = typeof desktop?.addListener === "function" && typeof desktop.removeListener === "function";
+        if (modern) desktop.addEventListener("change", onChange);
+        else if (legacy) desktop.addListener(onChange);
         return () => {
-            desktop.removeEventListener("change", onChange);
+            if (modern) desktop.removeEventListener("change", onChange);
+            else if (legacy) desktop.removeListener(onChange);
             if (dialog?.open) document.body.style.overflow = previousOverflow.current;
         };
     }, []);
@@ -43,7 +50,7 @@ export default function DashboardShell({ links, children }: { links: DashboardLi
         return <LogoutButton className={styles.logout} icon={<NavigationIcon name="logout" />} labelClassName={styles.label} />;
     }
 
-    return <div className={`${styles.shell} ${collapsed ? styles.collapsed : ""}`}>
+    return <div className={`${styles.shell} ${collapsed ? styles.collapsed : ""}`} data-display-mode={displayMode}>
         <aside className={styles.sidebar} aria-label="Workspace sidebar">
             <span className={styles.brand} aria-label="ThesiSHS AI"><NavigationIcon name="book" /><span className={styles.label}>ThesiSHS AI</span></span>
             <button ref={menu} className={styles.mobileToggle} type="button" aria-label="Open navigation menu" title="Open navigation menu" aria-expanded={open} aria-controls="mobile-navigation-drawer" onClick={openDrawer}><NavigationIcon name="menu" /></button>
