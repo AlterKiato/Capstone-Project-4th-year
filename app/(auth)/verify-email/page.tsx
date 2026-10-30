@@ -14,6 +14,6 @@ export default function ConfirmEmailPage() {
         {!enabled && <p role="status">Email confirmation is currently unavailable. You can continue using your account.</p>}
         <VerificationConfirmationForm enabled={enabled} />
         <p className="auth-switch"><Link href="/login">Continue to password login</Link></p>
-        <p className="auth-switch"><Link href="/dashboard/student/verify-email">Request a new verification email</Link></p>
+        <p className="auth-switch">If your link is invalid, expired or already used, <Link href="/dashboard/student/verify-email">sign in to check verification status or request a new link</Link>.</p>
     </main>;
 }

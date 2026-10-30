@@ -10,6 +10,7 @@ import type { ServiceResult } from "@/types/auth";
 /** Existing safe projection; password hashes are excluded by the repository. */
 export interface ManagedUser {
     id: number; firstName: string; lastName: string; email: string; roleId: number;
+    emailVerifiedAt: Date | null;
     profileImage: string | null; isActive: boolean; lastLogin: Date | null; createdAt: Date; updatedAt: Date;
 }
 type MutationResult = ServiceResult & { uncertain?: boolean };

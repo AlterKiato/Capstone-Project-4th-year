@@ -21,8 +21,10 @@ export default async function VerificationStatusPage() {
             <p className="verification-email">{status.email}</p>
             {status.verified ? <p>Your email ownership has been confirmed.</p> : <>
                 <p>Links expire after 60 minutes. Wait at least 60 seconds between requests. You can request up to five emails per rolling hour.</p>
-                <p>If a message does not arrive, check your inbox and spam folder, then request a new link after the wait. Only the newest link works.</p>
-                {!enabled && <p role="status">Email delivery is currently unavailable. You can continue using your account.</p>}
+                <p>Only the newest link works. A successful request means accepted for delivery, not confirmed receipt.</p>
+                {enabled
+                    ? <p role="status">This local test environment captures verification emails in Mailpit. No real email is sent. Open the captured message to confirm your email.</p>
+                    : <p role="status">Email delivery is currently unavailable. Delivery is supported only in local testing with Mailpit; hosted email delivery is not enabled. You can continue using your account.</p>}
                 <VerificationRequestForm enabled={enabled} />
             </>}
         </section>

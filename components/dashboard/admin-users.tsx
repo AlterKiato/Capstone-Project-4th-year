@@ -8,7 +8,7 @@ import { EligibilityDialog } from "./ai-governance-dialogs";
 import styles from "./admin-users.module.css";
 import shared from "./student-ui.module.css";
 
-export type DirectoryUser = { id: number; firstName: string; lastName: string; email: string; roleId: number; isActive: boolean; createdAt: string };
+export type DirectoryUser = { id: number; firstName: string; lastName: string; email: string; roleId: number; isActive: boolean; createdAt: string; emailVerification: "Verified" | "Unverified" | "Not applicable" };
 const roles = [[1, "Admin"], [2, "Adviser"], [3, "Student"], [4, "Panel"]] as const;
 const roleName = (id: number) => roles.find(role => role[0] === id)?.[1] ?? "Unknown role";
 const name = (user: DirectoryUser) => `${user.firstName} ${user.lastName}`.trim() || "Unnamed user";
@@ -39,7 +39,9 @@ export default function AdminUsers({ users, actorId }: { users: DirectoryUser[];
             </div>
             {(search || role || status) && <button className={shared.toggle} onClick={() => { setSearch(""); setRole(""); setStatus(""); }}>Clear filters</button>}
             {!users.length ? <p className={styles.empty}>No registered users.</p> : !filtered.length ? <p className={styles.empty}>No users match your search and filters. Try another name or email, or clear the filters.</p> : <ul className={styles.list}>{filtered.map(user => <li key={user.id} className={styles.row}>
-                <div className={styles.identity}><h3>{name(user)}</h3><p className={styles.email}>{user.email}</p><p className={styles.metadata}>{roleName(user.roleId)} · {user.isActive ? "Active" : "Inactive"} · Created <time dateTime={user.createdAt}>{new Date(user.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" })}</time></p></div>
+                <div className={styles.identity}><h3>{name(user)}</h3><p className={styles.email}>{user.email}</p><p className={styles.metadata}>{roleName(user.roleId)} · {user.isActive ? "Active" : "Inactive"} · Created <time dateTime={user.createdAt}>{new Date(user.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" })}</time></p>
+                    <p className={styles.metadata}>Email verification: {user.emailVerification}</p>
+                </div>
                 <button id={`manage-user-${user.id}`} className={shared.toggle} disabled={refreshing} aria-label={`Manage ${name(user)} (${user.email})`} onClick={event => { opener.current = event.currentTarget; setModal({ kind: "manage", id: user.id }); }}>Manage</button>
             </li>)}</ul>}
         </section>

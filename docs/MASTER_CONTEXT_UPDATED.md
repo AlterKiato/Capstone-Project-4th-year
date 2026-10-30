@@ -3620,3 +3620,34 @@ Existing verified runtime PostgreSQL/TLS configuration and limiter infrastructur
 **Next mobile-repository checkpoint:** M.3D may reconcile the Expo email boundary and design/wire the existing transport and error handling under separate authorization, with protection/access strategy agreed before any live/native acceptance. No SecureStore/native login activation, live HTTP/Android integration, Phase 10.4 PDF test or production approval follows automatically.
 
 **Local Git checkpoint (2026-10-29):** the owner authorizes exactly the nine paths above as one commit, `feat(mobile-auth): add student mobile authentication API`, on feature/development. The entry state is the expected parent HEAD, five modified tracked files, four untracked files and empty index; local main is `1bd0747a7f6837cdebd8c92045461c051528e5cd` and must stay unchanged. Reuse prior overlapping regression evidence; this checkpoint rechecks the focused endpoint tests, TypeScript, targeted ESLint and working/staged whitespace. No source changes, remote operations, deployment checks, database/Storage operations, environment changes or Expo edits are authorized. Stop after the local commit and final Git verification.
+
+## Optional Student verification UX and Admin status integration (2026-10-30)
+
+**Status: implemented; focused local validation PASS.** Entry baseline verified: `feature/development`, HEAD `f61b1d24e3f283da4b25644dc1c01492ce7d7baa`, clean working tree and empty index. This checkpoint does not stage, commit or push. The separate Expo M.3D work and M.3C HTTP contracts are untouched.
+
+- Successful registration retains immediate session creation and the existing dashboard redirect. New dashboard guidance explains optional verification, links the existing status page and states that registration does not send an email automatically. No token/email request is added to registration.
+- The reminder uses the existing server-derived current Student verification status, disappears when verified and does not block research or navigation. Unavailable status is reported separately rather than inferred as unverified.
+- The status page explains local Mailpit capture versus unavailable hosted delivery, accepted-for-delivery versus receipt, and the existing expiry/cooldown/request quota. Verified Students retain no resend form. The public confirmation page adds recovery guidance for invalid/expired/used links; explicit confirmation, generic core rejection and fragment handling are unchanged.
+- The Admin directory alone adds the existing `emailVerifiedAt` column to its safe server projection and DTO. Only a derived display label reaches its client: Student Verified/Unverified, other roles Not applicable. Active/Inactive is separate. No verification request metadata/digest or new Admin mutation is exposed. Existing Admin authorization, filters and account CRUD remain intact.
+- Existing schema, tokens, atomic consumption, request limits, Mailpit restrictions, web authentication/current-account resolution, mobile authentication and research services are unchanged. Real/hosted email delivery, provider acceptance, mandatory enforcement and Admin resend/reset/manual verification remain deferred. Existing Preview/PWA acceptance and deferred security gates retain their previous scope.
+
+Changed files:
+
+- `app/dashboard/student/page.tsx`
+- `app/dashboard/student/verify-email/page.tsx`
+- `app/(auth)/verify-email/page.tsx`
+- `lib/repositories/user.repository.ts`
+- `lib/services/user.service.ts`
+- `app/dashboard/admin/users/page.tsx`
+- `components/dashboard/admin-users.tsx`
+- `tests/phase10-verification-ux.unit.cjs` (new)
+- `docs/ARCHITECTURE_UPDATED.md`
+- `docs/MASTER_CONTEXT_UPDATED.md`
+
+Focused validation:
+
+- `node --import tsx --test --test-concurrency=1 tests/phase10-verification-ux.unit.cjs tests/phase101b2-verification.unit.cjs tests/phase977b-users.unit.cjs`: **PASS, 18 reported tests, 0 failures**, including eight new leaf checks, parent tests and the existing user-management script. Actual pages, repository projection and authorization execute against synthetic DB/session/UI boundaries only. Covers nonblocking unverified guidance, hidden verified reminder, unavailable status, local/hosted delivery wording, no verified resend form, safe recovery, directory labels, current active Admin access and safe read failure. The existing endpoint/SMTP checks retain production refusal and exact local-origin restrictions.
+- `npx.cmd tsc --noEmit --incremental false`: PASS. Targeted `npx.cmd eslint` on the seven changed source files and new focused test: PASS. `git diff --check`: PASS; index remains empty.
+- Historical verification-core, PostgreSQL/SMTP and browser acceptance are reused within their recorded scope; no broad authentication/PDF suite or new browser/hosted check. Shared theme classes and existing responsive directory layout are reused; rendering checks and code inspection do not constitute a new physical-device, visual or keyboard acceptance run.
+
+No database connection/write, email/provider/Storage request, environment/credential change, dependency installation, deployment or Expo edit occurred. Stop for owner review; hosted delivery and mandatory enforcement do not start automatically.

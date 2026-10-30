@@ -44,6 +44,7 @@ export async function findAllUsers() {
             firstName: users.firstName,
             lastName: users.lastName,
             email: users.email,
+            emailVerifiedAt: users.emailVerifiedAt,
             roleId: users.roleId,
             profileImage: users.profileImage,
             isActive: users.isActive,
