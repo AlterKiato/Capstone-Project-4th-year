@@ -4,6 +4,7 @@ import GroupMembers from "@/components/dashboard/group-members";
 import styles from "@/components/dashboard/student-ui.module.css";
 import { getStudentWorkspace } from "@/lib/services/student-workspace.service";
 import { getCurrentStudentVerificationStatus } from "@/lib/services/email-verification-status.service";
+import FeedbackContent from "@/components/feedback-content";
 
 export default async function StudentPage() {
     const workspace = await getStudentWorkspace();
@@ -32,7 +33,7 @@ export default async function StudentPage() {
                     </div>;
                 })}</section>
                 <section className="dashboard-panel"><h2>Latest Feedback</h2>{latestFeedback ? <>
-                    <p className={styles.excerpt}>{latestFeedback.feedback.comments}</p>
+                    <div className={styles.excerpt}><FeedbackContent value={latestFeedback.feedback.comments} /></div>
                     <p className="form-help">{latestFeedback.submission.version} · Reviewed <time dateTime={latestFeedback.feedback.createdAt}>{new Date(latestFeedback.feedback.createdAt).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
                     <Link href={`/dashboard/student/submissions?project=${latestFeedback.submission.paperId}&submission=${latestFeedback.submission.id}&feedback=${latestFeedback.feedback.id}#feedback-${latestFeedback.feedback.id}`}>View Full Feedback</Link>
                 </> : <p>{submissions.some(item => item.feedbackUnavailable) ? "Feedback could not be retrieved. Reload to try again." : "No adviser feedback yet."}</p>}</section>

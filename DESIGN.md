@@ -13,7 +13,8 @@ Owner direction updated on 2026-10-11. The committed Phase 9.1 implementation (`
 - Target browsers: Android Chrome, desktop Chrome/Edge and iPhone Safari. Targets do not imply completed device acceptance.
 - Implementation preference: Existing Tailwind CSS 4 and React components; no new UI component library.
 - Priorities: Clear information hierarchy, readable statuses, accessible forms and research workflows over decorative presentation.
-- Palette, typography system, logo and icon set: Not finalized. Preserve the Phase 9.1 baseline pending approved design decisions.
+- Typography: Manrope is the principal application font, owner-approved in Phase 10.P2C.3 (2026-10-31). Use the shared Next.js variable font and inherited control typography, with Arial/Helvetica/sans-serif fallbacks. Native PDF content and browser viewer fonts remain outside this scope.
+- Palette, logo and icon set: Not finalized. Preserve the Phase 9.1 baseline pending approved design decisions.
 
 ## Provisional Anti-Slop dials
 

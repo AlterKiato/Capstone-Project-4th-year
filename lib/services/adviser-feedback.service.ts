@@ -1,5 +1,6 @@
 import "server-only";
 import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
+import { feedbackCommentsSchema } from "@/lib/utils/feedback-content";
 
 import {
     findResearchGroupsByAdviserId,
@@ -111,8 +112,9 @@ export async function createAdviserFeedback(
         };
     }
 
-    const trimmedComments =
-        comments.trim();
+    const validatedComments = feedbackCommentsSchema.safeParse(comments);
+    if (!validatedComments.success) return { success: false, message: validatedComments.error.issues[0]?.message ?? "Invalid feedback information." };
+    const trimmedComments = validatedComments.data;
 
     const trimmedDecision =
         decision.trim();

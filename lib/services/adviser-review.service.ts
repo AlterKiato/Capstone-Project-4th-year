@@ -103,7 +103,7 @@ export async function startSubmissionReview(
         return {
             success: false,
             message:
-                "The submission review status could not be updated.",
+                "The submission has changed or review is unavailable. Refresh before starting review.",
         };
     }
 

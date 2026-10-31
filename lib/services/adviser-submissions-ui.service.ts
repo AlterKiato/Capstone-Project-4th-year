@@ -4,6 +4,7 @@ import { ROLE_IDS } from "@/lib/auth/roles";
 import { getDashboardAccount } from "./dashboard-account.service";
 import { getAdviserSubmission, getAdviserSubmissions } from "./adviser-submission.service";
 import { readOwnedSubmissionFeedback } from "@/lib/repositories/adviser-review-details.repository";
+import { findSubmissionVersionsForAdviser } from "@/lib/repositories/adviser-submission.repository";
 
 async function currentAdviser() {
     const session = await requireRole([ROLE_IDS.ADVISER]);
@@ -31,9 +32,14 @@ export async function getAdviserReviewDetails(submissionId: number) {
     if (!session || !Number.isSafeInteger(submissionId) || submissionId <= 0) return null;
     const result = await getAdviserSubmission(submissionId, session.userId);
     if (!result.success || !result.data) return null;
-    try {
-        return { email: session.email, submission: result.data, feedback: await readOwnedSubmissionFeedback(submissionId, session.userId), feedbackUnavailable: false };
-    } catch {
-        return { email: session.email, submission: result.data, feedback: [], feedbackUnavailable: true };
-    }
+    const [feedback, versions] = await Promise.allSettled([
+        readOwnedSubmissionFeedback(submissionId, session.userId),
+        findSubmissionVersionsForAdviser(result.data.paperId, session.userId),
+    ]);
+    return {
+        email: session.email, submission: result.data,
+        feedback: feedback.status === "fulfilled" ? feedback.value : [], feedbackUnavailable: feedback.status === "rejected",
+        versions: versions.status === "fulfilled" ? versions.value.map(({ id, version, status }) => ({ id, version, status })) : [],
+        versionsUnavailable: versions.status === "rejected",
+    };
 }

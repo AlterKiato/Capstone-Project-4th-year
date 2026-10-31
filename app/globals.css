@@ -4,6 +4,7 @@
 .verification-message { padding: 0.75rem; border-left: 3px solid var(--action); background: var(--notice); color: var(--foreground); }
 
 :root {
+  --font-app: var(--font-manrope, Arial), Arial, Helvetica, sans-serif;
   color-scheme: light;
   --background: #f6f8fb;
   --foreground: #1e293b;
@@ -68,19 +69,20 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-app);
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-app);
   line-height: 1.6;
 }
 
 /* Small native-control defaults; detailed screen layouts remain local. */
 @layer base {
+  button, input, select, textarea { font: inherit; }
   h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 700; line-height: 1.25; }
   h2 { font-size: 1.25rem; font-weight: 650; line-height: 1.4; margin-bottom: 0.75rem; }
   a { color: var(--action); text-decoration: underline; text-underline-offset: 3px; }

@@ -1,0 +1,6 @@
+.content { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.content p { margin: .375rem 0; min-height: 1em; }
+.content ul, .content ol { margin: .5rem 0; padding-inline-start: 1.5rem; }
+.content ul { list-style: disc; }
+.content ol { list-style: decimal; }
+.content li { margin-block: .125rem; }

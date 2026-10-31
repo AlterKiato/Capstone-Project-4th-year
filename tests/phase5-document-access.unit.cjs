@@ -31,14 +31,43 @@ const { isSubmissionDocumentPath } = require('../lib/validations/submission-docu
 async function denied() {
     const before = calls.length;
     assert.equal(await createSubmissionDocumentUrl(10, 3), null);
+    assert.equal(await createSubmissionDocumentUrl(10, 3, 'adviser-review'), null);
     assert.equal(calls.length, before, 'Denied metadata/identity must never reach storage');
 }
 async function main() {
     assert.equal(await getSubmissionDownloadUrlAction(10), 'synthetic-signed-url');
     assert.deepEqual(calls.pop(), ['research/20/v1/test.pdf', 300]);
+    assert.equal(await getSubmissionDownloadUrlAction(10, 'adviser-review'), null, 'A Student cannot select the Adviser duration');
     member = false; await denied(); member = true;
     actor = { id: 2, roleId: 2, isActive: true };
     assert.equal(await createSubmissionDocumentUrl(10, 2), 'synthetic-signed-url');
+    assert.deepEqual(calls.pop(), ['research/20/v1/test.pdf', 300], 'Legacy Adviser download stays at 300 seconds');
+    session = { userId: 2, roleId: 2 };
+    assert.equal(await getSubmissionDownloadUrlAction(10, 'adviser-review'), 'synthetic-signed-url');
+    assert.deepEqual(calls.pop(), ['research/20/v1/test.pdf', 1800]);
+    // Neither the existing action nor an internal caller can supply an arbitrary TTL.
+    for (const purpose of [1800, 7200, null, {}, { purpose: 'adviser-review', expiresIn: 7200 }, 'repository', '1800']) {
+        const before = calls.length;
+        assert.equal(await getSubmissionDownloadUrlAction(10, purpose), null);
+        assert.equal(await createSubmissionDocumentUrl(10, 2, purpose), null);
+        assert.equal(calls.length, before);
+    }
+    assert.equal(await getSubmissionDownloadUrlAction(10, 'adviser-review', 7200), 'synthetic-signed-url');
+    assert.deepEqual(calls.pop(), ['research/20/v1/test.pdf', 1800], 'Extra input cannot increase the fixed server TTL');
+    group = { id: 30, adviserId: 4 }; await denied(); group = { id: 30, adviserId: 2 };
+    submission = { ...submission, version: 'v2' }; await denied();
+    submission = { ...submission, version: 'v1' };
+    const adviserSubmission = submission;
+    for (const fileUrl of [null, '', 'research/21/v1/test.pdf', 'research/20/v2/test.pdf', 'research/20/v1/../test.pdf', 'https://example.invalid/test.pdf']) {
+        submission = { ...adviserSubmission, fileUrl }; await denied();
+    }
+    submission = adviserSubmission;
+    failure = true;
+    assert.equal(await getSubmissionDownloadUrlAction(10, 'adviser-review'), null);
+    failure = false;
+    actor.isActive = false; await denied(); actor.isActive = true;
+    session = null; await assert.rejects(getSubmissionDownloadUrlAction(10, 'adviser-review'), /REDIRECT \/login/);
+    session = { userId: 3, roleId: 3 };
     actor = { id: 4, roleId: 2, isActive: true }; await denied();
     for (const roleId of [1, 4, 999]) { actor = { id: 3, roleId, isActive: true }; await denied(); }
     actor = { id: 3, roleId: 3, isActive: false }; await denied();
@@ -67,11 +96,17 @@ async function main() {
     }
     session = { userId: 3, roleId: 3 };
     actor = { id: 3, roleId: 3, isActive: true };
+    for (const purpose of ['download', 'adviser-review']) {
+        const before = calls.length;
+        session = null; await assert.rejects(getSubmissionDownloadUrlAction(10, purpose), /REDIRECT \/login/);
+        assert.equal(calls.length, before);
+    }
+    session = { userId: 3, roleId: 3 };
     failure = true; assert.equal(await getSubmissionDownloadUrlAction(10), null); failure = false;
     const repository = mocks['@/lib/repositories/submission.repository'];
     const lookup = repository.findSubmissionById;
     repository.findSubmissionById = async () => { throw new Error('Synthetic database failure'); };
     await denied(); repository.findSubmissionById = lookup;
-    console.log('PASS isolated action authentication/roles/input, service authorization, missing metadata, path binding, storage/database failures, and 300-second signer argument');
+    console.log('PASS isolated action authentication/roles/input, ownership/version/path binding, failures, fixed Adviser-review 1800-second signing, and unchanged 300-second defaults');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

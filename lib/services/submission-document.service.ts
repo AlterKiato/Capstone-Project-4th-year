@@ -7,17 +7,21 @@ import { findResearchGroupById } from "@/lib/repositories/research-group.reposit
 import { findGroupMember } from "@/lib/repositories/group-member.repository";
 import { findUserById } from "@/lib/repositories/user.repository";
 import { createResearchDocumentSignedUrl } from "@/lib/services/storage.service";
-import { isSubmissionDocumentPath, submissionDocumentIdSchema } from "@/lib/validations/submission-document";
+import { isSubmissionDocumentPath, submissionDocumentIdSchema, submissionDocumentPurposeSchema, type SubmissionDocumentPurpose } from "@/lib/validations/submission-document";
+
+const ADVISER_REVIEW_PDF_SIGNED_URL_SECONDS = 1800;
 
 /** The caller supplies only the authenticated session's user ID, never a client identity. */
-export async function createSubmissionDocumentUrl(submissionId: number, authenticatedUserId: number): Promise<string | null> {
+export async function createSubmissionDocumentUrl(submissionId: number, authenticatedUserId: number, purpose: SubmissionDocumentPurpose = "download"): Promise<string | null> {
     if (!submissionDocumentIdSchema.safeParse(submissionId).success ||
-        !submissionDocumentIdSchema.safeParse(authenticatedUserId).success) return null;
+        !submissionDocumentIdSchema.safeParse(authenticatedUserId).success ||
+        !submissionDocumentPurposeSchema.safeParse(purpose).success) return null;
 
     try {
         // A stale session must not retain a revoked role or disabled account's access.
         const user = await findUserById(authenticatedUserId);
         if (!user?.isActive || !([ROLE_IDS.STUDENT, ROLE_IDS.ADVISER] as number[]).includes(user.roleId)) return null;
+        if (purpose === "adviser-review" && user.roleId !== ROLE_IDS.ADVISER) return null;
         const submission = await findSubmissionById(submissionId);
         if (!submission) return null;
         const paper = await findResearchPaperById(submission.paperId);
@@ -31,7 +35,8 @@ export async function createSubmissionDocumentUrl(submissionId: number, authenti
         }
         // Bind the persisted object to this exact paper/version before using the privileged client.
         if (!isSubmissionDocumentPath(submission.fileUrl, paper.id, submission.version)) return null;
-        return await createResearchDocumentSignedUrl(submission.fileUrl, 300);
+        return await createResearchDocumentSignedUrl(submission.fileUrl,
+            purpose === "adviser-review" ? ADVISER_REVIEW_PDF_SIGNED_URL_SECONDS : 300);
     } catch {
         console.error("Submission document access could not be prepared.");
         return null;

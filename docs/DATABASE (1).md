@@ -163,6 +163,14 @@ database transaction. Phase 5.2 required no schema or migration change.
 
 ## 6. Research and Review Statuses
 
+### Feedback content encoding (P.2C.3b, 2026-10-31)
+
+P.2D reconciliation: the owner now accepts rich-text feedback and the later presentation/access refinements. This does not add independent hosted persistence/security evidence. Existing P.2 code stores the versioned string in the same column; no schema, migration or database operation is needed for local closure. See the current P.2D Master Context handoff for distinct owner and automated evidence.
+
+`feedbacks.comments` remains non-null PostgreSQL `text`; no column, constraint, index or migration change. Unformatted new comments and historical records remain literal text. Formatted comments use an explicit `\u001eTHESISHS_FEEDBACK:1\n` prefix followed by a version-1 JSON document. The schema permits only flat paragraph/bullet-list/number-list blocks, lists of inline text runs, and boolean bold/italic/underline marks. This is structured text, not stored HTML. No existing records are rewritten.
+
+`lib/utils/feedback-content.ts` validates the envelope on the Server Action and service paths: nonblank extracted text, maximum 5,000 trimmed UTF-16 code units including block/item newlines, and separately at most 524,288 encoded code units, 256 blocks, 256 items per list and 10,000 total runs. Unknown keys/versions, nested blocks or unsupported nodes fail closed on writes. Future text-only consumers must use `feedbackPlainText`; visible feedback uses the safe shared React renderer. Authenticated identity, ownership, conditional review transitions, atomic persistence/activity logging and notification semantics are unchanged. This checkpoint performs no live database/Storage operation and does not establish actual persistence acceptance.
+
 ### Submission status
 
 The application uses the following workflow states:

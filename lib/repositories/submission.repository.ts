@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 
@@ -6,6 +6,7 @@ import { submissions } from "@/db/schema";
 import { findUserByIdForUpdate } from "@/lib/repositories/user.repository";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/constants/submission-lock";
+import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -174,14 +175,14 @@ export async function updateSubmissionStatus(
 }
 
 /** Recheck the acting Adviser under an account lock through the status commit.
- * The existing service ownership/status checks and unconditional update semantics remain.
+ * The status predicate prevents a stale Start Review from overwriting a later decision.
  */
 export async function updateSubmissionStatusForAdviser(id: number, status: string, adviserId: number) {
     return db.transaction(async tx => {
         const adviser = await findUserByIdForUpdate(adviserId, tx);
         if (!adviser?.isActive || adviser.roleId !== ROLE_IDS.ADVISER) return undefined;
         const [submission] = await tx.update(submissions).set({ status })
-            .where(eq(submissions.id, id)).returning();
+            .where(and(eq(submissions.id, id), eq(submissions.status, SUBMISSION_STATUS.SUBMITTED))).returning();
         return submission;
     });
 }

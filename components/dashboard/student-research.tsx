@@ -8,6 +8,7 @@ import SubmissionUploadDialog from "./submission-upload-dialog";
 import DownloadSubmissionButton from "@/app/dashboard/student/submissions/DownloadSubmissionButton";
 import ResearchDialog from "./research-dialog";
 import styles from "./student-ui.module.css";
+import FeedbackContent from "@/components/feedback-content";
 
 export default function StudentResearch({ workspace, target }: { workspace: StudentWorkspace; target: ResearchTarget }) {
     const [notice, setNotice] = useState("");
@@ -65,7 +66,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
                         <DownloadSubmissionButton submissionId={submission.id} />
                         <h4>Adviser Feedback · {submission.version}</h4>
                         {submission.feedbackUnavailable ? <p role="alert">Feedback could not be retrieved. Reload to try again.</p> : submission.feedbackRestricted ? <p>Feedback for this version is available to the Student who submitted it.</p> : !submission.feedback.length ? <p>No feedback recorded for this version yet.</p> : submission.feedback.map(item => <div id={`feedback-${item.id}`} key={item.id} tabIndex={item.id === initial.feedbackId ? -1 : undefined} ref={item.id === initial.feedbackId ? highlighted : undefined} className={`${styles.feedbackEntry} ${item.id === initial.feedbackId ? styles.target : "feedback-entry"}`}>
-                            <p><strong>Decision: {item.decision}</strong></p><p className="research-comments">{item.comments}</p><p className="form-help">Reviewed <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
+                            <p><strong>Decision: {item.decision}</strong></p><FeedbackContent value={item.comments} /><p className="form-help">Reviewed <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
                         </div>)}
                     </div>
                 </li>)}</ol>}

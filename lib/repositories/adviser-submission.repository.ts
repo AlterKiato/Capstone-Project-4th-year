@@ -1,6 +1,7 @@
 import { sql, type SQL } from "drizzle-orm";
 import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 import {
+    and,
     desc,
     eq,
     inArray,
@@ -14,6 +15,16 @@ import {
     researchGroups,
     users,
 } from "@/db/schema";
+
+/** Minimal version metadata, constrained to one currently owned research project. */
+export async function findSubmissionVersionsForAdviser(paperId: number, adviserId: number) {
+    return db.select({ id: submissions.id, version: submissions.version, status: submissions.status })
+        .from(submissions)
+        .innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
+        .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
+        .where(and(eq(submissions.paperId, paperId), eq(researchGroups.adviserId, adviserId)))
+        .orderBy(desc(submissions.submittedAt), desc(submissions.id));
+}
 
 /**
  * Retrieves all submissions belonging

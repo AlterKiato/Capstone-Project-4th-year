@@ -26,6 +26,7 @@ const mocks = {
     '@/lib/repositories/user.repository': { findUserById: async () => ({ roleId: 2, isActive: true }) },
     '@/lib/repositories/research-group.repository': { findResearchGroupsByAdviserId: async id => [{ id: id === 7 ? 100 : 200 }] },
     '@/lib/repositories/adviser-submission.repository': {
+        findSubmissionVersionsForAdviser: async (paperId, adviserId) => adviserId === 7 ? records.filter(item => item.paperId === paperId).map(({ id, version, status }) => ({ id, version, status })) : [],
         findSubmissionsByGroupIds: async groups => { calls.push(groups); if (fail) throw Error('PRIVATE'); return groups[0] === 100 ? [{ ...records[0], submittedAt: new Date(records[0].submittedAt), fileUrl: 'PRIVATE', remarks: 'PRIVATE' }] : []; },
         findSubmissionForAdviser: async (id, groups) => { calls.push([id, groups]); return id === 1 && groups[0] === 100 ? { ...records[0], status: reviewStatus, submittedBy: 99 } : undefined; },
     },
@@ -61,6 +62,13 @@ async function main() {
     assert.equal((await createAdviserFeedback(1, 7, 'Authorized', 'Revision Required')).success, true);
     for (const status of ['Approved', 'Revision Required']) { reviewStatus = status; assert.equal((await startSubmissionReview(1, 7)).success, false); assert.equal((await createAdviserFeedback(1, 7, 'Again', 'Approved')).success, false); }
     assert.equal(writes, 2);
+    reviewStatus = 'Under Review';
+    const { encodeFeedback, FEEDBACK_PREFIX } = require('../lib/utils/feedback-content.ts');
+    const formatted = encodeFeedback({version:1,blocks:[{type:'paragraph',content:[{text:'Synthetic formatted round trip',bold:true,italic:true,underline:true}]},{type:'numberList',items:[[{text:'One'}],[{text:'Two'}]]}]});
+    for (const invalid of ['x'.repeat(5001), FEEDBACK_PREFIX+'{"version":1,"blocks":[{"type":"script"}]}']) assert.equal((await createAdviserFeedback(1,7,invalid,'Approved')).success,false);
+    assert.equal(writes,2);
+    const saved = await createAdviserFeedback(1,7,formatted,'Approved');
+    assert.equal(saved.success,true); assert.equal(saved.data.comments,formatted); assert.equal(writes,3);
     for (const role of [1, 3, 4]) { session.roleId = role; await assert.rejects(service.getAdviserSubmissionsDirectory, /redirect/); }
     session = null; await assert.rejects(service.getAdviserSubmissionsDirectory, /redirect/);
     console.log('PASS project-ID grouping/multiple projects, timestamp/ID recency independent of version label, history order, distinct version counts, historical filters, normalized search, exact links, role/account/ID denials, foreign read/review/feedback isolation, original review-transition and validation rules, exact feedback, safe failures and minimal DTO. No DB writes.');
