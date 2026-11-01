@@ -14,6 +14,9 @@ import StartReviewButton from "../StartReviewButton";
 import FeedbackForm from "../FeedbackForm";
 import FeedbackContent from "@/components/feedback-content";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export default async function AdviserSubmissionDetailsPage({ params }: { params: Promise<{ submissionId: string }> }) {
     const { submissionId } = await params;
     const parsedSubmissionId = Number(submissionId);

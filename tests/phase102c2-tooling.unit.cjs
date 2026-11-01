@@ -22,12 +22,12 @@ test('0014 snapshot preserves every previous table and adds only intent persiste
     assert.equal([...sql.matchAll(/CREATE TABLE /g)].length, 1);
     assert.equal([...sql.matchAll(/ALTER TABLE "submission_upload_intents"/g)].length, 3);
 });
-test('operator/replay recognition includes 0014 without weakening full ledger verification', () => {
+test('operator/replay recognition includes prepared 0015 without weakening full ledger verification', () => {
     const journal = JSON.parse(read('db/migrations/meta/_journal.json'));
-    assert.equal(journal.entries.length, 15);
-    assert.equal(journal.entries.at(-1).tag, '0014_submission_upload_intents');
-    assert.match(read('scripts/database-operator.ts'), /length !== 15/);
-    assert.match(read('tests/phase102b-database.acceptance.ts'), /0014_snapshot/);
+    assert.equal(journal.entries.length, 16);
+    assert.equal(journal.entries.at(-1).tag, '0015_push_subscriptions');
+    assert.match(read('scripts/database-operator.ts'), /length !== 16/);
+    assert.match(read('tests/phase102b-database.acceptance.ts'), /0015_snapshot/);
 });
 test('cleanup refuses destructive arguments before reading configuration or connecting', () => {
     const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/submission-upload-cleanup.ts', '--execute'], {

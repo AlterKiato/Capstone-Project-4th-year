@@ -229,7 +229,7 @@ test('existing role/Admin operator inspection accepts a verified qualified poole
         THESISHS_DATABASE_ADMIN_URL: f.env.DATABASE_URL.replace(`app_runtime.${ref}:`, `app_operator.${ref}:`) }, 'operator');
     const d = driver(c, { row: { username: 'app_operator', login: 'app_operator' } });
     const result = await inspectOperatorTarget(d.client, c);
-    assert.equal(result.migrations, 15); assert.match(result.fingerprint, /^[a-f0-9]{64}$/);
+    assert.equal(result.migrations, 16); assert.match(result.fingerprint, /^[a-f0-9]{64}$/);
 });
 test('actual initializer inspection distinguishes an empty namespace from existing application records', async () => {
     const f = fixture(), c = databaseConfiguration({ ...f.env, DATABASE_URL: undefined, THESISHS_DATABASE_ADMIN_URL: f.env.DATABASE_URL.replace('app_runtime:', 'app_operator:') }, 'operator');

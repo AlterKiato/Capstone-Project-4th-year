@@ -35,7 +35,7 @@ export async function initializePreview(io: {
     }
     const after = await io.inspect();
     verifyPreviewLedger(after.ledger);
-    if (after.target !== before.target || after.catalog !== verifiedCatalog || after.ledger.length !== 15)
+    if (after.target !== before.target || after.catalog !== verifiedCatalog || after.ledger.length !== 16)
         throw new Error("Preview durable result does not match the verified migration result.");
     return "initialized-confirmed";
 }

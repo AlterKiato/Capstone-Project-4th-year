@@ -1,5 +1,7 @@
 "use server";
 
+import { requestResearchPush } from "@/lib/push/request";
+
 import {
     revalidatePath,
 } from "next/cache";
@@ -31,6 +33,7 @@ export async function createAdviserFeedbackAction(
     success: boolean;
     message: string;
 }> {
+    const push = requestResearchPush();
     const session =
         await requireRole([
             ROLE_IDS.ADVISER,
@@ -69,7 +72,8 @@ export async function createAdviserFeedbackAction(
             parsed.data.submissionId,
             session.userId,
             parsed.data.comments,
-            parsed.data.decision
+            parsed.data.decision,
+            recipientId => push({ recipientId, event: parsed.data.decision === "Revision Required" ? "revision-required" : "approved" })
         );
 
     if (!result.success) {

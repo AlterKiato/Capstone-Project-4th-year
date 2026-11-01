@@ -10,7 +10,7 @@ export const getDashboardAccount = cache(async () => {
     try {
         const user = await findUserById(session.userId);
         if (!user?.isActive || user.roleId !== session.roleId) return null;
-        return { roleId: user.roleId, email: user.email };
+        return { id: user.id, roleId: user.roleId, email: user.email, expiresAt: (session.exp ?? 0) * 1000 };
     } catch {
         return null;
     }

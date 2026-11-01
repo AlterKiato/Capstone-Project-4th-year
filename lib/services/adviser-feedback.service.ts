@@ -51,7 +51,8 @@ export async function createAdviserFeedback(
     submissionId: number,
     adviserId: number,
     comments: string,
-    decision: string
+    decision: string,
+    onCommitted?: (studentId: number) => void
 ): Promise<
     ServiceResult<{
         id: number;
@@ -174,6 +175,8 @@ export async function createAdviserFeedback(
     if (!feedback) {
         return { success: false, message: "An active Adviser account is required to provide feedback." };
     }
+
+    try { onCommitted?.(submission.submittedBy); } catch { /* Scheduling cannot change the committed decision. */ }
 
     const notificationResult = isRevisionRequired
         ? await notifyStudentSubmissionRevisionRequired(

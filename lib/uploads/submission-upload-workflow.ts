@@ -131,7 +131,7 @@ export function createSubmissionUploadWorkflow(dependencies: {
             }, AbortSignal.timeout(10000));
         } catch (error) { return failure(error); }
     }
-    async function finalize(id: unknown): Promise<UploadResult> {
+    async function finalize(id: unknown, onCommitted?: (adviserId: number, version: string) => void): Promise<UploadResult> {
         if (finalizations >= 2) return unavailable();
         finalizations++;
         const signal = AbortSignal.timeout(55000);
@@ -166,6 +166,7 @@ export function createSubmissionUploadWorkflow(dependencies: {
                     adviserId: tx.context.group!.adviserId, title: tx.context.paper!.title };
             }, signal);
             if (committed.fresh) {
+                try { onCommitted?.(committed.adviserId, committed.result.version!); } catch { /* Scheduling cannot change a committed result. */ }
                 try { await dependencies.notify(committed.adviserId, committed.result.version!, committed.title); } catch { /* Best effort; never undo a committed submission. */ }
             }
             return committed.result;

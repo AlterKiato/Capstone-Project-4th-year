@@ -66,3 +66,29 @@ export async function checkMobileSessionAccount(claims: MobileTokenClaims): Prom
         return { status: await consumeAuthBuckets(account, []) ? "allowed" : "limited" };
     } catch { return { status: "unavailable" }; }
 }
+
+type PushLimitOperation = "pushMutation" | "pushStatus";
+/** Split admission: ingress consumes global/source once; only a verified account consumes its bucket. */
+export async function checkPushIngress(operation: PushLimitOperation, requestHeaders: Headers): Promise<AuthAttemptOutcome> {
+    if (!sharedAuthLimitsEnabled()) return { status: "allowed" };
+    try {
+        const { secret, limits } = getAuthLimitConfiguration(operation);
+        const digest = (dimension: string, value: string) => createHmac("sha256", secret)
+            .update(JSON.stringify(["thesishs-auth-limit-v1", operation, dimension, value])).digest("hex");
+        const source = trustedAuthSource(requestHeaders);
+        return { status: await consumeAuthBuckets({ keyDigest: digest("global", "all"), limit: limits.global },
+            source ? [{ keyDigest: digest("source", source), limit: limits.source }] : []) ? "allowed" : "limited" };
+    } catch { return { status: "unavailable" }; }
+}
+
+export async function checkPushAccount(operation: PushLimitOperation, userId: number): Promise<AuthAttemptOutcome> {
+    if (!Number.isSafeInteger(userId) || userId <= 0 || userId > 2147483647) return { status: "unavailable" };
+    if (!sharedAuthLimitsEnabled()) return { status: "allowed" };
+    try {
+        const { secret, limits } = getAuthLimitConfiguration(operation);
+        if (!limits.account) return { status: "unavailable" };
+        const keyDigest = createHmac("sha256", secret)
+            .update(JSON.stringify(["thesishs-auth-limit-v1", operation, "account", String(userId)])).digest("hex");
+        return { status: await consumeAuthBuckets({ keyDigest, limit: limits.account }, []) ? "allowed" : "limited" };
+    } catch { return { status: "unavailable" }; }
+}

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const AUTH_LIMIT_WINDOW_SECONDS = 900;
 export const AUTH_RETRY_MESSAGE = "This request is temporarily unavailable. Please wait up to 15 minutes and try again.";
-export type AuthLimitOperation = "login" | "registration" | "verificationRequest" | "verificationConfirm" | "mobileSession";
+export type AuthLimitOperation = "login" | "registration" | "verificationRequest" | "verificationConfirm" | "mobileSession" | "pushMutation" | "pushStatus";
 type Thresholds = { global: number; source: number; account?: number };
 const defaults: Record<AuthLimitOperation, Thresholds> = {
     login: { account: 10, source: 300, global: 1200 },
@@ -11,6 +11,8 @@ const defaults: Record<AuthLimitOperation, Thresholds> = {
     verificationRequest: { account: 10, source: 120, global: 600 },
     verificationConfirm: { source: 120, global: 600 },
     mobileSession: { account: 60, source: 300, global: 1200 },
+    pushMutation: { account: 20, source: 120, global: 600 },
+    pushStatus: { account: 60, source: 300, global: 1200 },
 };
 const count = z.number().int().min(1).max(10000);
 const thresholds = z.strictObject({ global: count.optional(), source: count.optional(), account: count.optional() });
@@ -32,8 +34,8 @@ export function getAuthLimitConfiguration(operation: AuthLimitOperation) {
     const raw = process.env.THESISHS_AUTH_LIMITS_JSON;
     if (raw && raw.length > 4096) throw new Error("Authentication limiting unavailable.");
     const overrides = overrideSchema.parse(raw ? JSON.parse(raw) : {});
-    // M.3C's approved initial session policy is fixed; no new operational override is introduced.
-    const limits = { ...defaults[operation], ...(operation === "mobileSession" ? {} : overrides[operation]) };
+    // Initial mobile-session and push policies are fixed; existing overrides retain their scope.
+    const limits = { ...defaults[operation], ...(operation === "mobileSession" || operation === "pushMutation" || operation === "pushStatus" ? {} : overrides[operation]) };
     if (limits.source > limits.global || (limits.account ?? 0) > limits.global)
         throw new Error("Authentication limiting unavailable.");
     return { secret, limits };

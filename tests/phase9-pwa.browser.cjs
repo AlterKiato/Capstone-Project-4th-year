@@ -147,17 +147,22 @@ async function main(lifecycle) {
             }
         }
         const storage = await page.evaluate(async () => ({
-            workers: (await navigator.serviceWorker.getRegistrations()).length,
+            workers: (await navigator.serviceWorker.getRegistrations()).map(registration => ({ scope: registration.scope,
+                script: (registration.active ?? registration.waiting ?? registration.installing)?.scriptURL })),
             caches: await caches.keys(),
             local: Object.keys(localStorage),
             session: sessionStorage.length,
             databases: (await indexedDB.databases()).length,
         }));
-        assert.deepEqual(storage, { workers: 0, caches: [], local: ['thesishs-theme'], session: 0, databases: 0 });
+        if (process.env.THESISHS_WEB_PUSH_ENABLED === 'true') {
+            assert.ok(storage.workers.length <= 1);
+            for (const worker of storage.workers) assert.deepEqual(worker, { scope: origin + '/', script: origin + '/sw.js' });
+        } else assert.deepEqual(storage.workers, []);
+        assert.deepEqual({ ...storage, workers: [] }, { workers: [], caches: [], local: ['thesishs-theme'], session: 0, databases: 0 });
         await context.close();
     }
     assert.deepEqual(errors, []);
-    console.log('PASS: manifest/icons/current metadata, Chromium parser, 360/1280 keyboard guidance/online requirement, current role launch/navigation/logout, Settings Light/Dark/System, anonymous/role denial, no workers/caches/research stores; only the theme preference persisted.');
+    console.log('PASS: manifest/icons/current metadata, Chromium parser, 360/1280 keyboard guidance/online requirement, current role launch/navigation/logout, Settings Light/Dark/System, anonymous/role denial, only owned root worker when enabled, no caches/research stores; only the theme preference persisted.');
     console.log('LIMIT: standalone tested only if media emulation is supported, never as OS installation. No real Android/iPhone/Edge testing or installed cookie-lifecycle acceptance. No database mutations, storage/provider calls or private document visits.');
 }
 

@@ -12,11 +12,15 @@ const nextConfig: NextConfig = {
     typescript: { tsconfigPath: "tsconfig.verification.json" },
   } : {}),
   async headers() {
-    return ["/verify-email", "/dashboard/student/verify-email"].map(source => ({ source, headers: [
+    return [{ source: "/sw.js", headers: [
+      { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Cache-Control", value: "no-cache, max-age=0, must-revalidate" },
+    ] }, ...["/verify-email", "/dashboard/student/verify-email"].map(source => ({ source, headers: [
       { key: "Referrer-Policy", value: "no-referrer" },
       { key: "Cache-Control", value: "private, no-store, max-age=0, must-revalidate" },
       { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
-    ] }));
+    ] }))];
   },
   experimental: {
     serverActions: {

@@ -127,6 +127,41 @@ test('normal finalize preserves private path/history and notifies once; complete
     assert.deepEqual(await f.workflow.finalize(intent.id), result); assert.equal(f.state.reads, reads); assert.equal(f.state.notifications.length, 1);
     assert.equal((await f.workflow.cancel(intent.id)).code, 'completed'); assert.equal(f.state.submissions.length, 1);
 });
+
+test('P.3D fresh initial/revised commits expose only server-resolved recipient/version once, outside the transaction', async () => {
+    const f = fixture(), events = [];
+    const committed = (adviserId, version) => {
+        assert.equal(f.state.activeTx, 0);
+        assert.ok([...f.state.intents.values()].some(row => row.state === 'completed'));
+        events.push([adviserId, version]);
+    };
+    const first = await f.uploaded();
+    assert.equal((await f.workflow.finalize(first.intent.id, committed)).code, 'completed');
+    assert.deepEqual(events, [[22, 'v1']]);
+    await f.workflow.finalize(first.intent.id, committed); assert.equal(events.length, 1);
+    f.state.submissions[0].status = 'Revision Required';
+    const revision = await f.uploaded();
+    assert.equal((await f.workflow.finalize(revision.intent.id, committed)).version, 'v2');
+    await f.workflow.finalize(revision.intent.id, committed);
+    assert.deepEqual(events, [[22, 'v1'], [22, 'v2']]); assert.equal(f.state.notifications.length, 2);
+    assert.equal(f.state.submissions.length, 2);
+});
+
+test('P.3D failed/uncertain commits never schedule; scheduling and in-app failures cannot undo successful uploads', async () => {
+    for (const field of ['failSubmit', 'failComplete', 'loseCommit']) {
+        const f = fixture(), uploaded = await f.uploaded(); f.state[field] = true; let calls = 0;
+        const result = await f.workflow.finalize(uploaded.intent.id, () => { calls++; });
+        assert.equal(calls, 0); assert.equal(result.success, field === 'loseCommit');
+    }
+    const f = fixture(), uploaded = await f.uploaded();
+    assert.equal((await f.workflow.finalize(uploaded.intent.id, () => { throw Error('synthetic scheduling failure'); })).success, true);
+    assert.equal(f.state.notifications.length, 1);
+    const g = fixture(), other = await g.uploaded(); let scheduled = 0;
+    const workflow = createSubmissionUploadWorkflow({ repository: g.repository, storage: g.storage, actor: async () => g.state.actor,
+        notify: async () => { throw Error('synthetic in-app failure'); } });
+    assert.equal((await workflow.finalize(other.intent.id, () => { scheduled++; })).success, true);
+    assert.equal(scheduled, 1); assert.equal(g.state.submissions.length, 1);
+});
 test('same-intent concurrent finalization and two-Student same-paper contention yield one version', async () => {
     const f = fixture(), { intent } = await f.uploaded();
     const results = await Promise.all([f.workflow.finalize(intent.id), f.workflow.finalize(intent.id)]);

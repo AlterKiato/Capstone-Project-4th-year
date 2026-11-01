@@ -39,7 +39,7 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
     const [existing] = await sql`select to_regclass('drizzle.__drizzle_migrations') is not null as ledger`;
     const ledger = existing.ledger ? await sql`select id,hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id` : [];
     const { migrations } = previewMigrationSource();
-    if (ledger.length && (ledger.length !== 15 || ledger.some((r, i) => r.id !== i + 1 || r.hash !== migrations[i].hash || r.created_at !== String(migrations[i].folderMillis)))) throw refused();
+    if (ledger.length && (ledger.length !== 16 || ledger.some((r, i) => r.id !== i + 1 || r.hash !== migrations[i].hash || r.created_at !== String(migrations[i].folderMillis)))) throw refused();
     const columns = await sql`select table_name,column_name,data_type,is_nullable,column_default from information_schema.columns where table_schema='public' order by table_name,ordinal_position`;
     const constraints = await sql`select c.relname,k.conname,k.contype,k.convalidated,to_jsonb(k)->>'conenforced' as enforced,pg_get_constraintdef(k.oid) as definition
         from pg_constraint k join pg_class c on c.oid=k.conrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' order by c.relname,k.conname`;
@@ -121,7 +121,7 @@ export async function main(args = process.argv.slice(2)): Promise<PreviewInitial
                     await verifyPreviewSchema(tx as unknown as postgres.Sql);
                     diagnostic.stage = "precommit verification";
                     const verified = await inspectPreviewState(tx as unknown as postgres.Sql, config);
-                    if (verified.ledger.length !== 15) throw refused();
+                    if (verified.ledger.length !== 16) throw refused();
                     diagnostic.stage = "transaction commit";
                     return verified.catalog;
                 });

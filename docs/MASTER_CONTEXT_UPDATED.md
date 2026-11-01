@@ -1,9 +1,9 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-10-31
+**Last reconciled:** 2026-11-01
 **Current branch:** `feature/development`
-**Current Git checkpoint:** The P.2 closure commit containing this record, message `feat(phase10): close adviser desktop review workspace`, parent `6f2d350cfec4dd1ac2735a13f1a01533082d0ec7`, on `feature/development`. Resolve its SHA from Git; no self-referential hash is invented. P.1 closure and its parent `b83b37fc583f6e267d7a647a40d9da7a4f0cabef` remain preserved. P.2D authorizes this one local commit only; no push, merge or deployment.
-**Current scope:** **Phase 10.P2D locally CLOSED — PASS** for the agreed Adviser Desktop Review Workspace scope through P.2C.4a. The owner reports P.2C.3c **5/5 PASS**, P.2C.4 accepted after extended-window/manual-renewal testing and P.2C.4a **6/6 PASS**; these supersede earlier pending labels. Retain P.2C.3b acceptance, P.2C.3a **4/4 PASS**, P.2C.2 **6/6**, core **5/5**, hotfix **4/4** and Edge/Brave native-PDF evidence as owner-led results, separate from automated checks. Final P.2D focused/static/browser checks and isolated production build passed; see the closure record below. P.1 remains **CLOSED — PASS** for its agreed local scope. This record belongs to the single owner-authorized local P.2 closure commit; no push, merge or deployment. Preserve separately scoped P.3 Web Push + VAPID, P.4 Desktop Admin Oversight and R.1-R.3 Progress Tracker/Revision Management. Expo is frozen; disabled Resend/Groq, authentication and hosted security gates remain independent.
+**Current Git checkpoint:** the P.3F.0 local source closure commit containing this handoff, message `feat(phase10): implement and verify minimal research web push`, parent `b4352d1ea456dfce18097b039f9237ef46fc33a6`, on `feature/development`. Resolve its SHA from Git; this scope authorizes one reviewed local commit only, with no push, merge or deployment.
+**Current scope:** **P.3F.0 local review/verification PASS; hosted activation pending separate gates.** P.3E.2 verified 0015 and subscription constraints/races in a disposable PostgreSQL cluster only (20 checks PASS). Existing project databases remain at 0014; push is disabled, real VAPID unconfigured and Android/iOS delivery unverified. See the latest handoff and [owner checklist](PHASE10_P3_ACTIVATION_CHECKLIST.md). P.3E.1a, P.1/P.2 closure, full-build configuration/finalization limits, development-only advisories and hosted security gates remain. P.3F.1 is proposed, not started; P.4/R.1-R.3 remain separate. Expo stays frozen and Resend/Groq disabled.
 **Retained Phase 10.2F scope (historical):** Phase 10.2F physical PWA acceptance **PASS - owner-reported Windows 6/6 and Android Chrome 6/6; total 12 PASS, 0 FAIL, 0 BLOCKED**. Record the manual results only; Codex did not independently execute them. This acceptance does not establish offline support, push notification reliability, Expo React Native readiness or production release approval. Phase 10.2E remains accepted for controlled Preview testing with its hosted security gates deferred to production readiness. No tests, infrastructure/application changes or commit/push occur in this documentation checkpoint.
 
 > This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
@@ -4361,3 +4361,284 @@ Build-only synthetic environment values use reserved `.invalid` resource endpoin
 - Production deployment, live environment verification, hosted anonymous/cross-group/signed-upload/expiry/policy gates, authentication/real-email operational gates, hard-disabled Groq/Resend and frozen Expo remain unchanged. P.3 Minimal Mobile Web Push + VAPID, P.4 Admin Desktop publication oversight and R.1-R.3 Research Progress Tracker/Revision Management are unimplemented, separately scoped next work.
 
 **Closure gate PASS:** no newly confirmed security blocker or material application regression; focused/static/browser checks and isolated production build pass; owner acceptance and canonical docs are reconciled; the exact 54-file scope is known and contains no unrelated/secrets/generated files. Final explicit staging, staged-diff/whitespace verification and one local commit finalize this record. Stop after the local commit and report its SHA/state; no push, merge, deployment, P.3 implementation or subsequent automatic work.
+
+## Phase 10.P3C.1 push subscription backend foundation (2026-11-01)
+
+**Implemented locally, disabled and not operational; migration prepared NOT APPLIED.** Entry baseline: `feature/development`, `b4352d1ea456dfce18097b039f9237ef46fc33a6`, clean tree/index. P.2 is owner accepted and locally closed in that commit; P.1 remains closed. The owner separately authorized this backend implementation. No closure/commit of P.3 is implied.
+
+### Local contracts
+
+- `/api/push/subscription`: GET returns `{ok:true,available,publicKey,keyId,enrollment}`; POST accepts `{expectedGeneration:UUID|null,registrationId:UUID,subscription:{endpoint,expirationTime:number|null,keys:{p256dh,auth}}}`; DELETE accepts `{generations:[UUID]}` with one or two distinct locally known current/pending IDs. Mutation successes return `{ok:true,enrollment}`. Enrollment includes generation, enabled, endpoint SHA-256 fingerprint, authorization expiry and key ID only. Raw endpoint and encryption keys never leave the repository. Identical registration-ID/material retries return the existing result without extending authorization. New attempts must use fresh UUIDs.
+- Existing verified cookie session plus uncached active-account/role resolution; Student/Adviser only. Repository user-row locks serialize first enrollment/replacement/removal and repeat active role/session-expiry checks. Unique user/endpoint/UUID constraints enforce isolation. Expected-generation conflicts and endpoint/ID collisions share a generic 409. Conditional cleanup leaves newer registrations intact. Removal inserts a disabled generation barrier even when a pending first POST has not committed, and clears all capability fields. The backend supports later lifecycle cleanup; no logout/account-switch UI integration was added here.
+- Mutations require the exact server-configured `THESISHS_PUSH_ORIGIN`, reject missing/null/foreign Origin and cross-site Fetch Metadata, require JSON and enforce 4,096 bytes while reading the stream. Strict Zod fields, canonical base64url keys, valid uncompressed P-256 point, coherent future browser expiration and bounded canonical HTTPS endpoints are required. Provider policy permits exact `fcm.googleapis.com` and valid subdomains of `push.apple.com`; credentials, fragments, nonstandard ports, IP/private/other hosts and malformed host syntax are rejected. No provider request is made; DNS rebinding, redirect/TLS transport enforcement remains P.3D work.
+- Shared 15-minute limiter operations: `pushMutation` 20/account, 120/trusted-source, 600/global; `pushStatus` 60/account, 300/source, 1,200/global. Ingress consumes global/source once; verified authorized accounts alone consume account buckets once. No client-selected account bucket, new table, external limiter or change to existing login/mobile thresholds. Existing explicit Development/test limiter gate is retained; hosted/production limiting fails closed. Errors use `{ok:false,code,message}` with safe 400/401/403/409/413/415/429/503 outcomes; 429 includes Retry-After 900. Responses are no-store with nosniff and no permissive CORS or raw error logging.
+- Configuration defaults to `THESISHS_WEB_PUSH_ENABLED=false`. Enabling would require exact `true`, trusted Origin, valid public `THESISHS_WEB_PUSH_PUBLIC_KEY` and bounded `THESISHS_WEB_PUSH_KEY_ID`; none was configured. No private key setting or key generation was introduced. Public configuration is returned only when available. DELETE does not require enrollment enabled/public key, but still requires trusted Origin/authentication. GET/DELETE require the prepared table; before approved migration application they fail safely with 503 if persistence is unavailable. Existing application functionality is independent.
+
+### Migration and scope
+
+Generated only `0015_push_subscriptions.sql`, its snapshot and journal entry. The new table has 11 columns, cascade user FK, unique user/endpoint constraints and four CHECKs; historical 0000-0014 SQL/snapshots and previous tables remain unchanged. Latest source pin, empty-only initializer/operator counts and relevant source tests recognize exactly 16 entries, preserving full hashes/timestamps and safeguards. `preview-schema.ts` is already snapshot-driven; no change required. The existing initialization lock namespace and historical 0014 runner remain unchanged. No separate large runner was built; DATABASE records minimum safe future execution and grant/security review prerequisites. Latest operator tooling intentionally refuses databases still at 15 entries until separately authorized upgrade. No migration execution, live catalog/grant check or database connection occurred.
+
+Implemented files: `db/schema/push-subscription.ts` and index; 0015 SQL/snapshot/journal; `lib/push/{contract,config,subscription,http}.ts`; `lib/repositories/push-subscription.repository.ts`; `lib/services/push-subscription.service.ts`; `app/api/push/subscription/route.ts`; existing auth limiter config/service; migration-source/initializer/operator declarations; focused subscription and migration tooling tests; directly relevant Master Context, Source of Truth, Architecture and Database sections. No dependency/package changes.
+
+### Verification and limits
+
+Evidence is isolated source/schema assertions, real repository control flow over serialized Drizzle transaction doubles, service/HTTP integration doubles and existing offline operator/limiter regression tests. It is not execution of PostgreSQL constraints or real concurrent transactions. The test public point is the published SEC2 curve generator; no VAPID key pair, account or provider capability was created.
+
+Executed validation:
+
+1. `node --import tsx --test tests/phaseP3-subscription.unit.cjs tests/phase102c2-tooling.unit.cjs tests/phase102d2a-hosted-database.unit.cjs tests/phase101d2-rate-limit.unit.cjs tests/phase101d2-rate-limit-sql.unit.cjs` — **62 reported tests PASS, 0 failures** (includes the two existing parent tests; 15 new push tests). Covers required authorization, request validation/body boundaries/Origin, safe responses, expiry, duplicate/collision/replacement/conditional-cleanup behavior, disabled configuration and unchanged shared limiter/operator contracts. During development one assertion incorrectly inspected inline unique-column metadata as explicit table constraints; corrected to inspect Drizzle's actual unique columns. No implementation constraint was removed. Final review also explicitly rejects an empty URL fragment.
+2. `node node_modules/typescript/bin/tsc --noEmit --incremental false` — **PASS**.
+3. Targeted `node node_modules/eslint/bin/eslint.js` across all 19 changed/new TS/CJS files — **PASS**; final service/contract/test edits separately rechecked. Final `node --import tsx --test tests/phaseP3-subscription.unit.cjs` rerun after empty-fragment validation — **15/15 PASS**.
+4. `node node_modules/drizzle-kit/bin.cjs generate --name=push_subscriptions` — offline generation only; SQL reviewed (one new table and its cascade FK), additive snapshot verified. `node node_modules/drizzle-kit/bin.cjs check` — **PASS**. No migrator/database command executed.
+5. Read-only Git/blob comparison — **30 historical SQL/snapshot files byte-identical to HEAD**, first 15 journal entries unchanged, previous snapshot tables identical. Full 16-entry source digest/ledger acceptance and tamper rejection pass in isolated tests. `git diff --check` plus explicit new-file trailing-whitespace inspection — **PASS**.
+
+Final implementation manifest is 26 paths: 15 modified tracked files and 11 new files; index remains empty and HEAD unchanged. No production build, browser/device tests or live database/Storage verification was run. Do not interpret isolated tests as operational push acceptance.
+
+No service worker, enrollment UI, sender dependency, VAPID credentials, push delivery, research-event integration or changes to Student submissions, Adviser reviews, existing in-app notifications or logout. No live databases/Storage, browser/server control, migration execution, environment/deployment changes or staging/commit/push/merge. P.3 is not operational/device-tested or closed. **Next: separately authorized P.3C.2**, reviewing the backend handoff and remaining client/lifecycle scope; migration execution/credentials/activation/device delivery retain separate approval gates. P.3D must enforce actual sender deadlines/DNS/redirect/TLS controls; hosted security and physical Android/iOS acceptance remain pending. Preserve P.1/P.2, P.4/R.1-R.3 and disabled Groq/Expo direction.
+
+## Phase 10.P3C.2 Mobile PWA worker and enrollment foundation (2026-11-01)
+
+**Implemented locally and isolated verification PASS; disabled, not operational or device-accepted.** Entry Git baseline reverified: `feature/development`, HEAD `b4352d1ea456dfce18097b039f9237ef46fc33a6`, 15 modified tracked plus 11 new P.3C.1 paths, empty index. No material conflict. All P.3C.1 work was preserved; its schema, generated migration/source pin, repository, limiter and tooling are unchanged. This owner-authorized source checkpoint supersedes older no-client/worker wording without enabling push or closing P.3.
+
+### Worker, enrollment and lifecycle
+
+- Root `/sw.js`, registered once per browser container from the supported installed Student/Adviser dashboard with `scope: '/'`, `updateViaCache: 'none'`. Capability plus P.1 standalone presentation checks, never viewport-based device identity. Compatible installed desktop contexts may also meet these capability checks; no desktop or mobile delivery acceptance is claimed. Admin/Panel receive no enrollment UI/registration. Existing foreign root registrations are refused rather than overwritten. Worker activation readiness is bounded; no skipWaiting, clients.claim, forced reload, fetch interception, Cache Storage, sync or automatic renewal. Existing manifest is unchanged. Script has JavaScript/nosniff/no-cache-revalidation headers.
+- Push contract is exactly `{v:1,destination:'student-notifications'|'adviser-notifications'}` with a small payload bound. Missing/malformed/unexpected data displays the fixed generic notification and dashboard fallback. Title is ThesiSHS AI; body is "A research update is available. Open ThesiSHS AI to view it." No private names/IDs/research/document URLs or arbitrary notification text/URLs. Clicking closes the notification and focuses an existing app window; a recognized same-origin worker message invokes a controlled application intent. Existing Adviser `confirmLeave` handles dirty/pending review protection before router navigation. Without a bridge, focus only. With no app window, open the allowlisted role notification route (or dashboard fallback), retaining normal server authorization.
+- Shared Research Notifications section is immediately before installation help under the existing dashboard content. Existing typography/themes/styles are inherited; scoped CSS adds only wrapping actions and 44px targets. Status covers loading, browser/installation guidance, unsupported, disabled/unconfigured, denied, ready/enrolled, pending/error and expired contexts. Enable, Disable and Refresh actions are conditional on safe readiness. One-device replacement explanation is explicit; no unrelated navigation or workspace redesign.
+- Enable preloads worker readiness and GET configuration; no automatic permission call. The explicit click calls native PushManager.subscribe with userVisibleOnly/applicationServerKey before awaiting unrelated work, allowing the browser permission flow. Already granted permission alone is not enrollment. Reuse requires a recognized same-account browser subscription/key. Unknown/old subscriptions are cleared first and require another Enable click. POST uses exactly P.3C.1 fields and updates enrollment only after server success. An uncertain POST is reconciled or conditionally disabled before another attempt, preventing accumulating unknown pending generations. DELETE carries only captured bound/pending generations, with server CAS protections retained. Native unsubscribe additionally compares captured endpoint and encryption keys to avoid revoking a replacement even if an endpoint is reused.
+- Narrow necessary contract addition: browser GET/POST/DELETE sends optional `X-ThesiSHS-Push-Account` expected context. The service compares it with the already verified session user before account admission/mutation; mismatch is a safe 401. This is not a new authentication system, authoritative client ID or JSON field. Existing clients without the header retain P.3C.1 behavior. Browser requests are same-origin/no-store, reject redirects, have a three-second abort deadline and never log endpoints/keys.
+- Cancellation epochs prevent stale/native/API responses from updating a disposed/new context. Verified session expiry aborts work and disables enrollment controls. Foreground status refresh never prompts or automatically renews. Logout cleanup runs only after the existing capture-phase draft guard allows the Logout click. It aborts pending enrollment, conditionally removes captured IDs and safely unsubscribes the captured native capability. Infrastructure cleanup failure attempts known native revocation; authentication mismatch does not trigger that fallback. A one-second deadline aborts API work/disposes callbacks, then the unchanged logout action deletes the cookie regardless of cleanup outcome. No broad auth/review action refactor.
+- Default-disabled/unconfigured clients do not create a worker, request permission, subscribe, deliver or automatically call the subscription API. Reading an existing owned browser registration permits explicit local cleanup. No actual VAPID values were configured. Native PushManager storage is the platform facility; application code adds no localStorage/sessionStorage/IndexedDB/cache persistence of subscription material or private research.
+
+### Exact P.3C.2 source scope
+
+Seven new files:
+
+```text
+public/sw.js
+lib/pwa/research-push-client.ts
+lib/pwa/research-push-browser.ts
+lib/pwa/research-push-navigation.ts
+components/dashboard/research-push-enrollment.tsx
+components/dashboard/research-push-enrollment.module.css
+tests/phaseP3-pwa.unit.cjs
+```
+
+Twelve modified paths (including six intentional refinements to pending P.3C.1 documentation/service/test files):
+
+```text
+app/dashboard/layout.tsx
+app/dashboard/adviser/submissions/ReviewDraftBoundary.tsx
+components/auth/logout-button.tsx
+lib/services/dashboard-account.service.ts
+lib/push/subscription.ts
+next.config.ts
+tests/phase9-pwa.browser.cjs
+tests/phaseP3-subscription.unit.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+docs/ARCHITECTURE_UPDATED.md
+docs/DATABASE (1).md
+```
+
+### Executed verification
+
+1. `node --import tsx --test tests/phaseP3-pwa.unit.cjs tests/phaseP3-subscription.unit.cjs tests/phaseP1-display-mode.unit.cjs tests/phaseP2B-workspace.unit.cjs` — **55/55 PASS**, 0 failures (16 worker/client/SSR tests, 16 backend tests, seven P.1 detector/shell checks and 16 existing P.2 regression checks). Covers listener/no-cache contract, fixed malformed payload fallback, allowlisted click/focus/navigation, registration ownership, unsupported/denied/disabled states, no mount prompts, direct gesture subscription, API success/failure/unconfirmed behavior, generation/native replacement cleanup, account switch/expiry, accepted/cancelled logout, cleanup failure/deadline and actual component/draft-boundary behavior. An initial VM configuration test lacked `process`; the test fixture was corrected, with final rerun passing. No browser was launched.
+2. `node node_modules/typescript/bin/tsc --noEmit --incremental false` — **PASS**. Targeted `node node_modules/eslint/bin/eslint.js` across all 14 changed/new JS/TS/TSX/CJS source/test/config files — **PASS**. React skill review applied: browser APIs only after hydration/in event callbacks, stable external-store snapshots, effect cleanup/abort, minimal authenticated server props, native accessible controls and existing draft authority preserved.
+3. P.1 browser harness source updated narrowly: disabled configuration still requires zero registrations; enabled configuration permits at most the one owned root `/sw.js`. Zero Cache Storage/IndexedDB/private application stores and theme-only preference checks remain. **That database/browser harness was not executed.** Coverage here is worker VMs, native/API doubles, actual component SSR and actual draft-handler execution over DOM doubles, not browser/device acceptance or real permission prompts.
+4. `git diff --check` and explicit untracked-file trailing-whitespace inspection — **PASS**. SHA-256 comparison against the 26-path entry manifest — **PASS**: 20 paths unchanged; only the four canonical docs, subscription context precondition and its test intentionally refined. No unexpected modification. The P.3C.2 delta is exactly 19 paths above; combined pending work is 39 paths (21 modified tracked, 18 new), with empty index and unchanged branch/HEAD. Manifest/package files, existing authentication action and research-event/in-app notification services remain unchanged. No production build or Drizzle generation/execution was needed; 0015 remains outstanding and unchanged.
+
+### Remaining limits and exact next checkpoint
+
+No real device/browser permission, native provider enrollment, HTTP worker installation/update, notification arrival, cross-process/tab race or end-to-end workflow acceptance occurred. Pure tests do not prove iOS transient activation behavior, OS notification settings or installed-app window reuse. Native subscription promises cannot be forcibly cancelled; late orphan subscriptions may require explicit preparation on the next visit. Logout/permission/session cleanup is best effort and cannot recall already queued notifications or guarantee provider revocation after infrastructure failure. An absent native binding is not used to blindly delete another device's current server row. Existing same-origin tabs still share the application's cookie; no separate multi-account session/device-management infrastructure was added.
+
+Migration 0015 is still prepared NOT APPLIED; persistent API access can safely return 503 until separately approved execution. VAPID public/private configuration is not active; no sender dependency, delivery, research-event hooks, retry queue or analytics. P.3D is the next separately authorized checkpoint: review this foundation and explicitly scope sender/deadline/DNS/redirect/TLS controls, migration/grant/configuration gates and eventual owner-led installed Android/iOS acceptance. Do not start P.3D automatically or describe Web Push as operational.
+
+No live database/Storage/hosted requests, migration execution, VAPID generation, package installation, environment activation, owner browser/server control, deployment, staging/commit/push/merge or P.4/R.1-R.3/Expo/Firebase/Groq work. Existing research-event services/in-app notifications and P.1/P.2 acceptance remain intact. Stop after local implementation/verification.
+
+## Phase 10.P3D Minimal VAPID delivery and research-event integration (2026-11-01)
+
+**Locally implemented and isolated verification PASS; disabled and NOT operational/device-accepted.** Entry reverified `feature/development`, HEAD `b4352d1ea456dfce18097b039f9237ef46fc33a6`, empty index and exactly 39 pending P.3C paths (21 modified tracked, 18 new). A SHA-256 entry manifest was recorded before edits. This separately authorized local implementation supersedes P.3C's no-sender/no-event-hook statements only for source. No migration, real VAPID configuration, live provider delivery or hosted activation occurred.
+
+### Dependency review
+
+Registry availability and installed metadata confirm pinned `web-push@3.6.7` (MPL-2.0, Node >=16) and dev-only `@types/web-push@3.6.4` (MIT). The isolated lockfile-only resolved dependency audit returned **zero vulnerabilities** before project installation. Installed with lifecycle scripts disabled: 14 runtime packages plus one types package. Every pre-existing package version, resolved artifact and integrity value was preserved; only existing debug/minimist/ms dev-only flags changed because the sender also requires them at runtime. Newly installed metadata declares MPL-2.0, MIT, ISC, BSD-3-Clause and Apache-2.0; upstream sources/notices remain in npm packages, with no vendored or modified upstream source. The library's real ES256 signature and AES128GCM round trip pass locally on Node 24.18.0. Latest upstream commit/long-term maintenance and deployed bundle behavior are not independently established.
+
+The full project audit is **not clean**: 27 affected package entries (21 moderate, five high, one critical), including existing Next.js 16.3.8 and Zod 4.4.3. These packages/versions were already present; none of the reviewed Web Push dependency tree is flagged. No audit fix, framework downgrade/upgrade or unrelated dependency change was performed. Relevant primary advisories include https://github.com/advisories/GHSA-2464-fhr4-w9xw, https://github.com/advisories/GHSA-p3m5-59mp-jv5r, https://github.com/advisories/GHSA-673q-mjm6-r5xr and https://github.com/advisories/GHSA-mrhx-c7xc-m3w5. Applicability/remediation needs separate owner scope before hosted activation/release; audit counts do not establish a verified exploit in this application. Source request/body bounds remain intact.
+
+### Configuration, sender and event boundaries
+
+`lib/push/config.ts` is now explicitly server-only. Enrollment/public availability and delivery derive from one validated origin/key identity. Preserve `THESISHS_WEB_PUSH_PUBLIC_KEY`, `THESISHS_WEB_PUSH_KEY_ID`, `THESISHS_PUSH_ORIGIN` and exact enabled flag; add only server-only `THESISHS_WEB_PUSH_PRIVATE_KEY` and `THESISHS_WEB_PUSH_SUBJECT`. The P-256 private scalar must derive the configured public point; malformed/missing material/contact or explicit TLS bypass fails closed. Public DTOs never expose private key/contact. No duplicate VAPID_PUBLIC_KEY alias, real key generation, environment-file inspection/edit or hosted configuration. Tests use publicly known deterministic test scalars, not real credentials.
+
+The payload is exactly `{v:1,destination:'student-notifications'|'adviser-notifications'}`. It never includes research/account/group/submission IDs, names, titles, feedback, filenames, private paths, signed URLs or arbitrary text. The unmodified worker supplies the approved fixed text and guarded route navigation. The installed library generates signing/encryption details only; a small Node HTTPS adapter owns DNS/TLS/redirect/body/deadline behavior. Existing canonical exact FCM/Apple-subdomain policy is revalidated at send time. DNS results must pass conservative public IPv4/IPv6 checks (mixed public/private results fail); the selected address is pinned to the socket while original hostname/certificate verification remains enabled. No proxy, pooled agent or redirect following. Bounds: 256 plaintext bytes, 4096 ciphertext bytes, 8192 header bytes and 1024 response-body bytes. Provider content and capability material are discarded, not logged. Logs contain only `research_push` and a fixed outcome category.
+
+Four events only: fresh v1/v2+ upload completion -> committed group's Adviser; Revision Required/Approved -> persisted submitting Student. Per-request optional commit callbacks keep `after()` in the request adapter. Upload's fresh acknowledgement gate remains intact; replayed/already-completed/uncertain-acknowledgement recovery does not create a push attempt. Feedback callback runs only after successful atomic feedback/status/activity persistence. Existing ownership, statuses, version history and in-app helpers/messages are unchanged. Scheduling happens independently before the in-app attempt; scheduling, transport, logging and in-app failures cannot undo a committed academic operation. No hook on generic `sendNotification`, no public send endpoint and no queue/retry/cron/analytics.
+
+### Scheduling, budget and cleanup limitations
+
+Both invoking pages now explicitly declare Node/60 seconds (Student setting retained; Adviser detail declaration added without UI changes). A monotonic clock starts at action entry, with a conservative 55-second cutoff, five-second overhead reserve and >=4 seconds required both when scheduling and when `after()` executes. One attempt targets three seconds for lazy import, lookup, validation/signing, transport and cleanup. HTTP abort destroys the underlying request, including during DNS/TLS setup; 1.2-second socket inactivity is an additional bound, not the complete deadline. Database transactions request 250ms lock/750ms statement limits, checking expiry between phases and before later network/cleanup work.
+
+**No absolute three-second guarantee:** the guarded adapter does not expose query.cancel(), so pool acquisition, existing five-second connection timeout, hosted identity queries before local timeout settings, transaction acknowledgement and event-loop delay can overrun the target. Every database promise is awaited; no Promise.race abandonment, shared-pool closure or new connection bypass. OS getaddrinfo cannot itself be forcibly cancelled, but expired results cannot initiate a socket. `after()` is supported by installed Next.js 16.3.8 Server Functions and documented Vercel integration, but adds no execution time/durability. The cutoff is an action-entry estimate with reserve, not an observed provider deadline. Real hosted timing remains unverified.
+
+Lookup joins current users to enabled, unexpired subscriptions by exact authorized role/recipient and current key ID. Provider 404/410 disables only captured user/generation/endpoint, rotates the disabled barrier and erases all capability fields. A replacement survives stale cleanup. Other failures retain the subscription, with no retries. Provider TTL is 300 seconds/normal urgency. Acceptance is not display/read confirmation; process termination, deadline exhaustion, uncertain commits and device/OS conditions can lose notifications. Already queued/displayed notifications and revocation after a lookup cannot be universally recalled. Existing shared-device, cookie, reassignment and deferred hosted-security limitations remain.
+
+### Exact P.3D changed files (22)
+
+```text
+app/dashboard/adviser/submissions/[submissionId]/page.tsx
+lib/actions/adviser-feedback.action.ts
+lib/actions/submission-upload.action.ts
+lib/services/adviser-feedback.service.ts
+lib/uploads/submission-upload-workflow.ts
+lib/push/config.ts
+lib/push/delivery.ts
+lib/push/schedule.ts
+lib/push/request.ts
+lib/push/transport.ts
+lib/repositories/push-delivery.repository.ts
+lib/services/research-push.service.ts
+package.json
+package-lock.json
+tests/phase102c2-upload.unit.cjs
+tests/phaseP3-subscription.unit.cjs
+tests/phaseP3-delivery.unit.cjs
+tests/phaseP3-events.unit.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+docs/ARCHITECTURE_UPDATED.md
+docs/DATABASE (1).md
+```
+
+### Executed focused verification
+
+- `node --import tsx --test --test-concurrency=1 tests/phaseP3-subscription.unit.cjs tests/phaseP3-pwa.unit.cjs tests/phaseP3-delivery.unit.cjs tests/phaseP3-events.unit.cjs tests/phase102c2-upload.unit.cjs tests/phase975-notifications.unit.cjs tests/phase976c-submissions.unit.cjs`: **67 reported tests PASS, zero failures** (includes two existing file-level runners). Eighteen new P.3D cases cover real cryptography/worker contract, configuration/privacy, actual action/domain integrations, fresh/replay/failed/uncertain commit handling, ownership/role SQL, replacement-safe erasure, transport/DNS/TLS options and bounds, abort/late-response behavior, remaining-budget skips and safe outcomes. Existing P.3C worker/enrollment/HTTP/rate/lease/generation tests and notification/review/upload regressions pass. All DNS/HTTPS/database operations are doubles; no socket/database/Storage/provider call.
+- `node node_modules/typescript/bin/tsc --noEmit --incremental false`: **PASS**. Targeted ESLint with `--max-warnings=0` across the 16 changed source/test files: **PASS**. No production build or broad browser/load suite was requested or executed. Package registry/advisory reads are dependency review, not hosted application acceptance.
+
+### Next checkpoint and retained gates
+
+Final Git whitespace check and trailing-whitespace/final-newline checks for all eight new P.3D files: **PASS**. The 39-path entry hash comparison confirms **33 byte-identical paths**, with only the four canonical docs, server-only push configuration and its existing subscription test intentionally refined. In particular, 0015 SQL/snapshot/journal, schema, source pins, subscription persistence/limiter/client/worker and draft/logout work are preserved. The prepared SQL/snapshot retain their pre-existing lack of final newline; neither artifact was reformatted or repinned. Combined pending manifest is **55 paths: 29 modified tracked, 26 new**, empty index and unchanged branch/HEAD. The P.3D delta is exactly the 22 files above; no commit or remote operation.
+
+**P.3E is ready for separately authorized focused technical verification planning, not automatic execution or activation.** Review the pending combined diff and existing advisory applicability/remediation; separately approve exact migration 0015 execution/grants, trusted environment/key provisioning and controlled deployment before any real synthetic-device delivery. Production remains undeployed/unapproved. Physical Android/iOS, protected worker update/permission behavior, real PostgreSQL/TLS/grants/concurrency, function deadline and end-to-end delivery remain unverified. Do not mark P.3 operational/closed or replay earlier preparation.
+
+No real VAPID credentials or push deliveries, migration/application/database/Storage/hosted operations, environment activation, browser/server control, production build, staging/commit/push/merge/deployment, Expo/Firebase/Groq work, queues, retries, cron jobs or analytics. Stop after this local implementation/verification.
+
+## Phase 10.P3E.1a VAPID enrollment status correction (2026-11-01)
+
+**Local correction and focused isolated verification PASS.** Entry reverified `feature/development`, HEAD `b4352d1ea456dfce18097b039f9237ef46fc33a6`, empty index and 55 pending paths (29 modified tracked, 26 new). All pending work was preserved. The preceding P.3E.1 read-only checkpoint reported 96 tests passing and reproduced one presentation defect; that historical result is distinct from the 36 tests executed here.
+
+### Root cause and exact correction
+
+`ResearchPushClient.present()` checked native permission, local/server fingerprint binding, enabled state, generation, lease and public-key compatibility, but omitted the VAPID key-ID comparison. An unchanged public key with persisted `key-v1` and configured `key-v2` therefore displayed enabled while the sender's correct current-key-ID SQL filter excluded the enrollment.
+
+The production change is one additional condition: `this.status.enrollment.vapidKeyId === this.status.keyId`. The existing safe GET DTO already provides both identifiers; no API, persistence or sender adjustment is needed. A mismatch now presents the existing ready state and explicit Enable Notifications action. No new subscription data or private material is exposed.
+
+No automatic renewal, replacement, permission request or unsubscribe occurs on refresh. For an unchanged compatible public key, an explicit Enable reuses the browser subscription and sends a fresh registration ID with the captured expected generation, recording the current server key ID. If the browser key is incompatible, the existing first-click cleanup validates the captured local subscription; a second explicit click creates the compatible native subscription before generation-safe registration. Existing foreign-account preparation, conditional deletion, stale callbacks, one-active-device policy and denied/unavailable/unsupported states remain unchanged.
+
+Exact checkpoint delta:
+
+- `lib/pwa/research-push-client.ts`
+- `tests/phaseP3-pwa.unit.cjs`
+- `docs/MASTER_CONTEXT_UPDATED.md`
+
+### Executed verification and retained limits
+
+The new matching/mismatched-ID regression failed against the original predicate (`enabled` instead of `ready`), confirming detection before the fix. Final execution:
+
+- `node --import tsx --test --test-concurrency=1 tests/phaseP3-pwa.unit.cjs tests/phaseP3-subscription.unit.cjs` — **36 PASS, 0 FAIL, 0 skipped**: 20 PWA/client cases including four additions, plus 16 subscription cases. Matching IDs, mismatched IDs with explicit generation-safe re-enrollment, unavailable configuration, denied permission and incompatible native-key replacement pass. Existing account-switch, stale-callback, foreign-account, cleanup, worker and draft/logout regressions also pass. The fixture now compares actual application-server-key bytes rather than assuming compatibility.
+- `node node_modules/typescript/bin/tsc --noEmit --incremental false` — **PASS**.
+- `node node_modules/eslint/bin/eslint.js --max-warnings=0 lib/pwa/research-push-client.ts tests/phaseP3-pwa.unit.cjs` — **PASS**.
+- Git whitespace and changed untracked source/test trailing-whitespace checks — **PASS**. Final SHA-256 inventory comparison identifies only the three checkpoint paths above; the other 484 tracked/nonignored files and raw Git index are byte-identical. Final pending count remains 55 (29 modified, 26 new), with unchanged branch/HEAD and empty index.
+
+Evidence is isolated native/API/database doubles, worker VMs and existing component SSR, not physical-device acceptance or real delivery. No live database/Storage/provider requests, browser permission enrollment, migrations, environment/VAPID configuration, dependency changes, builds, deployment or Git mutation. Migration 0015 remains unapplied and push disabled. The prior database deadline/cancellation limitations and hosted security gates remain; dependency findings from P.3E.1 are unresolved and were not re-audited here.
+
+**Next: P.3E.1b, separately authorized focused security remediation.** The local status correction is ready for that checkpoint; it does not authorize dependency updates, migration/grant execution, activation, P.3E.2 or production release. Stop after this correction and verification.
+
+## Phase 10.P3E.1b Targeted dependency security remediation (2026-11-01)
+
+**PASS for the authorized local runtime dependency update and focused compatibility checks.** Full build finalization is **BLOCKED under credential-free isolation**; development-only findings are **DEFERRED** below. Entry reverified `feature/development`, HEAD `b4352d1ea456dfce18097b039f9237ef46fc33a6`, empty index and 55 pending paths (29 modified tracked, 26 new). The existing P.3D manifest/lockfile and P.3E.1a correction were the starting state, not recreated from HEAD.
+
+### Reviewed dependency changes
+
+| Package | Before | After |
+| --- | --- | --- |
+| `next` | 16.3.8 | 16.4.3 exact |
+| `eslint-config-next` | 16.3.8 | 16.4.3 exact |
+| `zod` | ^4.4.3, locked 4.4.3 | 4.6.6 exact |
+| `source-map-js` (transitive) | 1.2.1 | 1.2.2 |
+| `baseline-browser-mapping` (transitive) | 2.10.40 | 2.11.34 |
+
+Registry-published versions, engine/peer metadata and SHA-512 artifact integrity were reviewed before application. Node 24.18.0 satisfies Next's >=20.9.0 engine; unchanged React/ReactDOM 19.2.4 satisfy its peers. Matching eslint-config-next and @next/eslint-plugin-next retain the project's paired framework/tooling convention and follow the installed upgrading guide; ESLint itself remains 9.39.4. @next/env and the existing optional SWC platform entries move to 16.4.3 as required by Next. No major React/toolchain change or override was added.
+
+Next 16.4.1 is the first patched 16.x version for the applicable App Router/Server Action DoS, https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r. The registry-verified stable 16.4.3 release includes that patch and subsequent backported fixes, including the Google font URL correction: https://github.com/vercel/next.js/releases/tag/v16.4.3. It also clears the image-optimization and typed-array `use cache` advisories. Before this update, sharp 0.35.5 already met the image workaround, and the required `use cache` application condition was absent; neither was a demonstrated application exploit.
+
+Zod 4.6.6 contains the early collection-size validation correction: https://github.com/colinhacks/zod/releases/tag/v4.6.6 and https://github.com/colinhacks/zod/pull/6652. Its exact pin holds the reviewed minimum patched version. Source-map-js 1.2.2 and baseline-browser-mapping >=2.11.0 address their indexed-map offset and invalid-input process-termination advisories. The selected 2.11.34 registry release is within existing parent ranges, as is source-map-js 1.2.2. Only those two named transitives were updated; neither became a direct dependency.
+
+Resolution was reviewed first in an ignored copy of the current manifest/lockfile, then applied locally with npm lifecycle scripts disabled. The final lock matches the reviewed candidate: **15 package entries changed plus root metadata, 552 other entries unchanged, zero entries added/removed**. Existing versions/resolved URLs/integrities outside that set are preserved. Web-push 3.6.7, its 17-node dependency tree, @types/web-push 3.6.4 and installed license notices remain unchanged. `npm ls --all --json` returned exit 0 with no problems; installed versions, manifest/lock agreement, engine/React peers and registry SHA-512 entries passed explicit checks.
+
+### Security audit result and remaining exposure
+
+The post-install non-mutating registry audit reports **23 affected-package entries: zero critical, three high, 20 moderate**, versus P.3E.1's 27 (one critical, five high, 21 moderate). Next, Zod, source-map-js and baseline-browser-mapping no longer appear. Every remaining affected node is marked development-only in the reviewed lock: **zero current npm runtime findings**. This is dependency-tree evidence, not proof of complete application security or deployed artifact state.
+
+The three remaining high package entries are `brace-expansion` (1.1.15/5.0.7, transitive lint/glob tooling), `browserslist` (4.28.4, transitive build tooling) and `js-yaml` (4.3.0, ESLint configuration). Twenty moderate entries include minimatch propagation through ESLint/config/plugins and the old nested esbuild via Drizzle Kit's loader. Their malicious glob/query/stats/YAML or development-server conditions concern development/build inputs; no application HTTP input path was established. These remain affected and **DEFERRED**, not dismissed as fixed. Compatible coordinated toolchain/leaf updates require separate review; do not follow audit's suggested ESLint/Next-config/Drizzle Kit major downgrades. No audit-fix/force operation, vulnerability suppression or broad development update occurred.
+
+Full candidate/final audit JSON, preserved entry manifest/lock copies and install-tree evidence are retained under ignored `.next/p3e1b-dependency-review/`. The final audit's exit 1 reflects the retained findings, not an audit transport failure.
+
+### Independently executed compatibility and build evidence
+
+- `node --import tsx --test --test-concurrency=1 tests/phase101d1-auth.unit.cjs tests/phase101d2-auth-security.unit.cjs tests/phaseP3-subscription.unit.cjs tests/phaseP3-pwa.unit.cjs tests/phaseP3-delivery.unit.cjs tests/phaseP3-events.unit.cjs tests/phase102c2-upload.unit.cjs tests/phase975-notifications.unit.cjs tests/phase976c-submissions.unit.cjs tests/phaseP1-display-mode.unit.cjs tests/phaseP2B-workspace.unit.cjs tests/phaseP2C-feedback.unit.cjs` — **118 reported tests PASS, zero failures/skips** (includes parent tests and two existing file-level runners). Real bcrypt/JWT/session and Zod schemas run over isolated cookie/repository boundaries. Coverage includes active/current role restrictions and protected actions, logout/account switching, initiation/finalization/fresh versus uncertain completion/history, feedback/revision/approval, in-app independence, draft guards/PDF timers, P.3E.1a, strict subscription input/4 KiB limits, synthetic real VAPID encryption/signing, four event mappings and conditional cleanup/failure isolation. No hosted services or browser matrix.
+- `node node_modules/typescript/bin/tsc --noEmit --incremental false` — **PASS**. Targeted ESLint with `--max-warnings=0` over 48 relevant config/auth/validation/P.3/upload/review/test files — **PASS**. No application source or tests required compatibility edits; existing strict validation and upload/feedback bounds remain intact.
+- **Production compile PASS:** `node .next/p3e1b-dependency-review/build-check.cjs` runs Next 16.4.3 `build --webpack --experimental-build-mode compile` in a fresh ignored source copy, with one worker, a 180-second bound, no `.env` files, no application credentials and telemetry disabled. Compilation succeeded in 74 seconds and command exited 0 after trace/route output. One transient font-fetch retry recovered. The multiple-lockfile tracing-root warning is an artifact of isolation. Generated files/config resource settings stayed in the copy; tracked source/tsconfig files were not overwritten.
+- **Full production prerender/finalization BLOCKED by prerequisites, not attempted:** code inspection confirms JWT and approved production database configuration are required during full route evaluation. The credential-free compile intentionally omits them. No dummy production credentials were inserted, actual environment files were not loaded, and no database/Storage/other application service was contacted. Compile mode explicitly requires later generate/finalization; do not call it a complete production build, runtime/deployment test or release approval.
+- `git diff --check`, manifest/lock integrity and unchanged migration-source verification — **PASS**. The 16-entry source digest remains `37824a5d2df42e54df9e50ee115c6eb7d6c42a94864c99aedfb1d63b4dbf51e0`; no SQL was executed.
+
+Installation exited 0 with a Windows EPERM cleanup warning for an old SWC binary in an ignored npm temporary directory. The canonical installed package and fresh verification processes use 16.4.3. Existing processes were not terminated/restarted and may retain their previously loaded framework; owner-controlled restart/cleanup is separate from this checkpoint.
+
+### Scope preservation and next checkpoint
+
+Exact checkpoint delta: `package.json`, `package-lock.json`, `docs/MASTER_CONTEXT_UPDATED.md`, `docs/SOURCE_OF_TRUTH_UPDATED.md`, `docs/ARCHITECTURE_UPDATED.md`. The other 482 tracked/nonignored files and raw Git index are byte-identical to entry. Final pending count remains 55 (29 modified tracked, 26 new), unchanged branch/HEAD and zero staged changes. P.3E.1a, schema/0015/history/journal/source pins/tooling semantics, authorization, one-active-device/generation rules, worker/payload, post-commit boundaries and disabled defaults remain unchanged.
+
+**P.3E.2 is ready for separate scope/approval of controlled integration preparation**, with full-build configuration/finalization and retained development risks visible. It is not automatically started. Migration 0015 execution/runtime grants, actual VAPID provisioning, hosted activation/deployment and physical-device/end-to-end acceptance remain separately gated; hosted push is not operational. Production release and deferred hosted authorization/Storage evidence remain outstanding. No database operations, schema/migration changes, credential/environment activation, live push, deployment, staging/commit/push/merge or unrelated platform implementation occurred.
+
+## Phase 10.P3E.2 isolated PostgreSQL verification (2026-11-01)
+
+**PASS — 20 real PostgreSQL checks, disposable target only.** The owner authorized isolated migration/subscription verification after P.3E.1b. A fresh private PostgreSQL 18.4 cluster was created inside an ignored run-owned directory, using a unique database, loopback port and independent credentials. Disk/PID/port and SQL cluster/database identity were checked before migration; neither the normal local target nor hosted resources were reused. The application database factory was not imported. No real push endpoint or VAPID credentials were used.
+
+Installed Drizzle first applied the immutable 0000–0014 prefix and then only pending 0015. All 16 ledger hashes/timestamps matched; the prior 16 application tables' logical columns, constraints and indexes were unchanged. Actual 11-column push persistence, four validated CHECKs, PK, two unique constraints, users cascade FK and timezone-aware expiration passed. Non-owner runtime SELECT/INSERT/UPDATE worked with the account-row-lock prerequisite (users SELECT plus UPDATE(updated_at)); table DELETE, schema CREATE/ALTER, TEMP, unrelated research access and ownership were denied in that isolated role model.
+
+Real Student/Adviser repository and service execution passed safe metadata, browser/session/database-clock expiry, inactive/stale-role/Admin/Panel denial, idempotence, stale expected-generation conflict, capability-free barriers and conditional erasure. Two independent backend connections and an observed overlapping lock wait exercised competing registrations, same-ID retries, both disable/replacement orderings, cross-user endpoint uniqueness and delayed old-generation cleanup. Disabled-config GET/DELETE worked against PostgreSQL; a .invalid POST remained rejected. This was not positive native-provider HTTP enrollment.
+
+Final evidence: ignored `.next/p3e2-review/evidence.json`, result PASS, 20/20 checks and complete cleanup (database/runtime role removed, private server stopped, run-owned cluster data removed). Two preliminary harness-only issues (CIDR host representation and raw Date fixture serialization) were corrected without application source changes; their owned resources were also cleaned up. The existing 16-case subscription runner separately passed. All 487 tracked/nonignored files and the raw Git index remained byte-identical; branch/HEAD and 55 pending paths were unchanged.
+
+**Limits:** 0015 is verified only on a disposable PostgreSQL 18 cluster; it remains unapplied to the existing local and hosted project databases. Hosted server/pooler/TLS, actual grant inheritance/provider exposure, deployed runtime timing, VAPID configuration and Android/iOS delivery are not established. Evidence stays ignored and is not part of the Git checkpoint. Source digest remains `37824a5d2df42e54df9e50ee115c6eb7d6c42a94864c99aedfb1d63b4dbf51e0`.
+
+## Phase 10.P3F.0 hosted readiness and controlled local Git closure (2026-11-01)
+
+**Local review/verification PASS; hosted activation BLOCKED by outstanding prerequisites.** The separately supplied P.3F.0 scope authorizes one explicit reviewed local commit, superseding earlier no-commit checkpoint wording only for this closure. Entry reverified `feature/development`, HEAD `b4352d1ea456dfce18097b039f9237ef46fc33a6`, empty index and exactly 55 pending files (29 modified tracked, 26 untracked). No work was reset, restored, stashed or discarded.
+
+### Reviewed scope and preservation
+
+The [owner activation checklist](PHASE10_P3_ACTIVATION_CHECKLIST.md) contains every pending path, classifications, complete environment formats, proposed migration/deployment/rollback procedure and Android/iOS acceptance plan. The original 55 paths comprise backend 8, worker/client 11, sender/events 12, dependency updates 2, migration/tooling 9, focused tests 9 and canonical documents 4. The checklist adds one documentation path: **56 reviewed commit files**. No unrelated/unexplained path was found.
+
+Actual diffs/new files, schema/SQL/journal/snapshot, dependency lock entry changes and deterministic test material were reviewed. No real secret/VAPID credential, .env file, dump, private cluster, cache/build output or sensitive evidence belongs to this manifest. Ignored evidence is preserved outside Git. P.3F.0 changed only the four canonical documents and added the checklist; application/package/test/migration/tooling bytes remain identical to entry.
+
+P.2 closure remains intact: its draft boundary gains the existing guarded navigation bridge, and Adviser detail gains Node/60-second declarations. PDF signing/renewal policy, research/version/feedback/authorization, in-app notification semantics and existing acceptance are preserved. P.3E.1a's explicit key-ID re-enrollment correction remains. No new application feature or dependency change was made during F.0.
+
+### Executed local checks
+
+- `node --import tsx --test --test-concurrency=1 tests/phaseP3-subscription.unit.cjs tests/phaseP3-pwa.unit.cjs tests/phaseP3-delivery.unit.cjs tests/phaseP3-events.unit.cjs tests/phase102c2-tooling.unit.cjs tests/phase102d2a-hosted-database.unit.cjs` — **83 reported tests PASS, zero failures/skips**. This final combined smoke covers push boundaries, real synthetic signing/encryption, event adapters, client/worker/draft/logout and the changed offline migration/operator recognition. Database/DNS/HTTPS boundaries are doubles; no sockets, browser/device or project database operation.
+- `node node_modules/typescript/bin/tsc --noEmit --incremental false` — **PASS**. Targeted `eslint --max-warnings=0` on all **45 changed/new TS/TSX/JS/CJS files** — **PASS**.
+- Manifest dependency/devDependency maps exactly match lock root; every direct installed version agrees with the lock. Reviewed lock changes relative to P.2 are limited to the P.3D sender tree, required dev-to-runtime flags and P.3E.1b package corrections. The saved E.1b audit still maps all 23 affected entries to development-only nodes; no fresh audit or install.
+- Offline source integrity — **PASS**, exact 16-entry digest above. All **30 historical SQL/snapshot files** are byte-identical to HEAD; journal's first 15 entries match; 0015 snapshot adds only push persistence and preserves all prior tables. Git clean filters preserve the three pinned new/current migration artifact byte streams.
+- Working/staged whitespace, explicit new-file scan, exact reviewed manifest/blob comparison and migration-prefix preservation are required again at the controlled stage gate. Only the explicit 56-file manifest may be committed; no unrestricted add, author change, amend or hook bypass.
+
+Reuse P.3E.1b's 118-test/production-compile evidence and P.3E.2's 20 real PostgreSQL checks above. No full production build is required for this local source checkpoint; approved configured prerender/finalization remains pending. No database migration/test, credential generation, push, environment/deployment change or provider activation occurred.
+
+### Hosted assessment and next gate
+
+**DOCUMENTED, not freshly verified:** intended protected Vercel Preview project `thesishs-ai`, branch `feature/development`, Supabase project `cbkplqkkjuoglpimwmib`, Session Pooler 5432, dedicated runtime/operator and Singapore functions. Historical OID/cluster pins and environment requirements are in the checklist. No local Vercel project link/CLI or suitable connected Vercel inspection capability was available; live team/project/domain/SHA, variable scopes, protection/runtime settings and target identity require owner verification. No remote application/database state or secrets were fetched.
+
+**PROPOSED:** separately scoped P.3F.1 preparation/review of the concrete bounded 0014-to-0015 existing-Preview upgrade procedure plus private owner verification of target/configuration metadata. Latest empty-only initializer is not an existing-database upgrade tool, and the historical 0014 runner must not be weakened/replayed. Execution requires distinct approval after the plan is reviewable. Preserve all existing research data and require private backup/recovery and durable verification.
+
+**BLOCKED for activation/release:** existing-project 0015/grants unverified/unapplied, real VAPID absent, full configured build/prerender outstanding, hosted worker/protection/runtime/timing and Android/iOS delivery unverified. Remaining development-only advisories need proportionate build-environment review. Existing authentication/hosted authorization/Storage gates remain; three seconds is a push attempt target, not an absolute DB deadline. Production remains undeployed/unapproved.
+
+The closure commit containing this handoff has message `feat(phase10): implement and verify minimal research web push`, parent `b4352d1ea456dfce18097b039f9237ef46fc33a6`; resolve its SHA from Git and verify its exact 56-path contents/clean index/tree after commit. This is **local source closure only**, not operational P.3 acceptance. Stop after that one commit and readiness report: **no push, merge, deployment, hosted connection/migration, VAPID setup, live delivery or automatic P.3F.1/device execution**.

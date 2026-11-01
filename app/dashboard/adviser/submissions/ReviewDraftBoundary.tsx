@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { PUSH_NAVIGATION_EVENT } from "@/lib/pwa/research-push-navigation";
 
 type DraftControls = { setDirty: (dirty: boolean) => void; setPending: (pending: boolean) => void;
     registerConfirmationCancel: (cancel: () => void) => () => void; confirmLeave: () => boolean };
@@ -30,6 +31,12 @@ export default function ReviewDraftBoundary({ children }: { children: React.Reac
             return leave;
         },
     }), []);
+
+    useEffect(() => {
+        const navigate = (event: Event) => { if (!controls.confirmLeave()) event.preventDefault(); };
+        window.addEventListener(PUSH_NAVIGATION_EVENT, navigate);
+        return () => window.removeEventListener(PUSH_NAVIGATION_EVENT, navigate);
+    }, [controls]);
 
     useEffect(() => {
         if (!dirty) return;

@@ -4,6 +4,9 @@ import NotificationProvider from "@/components/dashboard/notification-provider";
 import { dashboardLinks } from "@/lib/constants/dashboard-navigation";
 import { notificationHistoryHref } from "@/lib/constants/notification";
 import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
+import ResearchPushEnrollment from "@/components/dashboard/research-push-enrollment";
+import { pushConfiguration } from "@/lib/push/config";
+import { ROLE_IDS } from "@/lib/auth/roles";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const account = await getDashboardAccount();
@@ -14,6 +17,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     </main>;
     return <NotificationProvider historyHref={notificationHistoryHref(account.roleId)}><DashboardShell links={dashboardLinks(account.roleId)}>{children}
         <div className="dashboard-page">
+            {(account.roleId === ROLE_IDS.STUDENT || account.roleId === ROLE_IDS.ADVISER) &&
+                <ResearchPushEnrollment userId={account.id} roleId={account.roleId} expiresAt={account.expiresAt} configured={pushConfiguration().available} />}
             <section className="installation-help" aria-labelledby="installation-heading">
                 <h2 id="installation-heading">Use ThesiSHS AI as an app</h2>
                 <p>Installation is optional. You can keep using your browser. An internet connection is required for research work, even after installation.</p>
