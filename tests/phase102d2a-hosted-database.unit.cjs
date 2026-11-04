@@ -2,12 +2,13 @@
 // Pure configuration, actual Drizzle driver/migrator and transactional doubles. No live service or credentials.
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { readFileSync } = require('node:fs');
+const { readFileSync, mkdtempSync, writeFileSync, rmSync } = require('node:fs');
+const { tmpdir } = require('node:os');
 const { spawnSync } = require('node:child_process');
 const { createRequire } = require('node:module');
 const path = require('node:path');
 const vm = require('node:vm');
-const { X509Certificate } = require('node:crypto');
+const { X509Certificate, createHash } = require('node:crypto');
 const tls = require('node:tls');
 const postgres = require('postgres');
 const { drizzle } = require('drizzle-orm/postgres-js');
@@ -16,8 +17,9 @@ const { databaseConfiguration } = require('../lib/db/config.ts');
 const { verifyDatabaseIdentity } = require('../lib/db/identity.ts');
 const { guardedRuntimeClient } = require('../lib/db/guarded-client.ts');
 const { previewMigrationSource, verifyPreviewLedger } = require('../scripts/preview-migration-source.ts');
-const { initializePreview, previewFailure } = require('../scripts/preview-initialization.ts');
-const { main, inspectPreviewState, applyPreviewMigrations } = require('../scripts/initialize-preview-database.ts');
+const { initializePreview, upgradePreview0015, verifyAccountRecoveryEvidence, ACCOUNT_RECOVERY_TABLES,
+    ACCOUNT_RECOVERY_CHECKS, previewFailure } = require('../scripts/preview-initialization.ts');
+const { main, inspectPreviewState, applyPreviewMigrations, verifyPreviewUpgradeTarget } = require('../scripts/initialize-preview-database.ts');
 const { verifyPreviewColumnNames } = require('../scripts/preview-schema.ts');
 const { inspectOperatorTarget } = require('../scripts/database-operator.ts');
 const ref = 'a'.repeat(20), otherRef = 'b'.repeat(20);
@@ -109,12 +111,13 @@ function driver(config, changes = {}) {
         else if (query.includes('system_identifier')) rows = [{ cluster: state.cluster }];
         else if (query.includes('from pg_catalog.pg_roles r where')) rows = state.roles ?? roles;
         else if (query.includes('has_schema_privilege')) rows = [{ create_public: true, temporary: true, create_ledger: true, ...(state.permissions ?? {}) }];
-        else if (state.inspection && query.includes('select to_regclass')) rows = [{ ledger: false }];
+        else if (state.inspection && query.includes('select to_regclass')) rows = [{ ledger: !!state.ledger }];
         else if (state.inspection && query.includes('select c.relname,c.relkind')) rows = state.relations ?? [];
         else if (state.inspection && query.includes('count(*)')) rows = [{ count: 20 }];
+        else if (state.inspection && query.includes('string_agg')) rows = [{ hash: state.fingerprint ?? 'private-row-digest' }];
         else if (state.inspection && /from pg_proc|from pg_type|information_schema\.columns|from pg_constraint|from pg_indexes|from pg_sequences/.test(query)) rows = [];
         else if (query.includes("current_setting('transaction_read_only')")) rows = [{ read_only: 'off' }];
-        else if (query.includes('from drizzle.__drizzle_migrations')) rows = previewMigrationSource().migrations.map(m => ({ hash: m.hash, created_at: String(m.folderMillis) }));
+        else if (query.includes('from drizzle.__drizzle_migrations')) rows = state.ledger ?? previewMigrationSource().migrations.map(m => ({ hash: m.hash, created_at: String(m.folderMillis) }));
         else if (query.includes('order by created_at desc')) rows = [];
         else { state.application++; rows = [{ value: 1 }]; }
         if (query.includes('insert into "drizzle"."__drizzle_migrations"')) (state.migrationRows ??= []).push(parameters);
@@ -262,7 +265,7 @@ test('R4C actual Postgres.js transaction shape keeps the supported Drizzle migra
     const moduleObject = { exports: {} };
     vm.runInThisContext(`(function(require,module,exports,__filename,__dirname){${instrumented}\n})`, { filename: entry })(
         confinedRequire, moduleObject, moduleObject.exports, entry, path.dirname(entry));
-    for (const failMigration of [false, true]) {
+    for (const prefix of [0, 15]) for (const failMigration of [false, true]) {
         const root = moduleObject.exports({ host: 'diagnostic.invalid', database: 'synthetic', username: 'synthetic',
             password: 'synthetic', max: 1, no_subscribe: true });
         const state = { queries: [], ledger: [], commits: 0, rollbacks: 0, savepoints: 0, savepointRollbacks: 0, rootQueries: 0 };
@@ -270,11 +273,12 @@ test('R4C actual Postgres.js transaction shape keeps the supported Drizzle migra
         const transaction = scope => {
             const tx = root.transactionFactory(query => {
                 const text = query.strings.join(''); state.queries.push({ scope, text });
-                if (failMigration && text.trimStart().startsWith('CREATE TABLE "role"')) {
+                if (failMigration && text.trimStart().startsWith(prefix ? 'CREATE TABLE "push_subscriptions"' : 'CREATE TABLE "role"')) {
                     query.reject(Object.assign(Error('synthetic-private-password postgresql://private'), { code: '42601' }));
                 } else {
                     if (text.includes('insert into "drizzle"."__drizzle_migrations"')) state.ledger.push(query.args);
-                    query.resolve([]);
+                    const last = previewMigrationSource().migrations[14];
+                    query.resolve(prefix && text.includes('order by created_at desc') ? [{ id: 15, hash: last.hash, created_at: String(last.folderMillis) }] : []);
                 }
             });
             tx.savepoint = async callback => {
@@ -299,7 +303,8 @@ test('R4C actual Postgres.js transaction shape keeps the supported Drizzle migra
             assert.ok(state.queries.slice(3).length > 0 && state.queries.slice(3).every(q => q.scope === 'savepoint'));
             assert.equal(state.commits, failMigration ? 0 : 1); assert.equal(state.rollbacks, failMigration ? 1 : 0);
             assert.equal(state.savepointRollbacks, failMigration ? 1 : 0);
-            assert.deepEqual(state.ledger.map(p => p[0]), failMigration ? [] : previewMigrationSource().migrations.map(m => m.hash));
+            assert.deepEqual(state.ledger.map(p => p[0]), failMigration ? [] : previewMigrationSource().migrations.slice(prefix).map(m => m.hash));
+            if (prefix) assert.ok(!state.queries.some(q => /CREATE TABLE "(?:users|role)"/.test(q.text)));
         } finally { await root.end({ timeout: 1 }); }
     }
 });
@@ -382,4 +387,145 @@ test('initializer has no startup/build hook and absent execution flags cannot ac
         encoding: 'utf8', timeout: 20000, env: { ...process.env, DATABASE_URL: 'do-not-connect', THESISHS_DATABASE_ADMIN_URL: 'do-not-connect' } });
     assert.equal(result.status, 1); assert.equal(result.stdout, ''); assert.doesNotMatch(result.stderr, /do-not-connect/);
     assert.match(result.stderr, /No automatic retry/);
+});
+
+function upgradeFixture() {
+    const f = fixture(), p = f.profiles.preview;
+    const project = 'cbkplqkkjuoglpimwmib', host = `db.${project}.supabase.co`;
+    p.runtime = endpoint(host, 'thesishs_preview_runtime'); p.operator = endpoint(host, 'thesishs_preview_operator');
+    p.observed = { provider: 'supabase', projectRef: project, databaseOid: '5', cluster: '7678069749886157684',
+        runtimeRole: 'thesishs_preview_runtime', operatorRole: 'thesishs_preview_operator' };
+    return databaseConfiguration(mapped(f, { DATABASE_URL: undefined,
+        THESISHS_DATABASE_ADMIN_URL: `postgresql://thesishs_preview_operator:synthetic@${host}:5432/postgres?sslmode=verify-full` }), 'operator');
+}
+const upgradeLedger = () => previewMigrationSource().migrations.map((m, i) => ({ id: i + 1, hash: m.hash, created_at: String(m.folderMillis) }));
+
+test('P3F2 ledger accepts rollback ID gaps while retaining exact source identity and ordering', () => {
+    const ledger = upgradeLedger().map((r, i) => i === 15 ? { ...r, id: 17 } : r);
+    verifyPreviewLedger(ledger);
+    verifyPreviewLedger(ledger.slice(0, 15), 15);
+    for (const rows of [ledger.map((r, i) => i === 15 ? { ...r, id: 15 } : r),
+        ledger.map((r, i) => i === 15 ? { ...r, id: 0 } : r),
+        ledger.map((r, i) => i === 15 ? { ...r, hash: 'changed' } : r),
+        ledger.map((r, i) => i === 15 ? { ...r, created_at: '0' } : r),
+        [...ledger.slice(0, 14), ledger[15], ledger[14]]]) assert.throws(() => verifyPreviewLedger(rows));
+});
+
+test('P3F1 upgrade pins exact Preview project/database/cluster and both dedicated roles before any query', () => {
+    const c = upgradeFixture(); verifyPreviewUpgradeTarget(c);
+    for (const patch of [{ environment: 'production' }, { purpose: 'runtime' }, { endpoint: { ...c.endpoint, database: 'other' } },
+        ...['provider', 'projectRef', 'databaseOid', 'cluster', 'runtimeRole', 'operatorRole'].map(key => ({ observed: { ...c.observed, [key]: 'wrong' } }))]) {
+        assert.throws(() => verifyPreviewUpgradeTarget({ ...c, ...patch }));
+    }
+});
+
+test('P3F1 upgrade inspection accepts only exact 15/16 ledgers with matching table presence and fingerprints old data', async () => {
+    const c = upgradeFixture(), full = upgradeLedger();
+    const d = driver(c, { inspection: true, row: { username: c.observed.operatorRole, login: c.observed.operatorRole },
+        ledger: full.slice(0, 15), relations: [{ relname: 'users', relkind: 'r', relowner: '42' }] });
+    const before = await inspectPreviewState(d.client, c, true);
+    assert.equal(before.ledger.length, 15); assert.ok(before.preservedData);
+    await assert.rejects(inspectPreviewState(d.client, c)); // Existing initializer has not been weakened.
+    d.state.ledger = full.map((r, i) => i === 15 ? { ...r, id: 17 } : r);
+    d.state.relations.push({ relname: 'push_subscriptions', relkind: 'r', relowner: '42' });
+    const after = await inspectPreviewState(d.client, c, true);
+    assert.equal(after.preservedData, before.preservedData);
+    d.state.fingerprint = 'changed-password-status-or-relationship';
+    assert.notEqual((await inspectPreviewState(d.client, c, true)).preservedData, before.preservedData);
+    for (const ledger of [[], full.slice(0, 14), [...full, full[15]], full.map((r, i) => i ? r : { ...r, hash: 'wrong' }),
+        full.map((r, i) => i ? r : { ...r, created_at: '0' }), full.map((r, i) => i ? r : { ...r, id: 99 }), full.slice(0, 15)]) {
+        d.state.ledger = ledger; await assert.rejects(inspectPreviewState(d.client, c, true));
+    }
+    assert.ok(!d.state.queries.some(q => /^(insert|update|delete|create|alter|drop)/i.test(q)));
+});
+
+test('P3F1 upgrade refuses initialization, drift, wrong approvals and replay; verifies durable preservation without retry', async () => {
+    const source = previewMigrationSource(), full = upgradeLedger();
+    const before = { target: 'target', empty: false, ledger: full.slice(0, 15), catalog: 'before', preservedData: 'accounts-and-sequences' };
+    const after = { ...before, ledger: full, catalog: 'after' }, approval = { execute: true, target: before.target, source: source.hash };
+    let current = before, writes = 0, reads = 0;
+    const io = { inspect: async () => { reads++; return current; }, apply: async () => { writes++; current = after; return after.catalog; } };
+    for (const state of [{ ...before, empty: true }, { ...before, ledger: [] }, { ...before, preservedData: undefined }, after,
+        { ...before, ledger: before.ledger.map((r, i) => i ? r : { ...r, hash: 'changed' }) }]) {
+        current = state; await assert.rejects(upgradePreview0015(io, approval, source.hash)); assert.equal(writes, 0);
+    }
+    current = before;
+    for (const patch of [{ execute: false }, { source: 'wrong' }, { target: 'wrong' }])
+        await assert.rejects(upgradePreview0015(io, { ...approval, ...patch }, source.hash));
+    assert.equal(writes, 0);
+    assert.equal(await upgradePreview0015(io, approval, source.hash), 'upgraded-0015-confirmed'); assert.equal(writes, 1);
+    current = before; writes = reads = 0;
+    io.apply = async () => { writes++; current = { ...after, preservedData: 'changed-account' }; return after.catalog; };
+    await assert.rejects(upgradePreview0015(io, approval, source.hash)); assert.equal(writes, 1); assert.equal(reads, 2);
+    current = before; writes = reads = 0;
+    io.apply = async () => { writes++; current = after; throw Error('uncertain commit'); };
+    await assert.rejects(upgradePreview0015(io, approval, source.hash)); assert.equal(writes, 1); assert.equal(reads, 2);
+});
+
+test('P3F1 upgrade CLI requires recovery attestation and all confirmations before loading credentials', () => {
+    const common = ['--confirm-target', 'target', '--confirm-source', 'source', '--confirm-data-api-disabled', 'yes'];
+    for (const args of [['--upgrade-0015', ...common], ['--inspect-upgrade-0015', '--confirm-target', 'target'],
+        ['--execute', ...common, '--confirm-recovery-verified', 'yes']]) {
+        const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/initialize-preview-database.ts', ...args], {
+            encoding: 'utf8', timeout: 20000, env: { ...process.env, THESISHS_DATABASE_ADMIN_URL: 'do-not-connect' } });
+        assert.equal(result.status, 1); assert.equal(result.stdout, '');
+        assert.equal(JSON.parse(result.stderr.trim().split('\n').at(-1)).stage, 'arguments');
+        assert.doesNotMatch(result.stderr, /do-not-connect/);
+    }
+});
+
+test('P3F1 targeted recovery requires an external matching archive and explicit isolated recovery evidence', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'thesishs-recovery-unit-'));
+    try {
+        // Synthetic bytes exercise archive/evidence validation only; no backup or restoration is claimed.
+        const archivePath = path.join(dir, 'synthetic.dump'), evidencePath = path.join(dir, 'synthetic-evidence.json');
+        const archive = Buffer.from('PGDMP synthetic unit fixture, not a PostgreSQL backup');
+        writeFileSync(archivePath, archive);
+        const archiveSha256 = createHash('sha256').update(archive).digest('hex');
+        const record = { version: 1, scope: 'synthetic-accounts-v1', projectRef: 'cbkplqkkjuoglpimwmib', database: 'postgres',
+            databaseOid: '5', cluster: '7678069749886157684', tables: [...ACCOUNT_RECOVERY_TABLES],
+            schemaOnly: ['public.auth_rate_limit_buckets'], ownerOnlyEncryptedStorage: true, otherDataReplaceable: true,
+            snapshotAt: '2026-11-01T01:00:00Z', restoredAt: '2026-11-01T01:01:00Z', archivePath, archiveSha256,
+            restoredArchiveSha256: archiveSha256, restoreTarget: { disposable: true, cluster: '999999', databaseOid: '42' },
+            checks: Object.fromEntries(ACCOUNT_RECOVERY_CHECKS.map(key => [key, true])), login: 'not-tested' };
+        const check = r => { writeFileSync(evidencePath, JSON.stringify(r)); return verifyAccountRecoveryEvidence(evidencePath); };
+        assert.deepEqual(check(record), { scope: 'synthetic-accounts-only', protectedTables: ACCOUNT_RECOVERY_TABLES,
+            otherDataReplaceable: true, fullDatabaseRecovery: false });
+        for (const patch of [{ scope: 'full-database' }, { projectRef: 'wrong' }, { databaseOid: '6' }, { cluster: 'wrong' },
+            { tables: record.tables.slice(1) }, { schemaOnly: [] }, { otherDataReplaceable: false }, { ownerOnlyEncryptedStorage: false },
+            { restoredAt: null }, { restoredAt: '2026-10-01T00:00:00Z' }, { restoredArchiveSha256: '0'.repeat(64) },
+            { archiveSha256: '0'.repeat(64), restoredArchiveSha256: '0'.repeat(64) }, { archivePath: path.join(dir, 'missing.dump') },
+            { archivePath: path.resolve('package.json') }, { restoreTarget: { disposable: true, cluster: record.cluster, databaseOid: '5' } },
+            { restoreTarget: { disposable: true, cluster: '7652422818440234372', databaseOid: '16387' } },
+            { restoreTarget: { disposable: false, cluster: '999', databaseOid: '42' } },
+            ...ACCOUNT_RECOVERY_CHECKS.map(key => ({ checks: { ...record.checks, [key]: false } }))]) {
+            assert.throws(() => check({ ...record, ...patch }), error => {
+                assert.equal(error.message, 'Private synthetic-account recovery evidence is missing or invalid.');
+                assert.ok(!error.message.includes(dir)); return true;
+            });
+        }
+        writeFileSync(archivePath, 'plaintext credential export');
+        const hash = createHash('sha256').update(readFileSync(archivePath)).digest('hex');
+        assert.throws(() => check({ ...record, archiveSha256: hash, restoredArchiveSha256: hash }));
+        assert.throws(() => verifyAccountRecoveryEvidence(path.resolve('package.json')));
+    } finally {
+        assert.equal(path.dirname(path.resolve(dir)), path.resolve(tmpdir()));
+        assert.match(path.basename(dir), /^thesishs-recovery-unit-/);
+        rmSync(dir, { recursive: true, force: true });
+    }
+});
+
+test('P3F1 targeted CLI cannot reuse the full-recovery flag or proceed without evidence/replaceability consent', async () => {
+    const common = ['--confirm-target', 'target', '--confirm-source', 'source', '--confirm-data-api-disabled', 'yes'];
+    const targeted = ['--recovery-mode', 'synthetic-accounts', '--recovery-evidence', 'missing-private-file',
+        '--confirm-account-recovery-verified', 'yes', '--confirm-replaceable-data', 'yes'];
+    const savedError = console.error, savedCode = process.exitCode;
+    try {
+        console.error = () => {};
+        for (const args of [targeted, [...targeted, '--confirm-recovery-verified', 'yes'], targeted.slice(0, -2),
+            targeted.map(value => value === 'synthetic-accounts' ? 'full-database' : value)]) {
+            const result = await main(['--upgrade-0015', ...common, ...args]);
+            assert.equal(result.exitStatus, 1); assert.equal(result.stage, 'arguments'); assert.equal(result.executionBegan, false);
+        }
+    } finally { console.error = savedError; process.exitCode = savedCode; }
 });

@@ -21,7 +21,7 @@ export function verifyPreviewColumnNames(table: string, actual: string[], expect
 }
 
 // Operator-only catalog verification. PostgreSQL canonicalizes trusted CHECK/default/index SQL in temporary tables.
-export async function verifyPreviewSchema(client: postgres.Sql) {
+export async function verifyPreviewSchema(client: postgres.Sql, mode: "initialize" | "upgrade-0015" = "initialize") {
     let schemaObject = "public", schemaAssertion = "table-set";
     try {
         const snapshot = previewMigrationSource().snapshot;
@@ -85,7 +85,7 @@ export async function verifyPreviewSchema(client: postgres.Sql) {
             const primaryColumns = Object.values(table.columns).filter(c => c.primaryKey).map(c => c.name);
             if (primaryColumns.length) assert.deepEqual(constraints.find(c => c.type === 'p')!.columns, primaryColumns);
             // Ask PostgreSQL itself to canonicalize source check/index expressions using an empty temporary copy.
-            // Only trusted repository snapshot SQL is executed, and only inside this owned replay database.
+            // Only trusted repository snapshot SQL is executed, in temporary objects on the guarded target.
             schemaAssertion = "column-defaults";
             await client`create temporary table phase102b_check (like ${client(`public.${table.name}`)})`;
             for (const expected of Object.values(table.columns)) {
@@ -124,8 +124,12 @@ export async function verifyPreviewSchema(client: postgres.Sql) {
                 await client`drop index pg_temp.phase102b_expected`;
             }
             await client`drop table pg_temp.phase102b_check`;
-            schemaAssertion = "empty-table";
-            const [empty] = await client`select count(*)::int as count from ${client(`public.${table.name}`)}`; assert.equal(empty.count, 0);
+            // Fresh initialization remains empty-only. A populated upgrade must leave the new table empty;
+            // the caller separately compares fingerprints of every existing row and sequence before/after.
+            if (mode === "initialize" || table.name === "push_subscriptions") {
+                schemaAssertion = "empty-table";
+                const [empty] = await client`select count(*)::int as count from ${client(`public.${table.name}`)}`; assert.equal(empty.count, 0);
+            }
         }
         schemaObject = "public"; schemaAssertion = "sequence-set";
         const serials = Object.values(snapshot.tables as Record<string, { name: string; columns: Record<string, { name: string; type: string }> }>).flatMap(t => Object.values(t.columns).filter(c => c.type === "serial").map(c => `${t.name}_${c.name}_seq`)).sort();
@@ -150,8 +154,10 @@ export async function verifyPreviewSchema(client: postgres.Sql) {
             schemaObject = `public.${s.sequencename}`; schemaAssertion = "sequence-properties";
             assert.equal(String(s.start_value), '1'); assert.equal(String(s.min_value), '1'); assert.equal(String(s.max_value), '2147483647');
             assert.equal(String(s.increment_by), '1'); assert.equal(String(s.cache_size), '1'); assert.equal(s.cycle, false);
-            const [v] = await client`select last_value::text as value,is_called from ${client(`public.${s.sequencename}`)}`;
-            assert.equal(v.value, '1'); assert.equal(v.is_called, false);
+            if (mode === "initialize") {
+                const [v] = await client`select last_value::text as value,is_called from ${client(`public.${s.sequencename}`)}`;
+                assert.equal(v.value, '1'); assert.equal(v.is_called, false);
+            }
         }
         schemaObject = "public"; schemaAssertion = "unexpected-triggers";
         const [extras] = await client`select exists(select 1 from pg_trigger g join pg_class c on c.oid=g.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and not g.tgisinternal) as triggers`;

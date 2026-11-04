@@ -1,16 +1,24 @@
-// Explicit privileged Preview initialization only. Importing never connects or writes; not called by build/startup.
+// Explicit privileged Preview initialization or bounded 0015 upgrade. Importing never connects or writes.
 import { createHash } from "node:crypto";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { databaseConfiguration } from "@/lib/db/config";
 import { verifyDatabaseIdentity, type IdentitySql, type DatabaseConfiguration } from "@/lib/db/identity";
-import { previewMigrationSource } from "./preview-migration-source";
+import { previewMigrationSource, verifyPreviewLedger } from "./preview-migration-source";
 import { verifyPreviewSchema } from "./preview-schema";
-import { initializePreview, previewFailure, type PreviewState } from "./preview-initialization";
+import { initializePreview, upgradePreview0015, verifyAccountRecoveryEvidence, previewFailure, type PreviewState } from "./preview-initialization";
 
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const refused = () => new Error("Preview initialization prerequisites not satisfied.");
+
+export function verifyPreviewUpgradeTarget(config: DatabaseConfiguration) {
+    const pin = config.observed;
+    if (config.environment !== "preview" || config.purpose !== "operator" || config.endpoint.database !== "postgres" ||
+        pin?.provider !== "supabase" || pin.projectRef !== "cbkplqkkjuoglpimwmib" || pin.databaseOid !== "5" ||
+        pin.cluster !== "7678069749886157684" || pin.runtimeRole !== "thesishs_preview_runtime" ||
+        pin.operatorRole !== "thesishs_preview_operator") throw refused();
+}
 
 export async function applyPreviewMigrations(tx: postgres.TransactionSql, options: postgres.Sql["options"]) {
     // Preserve the supported ORM migrator; its inner transaction becomes a postgres-js savepoint.
@@ -22,7 +30,8 @@ export async function applyPreviewMigrations(tx: postgres.TransactionSql, option
     await migrate(drizzle(nested as unknown as postgres.Sql), { migrationsFolder: "db/migrations" });
 }
 
-export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseConfiguration): Promise<PreviewState> {
+export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseConfiguration, upgrade = false): Promise<PreviewState> {
+    if (upgrade) verifyPreviewUpgradeTarget(config);
     const identity = await verifyDatabaseIdentity(sql as unknown as IdentitySql, config);
     const target = digest({ environment: config.environment, approved: config.identity, identity });
     const [permissions] = await sql`select has_schema_privilege(current_user,'public','CREATE') as create_public,
@@ -38,8 +47,10 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
         where n.nspname='public' and t.typtype in ('d','e','r','m') and not exists(select 1 from pg_depend d where d.classid='pg_type'::regclass and d.objid=t.oid and d.deptype='e') order by t.typname`;
     const [existing] = await sql`select to_regclass('drizzle.__drizzle_migrations') is not null as ledger`;
     const ledger = existing.ledger ? await sql`select id,hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id` : [];
-    const { migrations } = previewMigrationSource();
-    if (ledger.length && (ledger.length !== 16 || ledger.some((r, i) => r.id !== i + 1 || r.hash !== migrations[i].hash || r.created_at !== String(migrations[i].folderMillis)))) throw refused();
+    if (upgrade || ledger.length) {
+        verifyPreviewLedger(ledger.map(r => ({ id: r.id, hash: r.hash, created_at: r.created_at })), upgrade && ledger.length === 15 ? 15 : 16);
+    }
+    if (upgrade && relations.some(r => r.relname === "push_subscriptions") !== (ledger.length === 16)) throw refused();
     const columns = await sql`select table_name,column_name,data_type,is_nullable,column_default from information_schema.columns where table_schema='public' order by table_name,ordinal_position`;
     const constraints = await sql`select c.relname,k.conname,k.contype,k.convalidated,to_jsonb(k)->>'conenforced' as enforced,pg_get_constraintdef(k.oid) as definition
         from pg_constraint k join pg_class c on c.oid=k.conrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' order by c.relname,k.conname`;
@@ -52,14 +63,23 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
         sequences[definition.sequencename] = { definition, value };
     }
     const counts: Record<string, number> = {};
+    const fingerprints: Record<string, string> = {};
     for (const table of relations.filter(r => ["r", "p"].includes(r.relkind))) {
         if (!/^[a-z_][a-z0-9_]*$/.test(table.relname)) throw refused();
         const [row] = await sql`select count(*)::int as count from ${sql(`public.${table.relname}`)}`;
         counts[table.relname] = row.count;
+        if (upgrade && table.relname !== "push_subscriptions") {
+            // Database-side row fingerprints include password hashes/status and all existing relationships.
+            // Only the final digest remains in memory; no private row contents are returned or logged.
+            const [fingerprint] = await sql`select encode(sha256(convert_to(coalesce(string_agg(h,'' order by h),''),'UTF8')),'hex') as hash
+                from (select encode(sha256(convert_to(to_jsonb(t)::text,'UTF8')),'hex') as h from ${sql(`public.${table.relname}`)} as t) as fingerprints`;
+            fingerprints[table.relname] = fingerprint.hash;
+        }
     }
+    const preservedData = upgrade ? digest({ fingerprints, sequences }) : undefined;
     return { target, ledger: ledger.map(r => ({ hash: r.hash, created_at: r.created_at })),
         empty: !existing.ledger && !relations.length && !routines.length && !types.length,
-        catalog: digest({ relations, routines, types, columns, constraints, indexes, sequences, ledger, counts }) };
+        preservedData, catalog: digest({ relations, routines, types, columns, constraints, indexes, sequences, ledger, counts, preservedData }) };
 }
 
 export type PreviewInitializerDiagnostic = {
@@ -74,35 +94,51 @@ export async function main(args = process.argv.slice(2)): Promise<PreviewInitial
         executionBegan: false, commitConfirmed: false, durableInspectionRequired: false };
     try {
         const mode = args.shift();
-        if (mode !== "--inspect" && mode !== "--execute" || args.length % 2) throw refused();
+        const upgrade = mode === "--inspect-upgrade-0015" || mode === "--upgrade-0015";
+        const inspectOnly = mode === "--inspect" || mode === "--inspect-upgrade-0015";
+        if (!["--inspect", "--execute", "--inspect-upgrade-0015", "--upgrade-0015"].includes(mode ?? "") || args.length % 2) throw refused();
         const options = new Map<string, string>();
         for (let i = 0; i < args.length; i += 2) {
-            if (!["--confirm-target", "--confirm-source", "--confirm-data-api-disabled"].includes(args[i]) || options.has(args[i]) || !args[i + 1]) throw refused();
+            if (!["--confirm-target", "--confirm-source", "--confirm-data-api-disabled", ...(upgrade ? ["--confirm-recovery-verified",
+                "--recovery-mode", "--recovery-evidence", "--confirm-account-recovery-verified", "--confirm-replaceable-data"] : [])].includes(args[i]) || options.has(args[i]) || !args[i + 1]) throw refused();
             options.set(args[i], args[i + 1]);
         }
-        if (mode === "--inspect" && options.size || mode === "--execute" && options.size !== 3) throw refused();
-        if (mode === "--execute" && (!process.stdin.isTTY || !process.stdout.isTTY)) throw refused();
+        const accountRecovery = options.get("--recovery-mode") === "synthetic-accounts";
+        if (inspectOnly ? options.size !== 0 : options.size !== (upgrade ? accountRecovery ? 7 : 4 : 3)) throw refused();
+        let recovery: ReturnType<typeof verifyAccountRecoveryEvidence> | undefined;
+        if (accountRecovery) {
+            if (!upgrade || options.has("--confirm-recovery-verified") || options.get("--confirm-account-recovery-verified") !== "yes" ||
+                options.get("--confirm-replaceable-data") !== "yes") throw refused();
+            recovery = verifyAccountRecoveryEvidence(options.get("--recovery-evidence") ?? "");
+        } else if ([...options.keys()].some(key => ["--recovery-mode", "--recovery-evidence",
+            "--confirm-account-recovery-verified", "--confirm-replaceable-data"].includes(key))) throw refused();
+        if (!inspectOnly && (!process.stdin.isTTY || !process.stdout.isTTY)) throw refused();
         // Load only after explicit valid arguments; no implicit runtime credential fallback.
         diagnostic.stage = "configuration and migration source";
         (await import("dotenv")).config({ quiet: true });
         const config = databaseConfiguration(process.env, "operator"), source = previewMigrationSource();
         if (config.environment !== "preview" || config.purpose !== "operator") throw refused();
+        if (upgrade) verifyPreviewUpgradeTarget(config);
         client = postgres(config.url, { ...config.options, onnotice: () => {} });
         const sql = client;
         const inspect = () => {
             diagnostic.stage = diagnostic.executionBegan ? "durable-state inspection" : "preflight inspection";
             return sql.begin("isolation level repeatable read read only", async tx => {
                 await tx`set local statement_timeout='10s'`;
-                return inspectPreviewState(tx as unknown as postgres.Sql, config);
+                return inspectPreviewState(tx as unknown as postgres.Sql, config, upgrade);
             });
         };
-        if (mode === "--inspect") {
+        if (inspectOnly) {
             const state = await inspect();
             console.log(JSON.stringify({ target: state.target, emptyApplicationSchema: state.empty, ledgerEntries: state.ledger.length, source: source.hash }));
             return diagnostic;
         }
         if (options.get("--confirm-data-api-disabled") !== "yes") throw refused();
-        const outcome = await initializePreview({ inspect, apply: async before => {
+        // Explicit owner attestation; this command cannot independently prove private recovery evidence.
+        if (upgrade && !accountRecovery && options.get("--confirm-recovery-verified") !== "yes") throw refused();
+        if (recovery) console.log(JSON.stringify({ recovery }));
+        const change = upgrade ? upgradePreview0015 : initializePreview;
+        const outcome = await change({ inspect, apply: async before => {
             diagnostic.executionBegan = true;
             diagnostic.stage = "transaction start";
             try {
@@ -113,15 +149,17 @@ export async function main(args = process.argv.slice(2)): Promise<PreviewInitial
                     // PostgreSQL still searches pg_catalog implicitly first for names when it is omitted here.
                     await tx`set local search_path=public`;
                     await tx`select pg_advisory_xact_lock(1296388937,15)`;
-                    const current = await inspectPreviewState(tx as unknown as postgres.Sql, config);
-                    if (!current.empty || current.target !== before.target || current.catalog !== before.catalog) throw refused();
+                    if (upgrade) await tx`lock table drizzle.__drizzle_migrations in share row exclusive mode`;
+                    const current = await inspectPreviewState(tx as unknown as postgres.Sql, config, upgrade);
+                    if (upgrade) verifyPreviewLedger(current.ledger, 15);
+                    if ((!upgrade && !current.empty) || current.target !== before.target || current.catalog !== before.catalog) throw refused();
                     diagnostic.stage = "migration application";
                     await applyPreviewMigrations(tx, sql.options);
                     diagnostic.stage = "schema verification";
-                    await verifyPreviewSchema(tx as unknown as postgres.Sql);
+                    await verifyPreviewSchema(tx as unknown as postgres.Sql, upgrade ? "upgrade-0015" : "initialize");
                     diagnostic.stage = "precommit verification";
-                    const verified = await inspectPreviewState(tx as unknown as postgres.Sql, config);
-                    if (verified.ledger.length !== 16) throw refused();
+                    const verified = await inspectPreviewState(tx as unknown as postgres.Sql, config, upgrade);
+                    if (verified.ledger.length !== 16 || upgrade && verified.preservedData !== before.preservedData) throw refused();
                     diagnostic.stage = "transaction commit";
                     return verified.catalog;
                 });

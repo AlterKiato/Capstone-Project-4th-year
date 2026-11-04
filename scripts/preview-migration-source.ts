@@ -14,8 +14,12 @@ export function previewMigrationSource() {
     return { migrations, snapshot: JSON.parse(snapshotBytes.toString("utf8")), hash };
 }
 
-export function verifyPreviewLedger(ledger: { hash: string; created_at: string }[]) {
+export function verifyPreviewLedger(ledger: { id?: number; hash: string; created_at: string }[], entries: 15 | 16 = 16) {
     const { migrations } = previewMigrationSource();
-    if (ledger.length !== 16 || ledger.some((r, i) => r.hash !== migrations[i].hash || r.created_at !== String(migrations[i].folderMillis)))
+    if (ledger.length !== entries || ledger.some((r, i) => r.hash !== migrations[i].hash || r.created_at !== String(migrations[i].folderMillis)))
         throw new Error("Preview migration ledger mismatch.");
+    // SERIAL values can skip after rollback. Migration identity/order comes from the pinned journal,
+    // hash and timestamp pairs above; generated IDs must be valid and ordered, never consecutive.
+    if (ledger.some(r => r.id !== undefined) && ledger.some((r, i) => !Number.isSafeInteger(r.id) || r.id! <= 0 ||
+        i > 0 && r.id! <= ledger[i - 1].id!)) throw new Error("Preview migration ledger ID ordering mismatch.");
 }
