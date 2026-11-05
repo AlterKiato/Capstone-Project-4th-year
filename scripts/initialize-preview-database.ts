@@ -2,7 +2,7 @@
 import { createHash } from "node:crypto";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { databaseConfiguration } from "@/lib/db/config";
 import { verifyDatabaseIdentity, type IdentitySql, type DatabaseConfiguration } from "@/lib/db/identity";
 import { previewMigrationSource, verifyPreviewLedger } from "./preview-migration-source";
@@ -21,13 +21,21 @@ export function verifyPreviewUpgradeTarget(config: DatabaseConfiguration) {
 }
 
 export async function applyPreviewMigrations(tx: postgres.TransactionSql, options: postgres.Sql["options"]) {
+    const source = previewMigrationSource();
     // Preserve the supported ORM migrator; its inner transaction becomes a postgres-js savepoint.
     // Real transaction clients omit options. Borrow only parser/serializer metadata, never root SQL methods.
     const nested = new Proxy(tx, { get(target, key) {
         if (key === "options") return options;
         return key === "begin" ? target.savepoint.bind(target) : Reflect.get(target, key);
     } });
-    await migrate(drizzle(nested as unknown as postgres.Sql), { migrationsFolder: "db/migrations" });
+    // Same installed ORM dialect migrator/session as postgres-js/migrator, but pass
+    // the exact reviewed legacy prefix instead of rereading the now-expanded folder.
+    // This existing operator must never apply 0016; its approval/catalog contract is 0015.
+    const database = drizzle(nested as unknown as postgres.Sql);
+    // Installed dialect declarations use a schema-less session default. Preserve the
+    // same actual postgres-js session; only adapt that generic type at this boundary.
+    const session = database._.session as unknown as Parameters<PgDialect["migrate"]>[1];
+    await new PgDialect().migrate(source.migrations, session, { migrationsFolder: "db/migrations" });
 }
 
 export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseConfiguration, upgrade = false): Promise<PreviewState> {

@@ -4642,3 +4642,659 @@ Reuse P.3E.1b's 118-test/production-compile evidence and P.3E.2's 20 real Postgr
 **BLOCKED for activation/release:** existing-project 0015/grants unverified/unapplied, real VAPID absent, full configured build/prerender outstanding, hosted worker/protection/runtime/timing and Android/iOS delivery unverified. Remaining development-only advisories need proportionate build-environment review. Existing authentication/hosted authorization/Storage gates remain; three seconds is a push attempt target, not an absolute DB deadline. Production remains undeployed/unapproved.
 
 The closure commit containing this handoff has message `feat(phase10): implement and verify minimal research web push`, parent `b4352d1ea456dfce18097b039f9237ef46fc33a6`; resolve its SHA from Git and verify its exact 56-path contents/clean index/tree after commit. This is **local source closure only**, not operational P.3 acceptance. Stop after that one commit and readiness report: **no push, merge, deployment, hosted connection/migration, VAPID setup, live delivery or automatic P.3F.1/device execution**.
+
+## C2 Collaborative Research Workspace backend foundation (2026-11-05)
+
+**Locally implemented and isolated-validation PASS, with migration/database/UI acceptance deferred.** This is the Student Group Task Board + Shared Research Notes backend requested after the C1 read-only audit. The owner now prioritizes this workspace before immediate P.4 implementation; P.4 keeps its existing identity and separate scope. No Group Workspace UI/navigation entry, migration generation/application, database connection, deployment, provider/Storage operation, staging, commit, push or C3 implementation occurred. P.3F.3 remains CLOSED/PASS for its recorded Preview scope; C2 is not deployed or database-operational.
+
+### Verified preflight and preservation
+
+- Branch `feature/development`; actual HEAD `f82a08105158713ffad5161c0235fac1d23327fd`, `fix(db): guard populated Preview push migration and recovery`.
+- Entry state: 10 modified tracked paths, empty index, no untracked files. Preserved paths: `AGENTS.md`, `README.md`, `app/globals.css`, `app/page.module.css`, `app/page.tsx`, `components/auth/login-form.tsx`, `docs/ARCHITECTURE_UPDATED.md`, `docs/MASTER_CONTEXT_UPDATED.md`, `docs/SOURCE_OF_TRUTH_UPDATED.md`, `tests/phase9-landing.browser.cjs`. C2 adds only appended sections to the three incoming modified canonical documents; their earlier contents remain intact.
+- Read current AGENTS, README, Source of Truth, Master Context, Architecture and actual `docs/DATABASE (1).md`, installed Next.js Server Actions guide, relevant account/membership/project/upload repository patterns and Preview migration guards. C1's checkpoint and authorization limitations remain accurate.
+- Installed Next.js 16.4.3, Drizzle ORM 0.45.2, Drizzle Kit 0.31.10 and Zod 4.6.6 confirmed. No dependency or environment changes.
+- Source journal has 16 contiguous entries, 0000-0015, ending `0015_push_subscriptions`. Full source digest matches the reviewed Preview pin. No 0016 SQL/snapshot/journal entry exists or was generated. Live local/Preview/Production ledger and permissions were not independently inspected in C2.
+
+### Exact C2 files
+
+Created:
+
+- `db/schema/group-task.ts`
+- `db/schema/task-note.ts`
+- `lib/validations/collaborative-workspace.ts`
+- `lib/workspace/contract.ts`
+- `lib/repositories/collaborative-workspace.repository.ts`
+- `lib/services/collaborative-workspace.service.ts`
+- `lib/services/collaborative-workspace.runtime.ts`
+- `lib/actions/collaborative-workspace.action.ts`
+- `tests/c2-collaborative-workspace.unit.cjs`
+
+Modified for C2:
+
+- `db/schema/index.ts`: exports the two new source definitions.
+- `docs/DATABASE (1).md`: appended exact schema, constraints, transaction and migration/grant requirements.
+- `docs/ARCHITECTURE_UPDATED.md`: appended backend layers, result contracts and compatibility boundaries.
+- `docs/SOURCE_OF_TRUTH_UPDATED.md`: appended owner-approved workspace permissions and final orphan/deletion decisions.
+- `docs/MASTER_CONTEXT_UPDATED.md`: this C2 implementation/evidence handoff.
+
+### Implemented behavior
+
+Both tables are project-scoped, use serial PKs and integer restrictive paper/user FKs, timezone-aware creation/update timestamps, named text/status/version CHECKs and only the proposed indexes. Tasks support nullable assignee/description/calendar due date and exactly `To Do`, `In Progress`, `Done`. Notes hold required plain text, optional task association, integer version and nullable deletion timestamp. `UNIQUE group_tasks(id,paper_id)` plus restrictive composite note/task FK enforces same-paper association. Schema source is intentionally ahead of migration history; see [exact types and SQL requirements](DATABASE%20%281%29.md#c2-collaborative-research-workspace-schema-source-2026-11-05).
+
+All 13 backend operations independently validate strict Zod inputs and session-derived identity, then use one transaction-scoped Student authorization helper. It returns `{studentId,groupId,paperId}` only after current active account/Student role, membership, active group and paper/group checks. No action accepts actor/group/creator authority. The helper composes the existing JWT session and relational model rather than creating new memberships or trusting `getStudentResearch` as a complete guard.
+
+Write lock order is involved accounts sorted by ID, group, relevant membership rows, rechecked paper, then task and note writes. Accounts use FOR UPDATE for mutations, including creator and proposed assignee where applicable; scope rows use FOR SHARE. A changed paper group or task creator hint denies the operation. Existing memberships are protected against removal. The creator account lock is also intended to serialize the existing users-FK check for membership insertion against an absent-membership orphan decision. Reads use shared scope locks and reauthorize each request. No provider/network operation or academic submission advisory lock is introduced. Real lock behavior and privileges remain pending acceptance.
+
+Task create/list/details edit/assignment/status/delete are implemented. Any current authorized member can create/read; only the eligible creator edits details/deletes; creator or eligible assignee changes status. Assignment targets must be active Student members of the same group. **Final owner orphan decision is implemented:** any current authorized member can reassign/unassign only if the original creator has left, become inactive or changed role. This recovery grants no details-edit/delete/status permission by itself and stores no orphan flag. Removed assignee IDs remain recorded; those users cannot mutate while ineligible.
+
+Task deletion locks the task, unlinks all linked notes including deleted notes, increments note versions and timestamps, then deletes the task in one transaction. Errors or a missing delete result throw so partial unlinking cannot be committed. Task linking takes a SHARE lock before touching the note, conflicting with deletion's UPDATE lock. Content, creator, note identity and deletion state survive task deletion.
+
+Notes implement create/list/view/edit/link/unlink/soft deletion/restoration. Any authorized current member reads visible notes; only their eligible creator edits, links, deletes or restores. A task creator has no authority over someone else's note content. Normal listings omit deleted notes. Explicit `deletedOnly:true` is creator-filtered, and an individually requested deleted note is visible only to its eligible creator. There is no permanent purge.
+
+Every note mutation requires an expected version. UPDATE predicates include note ID, authorized paper, creator, version and correct deletion state; version increments and timestamps are SQL expressions in the same UPDATE/RETURNING. Zero rows triggers a scoped lookup: missing/foreign-owned/wrong-state rows return safe unavailable, while a verified mismatching version returns conflict. Edit/link/delete/restore and task-driven unlinking all advance versions. Conflict results let a later C4 interface preserve unsaved text; no auto-overwrite/merge or persistent client draft store exists.
+
+Results distinguish success, validation, unavailable/unauthorized, conflict and infrastructure failure with safe messages. Driver/commit uncertainty says reload/verify before retrying. Successful actions invalidate only the future `/dashboard/student/workspace` route. If revalidation fails after saving, the saved success remains explicit with `refreshRequired:true`.
+
+### Validation actually executed
+
+| Check | Result and evidence boundary |
+|---|---|
+| `node --require tsx/cjs --test tests/c2-collaborative-workspace.unit.cjs` | **20/20 PASS**, final run. Covers schema metadata/constraints, strict inputs, all-operation authority denials, same-group CRUD, same-group cross-project confusion, invalid assignments, creator/assignee permissions, limited orphan recovery, note ownership/state/version conflicts, deletion/unlink preservation and rollback models, real Drizzle SQL predicates/lock ordering, changed-scope hint rejection, action revalidation and source-pin/side-effect boundaries. |
+| `node --require tsx/cjs --test tests/phase975-student.unit.cjs tests/phase102c2-repository.unit.cjs tests/phaseP3-events.unit.cjs` | **6/6 reported checks PASS**. Reused focused isolated Student selection/feedback projection, upload persistence SQL and actual review/upload push-adapter tests with persistence/scheduling doubles. No live submission/upload/review/device test. |
+| `npx.cmd tsc --noEmit --incremental false` | PASS, no TypeScript errors. No build/server/database invocation. |
+| Targeted ESLint | PASS for the two schemas, schema index, validation/contract/repository/service/runtime/actions and the C2 test file. |
+| Diff/source checks | `git diff --check` and new-file whitespace checks PASS; migration SQL/snapshots/journal/source pins preserved. Existing unrelated source edits preserved. |
+
+Tests use existing node:test/node:assert and pg-proxy driver-double patterns. The C2 harness rejects runtime database/environment-loading dependencies. Its transaction model verifies rollback control flow and preserved modeled state; it cannot prove actual PostgreSQL rollback/FKs/locking. Simulated two-save conflicts are not real two-connection acceptance. No browser suite, full build, database/Storage operation, hosted request or migration generation was run.
+
+### Migration tooling and remaining gates
+
+No migration-tooling code change is safe or necessary before the real generated migration exists. The current exact 16-entry digest/count and 0015 snapshot are preserved, as are empty-only initialization, populated 0015 upgrade, recovery and uncertain-result safeguards. A future preparation checkpoint must generate/review the real candidate, verify unchanged history, update exact SQL/snapshot/journal pins together, and prepare a scoped populated upgrade and runtime/sequence permissions. Do not invent a checksum, mark 0016 present/applied, relax integrity or reuse the 0015 upgrade for the workspace. See the database handoff for the precise deferred work and current proportionate release policy.
+
+Real PostgreSQL FK/CHECK failures, membership removal/rejoin and account/group-status races, lock privileges/order under actual contention, task linking versus deletion, concurrent note winners, durable rollback and deployment behavior remain **NOT VERIFIED**. They require separate migration preparation/execution and focused database acceptance approval. Missing tables/grants currently make workspace execution unavailable; no existing page calls the new actions.
+
+Existing project creation/selection, PDF/version history, submitter-only feedback, Adviser review, publication/repository, authentication, in-app/Web Push and private Storage flows are unchanged. The new backend has no imports/calls to their mutation/provider paths. No note/task content enters PDF signing, repository responses, AI payloads or offline caches. Groq/Resend remain disabled; Expo/Reference Library/Adviser participation are excluded.
+
+Research references were limited to installed framework/library source and official [PostgreSQL lock documentation](https://www.postgresql.org/docs/current/explicit-locking.html), [Drizzle conditional updates/returning](https://orm.drizzle.team/docs/update) and [SQL increments](https://orm.drizzle.team/docs/guides/incrementing-a-value). No external implementation/dependency was copied; no GitHub shortlist was needed.
+
+**Next action:** owner review of this local C2 source and evidence. Separately authorize migration preparation and focused database acceptance before treating the foundation as operational. C3 UI implementation requires separate owner approval. No automatic migration, release, commit or next checkpoint.
+
+## C2.1 Collaborative Research Workspace migration preparation (2026-11-05)
+
+**Local generated-source and safety review PASS; database application NOT PERFORMED.** This implements the separately approved C2.1 preparation after C2. No local/Preview/Production PostgreSQL connection, operator CLI execution, migration application, grant, Storage/provider change, deployment, staging, commit, push or C2.2/C3 work occurred. Current Preview/P.3F.3 acceptance remains unchanged; the workspace is not database-operational or deployed.
+
+### Preflight and exact scope
+
+Actual branch `feature/development`, HEAD `f82a08105158713ffad5161c0235fac1d23327fd`, `fix(db): guard populated Preview push migration and recovery`. Entry state was 12 modified tracked files plus nine untracked C2 files, with an empty index. This includes the original ten incoming changes and all C2 work. Inspected current instructions/canonical handoffs, C2 schemas, credential-free Drizzle config, installed Kit 0.31.10/ORM 0.45.2 migration code and Preview source/catalog/operator guards. No C1/C2 architecture audit was repeated.
+
+Before generation, actual source ended at 0015 with 16 journal entries, 17 snapshot tables and the matching original source digest recorded below. No material discrepancy or unrelated schema proposal was found. All incoming application/schema/test files were preserved; relevant documents receive appended C2.1 sections only.
+
+Created:
+
+- `db/migrations/0016_collaborative_research_workspace.sql`
+- `db/migrations/meta/0016_snapshot.json`
+- `tests/c21-workspace-migration.unit.cjs`
+
+Modified for C2.1:
+
+- `db/migrations/meta/_journal.json`: one actual generated entry.
+- `scripts/preview-migration-source.ts`: independently pinned legacy/current source contracts and strict 16/17 workspace-ledger recognition.
+- `scripts/preview-schema.ts`: explicit populated baseline and workspace post-upgrade catalog modes; existing legacy modes retained.
+- `scripts/initialize-preview-database.ts`: bound legacy application to reviewed 0000-0015 instead of the expanded folder, preserving ORM savepoint behavior.
+- `scripts/database-operator.ts`: keep role/Admin inspection on the verified legacy prefix rather than reject a valid 16-entry baseline solely because 0016 exists on disk.
+- `docs/DATABASE (1).md`, `docs/ARCHITECTURE_UPDATED.md`, `docs/MASTER_CONTEXT_UPDATED.md`: generated artifacts, contracts, evidence and remaining gates.
+
+### Generated migration and SQL safety
+
+Executed only offline generation: `npx.cmd --no-install drizzle-kit generate --name=collaborative_research_workspace`. Drizzle generated the SQL/snapshot/journal; none was manually invented or rewritten. The generated SQL was inspected before tooling changes. It contains exactly two CREATE TABLE statements, six FK additions to those new tables, and three explicit indexes. No existing table/schema object changes, data rewrites, DROP/TRUNCATE, cascading deletion or grants were proposed.
+
+`group_tasks` has ten columns: serial PK; required paper/creator IDs; bounded nonblank title; nullable bounded description, assignee and date; default `To Do` with the exact three-status CHECK; timezone-aware creation/update defaults. It includes the approved `(id,paper_id)` UNIQUE and `(paper_id,created_at,id)` index. `task_notes` has ten columns: serial PK; required paper/creator/title/plain content; nullable task/deletion timestamp; positive integer version default 1; timezone-aware creation/update defaults. It has both proposed indexes and the restrictive composite `(task_id,paper_id)` task reference. All six FKs use RESTRICT deletion/NO ACTION update. Six CHECKs, two PKs, one UNIQUE and six FKs are represented; two sequences and three constraint-backing indexes arise from serial PKs/UNIQUE. The three explicit indexes bring the new index total to six.
+
+The nullable task association can be explicitly unlinked while preserving required paper identity; a linked note must reference the same paper as its task. Task deletion cannot cascade into notes and remains restricted until C2's authorized transaction unlinks them. These are inspected SQL/schema guarantees, not executed PostgreSQL acceptance results.
+
+Artifact identities:
+
+| Artifact | Actual generated identity |
+|---|---|
+| SQL | SHA-256 `5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63` |
+| Snapshot | ID `553326b6-bce0-4e89-9ff5-57e7563019f1`; predecessor `04a95e0f-e6b9-4ea8-9f0b-4ab3434467f3`; SHA-256 `6049ab489b5d27c377f7086d80556dadaa53f55fb38e94797cf389c68656e50e` |
+| Journal | Entry index 16, version 7, tag `0016_collaborative_research_workspace`, timestamp `1793874420209`, breakpoints true; SHA-256 `071b6565a5deace3b057883ae10f71b336ffcbaaa40a6caeae02484616f2e54d` |
+| Current workspace aggregate | 17 migration hash/timestamp pairs + raw 0016 snapshot/full journal; SHA-256 `66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc` |
+| Preserved legacy aggregate | Exact original 16-entry identity `37824a5d2df42e54df9e50ee115c6eb7d6c42a94864c99aedfb1d63b4dbf51e0` |
+
+The journal now has 17 source entries with strictly increasing generated timestamps. Snapshot lineage is correct; 0016 adds only the two workspace tables, preserving all 17 old table definitions and other snapshot collections. All historical SQL/snapshot bytes and original 16 journal records remain unchanged. Source files/ledger records are not proof of any applied database state.
+
+### Integrity/tooling behavior
+
+`previewMigrationSource()` remains explicitly the legacy 16-entry contract, so existing 0015 approval/recovery identities and C2 tests retain their meaning. `workspaceMigrationSource()` is the current 17-entry contract. Both source pins are checked together; the original journal prefix is reproduced in memory only and matches its pre-generation bytes/digest. Independent legacy validation prevents a new aggregate pin from hiding historical drift. Counts, raw-byte digests, snapshots, hash/timestamp correspondence and ordered-ID checks remain strict; unknown ledger counts/schema modes fail closed.
+
+`recognizeWorkspaceLedger` identifies an exact 16-entry ledger as `pre-workspace`, and an exact 17-entry ledger as `workspace-recorded`. `verifyWorkspaceLedger` defaults to the complete 17 entries and requires explicit 16 for baseline checks. Recognizing a known older state is not application approval or a catalog/grant check. All tests use synthetic ledgers; actual Preview/local/Production state was not queried.
+
+The old initializer's raw-folder ORM entry point would otherwise discover 0016. It now calls the same installed Drizzle dialect migrator/session with the verified legacy migration array. The existing postgres-js adapter keeps ledger setup/lookup in the outer transaction and migration SQL in its savepoint. A narrow generic-type adapter is needed for the installed schema-less dialect signature; actual transaction-shape/rollback tests pass. No bespoke SQL migration engine, new execution CLI, recovery bypass or source-count relaxation was added. Target/TLS/identity checks, source approval, private recovery and uncertain-result/no-retry safeguards are retained. Existing legacy operators remain 0015-only and intentionally do not handle a post-workspace 17-entry target.
+
+Catalog verification now has `workspace-baseline` (full 0015 catalog with populated data/push allowed) and `upgrade-0016` (full 0016 catalog, only new tables and their sequences unused) alongside unchanged empty-initialization/0015-upgrade contracts. Existing catalog/ownership/constraints/index/default/trigger checks remain. No actual catalog/temporary-table query was sent to PostgreSQL in this checkpoint. A separately approved workspace operator is still required before application.
+
+### Runtime privilege plan
+
+No grants were executed or added to migration SQL. Required new permissions are SELECT/INSERT/UPDATE/DELETE on `public.group_tasks`, SELECT/INSERT/UPDATE on `public.task_notes`, and USAGE on `public.group_tasks_id_seq`/`public.task_notes_id_seq`. Do not grant note hard DELETE, sequence UPDATE, DDL/TRUNCATE or browser/anonymous access. Verify effective ownership/inheritance/default grants and Data API exposure, and confirm existing SELECT/row-lock UPDATE prerequisites on users/groups/memberships/papers. Do not automatically broaden existing-table permissions. Bind any future grant plan to independently verified operator/runtime identities and the approved target.
+
+### Validation actually performed
+
+- `npx.cmd --no-install drizzle-kit check`: PASS, existing offline config, no database credentials/connection.
+- `node --require tsx/cjs --test tests/c21-workspace-migration.unit.cjs`: **8/8 PASS** on final source. Verifies additive statement allowlist, exact types/constraints/indexes against C2 definitions, snapshot/journal lineage, two source pins, baseline/latest ledgers, ID gaps, unsupported version/mode rejection and in-memory source tampering. Catalog-mode doubles stop before detailed/temporary SQL; no real FK/catalog execution is claimed.
+- Nine selected tests in `tests/phase102d2a-hosted-database.unit.cjs`: **9/9 PASS** for legacy operator/initializer inspection, immutable source/ledger checks, actual installed Postgres.js transaction shape and ORM migration savepoints, empty-only/no-retry behavior, rollback-ID gaps and exact 0015 target/upgrade/preservation guards. The driver double prevents connection attempts and asserts zero connections; it does not operate a database.
+- Existing C2 test filtered to `migration history stays at 0015`: **1/1 PASS**, confirming the explicitly preserved legacy source contract and workspace side-effect boundary. The historical test name does not describe the new full 17-entry source.
+- `npx.cmd tsc --noEmit --incremental false`: PASS after the narrow installed-session generic adapter.
+- Targeted ESLint on the four modified tooling files and new test: PASS. Tracked diff/new-file whitespace checks: PASS.
+- Historical migration SQL/snapshot bytes, C2 source/test files and unrelated incoming edits preserved. Existing document contents are retained before the appended C2.1 handoffs; the index remains empty.
+
+No full-system/browser suite, full build, database connection, mutating operator CLI, migration application, grant, hosted request or deployment occurred. The focused installed-driver tests call migration helpers only through captured transaction doubles. Official [Drizzle generation guidance](https://orm.drizzle.team/docs/drizzle-kit-generate) and installed Kit/ORM source were sufficient; no external implementation/dependency was copied.
+
+### Remaining prerequisites and proposed C2.2 scope
+
+No unsafe/unrelated generated schema change or unresolved local source issue was found. Application remains blocked by the intentional execution gate: a separately approved target and bounded workspace upgrade/acceptance procedure are not provided by C2.1. Do not run the legacy 0015 operator to apply 0016.
+
+Proposed C2.2, subject to owner scope/approval: prepare/review the narrow workspace operator, use an independently verified isolated synthetic target with the exact 16-entry baseline (or explicitly approved disposable replay), inspect baseline catalog/identities/permissions, preserve existing rows/sequences, apply only 0016/minimal runtime grants, and independently verify durable 17-entry catalog/ledger and preservation. Do not assume the local development database already has 0015. Use current proportionate additive-release precautions without repeating synthetic-account backup/recovery setup.
+
+Focused PostgreSQL acceptance should cover actual FK/CHECK/nullability/status/length violations, cross-project links and restrictive deletion; runtime positive/negative/sequence privileges; current account/group/membership and orphan-recovery removal/rejoin races; two note saves with one expected version; note deletion/restoration and task unlink version invalidation; task linking versus deletion; and rollback with preserved existing academic/push records. Keep fixtures small and owned. Preview application/deployment and C3 UI remain separate owner decisions; Production is excluded.
+
+**Next action:** owner review of these generated artifacts, exact source identities, grant plan and C2.2 proposal. Stop here; no automatic database connection/application, release, commit or next checkpoint.
+
+## C2.2 Isolated PostgreSQL acceptance safety gate (2026-11-05)
+
+**BLOCKED at the isolated target/operator gate, before any database connection or mutation.** The requested PostgreSQL acceptance did not run. C2/C2.1 retain their recorded local source/isolated-test results; C2.2 is not PASS, not migrated and not database-operational. Preview/Production and P.3F.3 remain unchanged. No C3 implementation or Git staging/commit/push occurred.
+
+### Verified preflight and preservation
+
+Actual branch `feature/development`, HEAD `f82a08105158713ffad5161c0235fac1d23327fd`, `fix(db): guard populated Preview push migration and recovery`. Entry state: 17 modified tracked files, 12 untracked C2/C2.1 files, empty index. All incoming work was preserved. Reviewed the current AGENTS/canonical handoffs, migration/source/catalog/guarded operator code and existing disposable replay/isolation policy; did not repeat C1/C2 architecture audits.
+
+The generated migration still has the expected SHA-256 `5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63`. Actual source has 17 entries through `0016_collaborative_research_workspace`, and the verified workspace aggregate remains `66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc`. The exact legacy 16-entry reader remains available. Journal/snapshot integrity matches C2.1; no discrepancy or artifact regeneration occurred. This source state is distinct from any applied database ledger.
+
+### Isolation evidence and stop decision
+
+Read-only configuration inspection, without outputting credentials/URLs/private values, found the loopback application database configuration with no disposable acceptance marker. It was excluded as a writable acceptance target. The inspected process/application configuration has no approved local operator URL, acceptance URL or target mapping. Private operator-configuration candidates were inspected safely; the available connection configuration is non-loopback, and no approved local disposable acceptance target/operator was established. That configuration was not used. PostgreSQL 18 executables are installed, but installation is not isolation or mutation authority.
+
+No acceptance cluster/database OID, ownership/marker, emptiness or target-specific operator/runtime permissions could be positively established. The user's explicit C2.2 instruction requires stopping at that condition. No database connection was opened, including to the normal local database or Supabase. No ordinary runtime credential was substituted for the required distinct operator, and no cluster/role/database was created to bypass the gate.
+
+### Requested acceptance status
+
+| Requested area | This attempt |
+|---|---|
+| Disposable database identity/ownership/emptiness | NOT VERIFIED; no approved target/operator available |
+| Guarded baseline and only-0016 execution | NOT RUN |
+| Applied 16-to-17 ledger/catalog and independent durable verification | NOT RUN; no applied state claimed |
+| Actual FK/CHECK/title/status/version/text/project constraints | NOT RUN |
+| Runtime grants and actual-role DDL/TRUNCATE/note DELETE/migration denial | NOT RUN; no grants executed |
+| Database-backed Student/project authorization and orphan recovery | NOT RUN |
+| Two-save note CAS, soft deletion/restoration | NOT RUN |
+| Task unlink/delete preservation and forced transaction rollback | NOT RUN |
+| Link/delete and membership/account/group eligibility races | NOT RUN |
+| Existing schema/data/sequence preservation in a synthetic acceptance target | NOT RUN; no target/synthetic records created |
+| Cleanup | Not needed; no database resources created |
+
+The existing C2/C2.1 source/driver-double tests do not establish these PostgreSQL results. The hosted Preview ledger was not queried; its previously reported 16-entry state and P.3F.3 scope are not upgraded by this attempt. No claim about real-user record preservation is made.
+
+### Checks actually executed and files changed
+
+- `npx.cmd --no-install drizzle-kit check`: PASS, offline config.
+- `node --require tsx/cjs --test tests/c21-workspace-migration.unit.cjs`: **8/8 PASS**, offline SQL/snapshot/journal/source-integrity and synthetic contract checks only.
+- Expected SQL hash and both legacy/current source contracts reverified from local artifacts.
+- `git diff --check` and incoming-file preservation checks PASS. All application/schema/test/migration/operator source remains unchanged in this attempt; pre-existing document content is retained as exact prefixes.
+- No TypeScript/ESLint/build/browser/large regression run was needed for this documentation-only blocked outcome. No C2.2 operator or test harness was added.
+
+Exact modified files: `docs/MASTER_CONTEXT_UPDATED.md` and `docs/DATABASE (1).md`, append-only C2.2 safety-gate handoffs. No files created. No environment or private configuration was edited. Git index remains empty.
+
+### Minimal setup and C3 readiness
+
+To resume, privately provision a distinct approved local migration operator and an empty disposable acceptance database with independently verifiable cluster/database OID, owner and explicit disposable marker, plus the intended separate least-privilege runtime identity. Alternatively, make an existing authorized local operator and explicit database-creation/isolation policy available so this checkpoint can create only its dedicated target. Use protected operator process configuration compatible with the existing target guards; do not paste credentials into chat, commit them, or change the useful local development/hosted resources.
+
+Resume at the identity/ownership/emptiness/privilege gate before writes. Prepare an empty target through the reviewed 0000-0015 provenance path, verify its exact 16-entry baseline, then implement/review the narrowly scoped 0016 execution and small synthetic acceptance checks already proposed in C2.1. Preserve the old Preview push/recovery operators and the current proportionate release policy; no broad grants or repeated synthetic-account recovery setup is inferred.
+
+**C3 readiness: BLOCKED pending real C2.2 PostgreSQL acceptance and separate owner UI authorization.** The blocker is unavailable verified local operator/target configuration, not a migration hash mismatch or an observed PostgreSQL/application failure. Stop here; no database creation/application, deployment, commit or automatic C3 work.
+
+## C2.2 retry: local recovery check and remaining setup gate (2026-11-05)
+
+**Connectivity VERIFIED, database acceptance still BLOCKED before mutation.** The owner reported pgAdmin recovery and authorized a bounded local availability/identity check. Read-only inspection succeeded. It did not establish an approved disposable target or authenticated migration/runtime separation, so the retry stopped at the requested safety gate. No failed migration/application test is implied.
+
+### Verified preflight and local recovery
+
+- Branch `feature/development`, HEAD `f82a08105158713ffad5161c0235fac1d23327fd`; incoming 17 modified tracked paths and 12 untracked files preserved, empty index.
+- Migration SQL hash still `5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63`. Source journal/snapshot integrity still matches 17-entry workspace aggregate `66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc`. No source change, regeneration or offline-suite repetition.
+- Windows PostgreSQL 18 service Running; installed `pg_isready` reports `127.0.0.1:5432` accepting connections.
+- Existing application endpoint resolves only to loopback. Actual PostgreSQL server address/port, configured database match and session/current identity were verified in a READ ONLY transaction. Ordinary application database OID `16387`, cluster `7652422818440234372`, port 5432. This is identification for read-only recovery, not a disposable-target approval.
+- Two small metadata inspections used startup read-only defaults, explicit READ ONLY transactions, bounded connection/statement timeouts and awaited connection closure. No connection string/password/private environment values or research records were emitted. Only server/catalog metadata was read.
+
+### Actual isolation/operator findings
+
+`thesishs_local_operator` exists and can log in. Observed flags: no SUPERUSER, CREATEDB, CREATEROLE, REPLICATION or BYPASSRLS. It is the only non-system role besides the current administrative application login. No separate runtime role was found. The operator's protected connection/acceptance target mapping is not available in this process; operator authentication and target authority were not attempted. Administrative flags on the ordinary application login are not used as migration authority.
+
+The database catalog contains one other non-maintenance application database, `thesishs_ai_phase5_acceptance`. It is owned by `postgres`, has no database marker/comment and no verified C2.2 disposable classification. No C2.2-marked database was found. Its application data and ledger were not inspected; it was not repurposed or mutated. A test-like name does not satisfy the owner's isolation condition.
+
+Therefore, local availability is no longer the blocker. The missing prerequisites are an explicitly marked disposable target owned by the approved operator, protected operator/runtime connection configuration and a separate runtime identity. No database/role/permission change was attempted to bypass that gate.
+
+### Outcome by requested area
+
+| Area | Result |
+|---|---|
+| Git and exact migration/source identity | VERIFIED, unchanged |
+| Local PostgreSQL availability and read-only identity | VERIFIED |
+| Existence/basic flags of local operator role | VERIFIED; authenticated operator connection NOT TESTED |
+| Approved disposable database/owner/marker and separate runtime | BLOCKED |
+| Acceptance target ledger and 16-to-17 migration | NOT TESTED; no migration applied |
+| Actual FK/CHECK/project consistency and runtime privilege denials | NOT TESTED |
+| Database-backed task/note authorization and orphan recovery | NOT TESTED |
+| Note CAS, task unlink/delete, rollback and bounded races | NOT TESTED |
+| Synthetic acceptance data/preservation/cleanup | NOT TESTED; no fixtures/resources created |
+
+No unexpected infrastructure failure occurred during these bounded read-only checks. No existing user/research data, roles, grants, schema or migration ledger was changed. Preview/Production were not contacted, and their application state/P.3F.3 scope remain unchanged. No C3/C4, Web Push/AI, deployment or Git write operation occurred.
+
+### Exact smallest setup and next action
+
+Using the already working administrative pgAdmin session, the owner can create a **new empty** dedicated database (proposed `thesishs_c22_acceptance`) owned by the existing `thesishs_local_operator`, and give it an explicit disposable C2.2 purpose comment/private approval record. Add a separate non-administrative runtime LOGIN (proposed `thesishs_c22_runtime`) scoped to that database. Do not grant the operator cluster-wide database/role administration just to create the target; create it from the administrative pgAdmin session. Do not recreate, rename, drop or reuse either existing application database based on its name.
+
+Make both role connections and the exact target mapping available through protected private acceptance-process configuration, including the independently verified new database OID, cluster, owner and marker. Keep normal application `.env`, existing databases and hosted profiles unchanged; do not paste secrets into chat or source control. The proposed database/runtime role were not created by Codex. On resume, reverify authentication/ownership/emptiness/privileges before preparing the reviewed 16-entry baseline and only-0016 migration/acceptance path.
+
+### Validation and preserved files
+
+Successful C2/C2.1 suites were not repeated, as required when their source is unchanged. Local source digest/hash checks, service readiness and two read-only catalog/identity inspections were performed. `git diff --check` and file-preservation checks PASS. No new operator/test code was added, so no TypeScript/lint/build/browser run was needed.
+
+Only `docs/MASTER_CONTEXT_UPDATED.md` and `docs/DATABASE (1).md` receive appended retry findings; prior document content and all other incoming source/migration/test files are preserved. No files created. Index remains empty.
+
+**C3 readiness: BLOCKED pending approved local target/runtime configuration, real C2.2 acceptance, and separate owner UI authorization.** Stop after this retry report; pgAdmin connectivity alone does not establish database acceptance.
+
+## C2.2A controlled local development migration: blocked before execution (2026-11-05)
+
+**BLOCKED - Migration not applied; protected local operator connection unavailable.** The owner replaced the disposable-acceptance strategy for this checkpoint with a development-first upgrade of the existing local database. No new database, PostgreSQL service, runtime/operator role or destructive acceptance test is required or authorized here. Earlier disposable-target setup recommendations are historical and do not govern C2.2A. Stop after this checkpoint; C2.2B and C3 do not start automatically.
+
+### Fresh repository, source and local identity evidence
+
+- Branch feature/development, HEAD f82a08105158713ffad5161c0235fac1d23327fd; empty index. Incoming 17 modified tracked files and 12 untracked files preserved.
+- Pinned source reader accepted all 17 entries, aggregate 66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc. Actual 0016 SHA-256 remains 5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63; 0015 SHA-256 is 4d61b3414312b76b7f8613de9610fdab71f4789df012828a243096085a0df754. Raw migration SQL, snapshots and journal were not changed.
+- Established application connection used only for bounded READ ONLY inspection: actual server ::1:5432, database thesishs_ai, OID 16387, cluster 7652422818440234372, owner postgres, session/current role postgres. DNS resolution was restricted to loopback; configured and observed identity were checked independently. This administrative application connection was not used for migration execution.
+- Exactly 15 applied ledger entries match every source hash/timestamp and valid ordered ID through 0014_submission_upload_intents. push_subscriptions, group_tasks, task_notes and the two proposed workspace sequences are absent. All 16 existing public tables are present, including submission_upload_intents and existing submission/review tables.
+
+### Operator gate: permissions versus authenticated availability
+
+The existing thesishs_local_operator is LOGIN, non-superuser, NOCREATEDB, NOCREATEROLE, NOREPLICATION, NOBYPASSRLS, with no memberships. Fresh effective privilege inspection confirmed CONNECT; public USAGE/CREATE; drizzle USAGE; ledger SELECT/MAINTAIN; INSERT on ledger columns hash and created_at; USAGE/SELECT on its serial sequence; REFERENCES on users.id and research_papers.id; and EXECUTE on pg_control_system().
+
+**Correction to a table-level-only interpretation:** has_table_privilege INSERT is false, but both required ledger-column INSERT privileges are true. This is not evidence that a ledger INSERT grant is missing. Creating the new tables/indexes and their foreign keys uses existing public CREATE and referenced-ID privileges; no additional grant or administrative role flag has been shown necessary. Permissions for an eventual preservation/locking implementation must still be checked against that exact implementation.
+
+However, THESISHS_DATABASE_ADMIN_URL and THESISHS_DATABASE_TARGETS_JSON are absent from the current process/application environment, and databaseConfiguration cannot produce an approved local operator configuration. A redacted read of all seven existing protected Connections files found hosted operator configuration and no usable local thesishs_local_operator URL for thesishs_ai. A credential in pgAdmin, another process or another private location remains unverified, not presumed nonexistent. Operator authentication/session identity and execution authority were NOT TESTED. No password reset, role/grant change or application-credential fallback was attempted.
+
+### Backup, compatibility and execution status
+
+- **PREPARED / source-reviewed:** 0015 creates only push_subscriptions plus its users FK; 0016 creates only the two workspace tables, their constraints/indexes/sequences. The required pending order remains 0015 then 0016. Existing referenced relations and REFERENCES privileges are present. Full live baseline/catalog compatibility is NOT VERIFIED; ledger/table presence alone is insufficient.
+- **BACKUP NOT CREATED:** the request requires stopping before mutation when authenticated operator authority cannot be established. No private archive, backup integrity/inventory evidence or recovery test was produced. Existing approved convention is a whole-database PostgreSQL 18 custom-format pg_dump outside Git, with protected authentication/ACLs, no table/schema filters, archive size/PGDMP header/SHA-256 and private pg_restore --list verification. See the Database C2.2A entry for exact manual steps.
+- **EXECUTION NOT ATTEMPTED:** no migration/operator extension was implemented while the connection gate remained blocked. Existing 0014 runner is target/version-specific; existing Preview initializer applies only its reviewed 16-entry source and retains hosted identity guards. Neither is an approved local 0015-to-0016 execution command unchanged. A narrowly scoped local extension remains necessary after prerequisites are available.
+- **POST-MIGRATION / preservation NOT TESTED:** no 17-entry target, new catalog, row-count comparison or workflow behavior acceptance is claimed. No research records, sequence values, privileges, roles or database schema/ledger were changed. Preview/Production were not contacted.
+
+### Focused validation and exact changed files
+
+- node --import tsx --test --test-concurrency=1 tests/c21-workspace-migration.unit.cjs: PASS, 8/8 source/artifact/catalog-contract tests; no database connection.
+- Selected existing tests in tests/phase102d2a-hosted-database.unit.cjs: PASS, 9/9, covering operator prerequisites, immutable source/ledger, ORM savepoint path, startup refusal and existing upgrade guards. These use doubles and do not apply migrations.
+- No tooling changed: TypeScript for changed tooling is not applicable. Targeted ESLint and final whitespace/preservation checks are recorded in the owner-facing result. No browser/build/unrelated suite was run.
+- Only docs/MASTER_CONTEXT_UPDATED.md and docs/DATABASE (1).md receive appended C2.2A findings. All incoming source/tooling/migration/test files and prior document bytes remain preserved; no new files, staging, commit, push or merge.
+
+### Exact next action / C2.2B readiness
+
+Privately make the existing operator credential available through THESISHS_DATABASE_ADMIN_URL, with development/direct environment and a development target mapping matching the exact local endpoint, database and existing distinct runtime/operator usernames. Preserve the normal DATABASE_URL and all environment files. Authenticate as thesishs_local_operator and independently recheck current/session role, cluster/OID, ledger, catalog and permissions before proceeding. No new role/database or broad grant is needed on the present evidence.
+
+Then take and verify the authorized whole-database backup, establish a controlled application-writer quiet window, implement/validate the narrow local guarded execution path, and apply only pending 0015 followed by 0016 with accurate ledger writes and independent durable read-back. Recheck record counts and existing schema/sequences; reconcile uncertain outcomes without blind retries. Full baseline drift/dependency verification and backup verification must pass first.
+
+**C2.2B readiness: BLOCKED.** C2.2A is not applied or operationally verified; task/note behavioral acceptance remains untested.
+
+Final C2.2A source checks: targeted ESLint PASS; staged/unstaged git diff --check PASS. Incoming-file and raw-index byte preservation are checked separately; only the two authorized document appendices may differ.
+
+## C2.2A simplified local administrator migration: PASS (2026-11-05)
+
+**PASS - Local development database migrated through 0016.** The owner explicitly authorized the existing local administrator connection as a development-only exception. This supersedes the preceding C2.2A separate-operator connection blocker for this exact database/checkpoint. No new database, service, runtime/operator account or generalized acceptance framework was introduced. Hosted Preview/Production policy and P.3F.3 scope remain unchanged. C2.2B is ready for separately scoped focused functional testing; it was not started. C3/C4 and deployment remain outside this checkpoint.
+
+### Repository, authenticated target and starting state
+
+- Branch feature/development, HEAD f82a08105158713ffad5161c0235fac1d23327fd; empty index. Entry had 17 modified tracked files and 12 untracked files. Incoming source and earlier documentation were preserved.
+- Established protected local application configuration supplied the existing administrator credential, under the explicit owner exception; no pgAdmin password-store access or alternate URL fallback. Authenticated current/session role postgres, superuser true, database owner postgres; observed address ::1, port 5432, database thesishs_ai, OID 16387, cluster 7652422818440234372. DNS and configured/actual identity were checked before mutation.
+- Initial ledger had exactly 15 source-matching entries through 0014; pending push/workspace tables and new sequences were absent. Full pinned baseline catalog validation passed: 16 public tables, 67 application constraints and 33 indexes, including the pre-existing operator-owned upload-intent table/indexes. No baseline drift or manual history repair was needed.
+- Source remained the pinned 17-entry aggregate 66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc. Actual 0016 SHA-256 immediately before installed-ORM execution: 5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63. 0015 SHA-256: 4d61b3414312b76b7f8613de9610fdab71f4789df012828a243096085a0df754. No SQL/journal/snapshot bytes were rewritten.
+
+### Verified backup / recovery boundary
+
+PostgreSQL 18.4 pg_dump created a real whole-database custom archive in a new ACL-protected directory under the existing private backup root, outside all checkouts/cloud folders. Exact archive location, inventory, baseline state and migration-result evidence are retained privately, not in Git. The backup includes schema, all data, ownership/ACLs, public and drizzle metadata/sequences with no table/schema filters. A temporary protected PGPASSFILE supplied authentication and was removed after use; no credential appeared in command arguments or logs.
+
+Backup size 73,368 bytes; recognized PGDMP header; SHA-256 a6bf26593d5b48daec02b778fd3f0135b2f194824bd9aa1ebb57184dbbe9e7d7. pg_restore --list verified TABLE DATA for all 16 application tables plus the migration ledger and sequence values. pg_restore --file=NUL successfully decoded the entire archive without connecting to a database. Ledger and existing tables were SHARE-locked for the backup; pre/post backup row, schema and sequence digests matched. The runner rechecked private archive integrity/evidence and exact unchanged starting state before migration. Post-migration archive checksum still matched.
+
+This establishes verified archive creation/readability, not a tested restoration. The retained complete archive is the recovery source if needed. Any actual recovery must stop writers, independently verify the exact target and review existing-object conflict handling before restoring with compatible pg_restore; no development restore test, clean/drop or automatic rollback was performed.
+
+### Minimal execution support and actual application
+
+- New scripts/migrate-local-workspace.ts: explicit --inspect (pre-upgrade state only) and --execute; development-only endpoint/admin/cluster/database/OID pins; exact source/starting-ledger guards; private backup checksum/inventory/decode-evidence binding; bounded timeouts; session advisory lock and transaction ledger/table locks; source/data/catalog/sequence preservation; sanitized errors and no automatic retry. Execution requires --backup-file, --confirm-backup, --confirm-target and --confirm-source. A completed or partial history is not blindly replayed by this two-step command.
+- It uses the installed Drizzle PgDialect/session migrator with the existing postgres-js savepoint adapter technique. For the first transaction it supplies only the pinned first 16 migrations; after a strict 15-entry ledger check, only 0015 is pending. The second supplies the pinned 17-entry source after a strict 16-entry check; only 0016 is pending. Drizzle records genuinely completed migrations in the same respective transaction. No raw manual ledger insertion, unrestricted folder migration or drizzle-kit push was used.
+- scripts/preview-schema.ts adds a separate local catalog entry point for 15/16/17 states, deriving the 0014 table set from the pinned 0015 snapshot minus the additive push table and enforcing the exact existing local ownership model. Existing hosted entry points, modes and ownership protections remain unchanged. Full catalog validation uses temporary empty objects for PostgreSQL expression canonicalization; it does not insert research/test records.
+- **0015 APPLIED / VERIFIED:** first transaction committed, independent durable read found the exact 16-entry source-matching history and preserved all prior rows/catalogs/sequences. Push table has 11 columns, four CHECKs, two unique constraints, users cascade FK, PK and three indexes; zero rows. No subscriptions or notification delivery were created.
+- **0016 APPLIED / VERIFIED:** second transaction committed, independent durable read found exactly 17 source-matching entries. Full catalog checks passed. group_tasks/task_notes each have ten columns; six restrictive FKs, six CHECKs, two PKs, composite task/project UNIQUE and FK, three explicit indexes (six total with constraint backing) and two serial sequences. Note version/deleted_at columns are present. Both tables are empty and both sequences remain value 1 / is_called false.
+
+### Independent read-only durable preservation
+
+A separate READ ONLY transaction compared the post-migration state directly with the private pre-backup baseline: exact original row digests/counts, logical column/default/constraint/index signatures and all existing public sequence definitions/values match for all 16 existing tables. This includes accounts, groups/memberships, papers, submissions, feedback, repository entries, notifications, PDF paths/metadata and upload intents. No private records were emitted; only aggregate counts/digests were used.
+
+Representative unchanged counts: users 10, research_groups 12, group_members 5, research_papers 18, submissions 33, feedbacks 22, repositories 12, notifications 25 and submission_upload_intents 1. Activity/security tables were also included. All three newly installed tables have zero rows. Private migration-result evidence retains complete catalog metadata, expected ledger and preservation results.
+
+### Focused validation / exact changed files
+
+- New C2.2A guard tests: 6/6 PASS; identity/role substitution, exact step ledger, bounded source prefix, record/catalog/sequence preservation, backup evidence binding and local-versus-hosted catalog selection.
+- Existing C2.1 artifact/source/catalog-contract tests: 8/8 PASS. Selected existing operator/source/savepoint/upgrade guards: 9/9 PASS. Total selected coverage: 23 tests PASS; all offline with doubles.
+- TypeScript with --noEmit --incremental false PASS after tooling changes; targeted ESLint PASS; installed Drizzle Kit check PASS. Final Git whitespace and incoming-file/index preservation are checked separately. No browser/full regression/build, synthetic mutation/concurrency/load/rollback or Web Push delivery test was run.
+- Source files changed only for this execution: new scripts/migrate-local-workspace.ts, new tests/c22a-local-migration.unit.cjs, local-only additions to scripts/preview-schema.ts, and appendices in docs/MASTER_CONTEXT_UPDATED.md and docs/DATABASE (1).md. Existing C2/C2.1 work and all migration artifacts remain preserved. No stage/commit/push/merge.
+
+**Remaining scope:** no migration blocker remains. Runtime CRUD/authorization/CAS/orphan recovery, real constraint violations, task unlink/delete behavior, concurrency and rollback remain NOT TESTED. The existing local postgres runtime remains elevated by owner choice; no restricted-runtime acceptance is claimed. This schema/preservation PASS does not establish full application workflows or hosted migration acceptance. C2.2B focused functional testing requires its own owner scope; stop here.
+
+## C2.2B lean local PostgreSQL functional acceptance: PASS (2026-11-05)
+
+**PASS - All seven essential database-backed tests passed.** This closes only the owner-approved lean local C2.2B scope. No C2 implementation defect was found and no application/service/repository/schema/migration fix was needed. It does not establish production readiness, browser login, concurrent races or restricted-runtime privileges. C3 is ready for separate owner scoping based on this essential backend evidence; no C3/C4 UI, deployment or Git publication was started.
+
+### Minimal current preflight and fixture boundary
+
+- Branch feature/development, HEAD f82a08105158713ffad5161c0235fac1d23327fd; empty index. Entry had 17 modified tracked files and 14 untracked files. All 502 incoming tracked/nonignored files and the raw index were included in byte-preservation checks.
+- Existing protected local connection only: observed ::1:5432, thesishs_ai, database OID 16387, cluster 7652422818440234372, owner/current/session postgres, superuser true. DNS/configured endpoint and authenticated catalog identity were checked before mutations and again on the fixture transaction connection. Exactly 17 source-matching applied entries and both workspace tables were verified. No migration was reapplied or changed.
+- Inspected existing upload fixture conventions before adding tests. Those helpers require the older upload-migration state and larger committed fixtures, so they were not executed or broadened. New tests/c22b-workspace.acceptance.cjs is an explicit --execute, local-only harness, not a generalized fixture framework.
+- One outer PostgreSQL transaction contained all fixtures and scenarios: one synthetic Adviser (group FK), two eligible Students in one active group, one external Student without membership, two synthetic Draft papers, two tasks and three notes. The second paper is solely for a meaningful cross-project identifier check within an otherwise authorized group. All accounts/papers carry a unique synthetic run marker and reserved example.invalid addresses; no existing record was repurposed. All created IDs were tracked explicitly.
+- Actual createCollaborativeWorkspaceService and createCollaborativeWorkspaceRepository ran with installed Drizzle/Postgres.js nested savepoints. Actual createToken, verifyToken and getSession handled synthetic signed JWTs using an ephemeral process-only key and an in-memory Next cookie adapter. Only the server-only build marker/request-cookie adapter was replaced. No caller-supplied identity, fake repository authorization or application database singleton was used.
+
+### Seven results
+
+| Test | Actual PostgreSQL/service result |
+|---|---|
+| 1. Task creation | PASS: eligible JWT identity created/read back the synthetic-paper task; created_by matched that identity and status defaulted to To Do. A forged createdBy input was rejected by strict validation. |
+| 2. Task assignment | PASS: creator assigned the second eligible group Student; external Student assignment was denied and the valid stored assignee remained unchanged. |
+| 3. Status updates | PASS: assigned Student persisted In Progress then Done; external Student mutation was denied. Synthetic paper remained Draft; no official research progress/approval was updated. |
+| 4. Unauthorized access | PASS: external Student listing/direct-ID edit/delete denied without data; authorized Student could list the second paper but could not use the first paper's task ID there for status/assignment/deletion. Missing and tampered sessions were denied. Current task reads are list-only: no getTask endpoint exists, so direct-ID mutation boundaries were tested rather than inventing a direct-read endpoint. |
+| 5. Note creation/editing | PASS: paper/creator attribution and content matched stored rows; version advanced 1 to 2. Another eligible group Student and the external Student could not edit the creator's note; external direct-note read was denied. Denied writes left content/version unchanged. |
+| 6. Task deletion/note preservation | PASS: task creator deleted a second task with an active note by that creator and a soft-deleted note by the other Student. Both notes survived, task_id became NULL, content/title/paper/authorship/creation/deletion state remained unchanged and both versions incremented once. Main task/note remained unchanged by this operation. |
+| 7. Sequential stale conflict | PASS: current-version edit succeeded, stale-version edit returned controlled conflict without data, successful content remained and version advanced only once (2 to 3). No concurrent scheduling/race claim. |
+
+The writes were real PostgreSQL rows read back within the intentionally rolled-back outer transaction. Inner service savepoints exercised the actual repository transaction path; durable commit/browser end-to-end acceptance is not claimed.
+
+### Cleanup and preservation
+
+The outer transaction was deliberately rejected after all seven passed; the installed driver rolled back all fixtures. Independent READ ONLY checks verified every recorded user/group/member/paper/task/note ID absent and the run marker absent. Both workspace tables returned to their original counts (zero). No DELETE cleanup, truncation, reset or unrelated record mutation was needed.
+
+Pre/post comparison across all 19 application tables showed unchanged original row counts/digests and logical column/default/constraint/index signatures. The exact 17-entry migration ledger and authenticated database identity also matched. Existing public sequence definitions matched; unrelated sequence values matched. The six fixture-used serial sequences advanced normally: users_id_seq, research_groups_id_seq, group_members_id_seq, research_papers_id_seq, group_tasks_id_seq and task_notes_id_seq. No sequence was reset to conceal those normal rollback gaps. No failed-cleanup manifest was needed.
+
+### Focused validation / exact checkpoint changes
+
+- Executed once: node --import tsx tests/c22b-workspace.acceptance.cjs --execute: 7/7 PASS; cleanup and preservation PASS.
+- Targeted ESLint on the new harness and final Git whitespace checks PASS. Only CJS test/documentation was added; no TypeScript implementation changed, so no additional TypeScript run was needed. Completed C2/C2.1/C2.2A suites were not repeated; no C2 source change required isolated regressions.
+- Exact checkpoint files: tests/c22b-workspace.acceptance.cjs (new), docs/MASTER_CONTEXT_UPDATED.md and docs/DATABASE (1).md (appendices only). All C2/C2.1/C2.2A source/tooling/migrations, incoming UI changes, prior document bytes and the index remain preserved. No stage/commit/push/merge.
+
+**Deferred / C3 boundary:** actual HTTP password login/browser cookie behavior, restricted-runtime PostgreSQL grants, concurrent races/load, orphan recovery, note restore/link variants and additional negative/constraint cases remain outside these seven checks. PDF upload, repository publication, Web Push delivery, AI/offline/WebSockets and production/hosted acceptance were not exercised. Preview/Production were not contacted or changed; no new role/database/service or migration. C3 may be separately scoped using this lean PASS evidence; do not proceed automatically.
+
+## C3 Student Group Task Board UI: implemented, partial browser acceptance (2026-11-05)
+
+**PARTIAL - Implemented with an identified full-app testing limitation.** The owner-approved categorized Student task list and necessary narrow read/capability integration are implemented. Focused source/unit and actual Chromium component checks PASS. One bounded local Next.js browser-to-database attempt stopped during server startup before fixture creation or the C3 route was reached; authenticated Next/browser actions and durable UI commits are NOT VERIFIED. No C4, deployment or Git publication starts automatically.
+
+### Current checkpoint and route
+
+- Branch feature/development, HEAD f82a08105158713ffad5161c0235fac1d23327fd; empty index. Entry had 17 modified tracked files and 15 untracked files. All 503 incoming tracked/nonignored files and raw index were included in preservation checks. Incoming C2/C2.1/C2.2A/C2.2B and UI/documentation work was preserved.
+- Student-only navigation adds Group Workspace at /dashboard/student/workspace. Existing My Research & Submissions navigation and selector behavior were not changed. Existing Student layout plus explicit page requireRole([STUDENT]) and getDashboardAccount enforce role/active-current-account checks; task reads/mutations also use C2 service authorization.
+- The page reuses getStudentResearchProjects for the authorized active-group directory and serializes only project ID/title. Ordering matches the existing newest-created/id tie-break convention. Missing project query chooses the deterministic first authorized project. A supplied project must be a single canonical positive int32 ID in that directory; invalid/foreign/array values render Project unavailable without calling the task-board read. Empty directories render an informative existing-Research-Submissions link.
+- Selector uses /dashboard/student/workspace?project=<id>, preserving a selection through refresh/browser navigation. The client subtree is keyed by server-selected project ID. Dialogs retain their captured paper ID; selector/actions are disabled during pending navigation/mutation and selector is disabled while a dialog is open. Tested history-like navigation during an in-flight save retained the original request's project and did not show old-project tasks in the new project.
+
+### Task UI, existing actions and minimal capability response
+
+- Ordered sections To Do, In Progress, Done with counts from already-loaded data; compact expandable task rows expose title, two-line description preview, full description in details, assignee or Unassigned, date-only due date, status and creator attribution. No drag-and-drop, charts, analytics, realtime/offline queue or extra detail endpoint.
+- New/edit/assignment/status/delete dialogs reuse ResearchDialog, shared Student styles and the five existing C2 task Server Actions. Native labels/required/length/date fields and structured backend errors preserve failed form values. Ref/transition guards prevent immediate duplicate submissions. Success refreshes authoritative data instead of inventing an optimistic task/status. Uncertain infrastructure/refresh results pause further changes and require explicit reload/verification.
+- New Task includes required title plus optional description, eligible assignee and due date; status defaults in existing backend to To Do. Edit changes only title/description/date. Assignment supports eligible current group Students and unassignment. Status is limited to the three task values and does not alter academic progress, submissions, review, approval or publication.
+- Task details reuse the loaded DTO. Creator-only delete requires an explicit Permanently delete task confirmation explaining that all linked Shared Research Notes, including deleted notes, remain preserved and unlinked. No bulk deletion or note mutation UI. Existing C2 note methods/actions/deletion transaction remain unchanged.
+- The only C2 integration extension is a taskBoard read and transaction taskDirectory method. Existing authorizeStudentWorkspace/run authorization is used before metadata access. Eligible choices select only active Student members of the authorized group. Historical names are queried only for creator/assignee IDs found in the already-scoped task list. Response contains names/IDs, eligibility and edit/assign/status/delete/recovery booleans; no email, password or global Student directory.
+- Current eligible creator receives edit/assignment/status/delete; current assignee receives status; an eligible group member receives assignment-only recovery when the creator is no longer eligible. Recovery grants no edit/delete/ownership transfer. Ineligible historical assignees remain visible with Needs reassignment; their disabled legacy option is not silently removed. Capabilities are advisory server-derived presentation; each existing mutation independently rechecks authorization and creator eligibility.
+
+### Responsive/accessibility and design review
+
+Project DESIGN/ANTISLOP During guidance was applied with ENERGY 1 / RHYTHM 2 / MOTION 1. Existing academic typography/theme tokens, restrained action accent, section rules and shared dialog sizing were retained. Horizontal rules separate task categories/rows for scanning; no decorative assets or new UI dependencies were added. Counts reflect loaded tasks only. Shared Research Notes UI is omitted rather than shown as a fake tab.
+
+Desktop uses compact grouped rows and a compact project toolbar; mobile stacks the toolbar and task controls, wraps long text and uses existing 44px control minimums. Native details and dialog semantics provide keyboard operation. Dialog fields are labeled, errors/status are announced and pending controls disabled. C3 restores focus after its action transition settles, including a project-heading fallback if deletion removes the triggering button. Light/Dark component contrast, 360/1280 overflow, narrow dialog fit and Tab/Escape behavior passed. Desktop/mobile synthetic screenshots were visually inspected outside Git. Full dashboard/PWA/device acceptance is not implied by these component checks.
+
+### Actual validation and full-app limitation
+
+- node --import tsx --test --test-concurrency=1 tests/c3-task-board.unit.cjs tests/c2-collaborative-workspace.unit.cjs: PASS, 26 tests (6 new C3, 20 relevant existing C2). Covers project parsing/selection, Student-only navigation, server page gating, capability rules, denied metadata access and real Drizzle directory SQL shape/privacy, plus existing C2 task/note authorization/transactions. The six C3 cases were rechecked after a test-loader naming correction. The full C2.2B database suite was not repeated.
+- node tests/c3-task-board.browser.cjs: PASS in actual Chromium with the real client/dialog/CSS and explicit synthetic action/router adapters. Create/edit/unassign/recovery/status/delete, failed draft preservation, server-denial UI, category movement, duplicate-click prevention, uncertain-save lockout, read-only controls, URL/project remount/in-flight isolation, empty/invalid/error/loading states, focus/keyboard, 1280/360 Light/Dark and text contrast passed. Initial fixture module resolution and missing/layered Tailwind preflight were corrected; a real C3 trigger-focus restoration issue was fixed and rechecked. No backend mutation rules changed.
+- node --import tsx tests/c3-task-board.local-browser.cjs --execute: BLOCKED at owned loopback Next startup. /login did not become ready during bounded warmup; no root cause was established by this run. The test stopped before inserting any fixture or reaching C3 browser actions. The owned process was stopped; port 3043 was not left listening. No repeated startup/build matrix was attempted.
+- That attempted local preflight independently verified ::1:5432, thesishs_ai/OID 16387, cluster 7652422818440234372, current/session postgres, expected owner/privileges and exact 17-entry ledger. Both workspace tables were present. Before/after all 19 application row digests/counts, catalog signatures and ledger matched. No C3 database fixture, role/service/database, schema/migration or research-record mutation occurred. This is not restricted-runtime privilege acceptance.
+- TypeScript --noEmit --incremental false PASS; targeted ESLint with --max-warnings 0 PASS; final whitespace and incoming-file/index preservation checked separately. No full build, broad regression/concurrency/load, browser password-login, PDF, push, AI, Preview/Production operation or dependency installation.
+
+### Exact C3 files
+
+Created:
+- app/dashboard/student/workspace/page.tsx
+- app/dashboard/student/workspace/loading.tsx
+- components/dashboard/student-task-board.tsx
+- components/dashboard/student-task-board.module.css
+- lib/workspace/task-board-view.ts
+- tests/c3-task-board.unit.cjs
+- tests/c3-task-board.browser.cjs
+- tests/c3-task-board.local-browser.cjs
+
+Modified (preserving incoming work):
+- lib/constants/dashboard-navigation.ts
+- lib/workspace/contract.ts
+- lib/repositories/collaborative-workspace.repository.ts
+- lib/services/collaborative-workspace.service.ts
+- docs/MASTER_CONTEXT_UPDATED.md (appendix)
+- docs/ARCHITECTURE_UPDATED.md (appendix)
+
+### C4 handoff / remaining limits
+
+C3 task UI source and targeted component/authorization evidence are ready for owner review; full authenticated Next.js/Server Action/durable-UI acceptance remains pending a working local server. C4 remains separately scoped and was not implemented. It may reuse the authorized project route and existing C2 note actions, but must preserve creator-only edits/link/delete/restore, expected-version conflict handling, soft-deletion visibility, same-paper task links and task-deletion note preservation. Do not infer note permissions from C3 task capabilities. No new C3 production/PWA reliability, concurrency or hosted migration/grant acceptance is claimed. Preview/Production and incoming migration artifacts remain untouched.
+
+
+## C4 Shared Research Notes UI: scoped implementation and validation PASS (2026-11-06)
+
+**PASS - C4 implementation and scoped validation passed.** Shared Research Notes now sits alongside Tasks in the Student Group Workspace. This supersedes the earlier C3 statement that C4 was not implemented. Full authenticated C3+C4 Next.js/browser acceptance is still pending by the owner's explicit C4 decision; it is a separately approved follow-up. No Next.js server startup or database operation was attempted during C4, and the historical C3 startup limitation was not investigated or declared fixed.
+
+### Git and preservation
+
+- Entry and exit: feature/development, HEAD f82a08105158713ffad5161c0235fac1d23327fd, empty staging index. Entry contained 18 modified tracked files and 23 untracked files (511 tracked/nonignored files total). All incoming changes remain unstaged. The final comparison checks original file hashes except the five deliberately extended C3/C2 implementation/test files, plus exact original byte prefixes of the two appended canonical documents and the raw index hash. Six C4 files are new.
+- No reset, restore, stage, commit, push, merge, dependency installation, schema/migration, PostgreSQL infrastructure, provider, Preview or Production operation. Incoming migration 0016 artifacts and unrelated implementation/documentation are preserved.
+
+### Navigation, project scope and reads
+
+- /dashboard/student/workspace uses URL project and tab=tasks|notes; absent/invalid/array tab values default to Tasks. Notes' Recently Deleted view uses deleted=1. The shared project selector preserves the current tab (and deleted view); tabs retain the selected authorized project. Existing Research Submissions navigation/selector is unchanged.
+- Explicit Student/account checks, the authorized research-project directory and canonical positive int32 project resolver remain intact. Invalid/foreign project IDs do not invoke task or note reads. Only the active tab's read executes. Direct URL and refresh state are resolved server-side; project-keyed client state and deleted-view keys discard prior project/view state rather than carrying identifiers into another paper.
+- Minimal new NotesBoard DTO/notesBoard service read reuses the existing run/authorizeStudentWorkspace path and transaction listNotes/listTasks/taskDirectory operations. It provides server-derived creator display names, same-paper task ID/title choices, current linked-task display and creator capability flags. No repository redesign/new method or mutation-contract change. Creator identity is never taken from client input; every existing C2 action independently revalidates current account, Student role, active membership/group and paper scope.
+
+### Notes behavior
+
+- Active notes show title, two-line plain-text preview, creator, UTC updated date and task title/Unlinked. Native expandable details show full escaped plain text and metadata. Empty, loading, invalid-project and changed-access states follow the dashboard conventions.
+- New Note uses the existing create action, required title up to 200 characters, content up to 20,000 and an optional selected-paper task. Creator-only Edit changes title/content; a separate Link Task dialog links/unlinks through the existing action, avoiding partial multi-action saves. Peer notes are read only. Server authorization remains final authority regardless of visible controls.
+- Creator-only Delete confirms that the note leaves the shared list while stored content is preserved. Recently Deleted uses the existing creator-scoped deletedOnly read; it exposes no other creator's deleted notes. Restore uses the existing action, returns to Active Notes and refreshes authoritative state. No permanent note deletion/retention automation.
+- All edit/link/delete/restore requests capture paper ID, note ID and the expected version from the opened note snapshot. A server refresh does not silently advance an open editor's expected version. Task-deletion unlink/version semantics and same-paper validation stay in C2. Deleted/missing tasks display Unlinked; concurrent association changes receive controlled failures/conflicts from the existing service.
+
+### Conflicts and drafts
+
+- A conflict keeps unsaved text/task selection and disables further saves. The UI explains that the note changed and offers Reload latest version. Reload requires explicit confirmation that it replaces the draft, reads the authorized current note, then resets only that dialog to the returned version. It never automatically retries a mutation or merges drafts. A failed latest read preserves the original draft; changed deletion/restoration state keeps the write blocked and instructs a workspace reload.
+- Existing ResearchDialog protects dirty close/Cancel/Escape and document unload. The project selector and tabs are disabled while a form is open or work is pending; uncertain writes/refresh failures pause further changes until workspace verification. Failed validation/denial/uncertain saves do not reset the form; synchronous submission locks prevent accidental duplicate actions. No global/persistent draft store.
+- A feature-detected Navigation API navigate listener also guards cancelable same-document history navigation. Its cancellation branch was tested with a synthetic cancelable event, not real Next.js history. Browsers without that API, noncancelable history events and browser/OS termination may still discard an in-memory draft without that extra history prompt. Ordinary project/tab changes remain locked until dialog dismissal; broader history/device behavior belongs in combined acceptance. See MDN's Navigation navigate event documentation: https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate_event.
+
+### Responsive, accessibility and actual validation
+
+- Existing academic Light/Dark tokens, shared Student forms/dialogs, 44px controls and restrained row separators are retained. Mobile stacks metadata and controls; full plain text wraps even for a 20,000-character unbroken value. Keyboard tabs use manual activation with Arrow/Home/End focus, Enter/Space activation and focus restoration after navigation. Dialog labels, status/alert feedback, native focus trapping and trigger/heading focus restoration are retained. No new UI dependency, rich text, realtime transport or decorative assets.
+- node --import tsx --test tests/c4-research-notes.unit.cjs tests/c3-task-board.unit.cjs: PASS, 11 isolated cases (5 C4, 6 focused C3). Covers URL parsing, active/deleted metadata/capabilities, verified-actor deleted scoping, unauthorized read rejection and server route active-view/project guards; existing C3 resolver/capability/SQL shape cases remain passing. Only the C3 route test adapter changed to the new wrapper import.
+- node tests/c4-research-notes.browser.cjs: PASS, 12 interaction groups in real Chromium with actual workspace/notes/shared dialog/CSS and synthetic in-memory action/router boundaries; all network requests aborted. Covers tabs/URL project retention, creator controls, plain-text viewing, create/edit/link/unlink/delete/restore, expected-version snapshots, concurrent task unlink simulation, edit/link/delete/restore conflicts, explicit warned latest reload/read failures/state changes, draft discard cancellation, duplicate submission, uncertainty lockout, empty/error/loading, keyboard/focus and 1280/360 Light/Dark. Text contrast, minimum form target height, narrow dialog fit and unbroken long-text overflow passed. A tab-focus regression found by the expanded keyboard assertion was fixed and rechecked. Normal-list and desktop/mobile dialog screenshots were visually inspected outside Git.
+- node tests/c3-task-board.browser.cjs: PASS, focused existing synthetic component regression because C3's selector/navigation locking props changed. Task action/category/permission behavior is preserved. This is not full C3 application acceptance.
+- TypeScript --noEmit --incremental false PASS. Targeted ESLint on all C4-touched TS/TSX/CJS files with --max-warnings 0 PASS; an initial test-loader variable naming lint issue was corrected. Git whitespace and incoming-file/index preservation checked separately. No full build, DB acceptance replay or broad C2/C3 suite.
+- React best-practices review applied to the changed TSX: minimal serializable view data, existing authenticated actions, scoped state, derived display values, explicit event-driven saves, accessible controls and no persistent private client cache. Anti-Slop During project preference retained.
+
+### Exact C4 files
+
+Created:
+- components/dashboard/student-group-workspace.tsx
+- components/dashboard/student-research-notes.tsx
+- components/dashboard/student-research-notes.module.css
+- lib/workspace/workspace-view.ts
+- tests/c4-research-notes.unit.cjs
+- tests/c4-research-notes.browser.cjs
+
+Modified (prior work preserved):
+- app/dashboard/student/workspace/page.tsx
+- components/dashboard/student-task-board.tsx
+- lib/workspace/contract.ts
+- lib/services/collaborative-workspace.service.ts
+- tests/c3-task-board.unit.cjs
+- docs/MASTER_CONTEXT_UPDATED.md (appendix only)
+- docs/ARCHITECTURE_UPDATED.md (appendix only)
+
+### Combined acceptance readiness / stop boundary
+
+C3+C4 source and lean component evidence are ready for a separately scoped combined authenticated browser checkpoint. Actual Next.js routing/history, HTTP authentication/cookies, Server Action transport, durable UI writes, live capability changes, true simultaneous editors and physical-device/PWA behavior are not verified by the synthetic component harness. A working regular local application remains a prerequisite; C4 neither retries nor fixes the earlier automated startup blocker. No restricted-runtime grant, hosted security, reliability or production-readiness acceptance is added. No C5, combined acceptance, deployment or Git publication starts automatically.
+
+
+## C5 Combined C3+C4 authenticated local browser acceptance: scoped PASS (2026-11-06)
+
+**PASS - Essential authenticated Collaborative Research Workspace workflows verified locally.** This supersedes the C3/C4 pending full-application acceptance label for the C5 scope. Actual Chromium password login, HTTP/session cookies, Next.js routing and Server Action transport, current service/repository authorization and committed local PostgreSQL persistence were exercised. Evidence combines ten passed main-run groups with five passed focused follow-up groups (thirteen distinct groups; fixture/login are common). This is focused local acceptance, not Preview/Production release, physical-device/PWA reliability, restricted-runtime grant or simultaneous-race acceptance.
+
+### Git, server and database preflight
+
+- Branch feature/development, HEAD f82a08105158713ffad5161c0235fac1d23327fd, empty index. Entry contained 18 modified tracked and 29 untracked files, 517 tracked/nonignored files total. All incoming application/tooling/migration/test/documentation bytes are preserved; only the new C5 harness and appended canonical handoffs belong to this checkpoint. No reset/restore/staging/commit/push/merge.
+- Reused the owner's already-running normal Next.js development server on port 3000. /login returned HTTP 200 with the expected form, and read-only process metadata identified repository Next.js process 9092. No server was started, restarted, reconfigured or stopped. The successful authenticated runs used http://localhost:3000. The earlier C3 owned-startup failure was not diagnosed or declared fixed; a working normal server made acceptance possible.
+- Reused existing guarded local configuration without credential changes. Read-only catalog checks and each fixture transaction verified thesishs_ai, OID 16387, cluster 7652422818440234372, loopback ::1:5432, owner/current/session postgres and the exact 17 source-matching migration entries through 0016. Both workspace tables existed. One original task and one original note were present and were never used as fixtures. Application runtime remains the existing local privileged account; least-privilege runtime acceptance is not inferred.
+
+### Durable fixtures and cleanup plan
+
+Main runs used four unique C5-marked accounts (an Adviser for the group FK, two eligible Students and an outside-group Student), one active group, two memberships and two Draft papers. Test passwords were ephemeral process-only random values, stored only as bcrypt12 hashes in synthetic users and never printed. Browser sessions were established exclusively through the actual Login form, never injected cookies or mocked JWT/session adapters. Separate creator contexts provided the stale-editor scenario.
+
+Before any commit, a run-owned private temporary manifest recorded the unique marker and exact base IDs. The existing privateFile guard checked the directory/file ACL. UI-created task/note IDs were recorded after authoritative reads; cleanup also reconciled any owned-paper rows not yet recorded after a failure, requiring C5 title markers and owned creators. Cleanup validated local identity/ledger again, locked/checked owned users/papers, then deleted only owned notes, tasks, papers, membership rows, group and users in dependency order. No truncation, broad deletion, original-row repair or sequence reset.
+
+The focused follow-up used a smaller fresh fixture: Adviser plus creator, one membership, two papers, and one marked Done task/unlinked note seeded at version 8 solely to test the already-reached deletion/navigation state. Those seed writes are fixture setup, not evidence of UI creation; main-run UI creation/persistence had already passed.
+
+### Thirteen distinct acceptance results
+
+| Group | Result and evidence |
+|---|---|
+| 1. Target/fixtures | PASS: pinned local identity/17-entry ledger; committed marked fixtures and private exact-ID ownership manifest before browser writes. |
+| 2. Real authentication | PASS: actual Student password login, HttpOnly session cookie, dashboard, Group Workspace navigation and route. No authentication bypass. |
+| 3. Project navigation | PASS: newest-created/highest-ID default, selection URL, Tasks/Notes retention, refresh and real Back/Forward selection. Empty second paper had no first-paper task/note rows. |
+| 4. Task create/edit/assignment | PASS: created via dialog in To Do, persisted after refresh; creator edit persisted; assigned eligible member. External assignee absent from options and an actual observed Server Action replay denied it without changing the stored assignment. |
+| 5. Assignee and creator boundary | PASS: member logged in normally and persisted In Progress then Done/category movement; no creator edit/delete/assign controls. Actual peer edit request denied and stored task unchanged. |
+| 6. Note create/edit/link/unlink | PASS: literal script-like text rendered as text; persistence after refresh; creator title/content edit and same-paper task link/unlink. Versions 1,2,3,4 verified. Cross-paper identifiers rejected by actual Server Action; version unchanged. |
+| 7. Peer note permissions | PASS: eligible peer read-only UI, actual peer edit denied, content/version unchanged. A separately owned peer note was created and soft-deleted to test recovery privacy. |
+| 8. Delete/restore | PASS: cancel and confirm soft deletion, exclusion after refresh, own Recently Deleted, other creator's deleted note absent, restore to active list. Content/authorship preserved; versions 5 and 6 verified. Peer recovery listed only peer's deleted note. |
+| 9. Outside-group denial | PASS: outside Student logged in normally; direct foreign project unavailable, note not exposed. Actual task/note mutation requests denied; invalid int32 project selection also unavailable. |
+| 10. Two-session stale edit | PASS: second real creator session saved version 7; first session's stale save rejected without overwriting it. Unsaved text retained. Declining warned latest reload kept draft; accepting loaded server content without a write; reviewed explicit save produced version 8. Sequential stale-editor case, not a concurrent scheduling claim. |
+| 11. Dirty navigation | PASS: open draft disabled tabs/selector; declined Escape kept text. Actual Chromium same-document Back emitted a cancelable traverse event and the discard prompt could cancel it. Declined standard beforeunload refresh kept the editor/draft. No new navigation interception code. |
+| 12. Task deletion/note preservation | PASS: actual task delete Cancel preserved task; confirmed deletion persisted after refresh. Linked note survived unlinked, with content/title/creator/paper/deletion state unchanged; note version advanced 9 to 10. |
+| 13. Actual responsive rendering | PASS: actual Next.js Tasks/Notes and New Task/New Note dialogs at 360 and 1280, Light/Dark, no horizontal overflow, fitting dialogs, keyboard trapping and trigger-focus restoration. Mobile navigation drawer usable. Reused unchanged C3/C4 component contrast evidence; two credential-masked final screenshots visually inspected outside Git. No page runtime errors in the final main-prefix/follow-up runs. |
+
+### Test-harness corrections and execution provenance
+
+New tests/c5-workspace.browser.cjs uses installed Chromium/Playwright, the existing databaseConfiguration/inspectLocalWorkspace/privateFile helpers and bounded real actions. It blocks external browser requests and push endpoints; no provider, Storage, Web Push, AI or email test is invoked. Observed workspace Server Action identifiers/payloads are replayed with the browser context's real authenticated cookies for scoped negative checks; no hardcoded action ID or authentication cookie.
+
+- Initial private-artifact ACL check stopped before fixtures. The harness now restricts only its newly created temporary directory before applying the existing guard; no shared directory/configuration permission change.
+- The 127.0.0.1 run passed login but hit project-switch timing and a concrete Next dev-origin resource warning. The harness switched to the existing healthy localhost origin and waits for client readiness; no Next configuration change. The relative contributions of origin/timing were not separately established.
+- The next empty-project assertion incorrectly counted the PWA footer's installation details. It was narrowed to the workspace panels. An earlier synthetic logout timing failure was also addressed by waiting for client readiness; those contexts were closed and their exact accounts removed.
+- The main localhost command then passed ten groups, including authentication/CRUD/permissions/stale conflict, and stopped on its canceled-refresh error matcher: Playwright waited until timeout after beforeunload was declined. The corrected assertion accepts aborted navigation or that timeout only when the actual beforeunload event occurred and the unchanged draft is still present.
+- To avoid another CRUD replay, node --import tsx tests/c5-workspace.browser.cjs --execute --navigation-and-deletion ran only minimal fresh setup/login plus the affected navigation, task-deletion/preserved-note and responsive checks: PASS, five groups, confirmed logout and cleanup, no remaining limitations. The ten-group main result and this five-group result provide thirteen distinct accepted groups. A single uninterrupted run of the final full --execute command was not repeated or claimed.
+- Targeted ESLint on the new harness with --max-warnings 0 PASS. TypeScript --noEmit --incremental false PASS. Final Git whitespace/new-file checks and original-file/index/doc-prefix preservation checked separately. No application source changed, so no C1-C4 suite, full build or unrelated component regression was repeated.
+
+### Independent cleanup and preservation evidence
+
+Every attempt independently verified its owned IDs absent and the before/after complete row counts/digests across all 19 original public tables, catalog signatures, authenticated identity and exact ledger unchanged. This includes the one existing task/note, original research/submission metadata and all Web Push rows. Only fixture-used serial sequences advanced normally; definitions and unrelated sequences were unchanged, and none was reset. External browser traffic was blocked and workspace actions do not call Storage; no Storage mutation path was used. Remote Storage object inventory was not separately queried.
+
+A final independent READ ONLY check combined all four committed runs and verified every recorded ID and all C5 user/group/paper markers absent. Totals removed across those bounded attempts: 14 users, 4 groups, 7 memberships, 8 papers, 3 tasks and 5 notes. Exact fixture IDs verified absent:
+
+- Users: 330-343; groups: 132-135; memberships: 89-95; papers: 158-165.
+- Tasks: 4,5,6; notes: 5,6,7,8,9.
+
+These are recorded C5 IDs, not range-based deletion predicates. The actual cleanup statements were exact-ID plus ownership conditions. Final independent workspace counts returned to the original one task/one note; target OID/cluster and all 17 ledger entries matched. Final main-prefix and focused-follow-up sessions were logged out through the real application and session cookies removed; all contexts closed. Earlier timing-unconfirmed sessions lost their synthetic accounts during verified cleanup.
+
+Private evidence directories under C:/Users/admin/AppData/Local/Temp: thesishs-c5-CDdZZx (ten-group main result) and thesishs-c5-igYmQL (five-group follow-up, actual navigation evidence and masked screenshots). Earlier bounded-attempt manifests/results remain in thesishs-c5-7vJUD9, thesishs-c5-ihKWbx and thesishs-c5-fnCBXI. No passwords or session-cookie values are in those manifests/results or canonical docs.
+
+### Exact files / closure recommendation
+
+Created: tests/c5-workspace.browser.cjs. Appended only: docs/MASTER_CONTEXT_UPDATED.md and docs/ARCHITECTURE_UPDATED.md. All 517 incoming files, including C3/C4 sources, migrations, tooling and prior document prefixes, are preserved; staging index remains empty. The reused development server is left running and untouched.
+
+Recommend owner closure review for **Collaborative Research Workspace C3+C4 essential local acceptance PASS**, with the evidence provenance above. Remaining separate gates: protected Preview/release approval, restricted-runtime grants, hosted security, unsupported/noncancelable history paths and other browser/physical-device/PWA coverage, simultaneous races/load and reliability. C5's successful Chromium cancelable Back/refresh paths do not remove the C4 platform limitation for unsupported events or OS termination. Existing signed-PDF, academic workflow, P.3F.3, hard-disabled Groq/Resend and frozen Expo boundaries remain. No commit, deployment, Preview/Production change or additional phase starts automatically.
+
+
+## C6 Collaborative Research Workspace local closure (2026-11-06)
+
+Collaborative Research Workspace is complete for the approved local demonstration scope. Preview activation and production-readiness checks remain separately gated.
+
+**Local C1-C5 scope: CLOSED / PASS with recorded evidence boundaries.** The owner authorizes one reviewed local C6 commit on feature/development, message feat(workspace): close local student collaboration milestone, parent f82a08105158713ffad5161c0235fac1d23327fd. The commit containing this handoff is the closure checkpoint; resolve its actual SHA from Git after creation rather than inventing a self-reference. No push, merge, release tag, deployment or additional phase is included.
+
+### Reviewed implementation and reused evidence
+
+- C1: reported read-only architecture/authorization investigation supplied the approved Student/project boundaries; no C1 implementation or audit rerun is claimed.
+- C2: tasks/notes schema, strict validation, current Student/account/group/member/project authorization, task CRUD/assignment/limited orphan recovery, creator-only note edits/link/delete/restore, CAS conflicts and transactional unlink/preservation are implemented. Existing layered architecture and academic/provider workflows are preserved.
+- C2.1: generated additive 0016, snapshot/journal and exact legacy/current source protection are reviewed. Existing Preview initializer/operator remain bounded to the legacy prefix; local runner remains pinned to loopback/thesishs_ai/OID/cluster/admin and private backup/source confirmations with no automatic retry.
+- C2.2A: recorded PASS for the owner-approved local administrator migration through 0016, 17 exact entries, verified private backup/archive and original records/catalog/sequences preserved. Archive verification is not a restoration-test claim.
+- C2.2B: seven essential database-backed functional cases PASS using actual JWT/service/repository authorization and rolled-back synthetic fixtures, with independent cleanup/preservation.
+- C3/C4: Student Group Workspace, shared multi-project selector, categorized tasks, plain-text Notes, creator controls, deleted recovery, safe links, expected-version conflict handling and draft/project safeguards are implemented. Focused isolated/component, mobile/desktop Light/Dark, keyboard/focus and error-state evidence remains recorded.
+- C5: essential actual password-login/session/Next Server Action/committed-local-PostgreSQL acceptance PASS. Evidence comprises 13 distinct groups across the ten-group main prefix and five-group focused follow-up (setup/login common). The corrected full browser harness was not rerun uninterrupted. All executed attempts verified exact fixture cleanup and original-data/catalog/ledger preservation; no remaining C5 fixture is reported. Unsupported/noncancelable history, other devices/browsers and simultaneous races retain their limits.
+
+These are prior checkpoint results reviewed for closure, not new C6 runtime tests. C6 neither accesses PostgreSQL nor starts/stops the local server; no private backup, Storage, push, AI, provider, Preview or Production operation occurs.
+
+### C6 source and minimal validation
+
+- TypeScript --noEmit --incremental false PASS; targeted ESLint on the 32 CRW TS/TSX/CJS source/test files with --max-warnings 0 PASS. No dependencies, auth architecture or application behavior changed.
+- Offline SQL SHA-256 matches 5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63. All 32 historical SQL/snapshot files are byte-identical to parent HEAD. Original journal entries and snapshot tables/lineage are preserved. Legacy digest 37824a5d2df42e54df9e50ee115c6eb7d6c42a94864c99aedfb1d63b4dbf51e0 and workspace digest 66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc match; only the intended generated 0016 artifacts are new.
+- Required commit gates are exact staged inventory/import completeness, secret/artifact exclusion, working-tree/staged whitespace, original-file/document-prefix preservation and post-commit index/HEAD verification. Full C2.2B, C3/C4 browser, C5, Web Push, AI, full builds and load suites are deliberately not repeated.
+
+### Exact scoped commit inventory (42 paths)
+
+- README.md
+- app/dashboard/student/workspace/loading.tsx
+- app/dashboard/student/workspace/page.tsx
+- components/dashboard/student-group-workspace.tsx
+- components/dashboard/student-research-notes.module.css
+- components/dashboard/student-research-notes.tsx
+- components/dashboard/student-task-board.module.css
+- components/dashboard/student-task-board.tsx
+- db/migrations/0016_collaborative_research_workspace.sql
+- db/migrations/meta/0016_snapshot.json
+- db/migrations/meta/_journal.json
+- db/schema/group-task.ts
+- db/schema/index.ts
+- db/schema/task-note.ts
+- docs/ARCHITECTURE_UPDATED.md
+- docs/DATABASE (1).md
+- docs/MASTER_CONTEXT_UPDATED.md
+- docs/SOURCE_OF_TRUTH_UPDATED.md
+- lib/actions/collaborative-workspace.action.ts
+- lib/constants/dashboard-navigation.ts
+- lib/repositories/collaborative-workspace.repository.ts
+- lib/services/collaborative-workspace.runtime.ts
+- lib/services/collaborative-workspace.service.ts
+- lib/validations/collaborative-workspace.ts
+- lib/workspace/contract.ts
+- lib/workspace/task-board-view.ts
+- lib/workspace/workspace-view.ts
+- scripts/database-operator.ts
+- scripts/initialize-preview-database.ts
+- scripts/migrate-local-workspace.ts
+- scripts/preview-migration-source.ts
+- scripts/preview-schema.ts
+- tests/c2-collaborative-workspace.unit.cjs
+- tests/c21-workspace-migration.unit.cjs
+- tests/c22a-local-migration.unit.cjs
+- tests/c22b-workspace.acceptance.cjs
+- tests/c3-task-board.browser.cjs
+- tests/c3-task-board.local-browser.cjs
+- tests/c3-task-board.unit.cjs
+- tests/c4-research-notes.browser.cjs
+- tests/c4-research-notes.unit.cjs
+- tests/c5-workspace.browser.cjs
+
+### Mixed-file handling and preservation
+
+Entry: branch feature/development at the parent above; empty index; 18 modified tracked files and 30 untracked files, 518 tracked/nonignored files total. All 30 new files are CRW source/migration/tests. Seven existing source/tooling files have only reviewed CRW changes. Five canonical documents receive additive C6 reconciliation.
+
+An isolated Git index prepares only this inventory. For README, Master Context, Source of Truth and Architecture, the staged content is parent HEAD plus the exact CRW sections and C6 addendum. Their unrelated incoming Web Push/landing/login/history corrections remain only in the working tree. Database reference changes are CRW-only. Working-tree document versions are never replaced by staged variants; their complete incoming byte prefixes are preserved.
+
+Fully excluded incoming paths: AGENTS.md, app/globals.css, app/page.module.css, app/page.tsx, components/auth/login-form.tsx and tests/phase9-landing.browser.cjs. Existing unrelated hunks in the four mixed documents are also excluded. This is a CRW closure, not a checkpoint of all accumulated work. No .env, connection configuration, backup/dump, actual test password, screenshot, browser profile, generated build output, dependency/lockfile or unrelated migration is selected. Runtime harness passwords are generated process-only; unusable fixture sentinels are not login credentials.
+
+All non-document incoming file hashes and all five original document byte prefixes are checked before/after the commit. The index must be empty after the single commit; unrelated working-tree changes are expected to remain. The real commit hash, exact committed inventory and preservation outcome belong in the C6 final report. No clean working-tree claim is required.
+
+### Deferred gates and recommended next checkpoint
+
+Deferred: Preview migration 0016 and minimum runtime privileges, Preview/Production deployment, restricted-runtime privilege verification, production concurrency/race testing, additional browsers/devices and an uninterrupted rerun of the corrected full C5 harness. No database/server/provider operation, push, merge or deployment is authorized by C6. The full uninterrupted corrected C5 rerun is still deferred even though the essential local workflows passed across focused runs. Keep the local privileged-runtime limitation, sequential stale-editor scope, hosted security gates, unsupported history/OS-termination draft limitations, existing PDF/review/publication lifetimes and frozen/hard-disabled provider boundaries.
+
+Recommended next separately authorized checkpoint: review Preview 0016 target/ledger/operator-path readiness and minimum task/note runtime privileges, then define focused protected Preview workflow acceptance before any migration or activation approval. This recommendation performs none of those operations and does not start P.4 or another milestone. Stop after the local C6 commit/report.

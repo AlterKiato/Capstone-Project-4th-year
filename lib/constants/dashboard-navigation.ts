@@ -21,6 +21,7 @@ export function dashboardLinks(roleId: number): DashboardLink[] {
     switch (roleId) {
         case ROLE_IDS.STUDENT: return [home,
             { href: "/dashboard/student/submissions", label: "My Research & Submissions", icon: "document" },
+            { href: "/dashboard/student/workspace", label: "Group Workspace", icon: "group" },
             repository, guide, settings];
         case ROLE_IDS.ADVISER: return [home,
             { href: "/dashboard/adviser/groups", label: "Research Groups", icon: "group" },

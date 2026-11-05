@@ -1,0 +1,32 @@
+.board { margin-top: .25rem; min-width: 0; }
+.projectTitle { font-size: 1.15rem; font-weight: 650; overflow-wrap: anywhere; margin-bottom: 1.5rem; }
+.notice { min-height: 1.5rem; margin: .65rem 0; }
+.category + .category { margin-top: 1.75rem; }
+.category > h3 { display: flex; align-items: center; gap: .65rem; padding-bottom: .6rem; border-bottom: 1px solid var(--border-strong); font-size: 1rem; font-weight: 650; }
+.category > h3 span { display: inline-grid; place-items: center; min-width: 1.6rem; padding: .1rem .35rem; border-radius: .25rem; background: var(--surface-secondary); font-size: .875rem; }
+.tasks { list-style: none; margin: 0; padding: 0; }
+.tasks > li { border-bottom: 1px solid var(--border); }
+.tasks summary { cursor: pointer; padding: 1rem .5rem; min-height: 44px; overflow-wrap: anywhere; }
+.tasks summary::marker { color: var(--muted); }
+.tasks summary:hover { background: var(--surface-hover); }
+.taskTitle { font-weight: 600; }
+.preview { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: pre-wrap; margin: .4rem 0; }
+.meta { display: block; margin-top: .4rem; font-size: .875rem; color: var(--muted); }
+.details { padding: .25rem .5rem 1rem; }
+.description { white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 1rem; }
+.details dl { display: flex; flex-wrap: wrap; gap: .75rem 2rem; margin-bottom: 1rem; }
+.details dt { font-size: .875rem; color: var(--muted); }
+.details dd { margin: .2rem 0 0; overflow-wrap: anywhere; }
+.controls { display: flex; gap: .5rem; flex-wrap: wrap; }
+.controls button { background: transparent; color: var(--action); border: 1px solid var(--border-strong); }
+.controls button:hover:not(:disabled) { background: var(--surface-hover); }
+.empty { padding: .85rem .5rem; color: var(--muted); }
+.warning { padding: 1rem; border: 1px solid var(--border-strong); background: var(--surface-secondary); margin-bottom: 1rem; }
+.warning p { margin-bottom: .75rem; }
+.dialogTask { overflow-wrap: anywhere; font-weight: 600; }
+@media (max-width: 640px) {
+    .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .controls > p { grid-column: 1 / -1; }
+    .controls button { width: 100%; padding-inline: .5rem; }
+    .details dl { flex-direction: column; gap: .75rem; }
+}

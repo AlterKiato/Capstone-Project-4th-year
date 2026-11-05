@@ -112,3 +112,14 @@ Controlled Preview acceptance is limited to approved synthetic accounts/document
 - [DESIGN.md](DESIGN.md) and [ANTISLOP.md](ANTISLOP.md): approved UI direction and design filter; attribution remains in [ANTISLOP.LICENSE](ANTISLOP.LICENSE).
 
 Read current handoffs and actual source before relying on historical phase labels. Preserve academic history, ownership rules, multiple projects per group and private Storage. No roadmap entry alone authorizes database/Storage mutations, email/AI activation, deployment, staging, commits or pushes.
+
+
+## Collaborative Research Workspace local closure (C6, 2026-11-06)
+
+Collaborative Research Workspace is complete for the approved local demonstration scope. Preview activation and production-readiness checks remain separately gated.
+
+Students have a project-scoped Group Task Board and plain-text Shared Research Notes at /dashboard/student/workspace, with Tasks/Notes tabs, existing group membership authorization, creator controls, task assignment/recovery, note soft deletion/restoration and version-conflict draft preservation. These operations do not change academic submissions, review decisions or publication.
+
+Local migration 0016 application, seven database-backed functional scenarios and essential authenticated Chromium workflows are recorded in the [C6 closure handoff](docs/MASTER_CONTEXT_UPDATED.md#c6-collaborative-research-workspace-local-closure-2026-11-06). C5 comprises 13 acceptance groups across a main run and focused follow-up; the corrected full harness was not rerun uninterrupted. Cleanup and original-record preservation passed within those runs.
+
+Deferred: Preview migration 0016 and minimum runtime privileges, Preview/Production deployment, restricted-runtime privilege verification, production concurrency/race testing, additional browsers/devices and an uninterrupted rerun of the corrected full C5 harness. No database/server/provider operation, push, merge or deployment is authorized by C6.

@@ -1,0 +1,33 @@
+.tabs { display: flex; gap: .5rem; border-bottom: 1px solid var(--border); padding-bottom: .5rem; }
+.tabs button { background: transparent; color: var(--foreground); border: 1px solid var(--border); min-width: 5.5rem; }
+.tabs button[aria-selected="true"] { background: var(--foreground); color: var(--background); border-color: var(--foreground); }
+.notice:empty { display: none; }
+.notice { color: var(--muted); font-size: .875rem; margin-block: .5rem; }
+.notes { min-width: 0; }
+.notes h2 { font-size: 1.25rem; font-weight: 650; margin-block: 1rem .375rem; }
+.list { list-style: none; padding: 0; margin: 1rem 0; }
+.list > li { border-top: 1px solid var(--border); }
+.list > li:last-child { border-bottom: 1px solid var(--border); }
+.list summary { cursor: pointer; padding: 1rem .25rem; }
+.title, .preview, .meta { display: block; overflow-wrap: anywhere; }
+.title { font-weight: 600; }
+.list summary .title { display: inline; }
+.preview { color: var(--muted); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: pre-wrap; margin-top: .375rem; }
+.meta { color: var(--muted); font-size: .875rem; line-height: 1.6; margin-top: .5rem; }
+.details { padding: 0 .25rem 1rem; }
+.content { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; max-width: 75ch; }
+.details dl { display: grid; gap: .5rem; margin-block: 1rem; font-size: .875rem; }
+.details dl > div { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .5rem; }
+.details dt { color: var(--muted); }
+.details dd { margin: 0; overflow-wrap: anywhere; }
+.controls { display: flex; gap: .5rem; flex-wrap: wrap; }
+.controls button { background: transparent; color: var(--action); border: 1px solid var(--border-strong); }
+.controls button:hover:not(:disabled), .list summary:hover { background: var(--surface-hover); }
+.empty { padding-block: 1.5rem; color: var(--muted); }
+.warning { margin-block: 1rem; padding: .75rem; border-inline-start: 3px solid var(--foreground); background: var(--surface-secondary); overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+    .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .controls button { width: 100%; }
+    .controls > p { grid-column: 1 / -1; }
+    .details dl > div { grid-template-columns: minmax(0, 1fr); gap: .125rem; }
+}

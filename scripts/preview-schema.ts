@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import type postgres from "postgres";
-import { previewMigrationSource } from "./preview-migration-source";
+import { previewMigrationSource, workspaceMigrationSource } from "./preview-migration-source";
 const pgName = (name: string) => name.slice(0, 63);
 
 export class PreviewSchemaAssertion extends Error {
@@ -21,10 +21,24 @@ export function verifyPreviewColumnNames(table: string, actual: string[], expect
 }
 
 // Operator-only catalog verification. PostgreSQL canonicalizes trusted CHECK/default/index SQL in temporary tables.
-export async function verifyPreviewSchema(client: postgres.Sql, mode: "initialize" | "upgrade-0015" = "initialize") {
+export type PreviewSchemaMode = "initialize" | "upgrade-0015" | "workspace-baseline" | "upgrade-0016";
+export async function verifyPreviewSchema(client: postgres.Sql, mode: PreviewSchemaMode = "initialize") {
+    if (!["initialize", "upgrade-0015", "workspace-baseline", "upgrade-0016"].includes(mode)) throw new Error("Preview schema mode refused.");
+    return verifySchema(client, mode);
+}
+
+// Explicit local-only entry point; hosted modes/ownership contracts above remain unchanged.
+export async function verifyLocalWorkspaceSchema(client: postgres.Sql, entries: 15 | 16 | 17) {
+    if (![15, 16, 17].includes(entries)) throw new Error("Local schema version refused.");
+    return verifySchema(client, entries === 17 ? "upgrade-0016" : "workspace-baseline", entries);
+}
+
+async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, localEntries?: 15 | 16 | 17) {
     let schemaObject = "public", schemaAssertion = "table-set";
     try {
-        const snapshot = previewMigrationSource().snapshot;
+        const snapshot = mode === "upgrade-0016" ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot;
+        // 0015 only added push_subscriptions: derive the preceding catalog from pinned source.
+        if (localEntries === 15) delete snapshot.tables["public.push_subscriptions"];
         const tables = await client`select tablename from pg_tables where schemaname='public' and not exists(select 1 from pg_depend d where d.classid='pg_class'::regclass and d.objid=(quote_ident(schemaname)||'.'||quote_ident(tablename))::regclass and d.deptype='e') order by tablename`;
         assert.deepEqual(tables.map(row => row.tablename), Object.values(snapshot.tables).map((t: unknown) => (t as { name: string }).name).sort());
         let constraintCount = 0, indexCount = 0;
@@ -126,7 +140,8 @@ export async function verifyPreviewSchema(client: postgres.Sql, mode: "initializ
             await client`drop table pg_temp.phase102b_check`;
             // Fresh initialization remains empty-only. A populated upgrade must leave the new table empty;
             // the caller separately compares fingerprints of every existing row and sequence before/after.
-            if (mode === "initialize" || table.name === "push_subscriptions") {
+            if (mode === "initialize" || mode === "upgrade-0015" && table.name === "push_subscriptions" ||
+                mode === "upgrade-0016" && ["group_tasks", "task_notes"].includes(table.name)) {
                 schemaAssertion = "empty-table";
                 const [empty] = await client`select count(*)::int as count from ${client(`public.${table.name}`)}`; assert.equal(empty.count, 0);
             }
@@ -136,11 +151,16 @@ export async function verifyPreviewSchema(client: postgres.Sql, mode: "initializ
         const sequences = await client`select sequencename,start_value,min_value,max_value,increment_by,cycle,cache_size from pg_sequences where schemaname='public' order by sequencename`;
         assert.deepEqual(sequences.map(s => s.sequencename), serials);
         expectedObjects.push(...serials.map(name => ({ name, kind: 'S' })));
-        const actualObjects = await client`select c.relname as name,c.relkind::text as kind,c.relowner=(select oid from pg_roles where rolname=current_user) as owned
+        const actualObjects = await client`select c.relname as name,c.relkind::text as kind,c.relowner=(select oid from pg_roles where rolname=current_user) as owned,pg_get_userbyid(c.relowner) as owner
             from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public'
             and not exists(select 1 from pg_depend d where d.classid='pg_class'::regclass and d.objid=c.oid and d.deptype='e') order by c.relname`;
         schemaAssertion = "ownership";
-        assert.ok(actualObjects.every(o => o.owned));
+        if (localEntries) {
+            const intent = snapshot.tables["public.submission_upload_intents"];
+            const operatorObjects = new Set([intent.name, `${intent.name}_pkey`,
+                ...Object.keys(intent.indexes), ...Object.keys(intent.uniqueConstraints)].map(pgName));
+            assert.ok(actualObjects.every(o => o.owner === (operatorObjects.has(String(o.name)) ? "thesishs_local_operator" : "postgres")));
+        } else assert.ok(actualObjects.every(o => o.owned));
         schemaAssertion = "object-set";
         assert.deepEqual(actualObjects.map(o => `${o.name}:${o.kind}`).sort(), expectedObjects.map(o => `${o.name}:${o.kind}`).sort());
         schemaAssertion = "unexpected-objects";
@@ -154,7 +174,7 @@ export async function verifyPreviewSchema(client: postgres.Sql, mode: "initializ
             schemaObject = `public.${s.sequencename}`; schemaAssertion = "sequence-properties";
             assert.equal(String(s.start_value), '1'); assert.equal(String(s.min_value), '1'); assert.equal(String(s.max_value), '2147483647');
             assert.equal(String(s.increment_by), '1'); assert.equal(String(s.cache_size), '1'); assert.equal(s.cycle, false);
-            if (mode === "initialize") {
+            if (mode === "initialize" || mode === "upgrade-0016" && ["group_tasks_id_seq", "task_notes_id_seq"].includes(s.sequencename)) {
                 const [v] = await client`select last_value::text as value,is_called from ${client(`public.${s.sequencename}`)}`;
                 assert.equal(v.value, '1'); assert.equal(v.is_called, false);
             }

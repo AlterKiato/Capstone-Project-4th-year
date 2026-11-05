@@ -5,7 +5,7 @@ import { createInterface } from "node:readline/promises";
 import { Writable } from "node:stream";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { readMigrationFiles } from "drizzle-orm/migrator";
+import { previewMigrationSource } from "./preview-migration-source";
 import * as schema from "@/db/schema";
 import { databaseConfiguration } from "@/lib/db/config";
 import { initializeRoles } from "@/lib/repositories/database-initialization.repository";
@@ -26,7 +26,7 @@ export async function inspectOperatorTarget(client: postgres.Sql, configuration:
         const [session] = await client`select current_setting('transaction_read_only') as read_only`;
         if (session?.read_only !== "off") throw new Error("Writable operator session required.");
     }
-    const source = readMigrationFiles({ migrationsFolder: "db/migrations" });
+    const source = previewMigrationSource().migrations;
     const ledger = await client`select hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id`;
     if (source.length !== 16 || ledger.length !== source.length ||
         ledger.some((row, index) => row.hash !== source[index].hash || row.created_at !== String(source[index].folderMillis)))
