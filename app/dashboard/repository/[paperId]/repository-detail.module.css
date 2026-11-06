@@ -1,0 +1,6 @@
+@media (max-width: 640px) {
+    .page > header { grid-template-columns: minmax(0, 1fr); row-gap: .75rem; }
+    .page > header h1 { grid-column: 1; grid-row: 2; }
+    .page > header > div:first-child > p { grid-row: 3; }
+    .page > header > div:last-child { grid-column: 1; grid-row: 1; justify-self: end; }
+}

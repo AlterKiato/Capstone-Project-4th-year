@@ -9,6 +9,7 @@ import {
     recordResearchRepositoryView,
 } from "@/lib/services/repository.service";
 import DownloadRepositoryDocumentButton from "./DownloadRepositoryDocumentButton";
+import styles from "./repository-detail.module.css";
 
 export default async function ResearchRepositoryDetailsPage({
     params,
@@ -30,7 +31,7 @@ export default async function ResearchRepositoryDetailsPage({
     await recordResearchRepositoryView(entry.id);
 
     return (
-        <main className="dashboard-page discovery-page">
+        <main className={`dashboard-page discovery-page ${styles.page}`}>
             <DashboardHeader title={entry.title} email={session.email} />
             <p><Link className="surface-link" href="/dashboard/repository">Back to Repository</Link></p>
             <section className="dashboard-panel" aria-label="Research metadata">

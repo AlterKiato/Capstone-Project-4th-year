@@ -38,6 +38,7 @@ export default function AdminUsers({ users, actorId }: { users: DirectoryUser[];
                 <label>Status filter<select value={status} onChange={event => setStatus(event.target.value)}><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
             </div>
             {(search || role || status) && <button className={shared.toggle} onClick={() => { setSearch(""); setRole(""); setStatus(""); }}>Clear filters</button>}
+            <p role="status" aria-atomic="true" className="form-help">Showing {filtered.length} of {users.length} users.</p>
             {!users.length ? <p className={styles.empty}>No registered users.</p> : !filtered.length ? <p className={styles.empty}>No users match your search and filters. Try another name or email, or clear the filters.</p> : <ul className={styles.list}>{filtered.map(user => <li key={user.id} className={styles.row}>
                 <div className={styles.identity}><h3>{name(user)}</h3><p className={styles.email}>{user.email}</p><p className={styles.metadata}>{roleName(user.roleId)} · {user.isActive ? "Active" : "Inactive"} · Created <time dateTime={user.createdAt}>{new Date(user.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Manila" })}</time></p>
                     <p className={styles.metadata}>Email verification: {user.emailVerification}</p>

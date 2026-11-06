@@ -35,6 +35,7 @@ export default function AdminGroups({ groups }: { groups: AdminDirectoryGroup[] 
                 <label>Group status<select aria-label="Group status" value={status} onChange={event => setStatus(event.target.value)}><option value="">All Groups</option><option value="active">Active</option><option value="archived">Archived</option></select></label>
             </div>
             {(search || status) && <button className={shared.toggle} onClick={() => { setSearch(""); setStatus(""); }}>Clear filters</button>}
+            <p role="status" aria-atomic="true" className="form-help">Showing {filtered.length} of {groups.length} groups.</p>
             {!groups.length ? <p className={styles.empty}>No registered research groups.</p> : !filtered.length ? <p className={styles.empty}>No groups match your search and filters. Try another search or clear the filters.</p> : <ul className={styles.list}>{filtered.map(group => <li key={group.id} className={styles.row}>
                 <div className={styles.identity}><h3>{group.groupName}</h3><p className={styles.metadata}>Strand: {group.strand} · Section: {group.section} · School year: {group.schoolYear}</p><p className={styles.metadata}>Adviser ID: {group.adviserId}</p></div>
                 <div className={styles.actions}><span className={styles.status}>{group.status === "active" ? "Active" : group.status === "archived" ? "Archived" : group.status || "Unknown"}</span>
