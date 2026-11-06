@@ -5298,3 +5298,60 @@ All non-document incoming file hashes and all five original document byte prefix
 Deferred: Preview migration 0016 and minimum runtime privileges, Preview/Production deployment, restricted-runtime privilege verification, production concurrency/race testing, additional browsers/devices and an uninterrupted rerun of the corrected full C5 harness. No database/server/provider operation, push, merge or deployment is authorized by C6. The full uninterrupted corrected C5 rerun is still deferred even though the essential local workflows passed across focused runs. Keep the local privileged-runtime limitation, sequential stale-editor scope, hosted security gates, unsupported history/OS-termination draft limitations, existing PDF/review/publication lifetimes and frozen/hard-disabled provider boundaries.
 
 Recommended next separately authorized checkpoint: review Preview 0016 target/ledger/operator-path readiness and minimum task/note runtime privileges, then define focused protected Preview workflow acceptance before any migration or activation approval. This recommendation performs none of those operations and does not start P.4 or another milestone. Stop after the local C6 commit/report.
+
+## C7.1 Preview workspace migration tooling preparation (2026-11-06)
+
+**PASS - local tooling prepared; hosted activation remains separately gated.** Entry branch `feature/development`, HEAD `da2c9114bedc40c12d5f987dde23152b68d6e80c`, empty index and ten incoming unstaged paths. C7.1 adds only operator tooling, focused offline tests and this canonical handoff. No hosted connection, migration, grant/revoke, backup/restore, environment change, Git publication or deployment was performed.
+
+### Reused infrastructure and explicit upgrade modes
+
+C7's bounded read-only observations remain the latest hosted evidence, not a C7.1 re-audit: pinned Supabase Preview project `cbkplqkkjuoglpimwmib`, exact 16-entry ledger through 0015, workspace objects absent, sufficient existing `thesishs_preview_operator` privileges and existing `thesishs_preview_runtime`. Reuse both roles and the protected operator configuration. No new accounts, databases, services, migration artifacts or dependencies.
+
+`scripts/initialize-preview-database.ts` now supports `--inspect-upgrade-0016` and `--upgrade-0016`; `scripts/preview-initialization.ts` adds the exact 16-to-17 orchestration. The legacy `--inspect`, `--execute`, `--inspect-upgrade-0015` and `--upgrade-0015` modes retain their established source/approval contracts. Legacy role/Admin bootstrap remains intentionally limited to 0015.
+
+Inspection uses a repeatable-read READ ONLY transaction, a read-only session default and SELECT-only catalog/ledger/privilege/fingerprint queries. It accepts only exact reviewed 16/17 ledgers and corresponding table/index/sequence sets, checks effective runtime boundaries/dependencies and rejects divergent/partial states. It prints only target/source/catalog digests and state metadata. It explicitly reports `canonicalSchemaVerified: false`: the existing canonical-expression verifier creates temporary objects and is therefore reserved for future execution, never inspection.
+
+Future execution still requires a private interactive terminal plus all four confirmation options: `--confirm-target <inspection-target>`, `--confirm-source <workspace-source-digest>`, `--confirm-data-api-disabled yes`, `--confirm-recovery-verified yes`. These are operator attestations, not independent proof of provider settings/recovery. The 0016 path does not require another synthetic-account backup/recovery setup; reuse appropriate existing evidence under the owner release policy. Historical 0015 recovery modes remain unchanged.
+
+The guarded transaction rechecks the pinned Preview environment/project/database/OID/cluster/operator/runtime identities, reviewed source and exact baseline; retains TLS/CA/hostname verification; uses one connection, 3-second lock timeout, 10-second statement timeout, 30-second idle transaction timeout, the existing migration advisory lock, ledger lock and bounded SHARE locks on existing application tables. It verifies the full baseline with the existing PostgreSQL-17-compatible schema helper before submitting only migration 0016 through the installed Drizzle dialect/session/savepoint adapter. The full workspace schema, initial empty tables and unused new sequences are validated before runtime grants.
+
+Migration SQL and historical snapshots/journal were not edited. 0016 SHA-256 remains `5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63`; legacy aggregate `37824a5d2df42e54df9e50ee115c6eb7d6c42a94864c99aedfb1d63b4dbf51e0` and workspace aggregate `66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc` are unchanged.
+
+### Prepared runtime grants and Preview TEMPORARY exception
+
+Only these three grants are prepared in the guarded transaction, after the exact 17-entry ledger and new catalog pass; they have not been executed:
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.group_tasks TO thesishs_preview_runtime;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.task_notes TO thesishs_preview_runtime;
+GRANT USAGE ON SEQUENCE public.group_tasks_id_seq, public.task_notes_id_seq TO thesishs_preview_runtime;
+```
+
+Effective verification rejects note hard DELETE, application-table TRUNCATE, permanent application-schema/database CREATE or ownership, extra workspace table/sequence privileges and grant options. Existing public schema USAGE and authorization-table SELECT/row-lock UPDATE dependencies are checked, not re-granted. No sequence UPDATE, new ownership, role membership, role creation or default-privilege changes are introduced.
+
+**Owner-approved Preview policy exception:** runtime retains TEMPORARY inherited through PUBLIC. It can create temporary objects; do not claim it has no DDL capability. Permanent application-schema DDL and application-table TRUNCATE remain prohibited. No PUBLIC/database-wide privileges are changed. Production privilege policy remains separately gated.
+
+Preservation now covers every existing application's row fingerprints, including Web Push, plus existing catalog definitions, relation ownership/ACLs and pre-existing sequence values/definitions. New workspace objects/sequences are excluded from baseline equality and checked separately. Precommit state must preserve the baseline; an independent READ ONLY durable inspection must match the verified 17-entry catalog and preservation digest. Any schema/grant failure aborts the transaction; uncertain results require explicit fresh inspection and operator review, with no retry, reset, DROP or fabricated ledger. Ledger serial gaps remain valid and are not reset.
+
+### Focused validation and Vercel evidence boundary
+
+- TypeScript: `node node_modules/typescript/bin/tsc --noEmit --incremental false` PASS.
+- Targeted ESLint on the two changed tooling files and `tests/c71-preview-workspace.unit.cjs`, `--max-warnings 0`: PASS.
+- New deterministic suite: `node --import tsx --test tests/c71-preview-workspace.unit.cjs`: 7/7 PASS. Covers source/journal/hash compatibility, exact states/replay/approvals, read-only inspection, Web Push/ACL/sequence preservation, partial/missing grants, installed Drizzle/savepoint behavior, exact three grants, future CLI flow and schema/grant rollback/private-error suppression. Driver/transaction doubles only; no live database acceptance claim.
+- Selected legacy regression: `node --import tsx --test --test-name-pattern='P3F1|P3F2|R4C actual' tests/phase102d2a-hosted-database.unit.cjs`: 8/8 PASS, retaining 0015 source, pins, inspection, recovery and actual driver/savepoint contracts. No C1-C6 acceptance suite, browser harness, full build or hosted test repeated.
+
+VERIFIED locally: no new workspace environment variable/dependency, hosted runtime/operator separation and CA/identity guards remain in source; no Vercel CLI (global/local), connector or local project/repository link, and no process Vercel token/project/org context was available. Browser inventory was available, but the bridge failed before a Vercel dashboard could be read. No login, install, environment pull, provider setting change or deploy was attempted.
+
+HISTORICAL: `feature/development` is intended Preview and `main` Production; P.3F.3's Ready Preview deployment was `f82a08105158713ffad5161c0235fac1d23327fd`. C7's remote-ref check found that same branch tip, leaving C6 local. Remote/deployment state was not re-queried during C7.1.
+
+UNVERIFIED current provider settings - owner manual checklist: correct Vercel project/repository; Production branch `main` and Preview handling of `feature/development`; automatic Git deployment behavior; Preview variable NAMES/scopes (including `DATABASE_URL`, `THESISHS_DATABASE_ENV`, `THESISHS_DATABASE_TARGETS_JSON`, `THESISHS_DATABASE_CONNECTION_MODE`, `THESISHS_DATABASE_CA_PEM` and existing auth/Storage settings, with operator Admin URL absent from runtime); Node 24/build settings; Preview deployment protection; Supabase project's Data API disabled. Do not expose variable values. Vercel access limitations do not block local tooling review.
+
+### Remaining activation prerequisites
+
+Owner review/approval must separately authorize hosted 0016 plus its minimal runtime grants, and Git publication/Preview deployment/smoke acceptance. Before that execution, refresh the target/ledger/catalog/operator checks, source integrity, provider settings and appropriate existing recovery readiness. Apply/verify the database before publishing workspace code, because the new Student navigation is unconditional and a branch push may deploy automatically. Publish only reviewed commits through the Git-backed Preview process while preserving unrelated unstaged work; verify deployed SHA/Ready build/runtime connection, then run focused authenticated Student workspace CRUD/denial/conflict and existing research/Web Push preservation checks. No automatic migration, grant, push, deployment or next phase follows this preparation.
+
+### Streamlined Preview activation authorization (2026-11-06)
+
+The owner authorizes the scoped C7.1 tooling commit, pinned Preview-only migration 0016 with the three prepared grants, independent verification, subsequent feature/development push/Preview verification and focused authenticated Student Tasks/Notes smoke testing with exact test-owned cleanup. Production and unrelated phases remain excluded. Vercel Preview settings and disabled Supabase Data API are owner-confirmed, not independently re-audited here.
+
+The owner explicitly accepts the absence of a verified backup as a Preview-only risk. No additional backup/recovery preparation, infrastructure or subscription upgrade is required or authorized. This decision supersedes C7.1's pending recovery prerequisite for this activation only. The 0016 execution mode accepts `--accept-preview-no-backup-risk yes` instead of `--confirm-recovery-verified yes`, never both; it reports `verifiedBackup: false` and does not claim recovery verification. The alternative is unavailable to legacy initialization/0015 and never bypasses TLS, target/operator identity, source integrity or exact ledger checks. Migration/ledger append, catalog checks and the three grants remain in the same guarded transaction with independent durable inspection and no automatic retry.
