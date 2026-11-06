@@ -48,7 +48,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
         </div>
         <p role="status">{notice}</p>
         <section className={`dashboard-panel ${styles.section}`} aria-labelledby="project-heading"><h2 id="project-heading">Research Project Details</h2>
-            {project ? <><div className={styles.projectSummary}><h3>{project.title}</h3>{project.category && <p>{project.category}</p>}<p><span className={styles.badge}>{project.status}</span></p>
+            {project ? <><div className={styles.projectSummary}><h3>{project.title}</h3>{project.category && <p>{project.category}</p>}<p><span className={`${styles.badge} academic-status`} data-status={project.status}>{project.status}</span></p>
                 <button type="button" className={styles.toggle} aria-expanded={details} aria-controls="project-description" onClick={() => setDetails(!details)}>{details ? "Hide Details" : "View Details"}</button>
                 </div>
                 <div id="project-description" className={styles.details} hidden={!details}><h4>Abstract</h4><p>{project.abstract}</p><h4>Keywords</h4><p>{project.keywords || "Not specified"}</p></div>
@@ -59,7 +59,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
             {!history.length ? <p>{project ? "Not yet submitted. Submit a PDF for this project’s first version." : "Submission versions will appear here after you create a project and submit a PDF."}</p> :
                 <ol className={styles.history}>{history.map(submission => <li key={submission.id}>
                     <h3><button type="button" className={styles.row} aria-expanded={expanded === submission.id} aria-controls={`version-${submission.id}`} onClick={() => setExpanded(expanded === submission.id ? null : submission.id)}>
-                        <span>{submission.version}</span><time dateTime={submission.submittedAt}>{new Date(submission.submittedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time><span className={styles.badge}>{submission.status}</span><span>{expanded === submission.id ? "Hide" : "View"}</span>
+                        <span>{submission.version}</span><time dateTime={submission.submittedAt}>{new Date(submission.submittedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time><span className={`${styles.badge} academic-status`} data-status={submission.status}>{submission.status}</span><span>{expanded === submission.id ? "Hide" : "View"}</span>
                     </button></h3>
                     <div id={`version-${submission.id}`} hidden={expanded !== submission.id} className={styles.body}>
                         <h4>Submission remarks</h4><p className="research-comments">{submission.remarks || "No remarks provided."}</p>

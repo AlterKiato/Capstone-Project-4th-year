@@ -28,7 +28,7 @@ export default async function AdviserSubmissionDetailsPage({ params }: { params:
     const versions = details.versions.some(version => version.id === submission.id) ? details.versions :
         [{ id: submission.id, version: submission.version, status: submission.status }, ...details.versions];
     return <ReviewDraftBoundary key={submission.id}><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
-        <p><Link href="/dashboard/adviser/submissions" className="research-back">Back to Submissions</Link></p>
+        <p><Link href="/dashboard/adviser/submissions" className="research-back context-back"><span aria-hidden="true">←</span>Back to Submissions</Link></p>
         <DashboardHeader title={submission.researchTitle} email={details.email} />
         <div className={workspace.summary}><p className="dashboard-context">{submission.groupName} · {submission.version}</p><SubmissionStatus status={submission.status} /></div>
         <section className={`dashboard-panel ${workspace.information}`} aria-labelledby="submission-info-heading">

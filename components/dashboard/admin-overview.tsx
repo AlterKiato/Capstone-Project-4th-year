@@ -9,7 +9,7 @@ export function AdminMetrics({ stats, reports = false }: { stats: AdminDashboard
         { label: reports ? "Total Research Papers" : "Research Papers", value: stats.totalResearchPapers, help: "Projects, not submission versions" },
         { label: reports ? "Total Published Repository Papers" : "Published Repository Papers", value: stats.totalPublishedPapers, help: "Published approved papers with an approved submission" },
     ];
-    return <dl className={`${styles.metrics} ${reports ? styles.reportMetrics : ""}`} aria-label="System statistics">
+    return <dl className={`${styles.metrics} ${reports ? styles.reportMetrics : ""} dashboard-metrics`} aria-label="System statistics">
         {metrics.map(metric => <div key={metric.label} className="dashboard-panel">
             <dt>{metric.label}</dt><dd>{metric.value}</dd><dd className="form-help">{metric.help}</dd>
         </div>)}

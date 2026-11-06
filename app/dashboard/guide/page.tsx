@@ -14,7 +14,7 @@ export default async function GuidePage() {
             <p>Reviewed static guidance for your role. AI explanations are disabled pending provider approval.</p>
             <p>This supplementary guide cannot evaluate research, make decisions or generate official Adviser feedback.
                 Consult your Adviser for academic questions and your Admin for account or access help.</p>
-            <p><Link className="surface-link" href="/dashboard">Back to Dashboard</Link></p>
+            <p><Link className="context-back" href="/dashboard"><span aria-hidden="true">←</span>Back to Dashboard</Link></p>
             {result.success ? <ChatbotGuide questions={result.questions} /> : <p role="status">{result.message}</p>}
         </main>
     );

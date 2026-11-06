@@ -1,5 +1,6 @@
 .overview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
 .overview > section { margin-top: 0; padding: 1.25rem; }
+.verificationNotice { margin-bottom: 1.25rem; }
 .badge { display: inline-block; padding: .2rem .5rem; border: 1px solid var(--border-strong); border-radius: .3rem; background: var(--surface-secondary); font-size: .875rem; font-weight: 600; }
 .excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; white-space: pre-wrap; margin: .75rem 0; }
 .toolbar { display: flex; gap: 1rem; align-items: end; justify-content: space-between; flex-wrap: wrap; }
@@ -21,6 +22,7 @@
 .history > li { border-top: 1px solid var(--border); }
 .row { width: 100%; display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; justify-content: space-between; padding: .85rem .25rem; border: 0; border-radius: 0; background: transparent; color: var(--foreground); text-align: left; }
 .row:hover:not(:disabled) { background: var(--surface-hover); }
+.row time { color: var(--muted); font-size: .875rem; font-weight: 400; font-variant-numeric: tabular-nums; }
 .body { padding: .5rem .25rem 1rem; }
 .body:not([hidden]) { display: flex; flex-direction: column; gap: .75rem; }
 .body > h4, .body > p { margin: 0; }

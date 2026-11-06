@@ -36,8 +36,8 @@ async function AdviserOverview() {
 
             <p className="dashboard-context">Overview of your research groups and submissions.</p>
 
-            <dl className={styles.metrics} aria-label="Adviser workload">
-                {metrics.map(metric => <div key={metric.label} className="dashboard-panel">
+            <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Adviser workload">
+                {metrics.map(metric => <div key={metric.label} className="dashboard-panel" data-priority={metric.label === "Pending Reviews" && metric.value > 0 ? "pending" : undefined}>
                     <dt>{metric.label}</dt><dd>{metric.value}</dd><dd className="form-help">{metric.help}</dd>
                 </div>)}
             </dl>
@@ -47,19 +47,19 @@ async function AdviserOverview() {
                 {overview.attention.length ? <ul className={styles.list}>{overview.attention.map(item => <li key={item.id} className={styles.row}>
                     <div className={styles.details}>
                         <h3>{item.researchTitle}</h3><p className="form-help">{item.groupName}</p>
-                        <div className={styles.metadata}><span>{item.version}</span><span className={styles.badge}>{item.status}</span>
+                        <div className={styles.metadata}><span>{item.version}</span><span className={`${styles.badge} academic-status`} data-status={item.status}>{item.status}</span>
                             <span className="form-help">Submitted <time dateTime={item.submittedAt.toISOString()}>{item.submittedAt.toLocaleDateString("en-PH", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Manila" })}</time></span>
                         </div>
                     </div>
-                    <Link className={styles.action} href={`/dashboard/adviser/submissions/${item.id}`} aria-label={`View Details: ${item.researchTitle}, ${item.version}`}>View Details</Link>
+                    <Link className={`${styles.action} context-row`} href={`/dashboard/adviser/submissions/${item.id}`} aria-label={`View Details: ${item.researchTitle}, ${item.version}`}>View Details</Link>
                 </li>)}</ul> : <p className={styles.empty}>You&apos;re all caught up. No submissions currently need your review.</p>}
             </section>
             <section className={`dashboard-panel ${styles.section}`} aria-labelledby="groups-heading">
-                <div className={styles.sectionHeader}><h2 id="groups-heading">My Research Groups</h2><Link className={styles.action} href="/dashboard/adviser/groups">View All Groups</Link></div>
+                <div className={styles.sectionHeader}><h2 id="groups-heading">My Research Groups</h2><Link className={`${styles.action} context-section`} href="/dashboard/adviser/groups">View All Groups<span aria-hidden="true">→</span></Link></div>
                 {overview.groups.length ? <ul className={styles.list}>{overview.groups.map(group => <li key={group.id} className={styles.row}>
                     <div className={styles.details}><h3>{group.groupName}</h3><p className="form-help">{[group.strand, group.section].filter(Boolean).join(" · ")}</p>
                         <p className="form-help">{group.memberCount} {group.memberCount === 1 ? "member" : "members"} · {group.projectCount} {group.projectCount === 1 ? "research project" : "research projects"}</p>
-                    </div><Link className={styles.action} href="/dashboard/adviser/groups" aria-label={`View Groups: ${group.groupName}`}>View Groups</Link>
+                    </div><Link className={`${styles.action} context-row`} href="/dashboard/adviser/groups" aria-label={`View Groups: ${group.groupName}`}>View Groups</Link>
                 </li>)}</ul> : <p className={styles.empty}>You have no research groups yet. Your groups will appear here once created or assigned.</p>}
             </section>
 

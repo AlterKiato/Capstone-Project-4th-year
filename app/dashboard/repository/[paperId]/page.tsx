@@ -33,7 +33,7 @@ export default async function ResearchRepositoryDetailsPage({
     return (
         <main className={`dashboard-page discovery-page ${styles.page}`}>
             <DashboardHeader title={entry.title} email={session.email} />
-            <p><Link className="surface-link" href="/dashboard/repository">Back to Repository</Link></p>
+            <p><Link className="context-back" href="/dashboard/repository"><span aria-hidden="true">←</span>Back to Repository</Link></p>
             <section className="dashboard-panel" aria-label="Research metadata">
             <p>{entry.groupName} · {entry.strand} · {entry.section} · {entry.schoolYear}</p>
             {entry.category && <p>Category: {entry.category}</p>}

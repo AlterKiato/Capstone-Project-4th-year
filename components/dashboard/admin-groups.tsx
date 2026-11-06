@@ -24,7 +24,7 @@ export default function AdminGroups({ groups }: { groups: AdminDirectoryGroup[] 
     const action = selected?.status === "active" ? "Archive" : "Reactivate";
     return <>
         <p className="dashboard-context">Monitor and manage registered research groups.</p>
-        <dl className={styles.metrics} aria-label="Research group summary">{[["Total Groups", groups.length], ["Active Groups", active], ["Archived Groups", archived]].map(([label, count]) => <div className="dashboard-panel" key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
+        <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Research group summary">{[["Total Groups", groups.length], ["Active Groups", active], ["Archived Groups", archived]].map(([label, count]) => <div className="dashboard-panel" key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
         {other > 0 && <p className="form-message" role="status">{other} groups have other recorded statuses. They are included in Total Groups and All Groups; status actions are unavailable for them.</p>}
         <p role="status" className={notice || refreshing ? "research-notice" : undefined}>{refreshing ? "Updating research groups..." : notice}</p>
         {verify && <p role="alert" className="form-message">Changes are paused until you refresh and verify group status. <button onClick={() => window.location.reload()}>Refresh and verify</button></p>}

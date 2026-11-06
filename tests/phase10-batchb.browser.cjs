@@ -12,6 +12,15 @@ export async function requireRole(){return {email:'synthetic@example.invalid'}}
 export async function getPublishedResearchDetails(){return {id:1,paperId:1,title:window.__title,groupName:'Synthetic group',strand:'STEM',section:'Test',schoolYear:'2026',abstract:'Synthetic abstract',publishedAt:new Date('2026-01-01')}}
 export async function recordResearchRepositoryView(){window.__views++}
 export async function getAdviserReviewDetails(){return {email:'synthetic@example.invalid',submission:{id:1,paperId:1,version:'v1',status:'Under Review',researchTitle:'Synthetic review',groupName:'Synthetic group',studentFirstName:'Synthetic',studentLastName:'Student',submittedAt:new Date('2026-01-01'),remarks:'Synthetic remarks'},feedback:[],versions:[{id:1,version:'v1',status:'Under Review'}]}}
+export async function getDashboardAccount(){return {id:1,roleId:window.__role,email:'synthetic@example.invalid'}}
+export async function getCurrentStudentVerificationStatus(){return {verified:false}}
+export async function getStudentWorkspace(){return {email:'synthetic@example.invalid',groups:[{id:1,groupName:'Synthetic group',strand:'STEM',section:'A',schoolYear:'2026',members:[]}],projects:[{id:1,groupId:1,title:'Synthetic research',status:'Revision Required'}],submissions:[{id:1,paperId:1,version:'v1',status:'Revision Required',submittedAt:'2026-01-01',feedback:[{id:1,comments:'Synthetic feedback',decision:'Revision Required',createdAt:'2026-01-02'}]}]}}
+export async function getAdviserDashboard(){return {email:'synthetic@example.invalid',totalGroups:3,pending:window.__pending??2,reviewed:1,attention:window.__pending===0?[]:[{id:1,researchTitle:'Synthetic research',groupName:'Synthetic group',version:'v1',status:'Under Review',submittedAt:new Date('2026-01-01')}],groups:[{id:1,groupName:'Synthetic group',strand:'STEM',section:'A',memberCount:3,projectCount:1}]}}
+export async function getAdminDashboardStats(){return {success:true,data:{totalUsers:12,totalGroups:3,totalResearchPapers:5,totalPublishedPapers:2,totalStudents:8,totalAdvisers:3,usersByRole:[{role:'Student',count:8}],papersByStatus:[{status:'Approved',count:2}]}}}
+export async function getAdminRecentActivities(){return {success:true,data:[]}}
+export async function getPublishedResearch(){return {items:[{paperId:1,title:window.__title,groupName:'Synthetic group',strand:'STEM',schoolYear:'2026',abstract:'Synthetic abstract'}],total:1,page:1,pageCount:1}}
+export async function getPublishedResearchFilterOptions(){return {categories:[],schoolYears:[],strands:[]}}
+export async function getGuideQuestions(){return {success:true,questions:[{id:'synthetic',question:'Synthetic guide question'}]}}
 `;
 const actions = `
 const refuse=async()=>{window.__writes++;return {success:false,message:'Synthetic denied action'}};
@@ -24,6 +33,10 @@ export async function getNotificationPreviewAction(){return {success:true,data:{
 export async function getEligibilityUIAction(){return {available:false}}
 export async function getConsentUIAction(){return {available:false}}
 export async function getSubmissionDownloadUrlAction(id,purpose){window.__signs.push({id,purpose});return 'https://pdf.invalid/synthetic'}
+export const getLocalAdminAssistanceAction=refuse,getLocalAdviserAssistanceAction=refuse;
+export const assignWorkspaceTaskAction=refuse,createWorkspaceTaskAction=refuse,deleteWorkspaceTaskAction=refuse,editWorkspaceTaskAction=refuse,updateWorkspaceTaskStatusAction=refuse;
+export const createWorkspaceNoteAction=refuse,deleteWorkspaceNoteAction=refuse,editWorkspaceNoteAction=refuse,getWorkspaceNoteAction=refuse,linkWorkspaceNoteAction=refuse,restoreWorkspaceNoteAction=refuse;
+export async function getGuideAnswerAction(){return {success:true,message:'Synthetic static answer',topic:{question:'Synthetic guide question',answer:'Synthetic workflow guidance',links:[{href:'/dashboard/repository?search=synthetic#results',label:'Browse synthetic research'}]}}}
 `;
 
 async function main() {
@@ -34,17 +47,37 @@ async function main() {
 import React from 'react';import{createRoot}from'react-dom/client';
 import Repository from './app/dashboard/repository/[paperId]/page';
 import Review from './app/dashboard/adviser/submissions/[submissionId]/page';
+import StudentDashboard from './app/dashboard/student/page';import AdviserDashboard from './app/dashboard/adviser/page';import AdminDashboard from './app/dashboard/admin/page';
+import RepositoryList from './app/dashboard/repository/page';import Guide from './app/dashboard/guide/page';import Settings from './app/dashboard/settings/page';import Reports from './app/dashboard/admin/reports/page';
+import AdviserSubmissions from './components/dashboard/adviser-submissions';import DashboardHeader from './components/dashboard/dashboard-header';
 import Users from './components/dashboard/admin-users';import Groups from './components/dashboard/admin-groups';
 import StudentResearch from './components/dashboard/student-research';
+import StudentGroupWorkspace from './components/dashboard/student-group-workspace';
 import Shell from './components/dashboard/dashboard-shell';import{dashboardLinks}from'./lib/constants/dashboard-navigation';
 import NotificationProvider from './components/dashboard/notification-provider';import{ThemeProvider}from'./components/theme-provider';
 const root=createRoot(document.getElementById('root'));let generation=0;
 window.__views=0;window.__writes=0;window.__signs=[];window.__path='/dashboard/repository/1';window.__profile='browser';
 window.__title='Synthetic research '+('Long research title examining student research accessibility ').repeat(3);
+function WorkspaceFixture(){
+const [selection,setSelection]=React.useState({id:1,tab:'tasks'});
+React.useEffect(()=>{window.__workspaceNavigate=href=>{const url=new URL(href,location.origin);setSelection({id:Number(url.searchParams.get('project')??1),tab:url.searchParams.get('tab')??'tasks'})};return()=>{window.__workspaceNavigate=null}},[]);
+const projects=[{id:1,title:'Synthetic project Alpha'},{id:2,title:'Synthetic project Beta'}];
+return <main><DashboardHeader title='Group Workspace' email='synthetic@example.invalid'/><StudentGroupWorkspace projects={projects} project={projects.find(p=>p.id===selection.id)} invalidProject={false} tab={selection.tab} deletedOnly={false} board={{success:true,kind:'success',data:{tasks:[],members:[]}}} notes={{success:true,kind:'success',data:{notes:[],tasks:[]}}}/></main>
+}
 window.render=async(kind,data={},profile='browser')=>{
-window.__profile=profile;window.__path=kind==='review'?'/dashboard/adviser/submissions/1':'/dashboard/repository/1';
-const node=kind==='repository'?await Repository({params:Promise.resolve({paperId:'1'})}):kind==='review'?await Review({params:Promise.resolve({submissionId:'1'})}):kind==='users'?<main><Users users={data.users} actorId={1}/></main>:kind==='groups'?<main><Groups groups={data.groups}/></main>:<main><StudentResearch workspace={{email:'synthetic@example.invalid',groups:[{id:1,groupName:'Synthetic group'}],projects:[{id:1,groupId:1,title:window.__title,abstract:'Synthetic abstract',status:'Draft'}],submissions:[]}} target={{}}/></main>;
-root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref='/dashboard/student/notifications'><Shell links={dashboardLinks(kind==='review'?2:3)}>{node}</Shell></NotificationProvider></ThemeProvider>);
+window.__role=['admin-dashboard','users','groups','settings','reports'].includes(kind)?1:['adviser-dashboard','review','adviser-submissions'].includes(kind)?2:3;
+window.__profile=profile;window.__path=({'student-dashboard':'/dashboard/student','adviser-dashboard':'/dashboard/adviser','admin-dashboard':'/dashboard/admin',users:'/dashboard/admin/users',groups:'/dashboard/admin/groups',settings:'/dashboard/settings',reports:'/dashboard/admin/reports',guide:'/dashboard/guide','repository-list':'/dashboard/repository','adviser-submissions':'/dashboard/adviser/submissions',review:'/dashboard/adviser/submissions/1',student:'/dashboard/student/submissions',workspace:'/dashboard/student/workspace'})[kind]??'/dashboard/repository/1';
+let node;
+if(kind==='student-dashboard')node=await StudentDashboard();
+else if(kind==='adviser-dashboard'||kind==='admin-dashboard'){const boundary=await (kind==='adviser-dashboard'?AdviserDashboard():AdminDashboard());node=await boundary.props.children.type(boundary.props.children.props)}
+else if(kind==='repository-list')node=await RepositoryList({searchParams:Promise.resolve({})});
+else if(kind==='guide')node=await Guide();
+else if(kind==='settings')node=await Settings();
+else if(kind==='reports')node=await Reports();
+else if(kind==='workspace')node=<WorkspaceFixture/>;
+else if(kind==='adviser-submissions')node=<main><DashboardHeader title='Research Submissions' email='synthetic@example.invalid'/><AdviserSubmissions submissions={data.submissions??[{id:1,paperId:1,researchTitle:'Synthetic research',groupName:'Synthetic group',version:'v1',status:'Submitted',submittedAt:'2026-01-01'}]}/></main>;
+else node=kind==='repository'?await Repository({params:Promise.resolve({paperId:'1'})}):kind==='review'?await Review({params:Promise.resolve({submissionId:'1'})}):kind==='users'?<main><DashboardHeader title='User Management' email='synthetic@example.invalid'/><Users users={data.users} actorId={1}/></main>:kind==='groups'?<main><DashboardHeader title='Research Groups' email='synthetic@example.invalid'/><Groups groups={data.groups}/></main>:<main><StudentResearch workspace={{email:'synthetic@example.invalid',groups:[{id:1,groupName:'Synthetic group'}],projects:[{id:1,groupId:1,title:window.__title,abstract:'Synthetic abstract',status:'Revision Required'}],submissions:[{id:1,paperId:1,version:'v1',status:'Revision Required',submittedAt:'2026-01-01',remarks:'Synthetic remarks',feedback:[]}]}} target={{}}/></main>;
+root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref='/dashboard/student/notifications'><Shell links={dashboardLinks(window.__role)}>{node}</Shell></NotificationProvider></ThemeProvider>);
 };` },
         plugins: [{ name: 'batchb-fixtures', setup(b) {
             b.onResolve({ filter: /^@\/lib\/actions\// }, () => ({ path: 'actions', namespace: 'fixture' }));
@@ -53,7 +86,7 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             b.onResolve({ filter: /^next\/link$/ }, () => ({ path: 'link', namespace: 'fixture' }));
             b.onResolve({ filter: /(?:^@\/lib\/pwa\/|^\.\/)use-display-mode$/ }, () => ({ path: 'display', namespace: 'fixture' }));
             b.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ resolveDir: process.cwd(), loader: 'tsx', contents: args.path === 'actions' ? actions : args.path === 'services' ? services : args.path === 'navigation' ?
-                `export function usePathname(){return window.__path} export function useRouter(){return {refresh(){},push(href){window.__navigation=href},replace(href){window.__navigation=href}}}export function notFound(){throw Error('Synthetic missing route')}` : args.path === 'display' ?
+                `export function usePathname(){return window.__path} export function useRouter(){return {refresh(){},push(href){window.__navigation=href;window.__workspaceNavigate?.(href)},replace(href){window.__navigation=href}}}export function notFound(){throw Error('Synthetic missing route')}export function redirect(){throw Error('Unexpected synthetic redirect')}` : args.path === 'display' ?
                     `export function useDisplayMode(){return window.__profile==='mobile'?'standalone':'browser'}export function usePwaPlatform(){return window.__profile==='mobile'?'android':'desktop'}` :
                     `import React from 'react';export default function Link({href,children,...props}){return <a {...props} href={href} onClick={event=>{props.onClick?.(event);if(!event.defaultPrevented){event.preventDefault();window.__navigation=href}}}>{children}</a>}` }));
         } }],
@@ -104,7 +137,7 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             await bell.click(); await expect(page.getByText("You're all caught up.")).toBeVisible(); await page.keyboard.press('Escape'); await expect(bell).toBeFocused();
             const back = page.getByRole('link', { name: 'Back to Repository', exact: true });
             await back.focus(); await page.keyboard.press('Enter'); assert.equal(await page.evaluate(() => window.__navigation), '/dashboard/repository');
-            await page.screenshot({ path: join(artifacts, `repository-${width}-${appearance}.png`), fullPage: true });
+            await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: join(artifacts, `repository-${width}-${appearance}.png`), fullPage: true });
         }
         const users = [{ id: 2, firstName: 'Synthetic', lastName: 'Alpha', email: 'alpha@example.invalid', roleId: 3, isActive: true, createdAt: '2026-01-01', emailVerification: 'Unverified' },
             { id: 3, firstName: 'Synthetic', lastName: 'Beta', email: 'beta@example.invalid', roleId: 2, isActive: false, createdAt: '2026-01-01', emailVerification: 'Not applicable' }];
@@ -131,6 +164,100 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             await expect(count).toHaveText(`Showing 2 of 2 ${kind}.`); assert.equal(await page.evaluate(() => window.__writes), 0);
             await render(kind, { [kind]: [] }); await expect(page.getByRole('status').filter({ hasText: /^Showing/ })).toHaveText(`Showing 0 of 0 ${kind}.`);
         }
+        async function visualChecks() {
+            assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal page overflow');
+            const contrastFailures = await page.locator('main').evaluate(root => {
+                const lum = color => { const rgb = color.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => (v /= 255) <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4); return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722; };
+                return [...root.querySelectorAll('h1,h2,a[class*="context-"],.academic-status,.dashboard-metrics dt,.dashboard-metrics dd')].flatMap(el => {
+                    if (!el.getClientRects().length || el.closest('[hidden]') || !el.textContent.trim()) return [];
+                    const style = getComputedStyle(el); let parent = el, bg = style.backgroundColor;
+                    while (bg === 'rgba(0, 0, 0, 0)' && parent.parentElement) { parent = parent.parentElement; bg = getComputedStyle(parent).backgroundColor; }
+                    const [high, low] = [lum(style.color), lum(bg)].sort((a, b) => b - a);
+                    const required = parseFloat(style.fontSize) >= 24 || parseFloat(style.fontSize) >= 18.66 && Number(style.fontWeight) >= 700 ? 3 : 4.5;
+                    return (high + .05) / (low + .05) < required ? [el.textContent.slice(0, 70)] : [];
+                });
+            });
+            assert.deepEqual(contrastFailures, []);
+            const contentLinks = page.locator('main a[class*="context-"]');
+            for (let i = 0; i < await contentLinks.count(); i++) {
+                const link = contentLinks.nth(i); await link.scrollIntoViewIfNeeded();
+                assert.ok((await link.boundingBox()).height >= 43, 'Contextual link retains a 44px hit area');
+                await page.keyboard.press('Tab'); await link.focus();
+                assert.ok(await link.evaluate(el => el.matches(':focus-visible') && parseFloat(getComputedStyle(el).outlineWidth) >= 3));
+                const prior = await link.evaluate(el => ({ color: getComputedStyle(el).color, background: getComputedStyle(el).backgroundColor, decoration: getComputedStyle(el).textDecorationLine }));
+                await link.hover();
+                assert.ok(await link.evaluate((el, prior) => { const current = getComputedStyle(el); return current.color !== prior.color || current.backgroundColor !== prior.background || current.textDecorationLine !== prior.decoration; }, prior), 'Hover affordance is visible');
+            }
+        }
+        for (const kind of ['student-dashboard', 'adviser-dashboard', 'admin-dashboard']) for (const width of [360, 390, 1280]) for (const appearance of ['Light', 'Dark']) {
+            await page.setViewportSize({ width, height: 800 }); await render(kind); await theme(appearance); await visualChecks();
+            if (kind === 'student-dashboard') {
+                const banner = await page.getByRole('complementary', { name: 'Optional email verification' }).boundingBox();
+                const card = await page.locator('main section.dashboard-panel').first().boundingBox();
+                assert.ok(card.y - banner.y - banner.height >= 16 && card.y - banner.y - banner.height <= 24, 'Verification notice has 16–24px separation');
+                await expect(page.getByRole('link', { name: 'View Full Feedback', exact: true })).toHaveAttribute('href', '/dashboard/student/submissions?project=1&submission=1&feedback=1#feedback-1');
+                assert.equal(await page.getByRole('link', { name: 'Check email verification' }).evaluate(el => getComputedStyle(el).textDecorationLine), 'underline');
+            } else {
+                const expected = kind === 'adviser-dashboard' ? ['3', '2', '1'] : ['12', '3', '5', '2'];
+                assert.deepEqual(await page.locator('.dashboard-metrics > div > dd:first-of-type').allTextContents(), expected);
+                assert.ok(await page.locator('.dashboard-metrics dd').first().evaluate(el => getComputedStyle(el).fontVariantNumeric.includes('tabular-nums')));
+            }
+            if (width === 1280) {
+                const toggle = page.getByRole('button', { name: 'Collapse sidebar', exact: true }); await toggle.click(); await expect(page.locator('[data-sidebar-mode="compact"]')).toHaveCount(1);
+                await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click();
+            } else {
+                const menu = page.getByRole('button', { name: 'Open navigation menu', exact: true }); await menu.click(); await expect(page.getByRole('dialog', { name: 'Navigation', exact: true })).toBeVisible(); await page.keyboard.press('Escape'); await expect(menu).toBeFocused();
+            }
+            if (width === 390 && appearance === 'Dark' || width === 1280 && appearance === 'Light') { await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: join(artifacts, `${kind}-${width}-${appearance}.png`), fullPage: true }); }
+        }
+        for (const kind of ['repository-list', 'guide', 'settings', 'reports', 'adviser-submissions']) for (const [width, appearance] of [[390, 'Light'], [1280, 'Dark']]) {
+            await page.setViewportSize({ width, height: 800 }); await render(kind); await theme(appearance);
+            if (kind === 'guide') { await page.getByRole('button', { name: 'Synthetic guide question', exact: true }).click(); await expect(page.getByRole('link', { name: 'Browse synthetic research' })).toHaveAttribute('href', '/dashboard/repository?search=synthetic#results'); }
+            if (kind === 'settings') { await expect(page.getByRole('heading', { name: 'App Installation', exact: true })).toBeVisible(); await expect(page.getByRole('button', { name: /Enable.*notification/i })).toHaveCount(0); }
+            if (kind === 'adviser-submissions') await expect(page.getByRole('link', { name: 'View Details: Synthetic research, v1' })).toHaveAttribute('href', '/dashboard/adviser/submissions/1');
+            await visualChecks();
+        }
+        // Targeted B.4 corrections: role-specific positive priority and measured local spacing.
+        for (const width of [360, 390]) for (const appearance of ['Light', 'Dark']) {
+            await page.setViewportSize({ width, height: 800 });
+            for (const pending of [0, 1]) {
+                await page.evaluate(value => { window.__pending = value; }, pending); await render('adviser-dashboard'); await theme(appearance);
+                const priority = page.locator('.dashboard-metrics > div').filter({ has: page.getByText('Pending Reviews', { exact: true }) });
+                const ordinary = page.locator('.dashboard-metrics > div').filter({ has: page.getByText('My Research Groups', { exact: true }) });
+                assert.equal(await priority.getAttribute('data-priority'), pending ? 'pending' : null); assert.equal(await ordinary.getAttribute('data-priority'), null);
+                const colors = await priority.evaluate(el => { const style = getComputedStyle(el); return [style.borderTopColor, style.backgroundColor]; });
+                const neutral = await ordinary.evaluate(el => { const style = getComputedStyle(el); return [style.borderTopColor, style.backgroundColor]; });
+                if (pending === 0) assert.deepEqual(colors, neutral); else assert.notDeepEqual(colors, neutral);
+                await expect(priority.locator('dd').first()).toHaveText(String(pending)); await visualChecks();
+            }
+            await page.evaluate(() => { delete window.__pending; });
+            for (const statuses of [[], ['Submitted', 'Under Review', 'Approved']]) {
+                const submissions = statuses.map((status, index) => ({ id: index + 1, paperId: index + 1, researchTitle: `Synthetic ${status}`, groupName: 'Synthetic group', version: 'v1', status, submittedAt: '2026-01-01' }));
+                await render('adviser-submissions', { submissions }); await theme(appearance);
+                assert.equal(await page.locator('[data-priority="pending"]').count(), statuses.length ? 2 : 0);
+                const reviewed = page.locator('.dashboard-metrics > div').filter({ has: page.getByText('Reviewed', { exact: true }) });
+                assert.equal(await reviewed.getAttribute('data-priority'), null); await visualChecks();
+            }
+            await render('workspace', {}, 'mobile'); await theme(appearance);
+            const select = page.getByLabel('Research project', { exact: true });
+            const label = page.locator('label[for="workspace-project"]'), tabs = page.getByRole('tablist', { name: 'Group workspace' });
+            const task = page.getByRole('button', { name: 'New Task', exact: true });
+            const lb = await label.boundingBox(), sb = await select.boundingBox(), tb = await tabs.boundingBox(), ab = await task.boundingBox();
+            const gaps = { labelToSelector: sb.y - lb.y - lb.height, selectorToTabs: tb.y - sb.y - sb.height, tabsToAction: ab.y - tb.y - tb.height };
+            assert.ok(gaps.labelToSelector >= 8 && gaps.labelToSelector <= 12); assert.ok(gaps.selectorToTabs >= 12 && gaps.selectorToTabs <= 16); assert.ok(gaps.tabsToAction >= 16 && gaps.tabsToAction <= 20);
+            await select.selectOption('2'); await expect(select).toHaveValue('2'); await expect(page.getByRole('tab', { name: 'Tasks', exact: true })).toHaveAttribute('aria-selected', 'true');
+            await task.click(); await expect(page.getByRole('dialog', { name: 'New Task', exact: true })).toBeVisible(); await page.keyboard.press('Escape'); await expect(task).toBeFocused();
+            const notes = page.getByRole('tab', { name: 'Notes', exact: true }); await notes.click(); await expect(notes).toHaveAttribute('aria-selected', 'true'); await expect(notes).toBeFocused();
+            await select.selectOption('1'); await expect(select).toHaveValue('1'); await expect(notes).toHaveAttribute('aria-selected', 'true'); await expect(page.getByRole('button', { name: 'New Note', exact: true })).toBeVisible();
+            await notes.focus(); await page.keyboard.press('ArrowLeft'); const tasks = page.getByRole('tab', { name: 'Tasks', exact: true }); await expect(tasks).toBeFocused(); await page.keyboard.press('Enter'); await expect(tasks).toHaveAttribute('aria-selected', 'true');
+            await task.scrollIntoViewIfNeeded(); await task.click(); await page.keyboard.press('Escape'); await expect(task).toBeFocused(); await visualChecks();
+            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+            const lastTaskText = await page.getByText('No tasks completed yet.', { exact: true }).boundingBox();
+            const bottomNav = await page.getByRole('navigation', { name: 'Primary dashboard pages', exact: true }).boundingBox();
+            assert.ok(lastTaskText.y + lastTaskText.height <= bottomNav.y, 'End of workspace content clears fixed mobile navigation');
+            await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: join(artifacts, `workspace-${width}-${appearance}.png`), fullPage: true });
+            observations.push({ check: 'B.4 spacing/priority', width, appearance, gaps, result: 'Zero neutral; positive Adviser review counts accented; ordinary counts neutral; project/tab/New Task/focus preserved' });
+        }
         // Verify the unchanged PDF workspace at short browser and simulated installed-mobile sizes.
         for (const [width, height, profile] of [[360, 480, 'browser'], [390, 340, 'mobile']]) {
             await page.setViewportSize({ width, height }); await render('review', {}, profile);
@@ -140,12 +267,14 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             const preview = page.getByRole('button', { name: 'Preview PDF', exact: true }); await preview.scrollIntoViewIfNeeded(); await expect(preview).toBeInViewport();
             await editor.scrollIntoViewIfNeeded(); await expect(editor).toBeInViewport();
             page.once('dialog', d => d.dismiss()); await page.getByRole('link', { name: 'Back to Submissions' }).click(); await expect(editor).toHaveText('Synthetic unsaved feedback');
+            page.once('dialog', d => d.accept()); await page.getByRole('link', { name: 'Back to Submissions' }).click(); assert.equal(await page.evaluate(() => window.__navigation), '/dashboard/adviser/submissions');
             observations.push({ check: 'B.3', width, height, profile, frameHeight, result: 'No blocked access: page scroll reaches PDF actions and feedback' });
             await page.screenshot({ path: join(artifacts, `review-${width}-${height}.png`), fullPage: true });
         }
         // Actual Student upload and long project dialogs, with no file transfers or action calls.
         for (const [width, height] of [[360, 560], [390, 340]]) {
             await page.setViewportSize({ width, height }); await render('student', {}, 'mobile');
+            await visualChecks();
             for (const kind of ['Submit PDF', 'Create Project']) {
                 const trigger = page.getByRole('button', { name: kind, exact: true }); await trigger.click();
                 const dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
@@ -163,7 +292,7 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
         }
         assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
         assert.equal(await page.evaluate(() => window.__writes), 0);
-        console.log(JSON.stringify({ result: 'PASS', observations, artifacts, limits: 'Synthetic Chromium; no real PDF, hosted calls, screen-reader speech, physical safe area or software keyboard' }));
+        console.log(JSON.stringify({ result: 'PASS', visualCoverage: 'Three role dashboards at 360/390/1280 Light/Dark; Repository/Guide/Settings/Reports/Adviser submissions at 390 Light and 1280 Dark; AA contrast, 44px links, focus/hover, sidebar/drawer, exact destinations and statistics; preserved repository heading and Admin live regions', observations, artifacts, limits: 'Synthetic Chromium; no real PDF, hosted calls, screen-reader speech, physical safe area or software keyboard' }));
     } finally { await browser.close(); }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

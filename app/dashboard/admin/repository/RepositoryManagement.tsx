@@ -23,7 +23,7 @@ export default function RepositoryManagement({ eligiblePapers, repositoryEntries
     const label = selected?.kind === "unpublish" ? "Unpublish" : selected?.kind === "republish" ? "Republish" : "Publish";
     return <>
         <p className="dashboard-context">Manage approved research publication and repository visibility.</p>
-        <dl className={styles.metrics} aria-label="Repository management summary">{[["Ready to Publish", eligiblePapers.length], ["Published", published], ["Hidden", repositoryEntries.length - published]].map(([title, count]) => <div className="dashboard-panel" key={title}><dt>{title}</dt><dd>{count}</dd></div>)}</dl>
+        <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Repository management summary">{[["Ready to Publish", eligiblePapers.length], ["Published", published], ["Hidden", repositoryEntries.length - published]].map(([title, count]) => <div className="dashboard-panel" key={title}><dt>{title}</dt><dd>{count}</dd></div>)}</dl>
         <p role="status" className={notice || refreshing ? "research-notice" : undefined}>{refreshing ? "Updating repository management..." : notice}</p>
         {verify && <p role="alert" className="form-message">Changes are paused until you refresh and verify repository visibility. <button onClick={() => window.location.reload()}>Refresh and verify</button></p>}
         <div role="group" aria-label="Repository views" className={styles.views}>

@@ -5737,3 +5737,73 @@ Actual authenticated Next.js/Settings navigation, protected Preview, physical in
 React/design review: hooks, data flow and provider ownership unchanged; counts are render-derived and accessible status markup is local. Anti-Slop During gate, ENERGY 1 / RHYTHM 2 / MOTION 1: Hard Gate PASS for the scoped fixture's wrapping, keyboard and retained controls/states; Purpose-Gate PASS for title width and result feedback with no decorative additions; Liveliness PASS for preserved academic hierarchy/tokens; Craftsmanship PASS for both themes, desktop preservation and explicit evidence limits. This is local synthetic UI evidence, not hosted authentication, physical-device or full-production acceptance. No broad suite or production build was repeated.
 
 Next action: owner reviews B.1/B.2 locally and selects any separately authorized Preview publication/acceptance. Retain Batch A's owner-reported 11/11 closure; unaffected acceptance is reused, not independently rerun. Actual screen-reader announcements, physical software keyboards, installed PWA/safe areas and native PDF interaction remain owner-led checks. Six pending paths comprise four modified tracked files (including this preserved incoming document) and two new files (route CSS and focused fixture); leave all unstaged. No staging, commit, push, merge, deployment, database/Storage operation, dependency change or B.3/B.4 implementation.
+
+## Phase 10 - Visual Batch B.2/B.3 refinement (2026-11-07)
+
+**Implemented locally; focused validation PASS.** This is the owner's system-wide contextual-link/hierarchy refinement, distinct from the earlier Minimal Batch B filter-announcement and PDF/dialog verification labels. Entry: clean `feature/development`, HEAD `261fc0151f66e41abc35aca8b0feaa179fcb5001`. The preceding Minimal Batch B implementation and Batch A closure remain intact. No commit, push, merge, deployment, hosted operation or database action is part of this checkpoint.
+
+**B.2 contextual links:** five opt-in content-link treatments in `app/globals.css`: back navigation with an aria-hidden direction indicator; secondary outlined standalone details; compact section actions with direction; consistently trailing row actions; and prominent research-title links. Inline explanatory links keep their underlines. Back, row and section links have 44px minimum targets, restrained hover and existing visible focus. No application-navigation selector is restyled. Native links, destinations, query strings, fragments and accessible labels remain unchanged; no JavaScript navigation handler is added.
+
+**B.3 hierarchy/semantic accents:** the shared page header gains a quiet divider and existing Academic Blue heading color. Existing statistic groups opt into neutral top rules, heading-colored tabular values and one amber/notice priority treatment for pending academic review. Student and Adviser academic badges share existing blue/amber/teal tokens for Under Review, Revision Required and Approved; status text and meanings are unchanged, and taskboard statuses stay separate. Student submission timestamps receive quieter tabular metadata styling. Existing cards, row order, real calculations, typography, themes, radii, empty/error messages and component boundaries remain. No new theme token, font, dependency, motion, metric or widget.
+
+**Exact changed paths (20 modified tracked files; no new files):**
+
+```text
+app/globals.css
+components/dashboard/dashboard-header.module.css
+app/dashboard/student/page.tsx
+components/dashboard/student-research.tsx
+components/dashboard/student-ui.module.css
+app/dashboard/adviser/page.tsx
+components/dashboard/adviser-submissions.tsx
+components/dashboard/adviser-groups.tsx
+app/dashboard/adviser/submissions/[submissionId]/page.tsx
+components/dashboard/submission-status.tsx
+components/dashboard/admin-overview.tsx
+components/dashboard/admin-groups.tsx
+app/dashboard/admin/repository/RepositoryManagement.tsx
+app/dashboard/repository/page.tsx
+app/dashboard/repository/[paperId]/page.tsx
+app/dashboard/settings/page.tsx
+app/dashboard/guide/page.tsx
+app/dashboard/guide/ChatbotGuide.tsx
+tests/phase10-batchb.browser.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+```
+
+**Impact gate - SHARED / REGRESSION CHECK, MEDIUM likelihood:** shared header/opt-in CSS affects Student, Adviser, Admin and shared Repository/Settings/Guide presentation; route-local alternatives are used for link adoption, while genuinely repeated link/metric/status treatments share scoped classes. Relevant risks are wrapping, hit areas, focus, content geometry and status readability. No authentication, authorization, queries/services/repositories, data flow, workflow, schema, signing/expiry, provider ownership or navigation architecture changes. Shell/sidebar/bottom-nav/Sheet source, loading/Suspense boundaries, PWA control logic, draft boundary, editor/dialog/PDF machinery, the Minimal Batch B mobile-heading CSS and Admin live-region markup are unchanged. Existing guarantees are preserved rather than redefined.
+
+**Actual focused verification:** TypeScript `--noEmit --incremental false`, targeted ESLint on all changed TSX/CJS files with zero warnings, and whitespace checks PASS. Syntax-tree comparison of the 15 changed TSX files, normalized for Git LF/working CRLF, confirms identical href/handler/aria-label attributes and direct function calls. Review confirms unchanged numeric expressions and filters. The expanded existing `phase10-batchb.browser.cjs` fixture PASS uses actual pages/components/shell/theme/notification providers, synthetic Next/server/platform adapters and intercepted PDF responses: role dashboards at 360/390/1280px in Light/Dark; Repository listing, Guide, Admin Settings, Reports and Adviser submission directory at 390 Light / 1280 Dark; sampled AA text contrast, 44px contextual-link targets, focus/hover, exact query/fragment destinations and real-prop statistic rendering. Wide sidebar toggles and narrow drawer Escape/focus PASS. Committed repository full-width mobile heading and unchanged desktop geometry PASS; Admin count regions, combined filters, zero/empty/clear and same-count DOM stability PASS. Adviser dirty Back-link cancel preserves feedback and confirmed navigation retains the destination. Earlier short-view PDF/dialog checks still pass without modifying their source; the Student fixture now includes a populated submission-history row. Zero unexpected requests, page errors or action-write calls. Screenshot artifacts: `C:/Users/admin/AppData/Local/Temp/thesishs-batchb-ogEGej`; representative mobile/dark, desktop/light and repository heading images visually inspected.
+
+The existing `pwa-settings.browser.cjs` regression also PASS: browser/desktop/mobile Settings, Light/Dark 1280/360, keyboard installation disclosure, Student/Adviser synthetic enrollment/disable states, persistent ownership across navigation, tap/logout cleanup and Admin exclusion; no real permission, subscription, provider or network operation. Its artifacts are `C:/Users/admin/AppData/Local/Temp/thesishs-pwa-settings-lFx0cF`. No broad historical suite or production build repeated. React review PASS: render-only classes/data attributes, no new hooks/effects/state, preserved component/provider ownership and no new server/client request.
+
+Anti-Slop During delivery gate, ENERGY 1 / RHYTHM 2 / MOTION 1: Hard Gate PASS for scoped contrast, wrapping, keyboard, retained functional controls/states and explicit evidence limits; Purpose-Gate PASS for directional navigation, priority and status meaning with existing tokens; Liveliness PASS for Academic Blue hierarchy, structural whitespace and restrained accent; Craftsmanship/Quality Locks PASS for theme/responsive checks, native semantics, actual prop values and absence of decorative/template additions. Inline underlines and task semantics are deliberately retained.
+
+**Owner review remains:** accept the visual link vocabulary, header divider and pending/status emphasis; separately authorize any Preview publication. Hosted/authenticated acceptance, installed Desktop/Mobile PWA safe areas, physical software keyboards, native PDF and screen-reader speech are not established by synthetic Chromium. Batch A's owner-reported 11/11 and Minimal Batch B local evidence retain their original scope; no Production approval or next-phase implementation is implied. Preserve all existing documentation and leave the 20 paths unstaged with the index empty.
+
+## Phase 10 - Batch B.4 targeted visual corrections (2026-11-07)
+
+**Implemented locally; focused validation PASS.** Entry matches the owner's historical baseline: `feature/development`, HEAD `261fc0151f66e41abc35aca8b0feaa179fcb5001`, 20 incoming unstaged B.2/B.3 paths, empty index and no untracked files. The owner authorized three corrections and a background assessment only. Earlier Batch A/Minimal Batch B closure and B.2/B.3 records are retained without rewriting history.
+
+- **B.4.1 root cause/fix:** pending styling previously depended on the metric label alone, so zero values received the same priority attribute as positive values. Adviser Dashboard now marks Pending Reviews only when its existing value is greater than zero. Adviser submission-directory Submitted/Under Review counters require a positive numeric count. These are Adviser-owned review responsibilities: existing `isPendingSubmission` treats Submitted and Under Review as needing review, and the dashboard service requires the Adviser role. Reviewed and ordinary nonzero group/user/repository metrics stay neutral; Student task counts and academic-status definitions are unchanged. Before: zero and positive review counters were accented. After: zero is visually identical to ordinary neutral cards, positive actionable Adviser counts retain the existing restrained treatment. No counts, calculations, filters, queries or permissions changed.
+- **B.4.2 root cause/fix:** the verification notice had no bottom margin, and the following overview grid explicitly removes its cards' top margins. A Student-local `verificationNotice` class now supplies 1.25rem (20px) separation for the optional and temporarily-unavailable notices. Existing text, links, verification conditions and card content remain unchanged.
+- **B.4.3 root cause/fix:** the Workspace toolbar and tabs had no separating margins, the shared select used a 0.4rem margin, and the empty transition notice is hidden. A Workspace-only project-toolbar class makes the label block-level, gives its select 0.5rem top margin and places 1rem after the toolbar. The existing workspace tabs receive 1.125rem bottom margin. Actual Chromium gaps are **8px label/selector, 16px selector/tabs, 18px tabs/action**. No global spacing, wrapper/provider restructuring, task mutation, selection, tab or focus logic changed.
+
+**Eight task-specific paths changed:**
+
+```text
+app/dashboard/adviser/page.tsx
+components/dashboard/adviser-submissions.tsx
+app/dashboard/student/page.tsx
+components/dashboard/student-ui.module.css
+components/dashboard/student-group-workspace.tsx
+components/dashboard/student-research-notes.module.css
+tests/phase10-batchb.browser.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+```
+
+**Verification:** TypeScript `--noEmit --incremental false`, targeted ESLint on the four touched TSX files and existing browser fixture with zero warnings, and whitespace checks PASS. The existing synthetic Chromium fixture checks zero/positive Adviser counters and neutral ordinary counters in Light/Dark at 360/390px, including computed neutral/accent colors. Notice separation measures 20px in the representative dashboard checks; Workspace gaps measure 8/16/18px in all four mobile/theme combinations. Actual Workspace components receive synthetic props/router updates: multiple project selection, Tasks/Notes retention, arrow-key tab focus, New Task open/Escape/focus restoration and mobile bottom-bar end-of-content clearance PASS. The fixture also retains representative role/shared-page contrast, focus, link, navigation, repository mobile-heading, Admin live-region, Adviser draft, PDF and dialog checks. No horizontal overflow, unexpected network, page errors or action-write calls. Screenshots: `C:/Users/admin/AppData/Local/Temp/thesishs-batchb-83xVwa`; mobile notice/Workspace layouts visually reviewed. Existing B.2/B.3 PWA Settings evidence is reused because its styles/logic are unchanged. No full historical suite, production build or hosted operation.
+
+**B.4.4 assessment only:** Option A (unpatterned surface/border/divider depth) fits ENERGY 1 / RHYTHM 2 / MOTION 1, already works with the existing Light/Dark tokens and keeps mobile content quiet; retaining it has no new regression or implementation cost. Additional shared depth changes would still need focused visual checks. Option B (very faint header-local texture) could add identity but currently has little navigation/status benefit, needs a specific Anti-Slop purpose rather than default decoration, and would require separate Light/Dark contrast, mobile readability and shared-header layering checks. Its CSS is small but introduces MEDIUM shared-presentation review risk. **Recommendation: retain the current unpatterned treatment after these corrections.** No texture, global pattern, new depth treatment, token or asset was implemented.
+
+**Preservation/remaining review:** LOW localized presentation regression likelihood; the existing browser checks cover affected Adviser/Student components. Existing B.2/B.3 links/hierarchy, global CSS/header, navigation/PWA logic, authentication, data/loading/Suspense, draft guards, PDF/dialogs, repository-heading CSS and Admin count markup remain intact. Six incoming paths receive only these scoped extensions and two previously clean tracked Workspace paths are added to the pending set; the other 14 incoming files remain byte-identical, and the incoming Master Context prefix is preserved. Final pending scope is 22 modified tracked files, no untracked files and an empty index. Owner review remains for real-content visual balance, physical keyboards/safe areas and separately authorized Preview acceptance. No staging, commit, push, merge, deployment, database/Storage operation or next-phase work.

@@ -12,7 +12,7 @@ export function SubmissionDate({ value }: { value: string }) {
 
 function VersionRow({ item }: { item: SubmissionDirectoryItem }) {
     return <div className={styles.versionRow}><div className={styles.versionMeta}><strong>{item.version}</strong><SubmissionStatus status={item.status} /><span className="form-help"><SubmissionDate value={item.submittedAt} /></span></div>
-        <Link className={styles.link} href={submissionDetailsHref(item.id)} aria-label={`View Details: ${item.researchTitle}, ${item.version}`}>View Details</Link></div>;
+        <Link className={`${styles.link} context-row`} href={submissionDetailsHref(item.id)} aria-label={`View Details: ${item.researchTitle}, ${item.version}`}>View Details</Link></div>;
 }
 
 export default function AdviserSubmissions({ submissions }: { submissions: SubmissionDirectoryItem[] }) {
@@ -22,8 +22,8 @@ export default function AdviserSubmissions({ submissions }: { submissions: Submi
     const { projects, counts } = useMemo(() => groupAdviserSubmissions(submissions), [submissions]);
     const visible = filterAdviserProjects(projects, search, filter);
     return <>
-        <dl className={styles.metrics} aria-label="Submission versions">
-            {[["Submitted", counts.submitted], ["Under Review", counts.underReview], ["Reviewed", counts.reviewed]].map(([label, count]) => <div className="dashboard-panel" key={label}><dt>{label}</dt><dd>{count}</dd></div>)}
+        <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Submission versions">
+            {[["Submitted", counts.submitted], ["Under Review", counts.underReview], ["Reviewed", counts.reviewed]].map(([label, count]) => <div className="dashboard-panel" key={label} data-priority={(label === "Submitted" || label === "Under Review") && typeof count === "number" && count > 0 ? "pending" : undefined}><dt>{label}</dt><dd>{count}</dd></div>)}
         </dl>
         <section className={`dashboard-panel ${styles.directory}`} aria-labelledby="directory-heading">
             <h2 id="directory-heading">Research projects</h2>

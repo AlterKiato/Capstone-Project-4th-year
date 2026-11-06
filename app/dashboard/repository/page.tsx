@@ -45,7 +45,7 @@ export default async function ResearchRepositoryPage({
     return (
         <main className="dashboard-page discovery-page">
             <DashboardHeader title="Research Repository" email={session.email} />
-            <p><Link className="surface-link" href="/dashboard">Back to Dashboard</Link></p>
+            <p><Link className="context-back" href="/dashboard"><span aria-hidden="true">←</span>Back to Dashboard</Link></p>
             <p className="dashboard-context">Browse research approved by an Adviser and published by an Admin.</p>
 
             <section className="dashboard-panel" aria-labelledby="repository-filter-heading">
@@ -116,7 +116,7 @@ export default async function ResearchRepositoryPage({
                     {results.items.map((entry) => (
                         <li key={entry.paperId}>
                             <h2>
-                                <Link href={`/dashboard/repository/${entry.paperId}`}>
+                                <Link className="context-title" href={`/dashboard/repository/${entry.paperId}`}>
                                     {entry.title}
                                 </Link>
                             </h2>

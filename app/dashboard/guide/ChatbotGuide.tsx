@@ -41,7 +41,7 @@ export default function ChatbotGuide({ questions }: { questions: GuideQuestion[]
                                 <h3>{result.topic.question}</h3>
                                 <p className="record-text">{result.topic.answer}</p>
                                 {result.topic.links.map(link => (
-                                    <p key={link.href}><Link href={link.href}>{link.label}</Link></p>
+                                    <p key={link.href}><Link className="context-detail" href={link.href}>{link.label}</Link></p>
                                 ))}
                             </>
                         )}

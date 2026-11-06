@@ -32,7 +32,7 @@ export default function AdviserGroups({ groups }: { groups: Group[] }) {
     ];
     return <>
         <div className={styles.toolbar}><p className="dashboard-context">Create and manage your research groups.</p><button onClick={() => setCreating(true)}>New Group</button></div>
-        <dl className={styles.metrics} aria-label="Research group summary">{metrics.map(([label, count]) => <div className="dashboard-panel" key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
+        <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Research group summary">{metrics.map(([label, count]) => <div className="dashboard-panel" key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl>
         <p role="status" className={notice || refreshing ? "research-notice" : undefined}>{refreshing ? "Updating research groups..." : notice}</p>
         <section className={`dashboard-panel ${styles.directory}`} aria-labelledby="directory-heading">
             <h2 id="directory-heading">My Research Groups</h2>

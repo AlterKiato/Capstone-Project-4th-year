@@ -26,7 +26,7 @@ export default function StudentGroupWorkspace({ projects, project, invalidProjec
         }
     }, [pending, tab]);
     return <>
-        {projects.length > 0 && <div className={shared.toolbar}><div className={shared.selector}>
+        {projects.length > 0 && <div className={`${shared.toolbar} ${styles.projectToolbar}`}><div className={shared.selector}>
             <label htmlFor="workspace-project">Research project</label>
             <select id="workspace-project" value={project?.id ?? ""} disabled={blocked} onChange={event => {
                 const id = Number(event.target.value);

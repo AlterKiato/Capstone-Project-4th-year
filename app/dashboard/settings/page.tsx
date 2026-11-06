@@ -27,7 +27,7 @@ export default async function SettingsPage() {
                     <div><dt>Email</dt><dd>{account.email}</dd></div>
                     <div><dt>Role</dt><dd>{getRoleName(account.roleId)}</dd></div>
                 </dl>
-                {account.roleId === ROLE_IDS.STUDENT && <p><Link href="/dashboard/student/verify-email">Email verification</Link></p>}
+                {account.roleId === ROLE_IDS.STUDENT && <p><Link className="context-detail" href="/dashboard/student/verify-email">Email verification</Link></p>}
             </section>
             <section className="dashboard-panel" aria-labelledby="appearance-heading">
                 <h2 id="appearance-heading">Appearance</h2>

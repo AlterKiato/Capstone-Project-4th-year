@@ -173,6 +173,27 @@ body {
 .discovery-search-form { margin-top: 0; }
 .discovery-control, .managed-account-form input, .managed-account-form select { display: block; width: 100%; margin-top: 0.35rem; }
 .surface-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+/* Opt-in content links; inline explanations and application navigation keep their own styles. */
+a.context-back, a.context-detail, a.context-section, a.context-row {
+  display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; max-width: 100%;
+  color: var(--action); font-weight: 600; text-decoration: none; border-radius: .5rem;
+}
+a.context-back { padding: .25rem .5rem; font-size: .875rem; }
+a.context-detail { padding: .45rem .75rem; border: 1px solid var(--border-strong); background: var(--surface); font-size: .875rem; }
+a.context-section { padding-block: .25rem; font-size: .875rem; }
+a.context-row { flex-shrink: 0; margin-inline-start: auto; padding: .25rem .5rem; border: 0; background: transparent; font-size: .875rem; }
+a.context-title { display: inline-block; min-height: 44px; padding-block: .25rem; color: var(--heading); text-decoration: none; }
+a.context-back:hover, a.context-detail:hover, a.context-row:hover { color: var(--action-hover); background: var(--notice); }
+a.context-section:hover, a.context-title:hover { color: var(--action-hover); text-decoration: underline; }
+.context-back > [aria-hidden], .context-section > [aria-hidden] { flex-shrink: 0; }
+/* A quiet common baseline lets pending academic work carry the one priority accent. */
+.dashboard-metrics > div { border-top: 3px solid var(--border-strong); }
+.dashboard-metrics dt { color: var(--muted); }
+.dashboard-metrics dd:first-of-type { color: var(--heading); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.dashboard-metrics > [data-priority="pending"] { border-top-color: var(--revision); background: var(--notice); }
+.academic-status[data-status="Under Review"] { color: var(--action); border-style: dashed; background: var(--notice); }
+.academic-status[data-status="Revision Required"] { color: var(--revision); border-left: 3px solid var(--revision); background: var(--surface-secondary); }
+.academic-status[data-status="Approved"] { color: var(--feedback); border-left: 3px solid var(--feedback); background: var(--surface-secondary); }
 .surface-link, .repository-pagination a { display: inline-flex; align-items: center; min-height: 44px; }
 .result-context { margin: 1.5rem 0 0.75rem; font-weight: 600; }
 .repository-results, .management-records, .notification-records { list-style: none; }
