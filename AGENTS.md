@@ -4,6 +4,12 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+## Vercel Preview deployment guidance (owner decision, 2026-11-06)
+
+For `feature/development` Preview deployments, read [the deployment playbook](docs/THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md) and [the configuration baseline](docs/VERCEL_PREVIEW_BASELINE.md) before planning or executing deployment-related tasks. Follow the risk-tiered, demonstration-first workflow: reuse existing verified evidence, prioritize focused delta checks, and avoid unnecessary feasibility reviews, repeated environment audits or production-grade recovery preparation for low-risk Preview changes. Investigate changed risks and contradictory current evidence; preserve evidence classifications.
+
+Preserve authentication, authorization, data integrity and Git safeguards. Explicit authorization is still required for pushes, deployments, hosted mutations, migrations and Production operations. This guidance refines the Preview procedure without authorizing those actions or superseding the existing release policy's security and target-verification requirements.
+
 ## Current closure and release handoff (2026-11-05)
 
 **P.3F.3 is CLOSED / PASS for the agreed synthetic Preview Web Push scope.** Migration 0015/runtime grants, Preview-only VAPID and Ready deployment `f82a08105158713ffad5161c0235fac1d23327fd` on `feature/development` are verified; Android Adviser enrollment is server-verified and notification receipt/tap navigation are owner-confirmed. The [P.3F.4 handoff](docs/MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05) supersedes older pending/unimplemented P.3 labels and next-action instructions below. Production, broader device/reliability coverage and retained security gates remain separate; Groq/Resend stay disabled and Expo frozen.
