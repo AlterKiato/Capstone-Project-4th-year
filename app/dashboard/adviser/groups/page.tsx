@@ -3,9 +3,10 @@ import DashboardHeader from "@/components/dashboard/dashboard-header";
 import AdviserGroups from "@/components/dashboard/adviser-groups";
 import { getAdviserGroupsDirectory } from "@/lib/services/adviser-groups.service";
 import styles from "@/components/dashboard/adviser-groups.module.css";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 
 export default function AdviserGroupsPage() {
-    return <Suspense fallback={<main className="dashboard-page" aria-busy="true"><h1>Research Groups</h1><p role="status">Loading your research groups...</p></main>}><GroupsDirectory /></Suspense>;
+    return <Suspense fallback={<DashboardSkeleton page="groups" />}><GroupsDirectory /></Suspense>;
 }
 
 async function GroupsDirectory() {

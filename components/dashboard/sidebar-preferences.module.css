@@ -1,0 +1,2 @@
+.control { display: grid; gap: 6px; max-width: 18rem; }
+.control select { width: 100%; min-height: 48px; }

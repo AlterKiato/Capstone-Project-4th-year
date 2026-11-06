@@ -33,9 +33,9 @@ async function contextFor(user, role = user.role_id) {
 
 async function noOverflow(page) {
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');
-    const sidebar = await page.getByRole('complementary', { name: 'Workspace sidebar' }).boundingBox();
+    const sidebar = await page.locator('aside[aria-label="Workspace sidebar"]').boundingBox();
     const main = await page.locator('main').boundingBox();
-    assert.ok(main.x >= sidebar.x + sidebar.width, 'Page clears sidebar');
+    if (sidebar) assert.ok(main.x >= sidebar.x + sidebar.width, 'Page clears sidebar');
 }
 
 function contrast(a, b) {
@@ -106,13 +106,13 @@ async function main() {
 
         await page.setViewportSize({ width: 360, height: 800 });
         await noOverflow(page);
-        assert.equal(Math.round((await rail.boundingBox()).width), 64);
-        const menu = rail.getByRole('button', { name: 'Open navigation menu' });
+        await expect(rail).toBeHidden();
+        const menu = page.getByRole('button', { name: 'Open navigation menu' });
         const drawer = page.getByRole('dialog', { name: 'Navigation', exact: true });
         await menu.focus();
         await page.keyboard.press('Enter');
         await expect(drawer).toBeVisible();
-        await expect(menu).toHaveAttribute('aria-expanded', 'true');
+        await expect(page.locator('button[aria-label="Open navigation menu"]')).toHaveAttribute('aria-expanded', 'true');
         await expect(drawer.getByRole('button', { name: 'Close navigation menu' })).toBeFocused();
         await page.keyboard.press('Shift+Tab');
         await expect(drawer.getByRole('button', { name: 'Logout', exact: true })).toBeFocused();
@@ -145,11 +145,14 @@ async function main() {
         const paper = page.locator('.repository-results h2 a').first();
         if (await paper.count()) {
             await paper.click();
-            await expect(rail.getByRole('link', { name: 'Browse Repository', exact: true })).toHaveAttribute('aria-current', 'page');
-            await expect(rail.getByRole('link', { name: 'Dashboard', exact: true })).not.toHaveAttribute('aria-current', 'page');
+            await menu.click();
+            await expect(drawer.getByRole('link', { name: 'Browse Repository', exact: true })).toHaveAttribute('aria-current', 'page');
+            await expect(drawer.getByRole('link', { name: 'Dashboard', exact: true })).not.toHaveAttribute('aria-current', 'page');
+            await page.keyboard.press('Escape');
             await noOverflow(page);
         }
-        await rail.getByRole('link', { name: 'Dashboard', exact: true }).click();
+        await menu.click();
+        await drawer.getByRole('link', { name: 'Dashboard', exact: true }).click();
         await expect(page).toHaveURL(`${origin}${destination}`);
         await page.screenshot({ path: join(tmpdir(), `phase972-role${user.role_id}-360.png`), fullPage: true });
         await page.emulateMedia({ reducedMotion: 'reduce' });

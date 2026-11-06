@@ -279,19 +279,19 @@ test('actual draft boundary cancels logout before cleanup and guards worker navi
     assert.equal(acceptPushNavigation({ type: 'thesishs-research-push', destination: 'https://evil.invalid' }, 'https://app.example.invalid/sw.js', 'https://app.example.invalid', () => assert.fail(), () => true), false);
 });
 
-test('actual enrollment component SSR is browser-free, accessible, and exposes no Admin/Panel UI', () => {
-    const Component = loadTs('components/dashboard/research-push-enrollment.tsx', {
-        'next/navigation': { useRouter: () => ({ push() {} }) }, '@/lib/pwa/use-display-mode': { useDisplayMode: () => 'unknown' },
+test('actual shared provider SSR is browser-free and exposes no enrollment before mobile detection', () => {
+    const { default: Component, ResearchPushProvider } = loadTs('components/dashboard/research-push-enrollment.tsx', {
+        'next/navigation': { useRouter: () => ({ push() {} }) }, '@/lib/pwa/use-display-mode': { useDisplayMode: () => 'unknown', usePwaPlatform: () => 'unknown' },
         '@/lib/pwa/research-push-client': require('../lib/pwa/research-push-client.ts'),
         '@/lib/pwa/research-push-browser': require('../lib/pwa/research-push-browser.ts'),
         '@/lib/pwa/research-push-navigation': require('../lib/pwa/research-push-navigation.ts'),
         './research-push-enrollment.module.css': { default: { section: 'section', actions: 'actions' } },
-    }).default;
+    });
     const props = { userId: 1, roleId: 3, expiresAt: 1800000050000, configured: false };
-    const html = renderToString(React.createElement(Component, props));
-    assert.match(html, /Research Notifications/); assert.match(html, /role="status"/); assert.match(html, /Only one device/);
+    const html = renderToString(React.createElement(ResearchPushProvider, props, React.createElement(Component)));
+    assert.equal(html, '');
     assert.doesNotMatch(html, /Enable Notifications<|Disable Notifications</);
-    for (const roleId of [1, 4]) assert.equal(renderToString(React.createElement(Component, { ...props, roleId })), '');
+    for (const roleId of [1, 4]) assert.equal(renderToString(React.createElement(ResearchPushProvider, { ...props, roleId }, React.createElement(Component))), '');
 });
 
 test('actual enrollment UI renders ready, enabled, disabled, denied, pending and retry states accessibly', () => {
@@ -299,12 +299,12 @@ test('actual enrollment UI renders ready, enabled, disabled, denied, pending and
         ['denied', false, true], ['busy', false, false], ['error', false, true]]) {
         const view = { phase, canEnable, canDisable, message: 'State: ' + phase };
         class Client { subscribe = () => () => {}; snapshot = () => view; serverSnapshot = () => view; }
-        const Component = loadTs('components/dashboard/research-push-enrollment.tsx', {
-            'next/navigation': { useRouter: () => ({ push() {} }) }, '@/lib/pwa/use-display-mode': { useDisplayMode: () => 'standalone' },
+        const { default: Component, ResearchPushProvider } = loadTs('components/dashboard/research-push-enrollment.tsx', {
+            'next/navigation': { useRouter: () => ({ push() {} }) }, '@/lib/pwa/use-display-mode': { useDisplayMode: () => 'standalone', usePwaPlatform: () => 'android' },
             '@/lib/pwa/research-push-client': { ResearchPushClient: Client }, '@/lib/pwa/research-push-browser': { browserPushEnvironment: () => ({}) },
             '@/lib/pwa/research-push-navigation': {}, './research-push-enrollment.module.css': { default: {} },
-        }).default;
-        const html = renderToString(React.createElement(Component, { userId: 1, roleId: 3, configured: true, expiresAt: 1800000050000 }));
+        });
+        const html = renderToString(React.createElement(ResearchPushProvider, { userId: 1, roleId: 3, configured: true, expiresAt: 1800000050000 }, React.createElement(Component)));
         assert.equal(html.includes('>Enable Notifications<'), canEnable); assert.equal(html.includes('>Disable Notifications<'), canDisable);
         assert.match(html, /aria-live="polite"/); assert.ok(html.includes('State: ' + phase));
         if (phase === 'busy') assert.match(html, /aria-busy="true"/);

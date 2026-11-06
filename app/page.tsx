@@ -99,26 +99,31 @@ export default function Home() {
       </main>
 
       <footer className={styles.footer}>
-        <section aria-labelledby="about-heading">
-          <h2 id="about-heading">About ThesiSHS AI</h2>
-          <p>Research submissions, adviser feedback and a repository of approved studies for Senior High School.</p>
-          <p className={styles.footerNote}>Temporary branding for ThesiSHS AI.</p>
-        </section>
-        <nav aria-labelledby="quick-links-heading">
-          <h2 id="quick-links-heading">Quick Links</h2>
+        <details className={styles.footerDetails}>
+          <summary>About ThesiSHS AI</summary>
+          <section className={styles.footerPanel} aria-labelledby="about-heading">
+            <h2 id="about-heading">About ThesiSHS AI</h2>
+            <p>Research submissions, adviser feedback and a repository of approved studies for Senior High School.</p>
+            <p className={styles.footerNote}>Temporary branding for ThesiSHS AI.</p>
+          </section>
+        </details>
+        <nav aria-label="Quick Links">
           <ul>
             <li><Link href="/">Home</Link></li>
             <li><Link href="/login">Log In</Link></li>
             <li><Link href="/register">Register</Link></li>
           </ul>
         </nav>
-        <section aria-labelledby="contact-heading">
-          <h2 id="contact-heading">Contact &amp; Support</h2>
-          <p>Email: support@example.com</p>
-          <p>Phone: To be announced</p>
-          <p>Organization/contact details: To be confirmed</p>
-          <p className={styles.footerNote}>Contact information is provisional and not yet an active support channel.</p>
-        </section>
+        <details className={styles.footerDetails}>
+          <summary>Contact &amp; Support</summary>
+          <section className={styles.footerPanel} aria-labelledby="contact-heading">
+            <h2 id="contact-heading">Contact &amp; Support</h2>
+            <p>Email: support@example.com</p>
+            <p>Phone: To be announced</p>
+            <p>Organization/contact details: To be confirmed</p>
+            <p className={styles.footerNote}>Contact information is provisional and not yet an active support channel.</p>
+          </section>
+        </details>
       </footer>
     </div>
   );

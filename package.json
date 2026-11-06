@@ -13,6 +13,7 @@
     "db:uploads:cleanup": "tsx scripts/submission-upload-cleanup.ts"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "1.3.1",
     "@supabase/supabase-js": "^2.116.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",

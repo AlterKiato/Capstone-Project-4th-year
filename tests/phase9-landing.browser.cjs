@@ -89,13 +89,22 @@ async function main() {
         }
         assert.equal(await preview.locator('a, button, input, select, textarea, [tabindex]').count(), 0);
         const footer = page.getByRole('contentinfo');
-        for (const heading of ['About ThesiSHS AI', 'Quick Links', 'Contact & Support']) {
+        await expect(footer.getByRole('navigation', { name: 'Quick Links' })).toBeVisible();
+        for (const heading of ['About ThesiSHS AI', 'Contact & Support']) {
+            await footer.locator('summary').filter({ hasText: heading }).click();
             await expect(footer.getByRole('heading', { level: 2, name: heading, exact: true })).toBeVisible();
+            if (heading === 'About ThesiSHS AI') await footer.locator('summary').filter({ hasText: heading }).click();
         }
         await expect(footer.getByText('Email: ' + supportPlaceholder, { exact: true })).toBeVisible();
         await expect(footer.getByText('Phone: To be announced', { exact: true })).toBeVisible();
         await expect(footer.getByText('Organization/contact details: To be confirmed', { exact: true })).toBeVisible();
         await expect(footer.getByText('Contact information is provisional and not yet an active support channel.', { exact: true })).toBeVisible();
+        await footer.locator('summary').filter({ hasText: 'Contact & Support' }).click();
+        const footerBeforeScroll = await footer.boundingBox();
+        await page.locator('main').evaluate(element => { element.scrollTop = element.scrollHeight; });
+        assert.equal((await footer.boundingBox()).y, footerBeforeScroll.y, 'Footer remains anchored while main content scrolls');
+        assert.ok(Math.abs(footerBeforeScroll.y + footerBeforeScroll.height - 900) <= 1, 'Footer at viewport bottom');
+        await page.locator('main').evaluate(element => { element.scrollTop = 0; });
         assert.equal(await page.locator('a[href^="mailto:"], a[href^="tel:"]').count(), 0);
         const appearance = page.getByRole('button', { name: 'Change theme', exact: true });
         await expect(appearance).toBeEnabled();
@@ -109,7 +118,7 @@ async function main() {
         const lightPublicText = await page.locator('body').innerText();
         assert.equal(await page.evaluate(() => localStorage.getItem('thesishs-theme')), 'light');
         assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light');
-        // Approved f3b6dd5 geometry and light colors, not merely theme state.
+        // Retained light colors with the owner-approved full-width landing layout.
         const primary = page.locator('header nav a').last();
         const secondary = page.locator('header nav a').first();
         assert.equal(await primary.evaluate(el => getComputedStyle(el).backgroundColor), rgb(approved('.primaryAction', 'background')));
@@ -125,7 +134,8 @@ async function main() {
         const previewLayout = await preview.boundingBox();
         if (width === 1280) {
             assert.ok(previewLayout.x > headline.x + headline.width, 'Approved split hero');
-            assert.equal(await page.locator('main section').first().evaluate(el => getComputedStyle(el).paddingTop), '44px');
+            assert.ok(headline.x <= width * 0.04, 'Responsive gutters use the available desktop width');
+            assert.ok(await page.locator('main section').first().evaluate(el => parseFloat(getComputedStyle(el).paddingTop) <= 48), 'Compact hero spacing');
         } else assert.ok(previewLayout.y > headline.y + headline.height, 'Approved stacked mobile hero');
         const triggerBounds = await appearance.boundingBox();
         assert.equal(triggerBounds.width, 44);

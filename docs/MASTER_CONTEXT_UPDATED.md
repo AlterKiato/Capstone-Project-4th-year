@@ -1,12 +1,17 @@
 # ThesiSHS AI — Master Context
 
-**Last reconciled:** 2026-11-01
+> **Current closure — 2026-11-05 (P.3F.4): P.3F.3 is CLOSED / PASS for the agreed synthetic Preview Web Push scope.** Migration 0015, minimum runtime grants, Preview VAPID, deployment/build and Android Adviser enrollment are verified; Android receipt and tap/navigation are owner-confirmed PASS. Verified deployed HEAD: `f82a08105158713ffad5161c0235fac1d23327fd`, `feature/development`. See the [closure and development handoff](#p3f4-web-push-closure-and-development-handoff-2026-11-05). This current notice and that handoff supersede conflicting pending/disabled/next-step labels in the retained November 4 snapshot and historical sections below. Production readiness remains separate.
+>
+> **Documentation-only checkpoint:** preserve the six incoming unstaged paths and their existing edits, including this file's earlier reconciliation. No staging, commit, push, deployment or database operation is authorized here. Next recommended development scope: P.4 Admin Desktop Publication Oversight, after owner scope approval.
+
+**Last reconciled:** 2026-11-04 (documentation consistency review; latest implementation entries dated 2026-11-02)
 **Current branch:** `feature/development`
-**Current Git checkpoint:** the P.3F.0 local source closure commit containing this handoff, message `feat(phase10): implement and verify minimal research web push`, parent `b4352d1ea456dfce18097b039f9237ef46fc33a6`, on `feature/development`. Resolve its SHA from Git; this scope authorizes one reviewed local commit only, with no push, merge or deployment.
+**Current Git checkpoint:** `b831a9c61eb399bedf971af4a91776f012288aa8` — `feat(phase10): implement and verify minimal research web push`, parent `b4352d1ea456dfce18097b039f9237ef46fc33a6`, on `feature/development`. This is the completed P.3F.0 local source closure; its one-commit authorization is historical and does not authorize another commit, push, merge or deployment.
+**Current working tree (2026-11-04):** six modified tracked paths, all unstaged: `app/globals.css`, `app/page.module.css`, `app/page.tsx`, `components/auth/login-form.tsx`, `docs/MASTER_CONTEXT_UPDATED.md` and `tests/phase9-landing.browser.cjs`. These preserve the November 2 password-toggle/landing/footer refinements and their documentation, plus this documentation reconciliation. Latest UI refinements have recorded isolated checks and remain ready for owner inspection; they are uncommitted.
 **Current scope:** **P.3F.0 local review/verification PASS; hosted activation pending separate gates.** P.3E.2 verified 0015 and subscription constraints/races in a disposable PostgreSQL cluster only (20 checks PASS). Existing project databases remain at 0014; push is disabled, real VAPID unconfigured and Android/iOS delivery unverified. See the latest handoff and [owner checklist](PHASE10_P3_ACTIVATION_CHECKLIST.md). P.3E.1a, P.1/P.2 closure, full-build configuration/finalization limits, development-only advisories and hosted security gates remain. P.3F.1 is proposed, not started; P.4/R.1-R.3 remain separate. Expo stays frozen and Resend/Groq disabled.
 **Retained Phase 10.2F scope (historical):** Phase 10.2F physical PWA acceptance **PASS - owner-reported Windows 6/6 and Android Chrome 6/6; total 12 PASS, 0 FAIL, 0 BLOCKED**. Record the manual results only; Codex did not independently execute them. This acceptance does not establish offline support, push notification reliability, Expo React Native readiness or production release approval. Phase 10.2E remains accepted for controlled Preview testing with its hosted security gates deferred to production readiness. No tests, infrastructure/application changes or commit/push occur in this documentation checkpoint.
 
-> This file is the **current-state handoff document**. Verify actual branch/HEAD/status; historical uncommitted checkpoints do not override the latest closure commit.
+> This file is the **current-state handoff document**. The reconciled header, current-state sections and latest applicable dated handoffs control status. Earlier dated implementation/closure records preserve their original evidence and authorization boundaries; their pending/next-action wording is historical when superseded. Verify actual branch/HEAD/status; a local commit does not establish hosted deployment or activation.
 
 ---
 
@@ -15,6 +20,8 @@
 Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3. Phase 8 is provisionally complete for the implemented static/mock-only scope after focused Chromium demonstration and security/quota/static validation on 2026-10-10. Student guidance is static; Admin/Adviser interpretation was demonstrated with deterministic fictional aggregate bands through isolated browser response substitution, not operational AI. Groq is hard-disabled; institutional eligibility/consent approval and live AI testing remain unfinished. Protected Vercel Preview is now online, as recorded in the latest handoff. **Phase 9 is PASS WITH DOCUMENTED LIMITATIONS** for the agreed UI/UX and online-first PWA scope; the owner has ended UI scope expansion. Phase 9.6 is closed for owner-performed manual acceptance (11 PASS, 0 FAIL), not independently rerun by Codex. Windows installation/standalone and Android installation/home-screen/session acceptance are now owner-reported PASS (6/6 each, Phase 10.2F); broader reliability and other devices/browsers remain unverified. Current Preview functional acceptance is owner-reported below. The active design references are the existing application, approved DESIGN.md decisions (including Light/Dark/System) and ANTISLOP.md, with owner-selected During mode for future authorized UI implementation. Figma Make inspection is cancelled. Phase 10.1 authentication/security preparation and Phase 10.2B database/Admin foundations are implemented with local validation; production gates remain. Phase 10.2C.2 direct private PDF upload is implemented with isolated tests; hosted synthetic Student/Adviser v1/v2 workflow acceptance is now owner-reported PASS (19/19). Local 0014/operator/recovery/bucket preparation and hosted database preparation remain verified within their recorded scopes. The retained 10.2E.5F result confirms signed 206 and three unsigned 400 responses, four GETs and no writes/database connections. Phase 10.2E is accepted for controlled synthetic Preview testing with deferred hosted authorization, signed-upload isolation, expiry and policy-review gates. Full hosted security and production readiness remain unverified; production is not deployed. Actual fixture: PreviewGroup, group ID 1, research project ID 1. Historical blocked/preparation reports retain their dated scope; the latest closure below supersedes earlier next-step instructions.
 
 ### Current phase status
+
+Later milestones: P.1 and P.2 are locally CLOSED — PASS; P.3 source is implemented and locally committed, with activation/device acceptance pending. Optional verification UX and a disabled Resend adapter are prepared. The November 2 login/landing/footer refinements remain uncommitted. These separately authorized checkpoints extend the closed Phase 9 baseline without reopening general UI scope.
 
 | Phase | Feature | Status at current checkout |
 |---|---|---|
@@ -42,6 +49,11 @@ Phase 5, lean Phase 6 and Phase 7 are complete; Phase 7 is committed at ca95fd3.
 | 10.2D / 10.2E | Preview preparation / deployment | Accepted for controlled Preview testing with deferred hosted security gates |
 | 10.4 | Owner-led Preview manual acceptance | Admin PASS; Student/Adviser 19/19 PASS (owner-reported); four Storage GETs PASS; Windows/Android PWA 12/12 owner-reported PASS; near-limit PDF and other unexecuted checks remain open |
 | 10.2F | Physical-device PWA acceptance | Owner-reported Windows 6/6 and Android Chrome 6/6 PASS; 12 PASS, 0 FAIL, 0 BLOCKED; no independent Codex test |
+| 10.P1 | Installed PWA platform foundation | Locally CLOSED — PASS at `6f2d350`; owner-reported six manual passes; broader device/browser limits remain |
+| 10.P2 | Adviser desktop review workspace | Locally CLOSED — PASS at `b4352d1`; scoped owner acceptance, automated/browser checks and isolated build PASS; hosted/native-viewer limits remain |
+| 10.P3 | Minimal research Web Push + VAPID | Local source closure at `b831a9c`; isolated verification PASS, including disposable PostgreSQL; push disabled, existing-project 0015/grants and real VAPID/device delivery pending |
+| 10.P4 / R.1–R.3 | Admin desktop publication oversight / research progress and revision management | Separately scoped; unimplemented |
+| November 2 refinements | Login password visibility / responsive landing / anchored footer | Implemented with recorded isolated checks; unstaged and uncommitted, ready for owner inspection |
 | Production | Readiness and release | Pending; separate release authorization required |
 | 11 | Final Testing, Evaluation & Documentation | High-level final QA, user evaluation, demonstration and documentation retained; not started |
 | CI | Continuous integration | ⏸️ Explicitly deferred |
@@ -67,13 +79,15 @@ This owner-approved sequence replaces the earlier extensive automated upload-acc
 
 **Preserved tooling:** The guarded migration runner remains the supported 0014 path. The B.1 fixture generator and local browser harness are available but deferred/optional, not mandatory gates for the lean Preview demonstration. Their existence does not authorize provisioning or execution. Existing synthetic accounts require explicit approval for safe reuse. No mandatory Student email verification for initial deployment; real email is deferred; Groq stays hard-disabled. PWA is primary; Expo/Electron remain deferred and separately authorized.
 
-**Next recommended checkpoint:** Review the remaining existing 10.4 manual acceptance scope, starting with near-10-MiB PDF submission and other unexecuted coverage; physical Windows/Android PWA checks are complete within the owner-reported scope and should not be repeated automatically. Any upload/hosted execution needs separate owner authorization, an eligible synthetic test state and preservation of the current revision/history records. Do not assume the existing project is eligible for another submission. Stage 1 email-verification persistence/UI/local Mailpit are implemented and optional; real email and mandatory enforcement remain deferred. AI eligibility/consent foundations exist, but institutional approvals and operational testing remain pending and Groq stays hard-disabled. The [10.2E closure](#phase-102e-closure-and-handoff-2026-10-28) still defers hosted security gates to production readiness. See the [PWA closure](#phase-102f-pwa-acceptance-closure-2026-10-29); no next activity starts automatically.
+**Remaining 10.4 acceptance (separate backlog):** Near-10-MiB PDF submission and other unexecuted coverage remain open; physical Windows/Android PWA checks are complete within the owner-reported scope and should not be repeated automatically. Any upload/hosted execution needs separate owner authorization, an eligible synthetic test state and preservation of the current revision/history records. Do not assume the existing project is eligible for another submission. Stage 1 email-verification persistence/UI/local Mailpit are implemented and optional; real email and mandatory enforcement remain deferred. AI eligibility/consent foundations exist, but institutional approvals and operational testing remain pending and Groq stays hard-disabled. The [10.2E closure](#phase-102e-closure-and-handoff-2026-10-28) still defers hosted security gates to production readiness. See the [PWA closure](#phase-102f-pwa-acceptance-closure-2026-10-29). For the latest proposed P.3F.1 checkpoint, see section 10 below; no next activity starts automatically.
 
 ---
 
 ## 2. Git / Rollback Boundary
 
-Historical 10.2F documentation checkpoint (2026-10-29): feature/development at base HEAD c3be85cd59ba516c89e113d8547b6901739ff978; entry tree clean, index empty. Phase 10.2E documentation was committed/pushed as c3be85c in the prior checkpoint. Changes at that checkpoint were limited to five unstaged documentation paths: AGENTS.md, README.md, docs/MASTER_CONTEXT_UPDATED.md, docs/SOURCE_OF_TRUTH_UPDATED.md and docs/ARCHITECTURE_UPDATED.md. Preserve research-policy sections and all ignored evidence; current Git state and authorization are recorded in the latest P.1 handoff.
+Current local HEAD is `b831a9c61eb399bedf971af4a91776f012288aa8`; the six unstaged paths are listed in the reconciled header. P.1 (`6f2d350`), P.2 (`b4352d1`) and P.3F.0 (`b831a9c`) are completed local commits. Preserve the pending UI/documentation changes and ignored evidence. No new commit or remote operation is authorized by this reconciliation.
+
+Historical 10.2F documentation checkpoint (2026-10-29): feature/development at base HEAD c3be85cd59ba516c89e113d8547b6901739ff978; entry tree clean, index empty. Phase 10.2E documentation was committed/pushed as c3be85c in the prior checkpoint. Changes at that checkpoint were limited to five unstaged documentation paths: AGENTS.md, README.md, docs/MASTER_CONTEXT_UPDATED.md, docs/SOURCE_OF_TRUTH_UPDATED.md and docs/ARCHITECTURE_UPDATED.md. Preserve research-policy sections and all ignored evidence; this historical inventory does not describe the current working tree.
 
 Historical incoming checkpoint for the 2026-10-22 roadmap review:
 
@@ -84,7 +98,7 @@ index:       empty
 tree:        17 modified + 24 new = 41 existing unstaged paths
 ```
 
-This documentation checkpoint adds README/AGENTS modifications to that existing set, yielding 19 modified + 24 new = 43 pending paths. The four canonical references were already modified. Existing implementation/tooling, migration history and environment files are preserved. No acceptance suite or commit is performed. Earlier Phase 8/9 and Phase 10 handoffs retain historical evidence; current roadmap and gates supersede their next-step instructions.
+That historical documentation checkpoint added README/AGENTS modifications to that existing set, yielding 19 modified + 24 new = 43 pending paths. The four canonical references were already modified. Existing implementation/tooling, migration history and environment files were preserved. No acceptance suite or commit was performed in that documentation pass. Earlier Phase 8/9 and Phase 10 handoffs retain historical evidence; current roadmap and gates supersede their next-step instructions.
 
 Before changing code, verify the actual checkout:
 
@@ -101,7 +115,7 @@ Do not restore historical work blindly. Inspect the current source first and re-
 
 ## 3. Phase 4 — Adviser Review & Feedback
 
-Phase 4 Adviser Review & Feedback remains complete. Phase 7 is the latest accepted milestone; see the final closure handoff.
+Phase 4 Adviser Review & Feedback remains complete. The later Adviser desktop workspace is locally closed under P.2D; see its dated closure for the current review UI, acceptance and limitations.
 
 ### Verified workflow
 
@@ -148,11 +162,11 @@ The stable design in `docs/SOURCE_OF_TRUTH_UPDATED.md` calls for:
 - private Supabase Storage
 - bucket `research-submissions`
 - PDF-only documents
-- maximum file size of 10 MB
+- maximum file size of 10,485,760 bytes (10 MiB)
 - storage path pattern `research/{paperId}/{version}/{sanitizedFileName}`
 - server-side authorization before document access
 - server-generated signed URLs
-- 300-second / five-minute signed URL expiry
+- 300-second / five-minute default signed URL expiry; P.2 adds only the authorized Adviser review purpose at 1,800 seconds, with explicit local renewal offered at 1,680 seconds
 - database storage of the storage path rather than a public URL
 
 ### Phase 5.2 implementation and acceptance
@@ -166,7 +180,7 @@ The stable design in `docs/SOURCE_OF_TRUTH_UPDATED.md` calls for:
 
 ### Phase 5.3 — Secure Document Access — Complete
 
-Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer for 300 seconds in private bucket `research-submissions`; no client-supplied paper, path, version, identity, or role is trusted.
+Submitted-document access requires an authenticated Student/Adviser session, positive submission ID validation, current active-account/database-role verification, Student group membership or Adviser group ownership, persisted submission/file metadata verification, and a storage path bound to the submission paper/version. Admin and Panel are denied under the submitted-document rules. Only the persisted path is passed to the existing server-only signer in private bucket `research-submissions`; no client-supplied paper, path, version, identity, role or arbitrary duration is trusted. The Phase 5.3 baseline is 300 seconds. P.2 subsequently added the fixed authorized Adviser review purpose at 1,800 seconds; Student/default downloads, repository access and publication checks remain 300 seconds. Adviser local renewal is explicit at the 1,680-second threshold.
 
 ```text
 Authenticated request
@@ -175,24 +189,24 @@ Authenticated request
 → Student membership or Adviser ownership authorization
 → persisted submission/file metadata verification
 → storage path bound to submission paper/version
-→ server-side 300-second signed URL
+→ server-side signed URL (300-second default; authorized Adviser review purpose: 1,800 seconds)
 ```
 
 All accepted live scenarios and independently verified fixture cleanup passed; see the live acceptance handoff below. No Phase 5.3 schema/migration changes were required or applied.
 
-Already issued signed URLs may remain usable until their 300-second expiry after authorization is revoked. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Full submission/review regression evidence is service-level; browser acceptance specifically covered document access. These are known limitations, not blockers.
+Already issued signed URLs may remain usable after authorization is revoked until their provider expiry (300 seconds by default; 1,800 seconds for the authorized Adviser review purpose). Local clearing/renewal does not revoke an issued capability. Legacy/nonconforming paths outside the established naming convention are intentionally rejected; do not weaken validation. Phase 5.3 full submission/review regression evidence is service-level; its browser acceptance specifically covered document access. Later P.2 evidence retains its separate scope. These are known limitations, not blockers.
 
 ### Phase 5.4 — Repository Publication — Complete and runtime accepted
 
-Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery is next and requires explicit owner direction; it was not started in this pass. CI remains deferred. Do not commit or push.
+Phase 5.4 — Repository Publication is complete and runtime-accepted (PASS; completion/documentation audit complete). Phase 5.5 — Repository Document Access is complete and runtime-accepted (PASS). Phase 5.6 — End-to-End Verification & Security Audit and Phase 5.7 — Documentation & Completion Audit are complete. **Phase 5 overall is complete.** Phase 6 — Search, Filtering & Discovery was subsequently completed and committed at `435dc36`; it is not pending work. CI remains deferred. No new commit or push is authorized here.
 
 ---
 
-## 5. Current Phase 6 / Phase 7 Closure and Phase 8 Target
+## 5. Phase 6 / Phase 7 Closure and Phase 8 Baseline
 
 - Phase 6: Lean repository search/filter/pagination, newest-first ordering and focused runtime acceptance complete, committed at 435dc36.
 - Phase 7: Lean Admin reporting complete. Final Chromium acceptance verifies Admin navigation/rendering and Student direct-URL denial without runtime/rendering errors. Earlier unit/database/HTTP acceptance and static checks remain valid.
-- Phase 8: Original Phase 8.1 proposal superseded; Phase 8.2 static foundation retained. Student uses predefined IDs and static answers only. Adult Admin/Adviser aggregate AI assistance is design scope, with Groq unimplemented/disabled. Generative guide and AI Research Summarization are retired. Phase 8.3/8.4 designs recorded; Phase 8.5A local foundations complete and verified. No live provider implementation; adult eligibility is fail-closed and Groq hard-disabled.
+- Phase 8: Provisionally complete for the implemented static/mock-only scope. Student uses predefined IDs and static answers only. Adult Admin/Adviser aggregate interpretation, governance/quota foundations and a disabled Groq adapter have isolated evidence; operational AI and institutional/live acceptance remain unfinished. Generative guide and AI Research Summarization are retired. Adult eligibility remains fail-closed and Groq hard-disabled. See the October 10 provisional closure and current phase table.
 - Charts, exports, date-range analytics and comprehensive auditing remain deferred. CI remains deferred; Panel Evaluation remains excluded.
 
 ---
@@ -209,7 +223,7 @@ These rules remain applicable:
 - A student has one active group membership.
 - Preserve submission versions rather than overwriting them.
 - Submission versions use unique `(paper_id, version)`.
-- Notifications are currently in-app only.
+- In-app notifications remain the operational baseline. Optional research Web Push is implemented locally but disabled and not device-accepted; activation must not change primary workflow success or existing in-app semantics.
 - Notification failure must not block the primary operation.
 - Panel Evaluation is excluded/deferred.
 - AI assistance must not replace final human academic/review decisions.
@@ -227,7 +241,7 @@ These rules remain applicable:
 
 The documentation historically referred to 11 core tables while explicitly naming 10. **Do not invent an eleventh table.** Verify the actual schema before resolving that discrepancy.
 
-Migration `0009_repository_paper_unique.sql` was applied in Phase 5.4 only to the designated development database after confirming no duplicate paper IDs, exact schema compatibility, and the migration ledger. Other environments remain unverified.
+Migration `0009_repository_paper_unique.sql` was applied in Phase 5.4 only to the designated development database after confirming no duplicate paper IDs, exact schema compatibility, and the migration ledger. Later preparation records verification through 0014 (15 ledger entries) for existing project targets, including hosted Preview. Migration 0015 has passed only disposable PostgreSQL verification; it remains unapplied/unverified on existing project targets. These are retained findings, not a fresh live database inspection. Production remains unprovisioned/undeployed under the recorded scope; migration/grant execution requires separate authorization and target verification.
 
 Before applying schema changes:
 
@@ -262,7 +276,7 @@ Before implementation:
 3. Read `README.md`.
 4. Read `docs/ARCHITECTURE_UPDATED.md`.
 5. Read `docs/DATABASE (1).md` for database work.
-6. Inspect the actual repository and working tree; `435dc36` is HEAD, Phase 5 and lean Phase 6 are committed, and Phase 7 is complete but uncommitted.
+6. Inspect the actual repository and working tree; the reconciled header records the last verified branch, HEAD and pending paths. Do not treat a historical checkpoint's HEAD or uncommitted inventory as current.
 7. Check working-tree changes before modifying files.
 8. Do not discard unrelated working-tree changes.
 9. Do not commit without project-owner approval.
@@ -281,7 +295,9 @@ Every handoff should record:
 
 ## 10. Immediate Next Action
 
-Review the Phase 10.2E.3 documentation diff and exact five-file checkpoint proposal below. After separate approval, the next small scope is synthetic hosted Student/Adviser acceptance, not repeated database provisioning. No next-checkpoint execution, staging/commit/push, infrastructure change or AI activation is authorized here. Historical Phase 8 proposals and consent/privacy gates remain recorded below; Groq stays hard-disabled.
+The November 2 password-toggle and landing/footer refinements are implemented with recorded isolated validation, uncommitted and ready for owner inspection. The current task reconciles documentation only; it does not perform or infer owner UI acceptance.
+
+The latest proposed development checkpoint is **P.3F.1**, separately scoped preparation/review of a bounded existing-Preview 0014-to-0015 upgrade procedure and private owner verification of target/configuration metadata, as recorded in P.3F.0 and the [activation checklist](PHASE10_P3_ACTIVATION_CHECKLIST.md). P.3F.1 has not started. Execution, migration/grants, VAPID provisioning, configured full-build completion, controlled deployment and physical-device delivery acceptance retain their separate gates. Remaining 10.4 near-limit PDF/security coverage is a separate backlog, not completed by local push verification. No next-checkpoint execution, staging/commit/push, infrastructure change or provider activation starts automatically. Groq/Resend remain disabled and Expo frozen.
 
 ## 10A. Merged Phase 8 Update - 2026-10-09
 
@@ -4643,6 +4659,66 @@ Reuse P.3E.1b's 118-test/production-compile evidence and P.3E.2's 20 real Postgr
 
 The closure commit containing this handoff has message `feat(phase10): implement and verify minimal research web push`, parent `b4352d1ea456dfce18097b039f9237ef46fc33a6`; resolve its SHA from Git and verify its exact 56-path contents/clean index/tree after commit. This is **local source closure only**, not operational P.3 acceptance. Stop after that one commit and readiness report: **no push, merge, deployment, hosted connection/migration, VAPID setup, live delivery or automatic P.3F.1/device execution**.
 
+## Login password visibility toggle (2026-11-02)
+
+- Owner-authorized refinement implemented on `feature/development`, starting HEAD `b831a9c`, initially clean tree. Changes remain unstaged and uncommitted.
+- `components/auth/login-form.tsx` adds an eye button with accessible Show password/Hide password labels. Passwords start masked; toggling preserves the input value, autocomplete and existing constraints. The button does not submit the form.
+- `app/globals.css` adds scoped positioning, text clearance and a 44px tap target using existing theme tokens. The eye represents visibility; existing academic typography, colors and layout remain the design direction (ENERGY 1 / RHYTHM 2 / MOTION 1).
+- Validation PASS: focused ESLint, `npx.cmd tsc --noEmit`, `git diff --check`; isolated actual-component Chromium checks at 360px/light and 1280px/dark verified show/hide, value preservation, Tab/Enter/Space operation, visible keyboard focus, target size, no overflow, zero login-action calls and zero browser console errors. Login action was mocked and all network requests blocked. Ignored local harness/screenshot are under `.next/password-toggle-*`; no live login, database or hosted testing was performed.
+- Anti-Slop scoped delivery gate PASS: hard gates supported by the interaction/layout checks and source review; purpose gate uses the requested eye to expose password visibility; liveliness preserves the approved dials and Login focal action; quality locks preserve theme tokens, existing composition and specific accessible labels. Desktop dark screenshot inspected. No dependencies, schema or migrations changed; no full production build, deployment or Git write operation performed.
+- Ready for owner inspection of the login toggle. Existing P.3 activation and production gates remain unchanged.
+
+## Full-width responsive landing page (2026-11-02)
+
+- Owner requested less empty space and elements scaled to fill the screen. Starting branch/HEAD remain `feature/development` / `b831a9c`; the three pending login-toggle paths were preserved.
+- `app/page.module.css` removes the 1,240px page cap, uses 16-56px responsive outer gutters, and fills at least the viewport height. The main hero absorbs available height; heading, description, preview and icons scale within bounded sizes. Section padding is reduced and the stacked layout starts at 900px. Content remains scrollable on small/short screens.
+- Design reason: devote available desktop width to readable research copy and a larger illustrative workspace, keeping the approved academic styling, theme tokens, static sample disclosure and ENERGY 1 / RHYTHM 2 / MOTION 1. Footer and navigation content are preserved.
+- `tests/phase9-landing.browser.cjs` replaces its obsolete fixed 44px hero-padding assertion with responsive gutter/compact-spacing assertions. The database-backed historical runner was not executed.
+- Focused isolated Chromium checks PASS at 360x800, 1366x768 and 1920x1080 in Light and Dark: viewport coverage, narrow gutters, desktop split/mobile stacked hero, enlarged desktop heading, no horizontal overflow, controls at least 44px high, preserved link destinations, functional theme selection and keyboard menu dismissal, zero browser console errors. Actual landing/theme components and compiled CSS were rendered; Next Link was replaced with a plain anchor for this isolated preview. No database/external network requests or live route/auth acceptance. Ignored harness/screenshots: `.next/landing-layout-check.cjs` and `.next/landing-*.png`; desktop dark and mobile light screenshots visually inspected.
+- Anti-Slop scoped gate PASS: responsive controls/layout and existing tokens satisfy hard gates; sizing changes directly serve the owner's request; approved dials, Login/Register accents and typography preserve liveliness; existing content and composition satisfy quality locks. CSS-only application change; no dependency, schema, migration, provider, infrastructure or Git write operation. Ready for owner visual inspection, with all earlier activation/release gates preserved.
+
+## Compact anchored landing footer (2026-11-02)
+
+- Owner requested a sticky footer opposite the header. `app/page.tsx` now uses inline Quick Links and native expandable About/Contact details, preserving all existing information and provisional-contact disclosures. `app/page.module.css` keeps header/footer in reserved viewport space while main content scrolls; the compact footer stays at the viewport bottom without covering content. Detail panels open above the footer with bounded height and scrolling. Mobile uses two compact rows; safe-area bottom padding is respected.
+- Design reason: keep footer access visible while retaining room for the research workspace; existing academic theme tokens and ENERGY 1 / RHYTHM 2 / MOTION 1 remain active. No client state/dependency was added.
+- Isolated actual-component Chromium checks PASS at 360x800, 1366x768 and 1920x1080 in both themes: footer bottom matches viewport before/after main scrolling, footer height at most 110px, final workflow content scrolls fully above the footer, About/Contact open and close with Enter, panels fit above the footer within viewport bounds, existing responsive/theme/link checks pass, and no browser console errors. Desktop dark/mobile light screenshots inspected under `.next/landing-footer-*.png`. Historical landing runner assertions were updated for the new disclosure/anchoring behavior; its database-backed route checks were not rerun.
+- Scoped Anti-Slop gate PASS: hard gates supported by responsive/keyboard checks; purpose gate compacts the explicitly requested footer; liveliness retains approved dials and page actions; quality locks preserve content/theme and real disclosure behavior. Focused ESLint and diff checks apply. All earlier uncommitted login/full-width edits remain preserved; no database, hosted operation, deployment, commit or push.
+
+## Master Context consistency reconciliation (2026-11-04)
+
+- Documentation-only review against the latest dated handoffs, Source of Truth and local Git history/status. Corrected the stale reconciliation date, resolved P.3F.0 to actual HEAD `b831a9c61eb399bedf971af4a91776f012288aa8`, and recorded the six unstaged paths and November 2 refinements without claiming owner acceptance.
+- Reconciled the current phase table, Git boundary, Phase 6/7/8 summaries, notification/migration status and immediate next action. P.1/P.2 closure and P.3 local source verification are distinct from hosted activation; P.3F.1 remains proposed and remaining 10.4 acceptance remains open. Removed the obsolete current HEAD/Phase 7-uncommitted instruction from the handoff protocol.
+- Clarified the undated document-access summary: 300-second defaults remain, with only the authorized Adviser review purpose at 1,800 seconds and explicit local renewal at 1,680 seconds. Earlier dated records retain their original evidence; the header explains supersession of historical pending/next-action wording.
+- Validation: local Git commit/parent/status and documentation diff reviewed; `git diff --check` PASS. No application tests/builds or live environment/database/Storage/provider checks were rerun. Only this document was edited in this review; prior UI/test changes and November 2 entries are preserved. Branch/HEAD unchanged, index empty; no commit, push, merge, deployment or activation.
+
+## P.3F.4 Web Push closure and development handoff (2026-11-05)
+
+**P.3F.3 — CLOSED / PASS for the agreed controlled Preview Web Push scope.** This records completed execution and owner acceptance; it does not authorize Production or another release.
+
+| Area | Completed evidence |
+|---|---|
+| Source and deployment | `feature/development`, commit `f82a08105158713ffad5161c0235fac1d23327fd` (`fix(db): guard populated Preview push migration and recovery`), pushed and verified against Vercel Preview metadata. Deployment `dpl_CEdTopfETpJ7cnjSPFAnTyBBJRQx` is Ready; configured Next.js build, TypeScript and prerender/finalization passed. |
+| Stable origin | `https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app`; Android uses this installed PWA origin. Deployment-specific URLs are not the enrollment origin. |
+| Migration | `0015_push_subscriptions.sql` applied to verified Supabase Preview project `cbkplqkkjuoglpimwmib` with the dedicated operator. Ledger has 16 entries through 0015; generated ID 17 is a normal rollback gap. Historical records and PostgreSQL sequences were not reset. Existing account/relationship and sequence preservation passed. |
+| Runtime permissions | `thesishs_preview_runtime` has `SELECT`, `INSERT`, `UPDATE` on `public.push_subscriptions`; no `DELETE`/`TRUNCATE` and no schema `CREATE`. Existing `users` read/update permissions were retained. No new sequence grant is required for the UUID push table. |
+| VAPID | Owner-approved contact and matching Preview-only key pair configured; key ID `preview-p3-v1`. All six push variables are scoped to Preview branch `feature/development`; private key/contact are Secrets. No secret values belong in documentation. |
+| Hosted checks | Stable-origin `/sw.js`: HTTP 200, source matches, JavaScript MIME, `nosniff`, `no-cache, max-age=0, must-revalidate`. Unauthenticated subscription API: JSON 401 with private/no-store caching. Deployment protection retained. |
+| Enrollment | Owner reports enabled on the Android Adviser PWA; identity-verified read-only inspection found one active, eligible assigned-Adviser subscription for `preview-p3-v1`. Permission alone was not used as proof of enrollment. |
+| Real workflow/device | Synthetic Student research submission produced an Android notification. Owner confirmed receipt and tapping opened `/dashboard/adviser/notifications`. Bounded Preview logs include `accepted`; they also include `no_subscription`, so this is one focused successful device workflow, not universal delivery/reliability proof. Device results are owner-confirmed, not independently operated by Codex. |
+| Focused validation | 52 Web Push tests and 35 operator/migration tests PASS; TypeScript, targeted lint and diff checks PASS at execution. Reused evidence; no application suite/build or hosted checks were rerun for this documentation checkpoint. |
+
+Private evidence remains outside Git: `C:\ThesiSHS-Private\Connections\p3f3-activation-evidence.json` and `C:\ThesiSHS-Private\Backups\p3f2-execution\migration-result.json`. The prior private synthetic-account recovery evidence was verified before execution; do not repeat that backup/restore process for routine releases.
+
+**Preserved work:** entry HEAD is the deployed commit above; the index is empty. Incoming unstaged changes are `app/globals.css` (password-toggle styling), `app/page.module.css` (landing/footer layout), `app/page.tsx` (footer disclosures), `components/auth/login-form.tsx` (password visibility), `docs/MASTER_CONTEXT_UPDATED.md` (prior UI handoffs/reconciliation) and `tests/phase9-landing.browser.cjs` (matching landing assertions). Preserve all existing edits. This checkpoint adds documentation only; the earlier UI refinements remain uncommitted and are not part of the verified Preview commit.
+
+**Future releases:** follow the [proportionate release policy](SOURCE_OF_TRUTH_UPDATED.md#future-release-policy-owner-decision-2026-11-05): focused checks plus Preview for UI/backend changes; target verification, approved migration and focused validation for additive schema changes; additional backup/recovery precautions for destructive changes. Routine releases do not repeat synthetic-account backup setup or restoration testing.
+
+**Deferred:** Production provisioning/release and retained hosted authorization/Storage/expiry gates; iOS and broader browser/device coverage; real-device coverage of revised-submission and Adviser decision push paths; reliability/offline/background-delivery guarantees. Existing 10.4 near-limit PDF coverage remains open. Groq/Resend stay disabled, Expo frozen, Panel Evaluation excluded; P.1/P.2 signing and ownership safeguards remain unchanged.
+
+**Next development recommendation:** separately scope **P.4 Admin Desktop Publication Oversight** against the existing Admin publication workflow: review current screens, agree the desktop oversight/acceptance scope, then make only approved UI/backend changes using focused tests and Preview. Preserve Admin authorization, approved-research eligibility, private PDF access and academic history. R.1-R.3 Research Progress Tracker/Revision Management remain later, separately scoped work; this handoff does not select new tracker/rubric features or start implementation. Review the preserved UI refinements separately before including them in any future commit. These documentation changes await separate owner commit approval; no commit/push/merge is performed here.
+
+**Documentation verification:** whitespace and new handoff/policy anchor checks PASS; preservation comparison confirms all six incoming changes remain intact, with this file's prior content byte-for-byte preserved around the new notice/addendum. No application tests or operational checks were repeated. A separately approved closure-only commit must selectively stage the new Master Context hunks, excluding its pre-existing reconciliation/UI handoffs; do not stage this whole file indiscriminately.
+
 ## C2 Collaborative Research Workspace backend foundation (2026-11-05)
 
 **Locally implemented and isolated-validation PASS, with migration/database/UI acceptance deferred.** This is the Student Group Task Board + Shared Research Notes backend requested after the C1 read-only audit. The owner now prioritizes this workspace before immediate P.4 implementation; P.4 keeps its existing identity and separate scope. No Group Workspace UI/navigation entry, migration generation/application, database connection, deployment, provider/Storage operation, staging, commit, push or C3 implementation occurred. P.3F.3 remains CLOSED/PASS for its recorded Preview scope; C2 is not deployed or database-operational.
@@ -5355,3 +5431,281 @@ Owner review/approval must separately authorize hosted 0016 plus its minimal run
 The owner authorizes the scoped C7.1 tooling commit, pinned Preview-only migration 0016 with the three prepared grants, independent verification, subsequent feature/development push/Preview verification and focused authenticated Student Tasks/Notes smoke testing with exact test-owned cleanup. Production and unrelated phases remain excluded. Vercel Preview settings and disabled Supabase Data API are owner-confirmed, not independently re-audited here.
 
 The owner explicitly accepts the absence of a verified backup as a Preview-only risk. No additional backup/recovery preparation, infrastructure or subscription upgrade is required or authorized. This decision supersedes C7.1's pending recovery prerequisite for this activation only. The 0016 execution mode accepts `--accept-preview-no-backup-risk yes` instead of `--confirm-recovery-verified yes`, never both; it reports `verifiedBackup: false` and does not claim recovery verification. The alternative is unavailable to legacy initialization/0015 and never bypasses TLS, target/operator identity, source integrity or exact ledger checks. Migration/ledger append, catalog checks and the three grants remain in the same guarded transaction with independent durable inspection and no automatic retry.
+
+## Streamlined Preview activation result (2026-11-06)
+
+**CLOSED / PASS - Collaborative Research Workspace Preview milestone is closed for the approved functional scope.** The owner reports manual Preview acceptance of **9 PASS, 0 FAIL (9/9)** on published SHA `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, using the approved manual alternative to automated authenticated Preview browser smoke testing. Only that automated browser testing remains BLOCKED by Vercel SSO access; Codex did not independently execute the manual checks. Migration 0016, the exact 17-entry ledger, workspace catalog/runtime grants, preservation, Git publication and Vercel deployment-completion evidence retain their verified PASS results below. No Production deployment occurred. Remaining limitations do not block this scoped Preview closure.
+
+### Owner-reported manual Preview acceptance and closure
+
+The initial activation report was PARTIAL because automated authenticated browser access was unavailable. The owner's subsequent 9/9 manual acceptance closes the approved Preview functional milestone; it does not convert the blocked automation into an automated PASS or establish broader security/reliability acceptance.
+
+1. PASS - Opened the protected Preview deployment and accessed the application.
+2. PASS - Logged in with an authorized Student account.
+3. PASS - Opened Group Workspace and selected a research project.
+4. PASS - Created a task, assigned a member and changed its status.
+5. PASS - Refreshed the page and confirmed task persistence.
+6. PASS - Created and edited a shared research note.
+7. PASS - Linked and unlinked a note from a task.
+8. PASS - Soft-deleted and restored a note.
+9. PASS - Verified desktop/mobile layout and navigation.
+
+Evidence source: the owner explicitly confirmed all nine checks passed. This is owner-reported manual acceptance through the authorized protected Preview session, not independently executed Codex browser automation. The closure checkpoint changes documentation only; no tests, migration/permission checks, provider/security settings, staging, commit, push or deployment were repeated.
+
+### Reviewed Git publication and preservation
+
+C7.1 commit: `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae` - `chore(workspace): prepare guarded Preview 0016 activation`, parent `da2c9114bedc40c12d5f987dde23152b68d6e80c`. Exactly five committed files:
+
+- `scripts/initialize-preview-database.ts`
+- `scripts/preview-initialization.ts`
+- `tests/c71-preview-workspace.unit.cjs`
+- `docs/MASTER_CONTEXT_UPDATED.md`
+- `docs/SOURCE_OF_TRUTH_UPDATED.md`
+
+Only C7.1/streamlined-authorization addenda from the two mixed documents were staged, using parent-HEAD content plus those additions. Their unrelated incoming content stayed only in the working tree. The remaining three paths were staged explicitly; no broad staging, reset, restore or merge. Raw incoming file hashes and document-prefix checks preserve all unrelated work. The real index is empty after commit. The same ten unrelated modified paths remain unstaged. These actual-result addenda are additional unstaged documentation, not part of the published tooling commit.
+
+Focused preparation validation: 8/8 current C7.1 tests (including explicit no-backup acceptance) and 8/8 selected legacy 0015/actual-driver regressions PASS; TypeScript, targeted ESLint and whitespace PASS. No full C1-C6 acceptance, full build or load test was run.
+
+### Hosted database execution and independent evidence
+
+A fresh READ ONLY inspection before execution matched the pinned Preview Supabase project `cbkplqkkjuoglpimwmib`, database `postgres`, OID `5`, cluster `7678069749886157684` and operator `thesishs_preview_operator` using actual cluster verification. It confirmed the exact reviewed 16-entry baseline and corresponding object set. Target digest: `cc928dc83012e434a0c6a463fae13708984256aee0375b287d73bf80dac7205f`. Workspace source digest: `66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc`; 0016 SQL SHA-256 remains `5723a915ab263564713874da26365b58e45d3001b491dec26bcff0170da5fb63`.
+
+The existing guarded `--upgrade-0016` mode ran once in a private terminal with `--accept-preview-no-backup-risk yes` and the target/source/Data API confirmations. It explicitly reported no verified backup and the owner's accepted Preview-only risk. No backup/restore, recovery preparation, subscription upgrade, new role/service or Production operation. TLS/CA/hostname, target/operator/source/ledger guards were retained.
+
+Result: `upgraded-0016-confirmed`. The guarded transaction applied only migration 0016, verified the canonical 19-table catalog, keys/checks/indexes, initial empty workspace tables and unused new sequences, then applied exactly the three approved grants to existing `thesishs_preview_runtime`: task SELECT/INSERT/UPDATE/DELETE; note SELECT/INSERT/UPDATE; both workspace sequences USAGE. It verified effective denials for note hard DELETE, TRUNCATE, extra workspace privileges/grant options, permanent application-schema CREATE/ownership and sequence UPDATE. Existing authorization-table read/row-lock dependencies were retained. The approved TEMPORARY-through-PUBLIC Preview exception remains; no claim of zero DDL capability.
+
+The operator's independent durable inspection passed. A further new READ ONLY connection reconfirmed the same cluster/role/target, exact 17-entry reviewed ledger, expected objects and runtime permissions, and matching before/after preservation digest for existing rows, Web Push, catalog/relation ACLs and old sequence definitions/values. New workspace sequences were checked separately, without resets. Verified post-migration catalog digest: `1e990fca17710f61b848c28f89e27f45198441703aa22e58531de80bf9d3110d`. No ambiguous/partial migration or grant state was reported, and no migration retry occurred.
+
+### Preview publication, smoke-test boundary and cleanup
+
+After database verification, normal push updated only `feature/development` from `f82a08105158713ffad5161c0235fac1d23327fd` to `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, publishing the C6 and C7.1 commits. A fresh remote-ref query matched that SHA. GitHub's authenticated commit-status API returned Vercel success, description `Deployment has completed`, for that exact commit; the Vercel Preview Comments check also completed successfully. Integration-linked deployment: [Jsaah4FdqjxoZv5w2vcibNHksVva](https://vercel.com/thesi-shs-ai/thesishs-ai/Jsaah4FdqjxoZv5w2vcibNHksVva), within the expected team/project.
+
+The intended stable Preview origin `https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app/login` returned HTTP 302 to Vercel SSO. No Vercel CLI/connector or existing standard CLI auth cache was available. The browser bridge could enumerate tabs but failed before it could read/control the authenticated Vercel tab. Therefore the deployment-completion/SHA evidence comes from the GitHub/Vercel integration; direct dashboard/served-artifact verification and authenticated application acceptance were not independently established. Vercel settings and disabled Supabase Data API remain owner-confirmed. Protection was not disabled or broadened.
+
+At initial activation the owner explicitly chose `Report smoke testing as blocked` after this access limitation was reported. Codex did not run automated authenticated Student Tasks/Notes, conflict/denial or existing research-route smoke checks on hosted Preview. Only automated authenticated Preview browser smoke testing remains BLOCKED due to Vercel SSO access. The subsequent owner-reported manual 9/9 acceptance above is the approved functional alternative; untested conflict/denial and other workflow coverage are not implied. Local C5 evidence retains its previously documented scope; no hosted PASS is inferred from local tests or catalog/ACL verification.
+
+Cleanup at Codex activation: zero test-owned users, groups, papers, tasks or notes were created by Codex. No automated smoke-test mutations, fixture deletions or sequence resets were performed; no Codex test-owned database records remained to clean up. This does not assert cleanup of records used during the owner's later manual checks. The database migration's preservation checks passed independently. Protected connection values were used only in memory, never printed, committed or deployed. Task-owned evidence contains sanitized identity/digests/status only.
+
+Deferred limitations, none blocking the approved Preview functional closure: Production deployment and acceptance; Production concurrency/reliability testing; additional browser/device compatibility; runtime TEMPORARY inherited through PUBLIC (approved Preview policy exception); no verified Preview backup/recovery mechanism (owner-acknowledged, accepted Preview-only risk); and an uninterrupted rerun of the corrected C5 browser harness. Retained hosted authorization/Storage/security gates and limited independent dashboard/served-artifact verification remain documented. Automated authenticated Preview browser smoke testing remains BLOCKED by Vercel SSO access; owner-reported manual acceptance is complete. No Production deployment occurred.
+
+### Next planned development milestone
+
+**Small UI/UX Refinement — Scope Pending Owner Review.** This will address selected visual/usability improvements in the existing application after the owner defines the scope. No screens are assumed. Do not begin UI audits, redesigns or implementation, introduce a new design system/dependency, or start another phase automatically. P.4 and other previously deferred milestones retain their separate scope. This closure performs no UI/UX work and grants no new execution authority.
+
+## Targeted dashboard loading optimization - local checkpoint (2026-11-06)
+
+**Implemented and focused local validation PASS; runtime loading duration remains UNMEASURED.** Owner-authorized scope: Student overview/Submissions retrieval, redundant shared dashboard account lookup, and concurrent optional Student verification status. Entry branch `feature/development`, HEAD `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, ten modified unstaged files, empty index and no untracked paths. Preserve all incoming work. No commit, push, merge, deployment, provider/environment configuration, live database/Storage access or migration was performed. Collaborative Research Workspace Preview remains CLOSED with owner-reported 9/9 acceptance; authenticated Preview automation remains blocked by SSO.
+
+### Changes and retained boundaries
+
+- `lib/repositories/student-workspace.repository.ts` (new): five scoped read batches for active owned groups, member names, projects, complete submission history and own-submitter feedback. Every batch retains an active-group membership subquery; later queries also constrain the already selected group/project/submission IDs. Explicit projections omit credentials, private file paths, feedback teacher IDs and extra user fields. Empty batches issue no SQL. No history limit, one-project restriction, migration or persistent cache.
+- `lib/services/student-workspace.service.ts`: replaces duplicate group lookup and per-member/project/submission reads with those batches. Member names run independently of project/history/feedback loading. Retains role/account guards, existing DTOs, complete date/ID-ordered versions, submitter-only feedback and empty/error behavior. A missing/reassigned own submission remains distinguishable from an existing submission with no feedback. SQL/transport failures reach the existing generic Student error boundary rather than appearing as successful empty data.
+- `lib/services/dashboard-account.service.ts`: reuses `requireAuth()`'s freshly validated user ID, role, current email and original session expiry instead of querying the account again. Existing render-only React memoization is unchanged; independent authorization/mutation/resource requests remain fresh. `current-account.ts`, JWT/session/login contracts and services are unchanged.
+- `app/dashboard/student/page.tsx`: starts workspace and independently authorized optional verification-status reads together with `Promise.all`; renders protected content only after workspace authorization succeeds. Existing verification messages and actions are retained. This removes the sequential dependency but does not guarantee optional status can never be the slower request.
+- `tests/dashboard-loading.unit.cjs` (new), `tests/phase975-student.unit.cjs`, `tests/phase972-navigation.unit.cjs`: focused SQL-count/scope, account-reuse, concurrency and existing-contract coverage. The routing test now delegates active-account assertions to the actual-auth tests rather than its former mocked redundant lookup.
+- This Master Context addendum only; no durable architecture or Source of Truth change. Shared shell/sidebar/navigation/prefetch, Admin/Adviser composition, PWA installation/platform detection, push enrollment, tasks/notes permissions, database identity guards/pool limits, Storage and Groq remain unchanged.
+
+### Query-count and validation evidence
+
+Representative synthetic fixture: one active group, three members, two research projects, six submission versions and four own-submitter versions. The pinned original HEAD service and its real legacy read services were executed in memory against counted synthetic repository boundaries: **25 workspace data reads + 3 authorization/account reads = 28**, including **2** account-wrapper reads. Optimized real service/Drizzle SQL against the existing `pg-proxy` synthetic transport: **5 workspace SQL reads + 2 authorization/account reads = 7**, with the wrapper using **1** read. This compares isolated application read work at the stated boundaries, not live SQL execution, identity-check SQL, transaction statements, login, verification-status, notifications or push traffic.
+
+Scale/empty results from the optimized SQL transport: twelve members/eight projects/96 versions still **5** workspace reads; no groups **1**; an active group with no projects **3**. All histories remain complete. No numerical loading-time or hosted-performance claim follows.
+
+Focused command: `node --import tsx --test tests/dashboard-loading.unit.cjs tests/phase975-student.unit.cjs tests/phase972-navigation.unit.cjs tests/phase976a-adviser.unit.cjs tests/phase101d1-auth.unit.cjs tests/phase101d2-auth-security.unit.cjs tests/c3-task-board.unit.cjs tests/c4-research-notes.unit.cjs tests/f1-research-mutations.unit.cjs` - **41/41 PASS**. Covers anonymous/inactive/missing/stale-role/current-role denial, fresh Admin/Adviser/Student resolution and email/expiry, cross-group SQL filters, foreign-submitter feedback denial, complete version history, DTO minimization, optional status messages/concurrency, selection, tasks/notes permissions and synthetic v1/revision/v2/approval preservation. Doubles/SQL-contract evidence only; no actual database scheduling or hosted security acceptance claim.
+
+`node node_modules/typescript/bin/tsc --noEmit --incremental false` PASS. Targeted ESLint on the four application and three test files, `--max-warnings 0`, PASS. Git whitespace checks PASS. Production build was not run for this bounded checkpoint; no build/runtime environment preparation was performed.
+
+### Unverified behavior and next checkpoint
+
+No authenticated browser navigation scenario or actual login/navigation duration was measured for any role. Safe local fixture/credential readiness was not established, and protected Preview remains excluded by the SSO boundary. No browser/server or live database was started for this work. Route-map and service tests do not establish sidebar persistence or duplicate-initialization behavior in a running browser.
+
+Deferred: Admin/Adviser independent-section streaming, selective prefetch/routing changes, cold-start/region/query-plan/connection measurements and broader reliability coverage. Hosted guards and the two-connection pool still contribute intentional overhead; full history volume can still affect payload/processing time. Proposed next checkpoint: review this exact local diff, then separately authorize bounded synthetic before/after runtime/navigation acceptance through the normal reviewed Preview process. No automatic PWA installation UI cleanup or other phase starts. Leave all changes unstaged.
+
+## Page-specific dashboard skeletons - local checkpoint (2026-11-06)
+
+**Implemented; focused local component/route and isolated Chromium validation PASS.** Branch/HEAD remain `feature/development` / `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`. Entry: fifteen modified tracked files, two untracked files and empty index. All seventeen incoming files were verified byte-identical before this append; this document's entire incoming prefix is retained. Earlier performance implementation/tests, including Student page concurrency, are preserved. Its historical 41/41 results and isolated 28-to-7 application-read evidence remain bounded to the prior checkpoint; that entire suite was not repeated, and no runtime loading-time improvement is claimed.
+
+### Scope and exact files
+
+Reusable static presentation: new `components/dashboard/dashboard-skeleton.tsx` and `components/dashboard/dashboard-skeleton.module.css`. Six page-specific structures reuse existing theme tokens, spacing, neutral surfaces and responsive card shapes. Shapes are aria-hidden, contain no fake records/statistics or interactive controls, and accompany one screen-reader loading status and aria-busy state. No shimmer/animation, timers, fetches, new dependency or artificial minimum display duration.
+
+- `app/dashboard/student/loading.tsx`: Student overview's two group/feedback panels. A presentation-only pathname check selects the matching Student skeleton if the ancestor boundary covers Submissions/Workspace, while Notifications/verification retain their previous neutral status. It performs no authorization or data retrieval.
+- New `app/dashboard/student/submissions/loading.tsx`: specific nested fallback with project selector, research information, upload-area shape and version-history rows, taking precedence over the ancestor fallback.
+- `app/dashboard/student/workspace/loading.tsx`: selector, task/note tab shapes and workspace list sections reflecting existing content; no new collaboration features.
+- `app/dashboard/adviser/page.tsx`: existing explicit Suspense now shows three overview metrics plus attention/group sections. Existing early account/role guard and data child are retained.
+- `app/dashboard/adviser/groups/page.tsx`: existing explicit Suspense now shows three metrics, toolbar/search shapes and directory rows. Group services and permissions are unchanged.
+- `app/dashboard/admin/page.tsx`: page-local Suspense only, after the existing Admin role guard. The original two independent service reads and existing content are placed in a local async child. Four metric cards, two secondary summaries and activity rows form the fallback. No Admin segment loading file was added, so management routes inherit no new skeleton.
+- New `tests/dashboard-skeleton.unit.cjs` and `tests/dashboard-skeleton.browser.cjs`; this Master Context addendum. No other incoming file was edited.
+
+### Focused evidence and design review
+
+Five new route/component checks PASS, plus existing Phase 9.7.2 routing and Phase 9.7.6 Adviser boundary runners PASS (seven Node checks/runners total). Covers six distinct inert skeletons, nested Student fallback selection, unchanged unrelated fallback, Admin/Adviser guards before their protected data children, resolved page content and unchanged service-call counts. No database/network access.
+
+Isolated Chromium fixture PASS: all six layouts at 1280px/360px in Light/Dark (24 render combinations), controlled real React Suspense replacement, SSR hydration without console/page errors, static reduced-motion-safe styling, no focusable placeholders/overflow, shared sidebar node/collapse persistence, keyboard navigation while loading and mobile drawer navigation. Actual skeleton/shared-shell components with synthetic routing/content; all network requests blocked, no Next.js server or application actions. Representative desktop Student and narrow dark Workspace screenshots were visually inspected. Latest screenshot directory: `C:/Users/admin/AppData/Local/Temp/thesishs-skeleton-NWEElJ`. Initial bundling was blocked by sandbox filesystem restrictions; the authorized isolated fixture passed outside the sandbox after correcting its synthetic module resolve directory. No hosted access or database operation.
+
+TypeScript (`node node_modules/typescript/bin/tsc --noEmit --incremental false`), targeted ESLint on seven TSX/two test files (`--max-warnings 0`) and Git whitespace checks PASS. React review: no conditional hooks, effects, mutable request state, extra server reads or persistent cache; typed finite variants and shared static helpers. Full production build was not run for this bounded presentation checkpoint.
+
+Anti-Slop delivery gate:
+- Hard Gate PASS: component markup contains no fabricated data/controls; tested narrow/theme layouts have no overflow; loading/status semantics, hydration and navigation checks pass. No new visual assets or product claims.
+- Purpose-Gate PASS: each placeholder structure maps to an existing page section; existing academic tokens/card radii are reused. No new decorative effects, icons, typography or navigation design.
+- Liveliness PASS: approved ENERGY 1 / RHYTHM 2 / MOTION 1 retained; page-specific hierarchy, neutral contrast and responsive spacing support orientation. Skeletons intentionally remain static, including reduced-motion preference.
+- Craftsmanship/Quality Locks PASS: all six authorized loading states have distinct layouts and resolve in the fixture; both themes and widths are checked; keyboard navigation remains outside inert placeholders. Existing empty/error/content states and owner design direction are retained.
+
+### Limits and next action
+
+Actual authenticated Next.js navigation/streaming, protected Preview, physical devices and elapsed loading duration remain unverified. Component fixtures do not prove complete application acceptance. Initial account/layout verification can still delay the first fallback; shared layouts remain visible/interactive only where the existing architecture permits. No delay was added to force skeleton visibility on fast pages.
+
+No authentication/service/query/pool/identity safeguard, submission/review rule, tasks/notes permission, shared sidebar/prefetch, PWA installation information, push, Storage, environment/provider setting or Groq behavior changed. No staging, commit, push, merge, deployment, migration or live database testing. Next planned UI refinement: separately scoped **PWA installation-information cleanup**; do not begin it or Git closure automatically.
+
+## PWA installation information and dashboard footer cleanup - local checkpoint (2026-11-06)
+
+**Implemented; focused local validation PASS.** Entry: `feature/development`, HEAD `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, twenty modified tracked files, seven untracked files, empty index. All twenty-seven incoming files were verified byte-identical before this append; this document's full incoming prefix is preserved. Prior performance optimization, skeleton implementation/tests, login/public landing/footer refinements remain unchanged. No staging, commit, push, merge, deployment, live database/Storage/push operation or provider setting change.
+
+### Changes and placement
+
+- `app/dashboard/layout.tsx`: removed the persistent Research Notifications UI and installation-help block, including their extra dashboard-page container. The existing shared shell and in-app notification provider remain. A headless ResearchPushProvider is mounted only for validated Student/Adviser accounts; it adds no DOM/footer/spacing.
+- `app/dashboard/settings/page.tsx`: adds compact App Installation and, for Students/Advisers, the existing push-controls consumer within Settings. Existing account, appearance, About and logout content remains.
+- New `components/dashboard/app-installation.tsx`: concise browser instructions inside an expandable disclosure, selected for Android, iOS/iPad, desktop or unknown platform. Standalone mode shows a short running-as-app status instead of repeated installation instructions. Native browser install/menu actions are reused; no custom programmatic installation prompt existed, and none was added. Missing browser installation support falls back to continued browser use. Existing shared styles/theme tokens are reused without global CSS changes.
+- `components/dashboard/research-push-enrollment.tsx`: separates its existing lifecycle into one invisible shared provider and a Settings-only controls consumer. The provider retains current client ownership, visibility refresh, allowlisted worker-message navigation, draft-navigation event and logout-cleanup integration across routes. Opening/closing Settings does not create another client or subscription UI. Enable/disable/retry text and actions use the existing state machine unchanged.
+- New `lib/pwa/platform.ts` and extended `lib/pwa/use-display-mode.ts`: best-effort Android/iOS/desktop/unknown presentation hints, with unknown SSR snapshots and desktop-style iPad support. Existing display-mode implementation is unchanged. Inspection found that the old client gate recognized standalone mode without distinguishing desktop from mobile; this owner scope now restricts UI/client eligibility to detected installed mobile Students/Advisers. Ordinary browser/Desktop PWA and Admin/Panel gain no enrollment controls. Hints never authorize server resources or replace active-account/current-role/ownership checks.
+- Tests: new `tests/pwa-settings.unit.cjs`, `tests/pwa-settings.browser.cjs`; updated provider SSR/state tests in `tests/phaseP3-pwa.unit.cjs` and the validated-account/component stubs in `tests/phase974-settings.unit.cjs`. No other incoming implementation/test file was changed. This Master Context append is the only documentation change.
+
+### Validation and evidence boundaries
+
+`node --import tsx --test tests/pwa-settings.unit.cjs tests/phaseP3-pwa.unit.cjs tests/phase974-settings.unit.cjs`: **25/25 PASS**. Covers Settings across existing roles, platform/SSR fallbacks, no dashboard installation region, exactly one eligible provider, no automatic permission/subscription attempts, actual client replacement/generation/key/ownership protections, ambiguous POST recovery, disable/late cleanup, expiry/account switching, logout, draft guard, generic worker content and browser adapter contracts. Native/API/session boundaries are synthetic; no live database, provider or push delivery.
+
+Isolated Chromium PASS using actual installation UI, provider/controls, existing ResearchPushClient and shared shell: Student/Adviser/Admin short and long dashboards without installation/footer overlays; browser guidance and keyboard disclosure; standalone desktop status without instructions/enrollment; installed-mobile Student/Adviser controls and unsupported/denied fallbacks; Admin exclusion; Light/Dark at 1280/360 with overflow and text-contrast checks; SSR hydration without console/page errors. Enable/disable operations used native/API doubles only. Controls unmount/remount retained state with no second client/request; worker navigation and generation-safe logout DELETE/unsubscribe still ran outside Settings. All network requests were blocked; no Next.js server or real permission prompt. Narrow dark Settings screenshot visually inspected; latest evidence directory `C:/Users/admin/AppData/Local/Temp/thesishs-pwa-settings-w6jLvT`.
+
+TypeScript (`node node_modules/typescript/bin/tsc --noEmit --incremental false`), targeted ESLint on six source/four test files (`--max-warnings 0`), Git whitespace and new-file whitespace checks PASS. No production build or broad browser/performance suite repeated. Browser test execution used the previously required local bundler/Chromium permission outside the filesystem sandbox; no hosted access.
+
+React/Anti-Slop delivery gate:
+- Hard Gate PASS: no new fake controls/assets/statistics or permission prompts; real disclosure/controls exercised in the fixture, keyboard/contrast/overflow checks pass. Public footer/global styles unchanged by hash.
+- Purpose-Gate PASS: installation help belongs in Settings; one persistent headless owner preserves push lifecycle without dashboard clutter. Existing tokens, typography and spacing reused.
+- Liveliness PASS: approved ENERGY 1 / RHYTHM 2 / MOTION 1 retained with concise expandable guidance and static installed status; no decorative motion.
+- Craftsmanship/Quality Locks PASS: browser/standalone/mobile/unsupported/denied/unknown states and role exclusions covered; no conditional hooks or duplicate subscription owner; stable provider survives Settings navigation and preserves cleanup.
+
+### Remaining acceptance and next refinement
+
+Physical installed Android/iOS behavior, platform-hint accuracy on additional devices, native browser install menus, real notification permission/subscription, protected Preview and notification receipt/tap/reliability require separate acceptance. Presentation hints can be unavailable or ambiguous and are not installation or authorization proof. Existing one-active-device replacement rules, secure backend authorization, generic privacy-safe payloads and independent in-app notifications remain unchanged; their broader hosted/device acceptance is not inferred from doubles.
+
+The shell still uses its existing viewport-height navigation layout; the removed guidance contributes no extra content height, sticky/fixed region or artificial spacer. Long research content scrolls naturally in the fixture. No auth/JWT/session, database schema/query/pool/identity safeguard, Web Push backend/state machine/worker, research workflow, shared navigation or public landing/footer source was changed. Next refinement: separately scoped **Web/Desktop collapsible sidebar planning**. Do not implement sidebar/mobile hybrid navigation or Git closure automatically.
+
+## Adaptive Web/Desktop sidebar and Mobile PWA navigation - local checkpoint (2026-11-06)
+
+**Approved Approach A implemented; focused local validation PASS.** Entry: `feature/development`, HEAD `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, 26 modified tracked files, 11 untracked files, empty index. All 37 incoming files are retained. Outside this append, only the incoming `tests/pwa-settings.browser.cjs` changes: its Logout interaction now opens the Mobile PWA More Sheet first. The other 35 incoming files remain byte-identical; this document's complete incoming byte prefix is preserved. No staging, commit, push, merge, deployment, database/Storage operation or hosted configuration change.
+
+### Implementation and files
+
+- Modified `components/dashboard/dashboard-shell.tsx`, `dashboard-shell.module.css` and `dashboard-navigation.tsx`: preserve the existing shell/content identity and 1024px breakpoint. Wide browser starts expanded, supports compact; narrow browser hides the rail and uses a sticky Menu trigger. Detected desktop standalone starts compact and offers expanded/compact/hidden through an explicit Sidebar display control and a labeled selector in the shared Sheet. Hidden and snapped windows retain Menu access. Width fallback never writes a preference; widening restores the saved mode.
+- Added `components/ui/sheet.tsx`, `sheet.module.css`, `sheet.LICENSE.md`: left-only adaptation of the official shadcn/ui Radix Sheet pattern, using existing icons/tokens and full upstream MIT notice, also retained in the component's legal comment. The sole direct dependency is pinned `@radix-ui/react-dialog@1.3.1` in `package.json`/`package-lock.json`: 24 new packages including Dialog; no existing package version changed. Three existing typing entries acquire npm's `devOptional` classification for optional peers. No stock Sidebar, icon library, animation package or shadcn scaffold installed.
+- Removed only the old navigation native-dialog machinery: Radix owns focus containment, modal background exclusion, Escape/outside dismissal and scroll locking. A controlled close-focus callback restores the initiating trigger or workspace content after accepted navigation. The Sheet/backdrop sit above the bottom bar; fixed bar compensation uses the scroll-lock scrollbar variable. No navigation motion beyond the existing restrained hover-color transition; reduced motion removes it.
+- Added `lib/pwa/navigation-preferences.ts`: validated, versioned and separate browser/desktop localStorage values. Browser rejects hidden; defaults are expanded/compact respectively. Stable null SSR snapshots, storage-event synchronization including clear, and an in-memory fallback when storage is blocked. No account/research data, database fields, viewport fallbacks or transient Sheet state are persisted.
+- Extended `lib/constants/dashboard-navigation.ts` with primary-label/order metadata and shared active-route matching; added `components/dashboard/dashboard-bottom-navigation.tsx`. Installed mobile Student: Dashboard/Submissions/Workspace/More; Adviser: Dashboard/Submissions/Groups/More; Admin: Dashboard/Users/Groups/Repository Management/More. More is a button. Secondary routes retain Browse Repository, System Guide, Settings and Logout, plus Admin Reports. All existing supplied routes remain reachable. Links retain descriptive labels, `aria-current` and disabled prefetch. Panel has no invented bottom tabs; unknown detection uses ordinary responsive navigation.
+- Bottom navigation reserves 72px plus supported safe-area inset, uses at least 48px-high targets and allows the final field/action to scroll clear. Existing display-mode/platform helpers, root viewport metadata and theme provider are unchanged. Platform hints affect presentation only.
+- Tests: new `tests/dashboard-navigation.unit.cjs`, `tests/dashboard-navigation.browser.cjs`; updated `tests/phase972-navigation.browser.cjs` for the absent narrow rail and modal aria-hidden background; the incoming Settings browser fixture receives only its navigation adaptation. The authenticated navigation runner was linted but not executed.
+
+`app/dashboard/layout.tsx`, provider hierarchy, push lifecycle/backend/worker, notification bell/history, Logout implementation, authorization, research services/forms, project/workspace source, page skeletons, installation Settings, theme/global CSS and environment files are unchanged by this checkpoint. The content container is never keyed/replaced by navigation state. Only accepted Next Link navigation closes the drawer; the existing document-capture Adviser guard can cancel portaled links and Logout first.
+
+### Actual validation and evidence boundary
+
+- **16/16 Node tests PASS:** nine new role/active-route/preference/storage tests plus seven existing `phaseP1-display-mode` tests, including actual shell SSR and conservative display-mode fallback. Existing `phase972-navigation.unit.cjs` routing/account runner also PASS. No database writes or live account verification.
+- **Navigation Chromium fixture PASS:** actual shell/Sheet/store, real ReviewDraftBoundary, notification provider and research-push provider; synthetic Next links/router, notification actions and platform/native environment. Wide browser, all three desktop modes, persisted reload/navigation, snap restoration, focus return/trap, Escape/backdrop/close, unchanged page geometry, no page/provider remounts or extra notification calls, retained synthetic project/note/feedback state, all role destinations, accepted/cancelled draft links/Logout/push navigation, Panel/unknown fallback, actual Logout cleanup bridge, cross-tab and blocked storage. 1280/600/390/360px and a short 340px viewport; Light/Dark, AA navigation text contrast, keyboard, reduced motion and emulated touch PASS. No unexpected network requests or console/page errors. Screenshots: `C:/Users/admin/AppData/Local/Temp/thesishs-adaptive-navigation-x2E5oc`; representative desktop/mobile/Sheet images visually reviewed.
+- **Existing skeleton fixture PASS:** all six layouts at 1280/360px in both themes, controlled Suspense replacement and persistent shell navigation. **Existing Settings browser fixture PASS:** More-drawer Logout still performs DELETE/unsubscribe/logout with the synthetic registered client; Settings-only controls, persistent ownership and notification tap bridge remain working. Neither fixture establishes actual provider delivery or authenticated application acceptance. The unrelated 41-check performance and 25-check PWA unit suites were not rerun.
+- **Static/build PASS:** `tsc --noEmit --incremental false`; targeted ESLint on six TS/TSX source files and four test files with zero warnings; installed React/Dialog tree; Git whitespace checks. Full Next.js 16.4.3 webpack production build PASS, TypeScript, 27/27 prerendered pages, optimization and traces. Build ran in a temporary source copy with one worker, no environment files and synthetic non-routable database/Storage settings; no deployed/runtime configuration acceptance. Initial isolated-copy omissions/config-import typing were corrected before the passing full run; application source needed no build fix.
+
+### Anti-Slop During delivery gate (bounded local scope)
+
+Hard Gate:
+- R-02 PASS: new navigation copy has no em dashes.
+- R-03 PASS: tested narrow widths/short viewport have no horizontal overflow or covered final action.
+- R-17 PASS: no statistics added.
+- R-18 PASS: no testimonials added.
+- R-23 PASS: only owner-approved navigation structure; existing icons/brand reused.
+- R-24 PASS: role-map tests and fixture clicks use existing routes; More opens a modal.
+- R-25 PASS: measured navigation text AA contrast in both themes, including desktop and Sheet.
+- R-26 PASS: links, mode controls, More, close and Logout exercised; no dead controls.
+- R-27 PASS: existing page loading/empty/error states retained; six loading layouts resolve in fixture.
+- R-28 PASS: no FAQ added.
+- R-32 PASS: keyboard activation, focus indicators/containment/return and Escape tested.
+- R-33 PASS: implementation written in component/helper/CSS source; no external feature patcher.
+- R-34 PASS: existing data-theme Light/Dark conventions exercised.
+- R-35 PASS: production build and bounded component click-through completed; actual authenticated browser scope remains separate.
+- R-36 PASS: no new security/performance/production claims; fixture/build limits recorded.
+- R-37 PASS: DESIGN direction declared before implementation, ENERGY 1 / RHYTHM 2 / MOTION 1.
+- R-38 PASS: production navigation uses existing product destinations; test content explicitly synthetic.
+
+Purpose-Gate:
+- R-01 PASS: no gradients/glows added.
+- R-04 PASS: existing document/group/users/book/menu icons identify their corresponding destinations/actions.
+- R-06 PASS: inherited Manrope/fallback typography retained for research readability.
+- R-07 PASS: no decorative grid/background added.
+- R-08 PASS: no decorative arrows added.
+- R-09 PASS: no badges added.
+- R-10 PASS: opaque navigation surfaces and a plain modal dimmer; no glass effects.
+- R-12 PASS: no decorative shadows added; layering serves modal exclusion.
+- R-13 PASS: no glow added.
+- R-14 PASS: no feature-card layout added.
+- R-19 PASS: static Sheet; restrained hover color identifies interaction and obeys reduced motion.
+- R-22 PASS: no illustrations added.
+
+Liveliness:
+- Dials PASS: declared 1/2/1 and retained throughout.
+- Consistency PASS: restrained academic surfaces; no decorative travel.
+- Focal point PASS: active route accent or modal Navigation heading orients the user.
+- Whitespace PASS: scrollable destinations separated from the mode/Logout footer.
+- Accent PASS: existing brand accent identifies the active destination.
+- Identity PASS: existing text brand, icons and token palette preserved.
+- Design Read PASS: existing application/DESIGN/ANTISLOP inspected before edits; owner scope controls the new primitive choice.
+
+Craftsmanship/Quality Locks:
+- C-1 PASS: layout choices serve viewport space, route frequency or modal access.
+- C-2 PASS: all new controls have tested behavior.
+- C-3 PASS: primary/secondary composition follows approved role workflows.
+- C-4 PASS: tested themes, breakpoints, keyboard, blocked storage and fallback states work.
+- C-5 PASS: evidence and remaining acceptance are distinguished.
+- R-05 PASS: existing shell retained; no template sections introduced.
+- R-11 PASS: existing restrained control radii; no capsule treatment.
+- R-15 PASS: Menu/More/Sidebar display/Logout name their actions.
+- R-16 PASS: no marketing buzzwords added.
+- R-20 PASS: existing academic identity and role destinations retained.
+- R-21 PASS: System/Light/Dark choice unchanged.
+- R-29 PASS: existing palette/accent reused.
+- R-30 PASS: stock shadcn appearance and Sidebar replacement avoided.
+- R-31 PASS: sidebar widths preserve working space, bottom placement favors frequent mobile routes, and backdrop/layering indicate modal exclusion.
+
+### Remaining acceptance and next action
+
+Actual authenticated Next.js browser navigation, protected Preview, installed Windows/Android/iOS, real software-keyboard behavior and nonzero physical safe-area insets remain unverified. Emulated touch/short viewport are not device acceptance. Detection initially uses the safe browser SSR fallback and resolves client-side; unknown hints never establish installation or authorization. No root viewport metadata change was made. Existing hosted security/provider/device gates, hard-disabled Groq/Resend and frozen Expo remain unchanged.
+
+Final local Git verification: 33 modified tracked files, 18 untracked files, empty index; branch/HEAD unchanged. SHA-256 comparison confirms 35 incoming files byte-identical and the original 1,195,370-byte Master Context prefix intact; the Settings browser-fixture adaptation is the only other incoming-file change. Git whitespace checks PASS.
+
+Recommended next checkpoint: owner-led installed-device and separately authorized protected Preview navigation acceptance, then only focused corrections supported by that evidence. Stop after this local checkpoint; no automatic refinement phase, Git closure or deployment.
+
+## Adaptive navigation UI polish - local checkpoint (2026-11-06)
+
+**Implemented; focused local validation PASS.** The owner reports **8/8 manual acceptance** for the preceding adaptive navigation implementation; Codex did not independently rerun those owner checks. This checkpoint refines controls only. Entry: `feature/development`, HEAD `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, 33 modified tracked files, 18 untracked files, empty index. No staging, commit, push, merge, deployment, dependency installation or backend operation.
+
+- `components/dashboard/dashboard-shell.tsx` and `dashboard-shell.module.css`: existing header menu is borderless/icon-only, with its accessible name, native title, focus styling and 48px target retained. Inspection found the shell header row was hidden for detected Mobile PWA; that existing row is now available there, without moving notification/theme controls or changing the bottom bar/More. Wide Web and Desktop PWA share a 44px icon-only Expanded/Compact quick toggle in the sidebar header. Its accessible name/title describes the next action; no shortcuts, hover expansion or Hidden cycling. Hidden mode retains the header Sheet trigger.
+- New `components/dashboard/sidebar-preferences.tsx` and `sidebar-preferences.module.css`; `app/dashboard/settings/page.tsx` mounts the small Navigation section after Appearance. Ordinary browser exposes Expanded/Compact; detected desktop standalone also exposes Hidden. Detected mobile standalone and unresolved installed hints show no desktop selector. Narrow browsers retain explicit help that the preference applies at 1024px and wider. The native selector has an explicit label and description.
+- Both controls use the unchanged `lib/pwa/navigation-preferences.ts` store, existing versioned keys, validation, in-memory blocked-storage fallback and storage-event subscription. Same-tab updates immediately synchronize shell and selector; Web/Desktop preferences remain independent. No new context/provider, storage key or viewport preference write. The Sheet footer now contains Logout only; its navigation, scrolling and modal machinery remain unchanged.
+- Updated `tests/dashboard-navigation.unit.cjs`, `tests/dashboard-navigation.browser.cjs` and `tests/phase974-settings.unit.cjs` for selector visibility/options, shared-store selection, quick switching, Settings placement and removed drawer configuration. All prior role-route, focus, draft, state-preservation and storage checks are retained. This Master Context append is the only documentation change.
+
+### Focused evidence and design review
+
+**14/14 Node tests PASS:** ten focused navigation/Settings component/preference tests and four existing PWA Settings tests. Existing Settings four-role/fail-closed/Logout runner and navigation/account runner also PASS. TypeScript (`tsc --noEmit --incremental false`), targeted ESLint on three TSX/three test files with zero warnings, and Git whitespace checks PASS. Full production build was optional and not repeated for this presentation-only refinement.
+
+**Bounded Chromium fixture PASS:** real shell/Sheet/preferences component/store, ReviewDraftBoundary and notification/push providers; synthetic Next routing/actions and platform/native environment. Covers Web/Desktop quick toggles and selector synchronization, reload/navigation persistence, desktop Hidden and restoration, snapped-window fallback, no Sheet selector, Mobile PWA icon-only/borderless header trigger and unchanged role bottom destinations, keyboard/focus/dismissal, retained synthetic project/note/feedback state, accepted/cancelled draft navigation and Logout, notification navigation, unchanged provider/call counts, cross-tab/blocked storage, Light/Dark AA navigation text contrast, reduced motion, 360/390px and short viewports, and emulated touch. No unexpected requests or console/page errors. Screenshots in `C:/Users/admin/AppData/Local/Temp/thesishs-adaptive-navigation-gLUDZF`; expanded/compact desktop, mobile header and Sheet views visually inspected.
+
+React review PASS: all hooks remain unconditional; preferences share one existing external store; no page keys, child/container replacement, extra fetch, provider or server-data path introduced. Existing role routes, Panel fallback, bottom navigation source, Sheet primitive, PWA Settings controls, push/Logout implementations, skeletons and backend authorization remain unchanged.
+
+Anti-Slop During delivery gate, retaining ENERGY 1 / RHYTHM 2 / MOTION 1:
+- Hard Gate PASS: existing destinations/actions only; measured AA text contrast; tested narrow layout, keyboard focus and modal dismissal; no fabricated data/assets or dead controls. Existing loading/empty/error states remain; local fixture scope is explicit.
+- Purpose-Gate PASS: existing icons identify navigation/display actions, header placement keeps the toggle discoverable, and the persistent selector belongs in Settings. Existing opaque surfaces, typography, tokens and restrained hover styling; no decorative motion or assets.
+- Liveliness PASS: approved dials, active-route accent, academic identity and structural spacing retained; compact controls leave attention on research content.
+- Craftsmanship/Quality Locks PASS: both themes, explicit labels, touch targets, fallback/storage states and retained page state exercised; unrelated headers/pages/providers are preserved. No template sections, branding imitation or marketing claims introduced.
+
+### Preservation, limitations and next action
+
+Final state: 33 modified tracked files, 20 untracked files, empty index; branch/HEAD unchanged. Of 51 incoming files, 44 remain byte-identical; six receive the scoped source/test refinements above and this document retains its complete incoming 1,207,527-byte prefix. Package manifests/lock, preference store, Sheet and unrelated incoming work remain byte-identical.
+
+Actual authenticated Next.js/Settings navigation, protected Preview, physical installed Windows/Android/iOS, software keyboards and nonzero safe-area behavior are not newly verified. The earlier owner-reported 8/8 does not establish acceptance of this new polish. Recommended next checkpoint: owner-led review of these controls in the installed/browser presentations and separately authorized Preview verification, then only focused evidence-based corrections. No automatic Git closure or next implementation phase.

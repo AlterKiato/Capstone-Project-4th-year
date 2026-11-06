@@ -7,9 +7,10 @@ import { getCurrentStudentVerificationStatus } from "@/lib/services/email-verifi
 import FeedbackContent from "@/components/feedback-content";
 
 export default async function StudentPage() {
-    const workspace = await getStudentWorkspace();
+    const [workspace, verification] = await Promise.all([
+        getStudentWorkspace(), getCurrentStudentVerificationStatus(),
+    ]);
     if (!workspace) return <main className="dashboard-page"><h1>Student Dashboard</h1><p role="alert">Your account access could not be verified.</p></main>;
-    const verification = await getCurrentStudentVerificationStatus();
     const { groups, projects, submissions } = workspace;
     const latestFeedback = submissions.flatMap(submission => submission.feedback.map(feedback => ({ submission, feedback })))
         .sort((a, b) => Date.parse(b.feedback.createdAt) - Date.parse(a.feedback.createdAt) || b.feedback.id - a.feedback.id)[0];

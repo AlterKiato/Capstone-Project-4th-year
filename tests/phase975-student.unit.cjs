@@ -28,14 +28,13 @@ const mocks = {
     'server-only': {},
     '@/lib/auth/authorization': { requireRole: async () => ({ userId: 7, roleId: 3 }) },
     './dashboard-account.service': { getDashboardAccount: async () => active ? { roleId: role, email: 'synthetic@example.invalid' } : null },
-    './student-research.service': {
-        getStudentResearchGroups: async () => ({ success: true, data: [{ id: 1, groupName: 'Synthetic', strand: 'STEM' }] }),
-        getStudentResearchProjects: async () => ({ success: true, data: [{ id: 2, groupId: 1, createdAt: at, updatedAt: at }, { id: 1, groupId: 1, createdAt: at, updatedAt: at }] }),
-    },
-    './submission.service': { getSubmissionsByPaper: async id => { paperCalls.push(id); return { success: true, data: [{ id: id * 10, paperId: id, submittedBy: id === 1 ? 8 : 7, submittedAt: at, fileUrl: 'PRIVATE_PATH', version: 'v1' }] }; } },
-    './student-feedback.service': { getStudentFeedbackBySubmission: async id => { feedbackCalls.push(id); return { success: true, data: [{ id: 90, createdAt: at, comments: 'Synthetic', teacherId: 999 }] }; } },
-    '@/lib/repositories/group-member.repository': { findGroupMembersByGroupId: async id => { memberCalls++; assert.equal(id, 1); return [{ id: 1, userId: 7 }]; } },
-    '@/lib/repositories/user.repository': { findUserById: async () => ({ firstName: 'Synthetic', lastName: 'Student', password: 'PRIVATE_PASSWORD' }) },
+    '@/lib/repositories/student-workspace.repository': { studentWorkspaceRepository: {
+        groups: async id => { assert.equal(id, 7); return [{ id: 1, groupName: 'Synthetic', strand: 'STEM' }]; },
+        members: async (id, groups) => { memberCalls++; assert.equal(id, 7); assert.deepEqual(groups, [1]); return [{ id: 1, groupId: 1, firstName: 'Synthetic', lastName: 'Student' }]; },
+        projects: async () => [{ id: 2, groupId: 1, createdAt: at, updatedAt: at }, { id: 1, groupId: 1, createdAt: at, updatedAt: at }],
+        submissions: async (_id, ids) => { paperCalls.push(...ids); return ids.map(id => ({ id: id * 10, paperId: id, submittedBy: id === 1 ? 8 : 7, submittedAt: at, version: 'v1' })); },
+        feedback: async (_id, ids) => { feedbackCalls.push(...ids); return [{ submissionId: 20, id: 90, createdAt: at, comments: 'Synthetic', decision: 'Approved' }]; },
+    } },
 };
 const original = Module._load;
 Module._load = function(id, ...args) { return Object.hasOwn(mocks, id) ? mocks[id] : original.call(this, id, ...args); };

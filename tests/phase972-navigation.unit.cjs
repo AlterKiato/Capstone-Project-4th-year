@@ -2,8 +2,6 @@
 const assert = require('node:assert/strict');
 const Module = require('node:module');
 let session = { userId: 1, roleId: 3 };
-let account = { isActive: true, roleId: 3, email: 'synthetic@example.invalid' };
-let fail = false;
 const original = Module._load;
 Module._load = function(id, ...args) {
     if (id === 'server-only') return {};
@@ -11,10 +9,7 @@ Module._load = function(id, ...args) {
         if (!session) throw new Error('LOGIN_REDIRECT');
         return session;
     } };
-    if (id === '@/lib/repositories/user.repository') return { findUserById: async () => {
-        if (fail) throw new Error('synthetic database failure');
-        return account;
-    } };
+    if (id === '@/lib/repositories/user.repository') throw new Error('Dashboard must reuse the authenticated account');
     return original.call(this, id, ...args);
 };
 const { getDashboardAccount } = require('../lib/services/dashboard-account.service.ts');
@@ -34,18 +29,11 @@ const { dashboardDestination, dashboardLinks } = require('../lib/constants/dashb
     assert.deepEqual(dashboardLinks(4).map(link => link.href), ['/dashboard', '/dashboard/repository', '/dashboard/settings']);
     assert.equal(dashboardDestination(99), null);
     assert.deepEqual(dashboardLinks(99), []);
-    assert.deepEqual(await getDashboardAccount(), { roleId: 3, email: account.email });
-    account = { ...account, isActive: false };
-    assert.equal(await getDashboardAccount(), null, 'Inactive account denied');
-    account = { ...account, isActive: true, roleId: 2 };
-    assert.equal(await getDashboardAccount(), null, 'Stale role denied');
-    account = null;
-    assert.equal(await getDashboardAccount(), null, 'Missing account denied');
-    fail = true;
-    assert.equal(await getDashboardAccount(), null, 'Database failure denied safely');
+    session = { ...session, email: 'synthetic@example.invalid', exp: 123 };
+    assert.deepEqual(await getDashboardAccount(), { id: 1, roleId: 3, email: session.email, expiresAt: 123000 });
     session = { userId: -1, roleId: 3 };
     assert.equal(await getDashboardAccount(), null, 'Malformed identity denied');
     session = null;
     await assert.rejects(getDashboardAccount(), /LOGIN_REDIRECT/);
-    console.log('PASS Phase 9.7.2 routing map and active-account boundary; synthetic doubles only, zero database writes');
+    console.log('PASS Phase 9.7.2 routing map and authenticated-account reuse; actual active-account checks covered by dashboard-performance/auth tests. No database writes.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

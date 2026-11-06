@@ -2,6 +2,8 @@
 
 ThesiSHS AI is a Senior High School research management and repository system. It organizes groups and papers, preserves submission/revision history, supports Adviser review and feedback, and provides authenticated access to approved research. Admin tools support account, group, publication and reporting workflows.
 
+**Current Preview checkpoint (2026-11-05): P.3F.3 Web Push CLOSED / PASS.** Migration 0015/runtime grants and Preview VAPID are complete; `feature/development` deployment `f82a08105158713ffad5161c0235fac1d23327fd` is Ready. Android Adviser enrollment is verified; receipt after a synthetic Student submission and tap to Adviser notifications are owner-confirmed PASS. This supersedes older pending P.3 labels; broader devices/reliability and Production readiness remain separate. See the [closure/next-phase handoff](docs/MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05). Next recommended development: separately scope P.4 Admin Desktop Publication Oversight. Routine releases use [focused Preview testing and proportionate migration/recovery precautions](docs/SOURCE_OF_TRUTH_UPDATED.md#future-release-policy-owner-decision-2026-11-05), without repeating synthetic-account backup setup.
+
 ## Platform and architecture
 
 Next.js App Router, React and TypeScript provide the online-first PWA for Web, Mobile browsers and initial Desktop use. PostgreSQL and Drizzle store academic records; private Supabase Storage holds PDFs. Custom bcrypt/JWT authentication uses HTTP-only cookies and server-side checks of current account status, role and ownership.

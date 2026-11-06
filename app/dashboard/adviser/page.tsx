@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 
 /**
  * Adviser dashboard entry page.
@@ -17,7 +18,7 @@ export default async function AdviserPage() {
     const account = await getDashboardAccount();
     if (!account) return null; // The shared layout renders the account-access error.
     if (account.roleId !== ROLE_IDS.ADVISER) redirect("/dashboard");
-    return <Suspense fallback={<main className="dashboard-page" aria-busy="true"><h1>Adviser Dashboard</h1><p role="status">Loading your research overview...</p></main>}><AdviserOverview /></Suspense>;
+    return <Suspense fallback={<DashboardSkeleton page="adviser" />}><AdviserOverview /></Suspense>;
 }
 
 async function AdviserOverview() {

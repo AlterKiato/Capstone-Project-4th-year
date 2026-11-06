@@ -10,17 +10,18 @@ let fail = false;
 const original = Module._load;
 Module._load = function(id, ...args) {
     if (id === 'server-only' || id.endsWith('.css')) return {};
-    if (id === '@/lib/auth/authorization') return { requireAuth: async () => {
+    // Test the page with an injected, validated account; actual auth guards have separate coverage.
+    if (id === '@/lib/services/dashboard-account.service') return { getDashboardAccount: async () => {
         if (!session) throw new Error('LOGIN_REDIRECT');
-        return session;
+        if (fail || !account?.isActive || account.roleId !== session.roleId || session.userId <= 0) return null;
+        return { id: session.userId, roleId: account.roleId, email: account.email };
     } };
-    if (id === '@/lib/repositories/user.repository') return { findUserById: async () => {
-        if (fail) throw new Error('synthetic failure');
-        return account;
-    } };
+    if (id === '@/components/dashboard/app-installation') return () => React.createElement('h2', null, 'App Installation');
+    if (id === '@/components/dashboard/research-push-enrollment') return () => React.createElement('h2', null, 'Research Notifications');
     if (id === '@/components/dashboard/dashboard-header') return ({ title }) => React.createElement('h1', null, title);
     if (id === '@/components/auth/logout-button') return () => React.createElement('button', null, 'Logout');
     if (id === '@/components/theme-preferences') return () => React.createElement('fieldset');
+    if (id === '@/components/dashboard/sidebar-preferences') return () => React.createElement('h2', null, 'Navigation');
     return original.call(this, id, ...args);
 };
 const Page = require('../app/dashboard/settings/page.tsx').default;
@@ -33,6 +34,9 @@ async function markup() { return renderToStaticMarkup(await Page()); }
         assert.ok(html.includes(`<dd>${label}</dd>`));
         assert.match(html, /<dd>settings@example.invalid<\/dd>/);
         assert.match(html, /<dd>Not provided<\/dd>/);
+        assert.match(html, /App Installation/);
+        assert.match(html, /Navigation/);
+        assert.equal(html.includes('Research Notifications'), roleId === 2 || roleId === 3);
         assert.ok(!/MUST_NOT_RENDER|password|<input/.test(html));
     }
     account = { ...account, roleId: 99 }; session = { userId: 1, roleId: 99 };

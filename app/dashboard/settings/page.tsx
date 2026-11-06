@@ -5,6 +5,9 @@ import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
 import { getRoleName, ROLE_IDS } from "@/lib/auth/roles";
 import styles from "./settings.module.css";
 import Link from "next/link";
+import AppInstallation from "@/components/dashboard/app-installation";
+import ResearchPushEnrollment from "@/components/dashboard/research-push-enrollment";
+import SidebarPreferences from "@/components/dashboard/sidebar-preferences";
 
 export default async function SettingsPage() {
     const account = await getDashboardAccount();
@@ -31,6 +34,9 @@ export default async function SettingsPage() {
                 <p className="form-help">Choose a theme for this browser. System follows your device appearance.</p>
                 <ThemePreferences />
             </section>
+            <SidebarPreferences />
+            <AppInstallation />
+            {(account.roleId === ROLE_IDS.STUDENT || account.roleId === ROLE_IDS.ADVISER) && <ResearchPushEnrollment />}
             <section className="dashboard-panel" aria-labelledby="about-heading">
                 <h2 id="about-heading">About ThesiSHS AI</h2>
                 <p>A research management system for Senior High School students, advisers, and school administrators, supporting research submissions, revisions, adviser feedback, and access to approved studies.</p>

@@ -1,10 +1,26 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-11-01 (P.3F.0 local source closure; P.3E.2 disposable PostgreSQL PASS; existing project migration/activation and full-build/security gates retained)\
+**Last reviewed:** 2026-11-05 (P.3F.4 documentation closure; P.3F.3 Preview Web Push CLOSED / PASS)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
 immediate next actions belong in `docs/MASTER_CONTEXT_UPDATED.md`.
+
+## Preview Web Push closure (P.3F.3, recorded 2026-11-05)
+
+**CLOSED / PASS for the agreed synthetic Preview scope.** Migration 0015 and runtime grants, Preview-only VAPID, the configured Ready deployment at `f82a08105158713ffad5161c0235fac1d23327fd`, and Android Adviser enrollment are verified. The owner confirmed notification receipt after a synthetic Student submission and tap navigation to Adviser notifications. See the [current closure evidence and next phase](MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05). This supersedes older disabled/unapplied/unverified P.3 status labels below within their historical checkpoints; missing configuration still defaults off in other environments.
+
+Production readiness/release, iOS and broader device/reliability testing, and retained hosted security/Storage acceptance remain deferred. P.4 Admin Desktop Publication Oversight is the recommended next separately scoped development phase; R.1-R.3 remain later work. No roadmap entry automatically authorizes execution.
+
+## Future release policy (owner decision, 2026-11-05)
+
+| Change | Minimum release procedure |
+|---|---|
+| UI or backend behavior | Review the exact diff, run relevant existing focused checks, deploy the reviewed commit to Preview and perform focused acceptance of the changed workflow. |
+| Additive migration | Verify the exact environment/target, applicable ledger and migration source; use the approved guarded operator path, apply only the intended migration/minimum runtime permissions, and validate schema, privileges and existing-record preservation. Do not replay historical migrations or reset sequences. |
+| Destructive change | Add appropriate private backup/recovery precautions and verified restoration evidence before an explicitly approved destructive operation. |
+
+Do not repeat the synthetic-account backup/export/restore setup for routine releases. Reuse existing tooling and evidence; avoid broad suites, new frameworks or repeated preparation without a relevant change or failure. Keep Preview separate from Production; Production readiness and release require their own approval. This policy supersedes blanket historical recovery/preparation requirements for routine releases, without weakening authorization, target verification or destructive-change precautions.
 
 **P.3F.0 local source checkpoint (2026-11-01):** P.3C/D implementation and P.3E corrections are reviewed for one local commit, with the [owner activation checklist](PHASE10_P3_ACTIVATION_CHECKLIST.md). P.3E.2 passed 20 real PostgreSQL checks in a fresh disposable cluster with complete cleanup; this does not apply 0015 to any existing local/hosted project database. Push remains disabled and real VAPID/device delivery unconfigured/unverified. F.0 final smoke (83 reported tests), TypeScript, targeted ESLint, manifest/lock and offline migration-integrity checks pass. Full configured build/prerender, hosted identity/grants/provider exposure, protected worker behavior and Android/iOS delivery remain gates. Live Vercel settings were not inspected. Earlier preparation/unimplemented/unapplied wording below is historical within each checkpoint; latest Master Context controls current status. No push, merge, deployment or automatic P.3F.1.
 
@@ -905,3 +921,15 @@ Before activation: separately approve hosted migration/grants, confirm current p
 ### Owner-approved streamlined Preview activation (2026-11-06)
 
 For this Preview-only activation the owner accepts no verified backup, confirms Vercel Preview settings and disabled Supabase Data API, and authorizes the scoped tooling commit, guarded 0016/three grants, independent checks, feature/development publication, Preview verification, focused Student workspace smoke testing and exact test-owned cleanup. No recovery setup, new infrastructure, subscription upgrade, Production change or unrelated phase. Use the explicit 0016-only `--accept-preview-no-backup-risk yes` alternative; never attest that recovery was verified when it was not. All identity/TLS/source/ledger and no-automatic-retry controls remain mandatory. Actual execution results must be recorded separately from this authorization.
+
+## Streamlined Preview activation result (2026-11-06)
+
+**CLOSED / PASS - Collaborative Research Workspace Preview milestone is closed for the approved functional scope.** The owner reports **9 PASS, 0 FAIL (9/9)** manual Preview checks: protected deployment access, authorized Student login, workspace/project selection, task creation/assignment/status, refresh persistence, note creation/editing, note task linking/unlinking, note soft deletion/restoration, and desktop/mobile layout/navigation. This is owner-reported manual acceptance, not independently executed Codex browser automation. It is the approved alternative to automated authenticated Preview browser smoke testing, which alone remains BLOCKED due to Vercel SSO access. Guarded Preview migration 0016, the exact three runtime grants, independent 17-entry catalog/permission/preservation checks, scoped C7.1 commit and feature/development publication retain PASS. No Production deployment occurred. The initial PARTIAL activation status is superseded only for this approved functional closure.
+
+Published tooling commit: `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`, branch `feature/development`, parent C6 `da2c9114bedc40c12d5f987dde23152b68d6e80c`. The five-file commit excludes unrelated mixed-document changes; all ten unrelated modified paths remain unstaged and the index is empty. Actual-result/closure documentation is left unstaged. GitHub/Vercel commit status reports successful deployment completion for the published SHA and expected project. The owner's manual acceptance confirms protected Preview access and the nine listed functional checks. Codex's independent dashboard/served-artifact confirmation remains limited, and no automated browser PASS or unlisted workflow coverage is claimed. Codex created no automated smoke-test fixtures, so no Codex fixture cleanup was needed; cleanup of owner-created manual records is not asserted.
+
+The live pinned Preview project/database/cluster and exact 16-entry baseline were reconfirmed before the one guarded execution; a new READ ONLY connection afterward verified exact 17 entries, workspace tables/sequences/constraints, effective minimum runtime permissions and preservation of existing application/Web Push rows, catalog/ACLs and old sequences. No automatic retry or partial state. No backup was verified or created: the owner explicitly accepted that Preview-only risk using the 0016-only no-backup option, with all identity/TLS/source/ledger guards retained. Runtime TEMPORARY through PUBLIC remains the approved Preview exception; permanent application-schema DDL, application-table TRUNCATE and note hard DELETE remain denied. Vercel settings and disabled Data API are owner-confirmed. This documentation closure repeats no application, database, migration, browser or provider checks. See the [execution and closure handoff](MASTER_CONTEXT_UPDATED.md#streamlined-preview-activation-result-2026-11-06) for the nine manual results, exact commit inventory, database evidence and deployment link.
+
+Explicitly deferred, without blocking this scoped Preview closure: Production deployment/acceptance, Production concurrency/reliability testing, additional browser/device compatibility, the runtime TEMPORARY-through-PUBLIC policy exception, the accepted lack of a verified Preview backup/recovery mechanism, and an uninterrupted rerun of the corrected C5 browser harness. Retained hosted authorization/Storage/security gates remain separate. No Production deployment occurred.
+
+Next planned milestone: **Small UI/UX Refinement — Scope Pending Owner Review.** Selected visual/usability improvements to the existing application await owner-defined scope. No screens, UI audit, redesign or implementation are assumed or started; no new design system/dependency. P.4 and other deferred work retain their separate scope. No staging, commit, push, deployment or database operation is authorized by this closure.

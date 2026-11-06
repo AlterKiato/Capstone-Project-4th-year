@@ -4,15 +4,21 @@ import DashboardHeader from "@/components/dashboard/dashboard-header";
 import { AdminMetrics, AdminActivity } from "@/components/dashboard/admin-overview";
 import styles from "@/components/dashboard/admin-overview.module.css";
 import { getAdminDashboardStats, getAdminRecentActivities } from "@/lib/services/dashboard.service";
+import { Suspense } from "react";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 
 export default async function AdminPage() {
     const session = await requireRole([ROLE_IDS.ADMIN]);
+    return <Suspense fallback={<DashboardSkeleton page="admin" />}><AdminOverview email={session.email} /></Suspense>;
+}
+
+async function AdminOverview({ email }: { email: string }) {
     const [statisticsResult, activitiesResult] = await Promise.all([
         getAdminDashboardStats(), getAdminRecentActivities(),
     ]);
     const statistics = statisticsResult.success ? statisticsResult.data : undefined;
     return <main className={`dashboard-page ${styles.overview}`}>
-        <DashboardHeader title="Admin Dashboard" email={session.email} />
+        <DashboardHeader title="Admin Dashboard" email={email} />
         <p className="dashboard-context">Oversee users, research groups, repository publication, and reports.</p>
         {statistics ? <>
             <AdminMetrics stats={statistics} />
