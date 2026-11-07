@@ -20,6 +20,7 @@ export async function getAdminDashboardStats(){return {success:true,data:{totalU
 export async function getAdminRecentActivities(){return {success:true,data:[]}}
 export async function getPublishedResearch(){return {items:[{paperId:1,title:window.__title,groupName:'Synthetic group',strand:'STEM',schoolYear:'2026',abstract:'Synthetic abstract'}],total:1,page:1,pageCount:1}}
 export async function getPublishedResearchFilterOptions(){return {categories:[],schoolYears:[],strands:[]}}
+export async function getRepositoryManagementResult(){return window.__management}
 export async function getGuideQuestions(){return {success:true,questions:[{id:'synthetic',question:'Synthetic guide question'}]}}
 `;
 const actions = `
@@ -28,6 +29,9 @@ export const changeUserRoleAction=refuse,changeUserStatusAction=refuse,createMan
 export const recordAIEligibilityAction=refuse,recordAIConsentAction=refuse,createAdviserFeedbackAction=refuse,startSubmissionReviewAction=refuse,createStudentResearchAction=refuse;
 export const initiateSubmissionUploadAction=refuse,renewSubmissionUploadAction=refuse,getSubmissionUploadStatusAction=refuse,cancelSubmissionUploadAction=refuse,finalizeSubmissionUploadAction=refuse;
 export const getRepositoryDocumentUrlAction=refuse,logoutAction=refuse;
+async function publication(data){window.__writes++;window.__publicationCalls.push(Object.fromEntries(data));return new Promise(resolve=>{window.__resolvePublication=resolve})}
+export async function publishRepositoryPaperAction(previous,data){return publication(data)}
+export async function updateRepositoryPublicationAction(previous,data){return publication(data)}
 export const markNotificationAsReadAction=refuse,markAllNotificationsAsReadAction=refuse;
 export async function getNotificationPreviewAction(){return {success:true,data:{unreadCount:0,recent:[]}}}
 export async function getEligibilityUIAction(){return {available:false}}
@@ -49,6 +53,7 @@ import Repository from './app/dashboard/repository/[paperId]/page';
 import Review from './app/dashboard/adviser/submissions/[submissionId]/page';
 import StudentDashboard from './app/dashboard/student/page';import AdviserDashboard from './app/dashboard/adviser/page';import AdminDashboard from './app/dashboard/admin/page';
 import RepositoryList from './app/dashboard/repository/page';import Guide from './app/dashboard/guide/page';import Settings from './app/dashboard/settings/page';import Reports from './app/dashboard/admin/reports/page';
+import Publication from './app/dashboard/admin/repository/page';
 import AdviserSubmissions from './components/dashboard/adviser-submissions';import DashboardHeader from './components/dashboard/dashboard-header';
 import Users from './components/dashboard/admin-users';import Groups from './components/dashboard/admin-groups';
 import StudentResearch from './components/dashboard/student-research';
@@ -64,11 +69,12 @@ React.useEffect(()=>{window.__workspaceNavigate=href=>{const url=new URL(href,lo
 const projects=[{id:1,title:'Synthetic project Alpha'},{id:2,title:'Synthetic project Beta'}];
 return <main><DashboardHeader title='Group Workspace' email='synthetic@example.invalid'/><StudentGroupWorkspace projects={projects} project={projects.find(p=>p.id===selection.id)} invalidProject={false} tab={selection.tab} deletedOnly={false} board={{success:true,kind:'success',data:{tasks:[],members:[]}}} notes={{success:true,kind:'success',data:{notes:[],tasks:[]}}}/></main>
 }
-window.render=async(kind,data={},profile='browser')=>{
-window.__role=['admin-dashboard','users','groups','settings','reports'].includes(kind)?1:['adviser-dashboard','review','adviser-submissions'].includes(kind)?2:3;
-window.__profile=profile;window.__path=({'student-dashboard':'/dashboard/student','adviser-dashboard':'/dashboard/adviser','admin-dashboard':'/dashboard/admin',users:'/dashboard/admin/users',groups:'/dashboard/admin/groups',settings:'/dashboard/settings',reports:'/dashboard/admin/reports',guide:'/dashboard/guide','repository-list':'/dashboard/repository','adviser-submissions':'/dashboard/adviser/submissions',review:'/dashboard/adviser/submissions/1',student:'/dashboard/student/submissions',workspace:'/dashboard/student/workspace'})[kind]??'/dashboard/repository/1';
+window.render=async(kind,data={},profile='browser',preserve=false)=>{
+window.__role=['admin-dashboard','users','groups','settings','reports','publication'].includes(kind)?1:['adviser-dashboard','review','adviser-submissions'].includes(kind)?2:3;
+window.__profile=profile;window.__path=({'student-dashboard':'/dashboard/student','adviser-dashboard':'/dashboard/adviser','admin-dashboard':'/dashboard/admin',users:'/dashboard/admin/users',groups:'/dashboard/admin/groups',settings:'/dashboard/settings',reports:'/dashboard/admin/reports',guide:'/dashboard/guide','repository-list':'/dashboard/repository',publication:'/dashboard/admin/repository','adviser-submissions':'/dashboard/adviser/submissions',review:'/dashboard/adviser/submissions/1',student:'/dashboard/student/submissions',workspace:'/dashboard/student/workspace'})[kind]??'/dashboard/repository/1';
 let node;
-if(kind==='student-dashboard')node=await StudentDashboard();
+if(kind==='publication'){window.__management=data;node=await Publication();window.__refreshPublication=()=>window.render('publication',window.__management,window.__profile,true)}
+else if(kind==='student-dashboard')node=await StudentDashboard();
 else if(kind==='adviser-dashboard'||kind==='admin-dashboard'){const boundary=await (kind==='adviser-dashboard'?AdviserDashboard():AdminDashboard());node=await boundary.props.children.type(boundary.props.children.props)}
 else if(kind==='repository-list')node=await RepositoryList({searchParams:Promise.resolve({})});
 else if(kind==='guide')node=await Guide();
@@ -77,7 +83,7 @@ else if(kind==='reports')node=await Reports();
 else if(kind==='workspace')node=<WorkspaceFixture/>;
 else if(kind==='adviser-submissions')node=<main><DashboardHeader title='Research Submissions' email='synthetic@example.invalid'/><AdviserSubmissions submissions={data.submissions??[{id:1,paperId:1,researchTitle:'Synthetic research',groupName:'Synthetic group',version:'v1',status:'Submitted',submittedAt:'2026-01-01'}]}/></main>;
 else node=kind==='repository'?await Repository({params:Promise.resolve({paperId:'1'})}):kind==='review'?await Review({params:Promise.resolve({submissionId:'1'})}):kind==='users'?<main><DashboardHeader title='User Management' email='synthetic@example.invalid'/><Users users={data.users} actorId={1}/></main>:kind==='groups'?<main><DashboardHeader title='Research Groups' email='synthetic@example.invalid'/><Groups groups={data.groups}/></main>:<main><StudentResearch workspace={{email:'synthetic@example.invalid',groups:[{id:1,groupName:'Synthetic group'}],projects:[{id:1,groupId:1,title:window.__title,abstract:'Synthetic abstract',status:'Revision Required'}],submissions:[{id:1,paperId:1,version:'v1',status:'Revision Required',submittedAt:'2026-01-01',remarks:'Synthetic remarks',feedback:[]}]}} target={{}}/></main>;
-root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref='/dashboard/student/notifications'><Shell links={dashboardLinks(window.__role)}>{node}</Shell></NotificationProvider></ThemeProvider>);
+root.render(<ThemeProvider key={preserve?generation:++generation}><NotificationProvider historyHref='/dashboard/student/notifications'><Shell links={dashboardLinks(window.__role)}>{node}</Shell></NotificationProvider></ThemeProvider>);
 };` },
         plugins: [{ name: 'batchb-fixtures', setup(b) {
             b.onResolve({ filter: /^@\/lib\/actions\// }, () => ({ path: 'actions', namespace: 'fixture' }));
@@ -86,8 +92,8 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             b.onResolve({ filter: /^next\/link$/ }, () => ({ path: 'link', namespace: 'fixture' }));
             b.onResolve({ filter: /(?:^@\/lib\/pwa\/|^\.\/)use-display-mode$/ }, () => ({ path: 'display', namespace: 'fixture' }));
             b.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ resolveDir: process.cwd(), loader: 'tsx', contents: args.path === 'actions' ? actions : args.path === 'services' ? services : args.path === 'navigation' ?
-                `export function usePathname(){return window.__path} export function useRouter(){return {refresh(){},push(href){window.__navigation=href;window.__workspaceNavigate?.(href)},replace(href){window.__navigation=href}}}export function notFound(){throw Error('Synthetic missing route')}export function redirect(){throw Error('Unexpected synthetic redirect')}` : args.path === 'display' ?
-                    `export function useDisplayMode(){return window.__profile==='mobile'?'standalone':'browser'}export function usePwaPlatform(){return window.__profile==='mobile'?'android':'desktop'}` :
+                `export function usePathname(){return window.__path} export function useRouter(){return {async refresh(){window.__refreshes=(window.__refreshes??0)+1;if(window.__holdRefresh)await new Promise(resolve=>{window.__resolveRefresh=resolve});await window.__refreshPublication?.()},push(href){window.__navigation=href;window.__workspaceNavigate?.(href)},replace(href){window.__navigation=href}}}export function notFound(){throw Error('Synthetic missing route')}export function redirect(){throw Error('Unexpected synthetic redirect')}` : args.path === 'display' ?
+                    `export function useDisplayMode(){return window.__profile==='unknown'?'unknown':['mobile','desktop','standalone-unknown'].includes(window.__profile)?'standalone':'browser'}export function usePwaPlatform(){return ['unknown','standalone-unknown'].includes(window.__profile)?'unknown':window.__profile==='mobile'?'android':'desktop'}` :
                     `import React from 'react';export default function Link({href,children,...props}){return <a {...props} href={href} onClick={event=>{props.onClick?.(event);if(!event.defaultPrevented){event.preventDefault();window.__navigation=href}}}>{children}</a>}` }));
         } }],
     });
@@ -114,6 +120,12 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             await page.getByRole('button', { name: 'Change theme', exact: true }).click();
             await page.getByRole('menuitemradio', { name: value, exact: true }).click();
             await expect(page.locator('html')).toHaveAttribute('data-theme', value.toLowerCase());
+        }
+        if (process.argv.includes('--publication')) {
+            await publicationChecks(page, render, theme, artifacts, visualChecks);
+            assert.deepEqual(errors, []); assert.deepEqual(unexpected, []);
+            console.log(JSON.stringify({ result: 'PASS', scope: 'P4B synthetic publication UI only', artifacts, limits: 'Mocked display signals, services, actions and refresh; no real account, database, Storage, hosted or installed-device acceptance' }));
+            return;
         }
         for (const width of [360, 1280]) for (const appearance of ['Light', 'Dark']) {
             await page.setViewportSize({ width, height: 800 });
@@ -168,7 +180,7 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal page overflow');
             const contrastFailures = await page.locator('main').evaluate(root => {
                 const lum = color => { const rgb = color.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => (v /= 255) <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4); return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722; };
-                return [...root.querySelectorAll('h1,h2,a[class*="context-"],.academic-status,.dashboard-metrics dt,.dashboard-metrics dd')].flatMap(el => {
+                return [...root.querySelectorAll('h1,h2,a[class*="context-"],.academic-status,.dashboard-metrics dt,.dashboard-metrics dd,#publication-details h3,#publication-details p,#publication-details dt,#publication-details dd,#publication-details button,#repository-directory h3,#repository-directory p,#repository-directory button')].flatMap(el => {
                     if (!el.getClientRects().length || el.closest('[hidden]') || !el.textContent.trim()) return [];
                     const style = getComputedStyle(el); let parent = el, bg = style.backgroundColor;
                     while (bg === 'rgba(0, 0, 0, 0)' && parent.parentElement) { parent = parent.parentElement; bg = getComputedStyle(parent).backgroundColor; }
@@ -294,5 +306,101 @@ root.render(<ThemeProvider key={++generation}><NotificationProvider historyHref=
         assert.equal(await page.evaluate(() => window.__writes), 0);
         console.log(JSON.stringify({ result: 'PASS', visualCoverage: 'Three role dashboards at 360/390/1280 Light/Dark; Repository/Guide/Settings/Reports/Adviser submissions at 390 Light and 1280 Dark; AA contrast, 44px links, focus/hover, sidebar/drawer, exact destinations and statistics; preserved repository heading and Admin live regions', observations, artifacts, limits: 'Synthetic Chromium; no real PDF, hosted calls, screen-reader speech, physical safe area or software keyboard' }));
     } finally { await browser.close(); }
+}
+async function publicationChecks(page, render, theme, artifacts, visualChecks) {
+    const ready = { paperId: 101, title: 'Synthetic ready research', groupName: 'Synthetic Alpha', createdAt: '2026-11-01' };
+    const published = { id: 202, paperId: 102, title: 'Synthetic published research', groupName: 'Synthetic Beta', isPublished: true, publishedAt: '2026-11-02' };
+    const hidden = { id: 203, paperId: 103, title: 'Synthetic hidden research', groupName: 'Synthetic Gamma', isPublished: false, publishedAt: null };
+    const data = { success: true, data: { eligiblePapers: [ready], repositoryEntries: [published, hidden] } };
+    const details = page.getByRole('region', { name: 'Publication details', exact: true });
+    const inspect = title => page.getByRole('button', { name: `Inspect ${title}`, exact: true });
+    const action = label => details.getByRole('button', { name: label, exact: true });
+    async function fits() {
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+        for (const selector of ['#repository-directory', '#publication-details']) {
+            assert.ok(await page.locator(selector).evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+        }
+    }
+    await page.evaluate(() => { window.__publicationCalls = []; });
+    // Desktop gate and unchanged browser/mobile/unknown controls.
+    for (const [profile, width] of [['browser', 1280], ['mobile', 360], ['unknown', 1280], ['standalone-unknown', 1280]]) {
+        await page.setViewportSize({ width, height: 800 }); await render('publication', data, profile);
+        await expect(details).toHaveCount(0); await expect(inspect(ready.title)).toHaveCount(0);
+        await page.getByRole('button', { name: `Publish ${ready.title}`, exact: true }).click();
+        await expect(page.getByRole('dialog')).toBeVisible(); await page.keyboard.press('Escape');
+        await expect(page.getByRole('button', { name: `Publish ${ready.title}`, exact: true })).toBeFocused();
+        assert.equal(await page.evaluate(() => window.__writes), 0);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    }
+    for (const [width, appearance] of [[1440, 'Light'], [760, 'Dark'], [360, 'Dark']]) {
+        await page.setViewportSize({ width, height: 800 }); await render('publication', data, 'desktop'); await theme(appearance);
+        await expect(details).toBeVisible(); await expect(details).toContainText('Select Inspect');
+        await inspect(ready.title).focus(); await page.keyboard.press('Space');
+        await expect(inspect(ready.title)).toHaveAttribute('aria-pressed', 'true'); await expect(inspect(ready.title)).toBeFocused();
+        assert.ok(await inspect(ready.title).evaluate(el => el.matches(':focus-visible') && getComputedStyle(el).outlineStyle !== 'none'));
+        await expect(page.getByRole('dialog')).toHaveCount(0); await expect(details).toContainText(ready.groupName);
+        await expect(details.locator('dd')).toHaveText([ready.groupName, 'Ready', 'Nov 1, 2026']);
+        await expect(action(`Publish ${ready.title}`)).toBeEnabled();
+        const directoryBox = await page.locator('#repository-directory').boundingBox(), detailBox = await details.boundingBox();
+        assert.equal(detailBox.x > directoryBox.x + directoryBox.width, width === 1440);
+        if (width === 1440) {
+            await page.getByRole('button', { name: 'Expand sidebar', exact: true }).click(); await fits();
+            await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click();
+        }
+        await fits(); await visualChecks(); await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: join(artifacts, `publication-${width}-${appearance}.png`), fullPage: true });
+    }
+    assert.equal(await page.evaluate(() => window.__writes), 0);
+    await page.getByRole('button', { name: 'Repository Entries', exact: true }).click(); await expect(details).toContainText('Select Inspect');
+    await inspect(published.title).click(); await expect(details.locator('dd')).toHaveText([published.groupName, 'Published', 'Nov 2, 2026']);
+    await expect(action(`Unpublish ${published.title}`)).toBeEnabled();
+    await page.getByLabel('Repository visibility', { exact: true }).selectOption('hidden');
+    await expect(details).toContainText('Select Inspect'); await expect(action(`Unpublish ${published.title}`)).toHaveCount(0);
+    await inspect(hidden.title).click(); await expect(details.locator('dd')).toHaveText([hidden.groupName, 'Hidden']);
+    await expect(action(`Republish ${hidden.title}`)).toBeEnabled();
+    // Refreshed props remove a selected row without retaining actionable details.
+    await page.evaluate(value => window.render('publication', value, 'desktop', true), { success: true, data: { eligiblePapers: [], repositoryEntries: [] } });
+    await expect(details).toContainText('no longer available'); await expect(details.getByRole('button')).toHaveCount(0);
+    await expect(page.getByText('No repository entries have been created.')).toBeVisible();
+    await page.getByRole('button', { name: 'Ready to Publish', exact: true }).click();
+    await expect(page.getByText('No eligible research is ready to publish.')).toBeVisible();
+    // Exact ID contracts, mandatory confirmation, pending lock, successful refresh and focus.
+    for (const [record, label, expected] of [[ready, 'Publish', { paperId: '101' }], [published, 'Unpublish', { repositoryId: '202', publish: 'false' }], [hidden, 'Republish', { repositoryId: '203', publish: 'true' }]]) {
+        await render('publication', data, 'desktop');
+        if (label !== 'Publish') await page.getByRole('button', { name: 'Repository Entries', exact: true }).click();
+        await inspect(record.title).click(); await action(`${label} ${record.title}`).click();
+        const dialog = page.getByRole('dialog'); await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', { name: 'Cancel', exact: true }).click(); await expect(action(`${label} ${record.title}`)).toBeFocused();
+        await action(`${label} ${record.title}`).click();
+        await dialog.getByRole('button', { name: `Confirm ${label.toLowerCase()}`, exact: true }).click();
+        await expect(dialog.getByRole('button', { name: 'Saving…', exact: true })).toBeDisabled();
+        await page.keyboard.press('Escape'); await expect(dialog).toBeVisible();
+        assert.deepEqual(await page.evaluate(() => window.__publicationCalls.at(-1)), expected);
+        // No real writes: the fixture supplies a changed server payload and delayed refresh.
+        await page.evaluate(() => { window.__holdRefresh = true; window.__management = { success: true, data: { eligiblePapers: [], repositoryEntries: [] } }; window.__resolvePublication({ success: true, message: 'Synthetic publication saved.' }); });
+        await expect(dialog).toHaveCount(0); await expect(page.getByText('Updating repository management...')).toBeVisible();
+        await expect(page.locator('#repository-directory')).toHaveAttribute('aria-busy', 'true');
+        await expect(page.locator('#repository-directory-heading')).toBeFocused();
+        await inspect(record.title).click(); await expect(action(`${label} ${record.title}`)).toBeDisabled();
+        await page.evaluate(() => { window.__holdRefresh = false; window.__resolveRefresh(); });
+        await expect(details).toContainText('no longer available'); await expect(details.getByRole('button')).toHaveCount(0);
+        await expect(page.getByText('Synthetic publication saved.', { exact: true })).toBeVisible();
+    }
+    // Controlled failure stays retryable; uncertainty locks dialog and all publication controls.
+    await render('publication', data, 'desktop'); await inspect(ready.title).click(); await action(`Publish ${ready.title}`).click();
+    await page.getByRole('button', { name: 'Confirm publish', exact: true }).click();
+    await page.evaluate(() => window.__resolvePublication({ success: false, message: 'Synthetic unavailable document.' }));
+    await expect(page.getByText('Synthetic unavailable document.')).toBeVisible(); await expect(page.getByRole('button', { name: 'Confirm publish', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Confirm publish', exact: true }).click();
+    await page.evaluate(() => window.__resolvePublication({ success: false, uncertain: true, message: 'Synthetic uncertain result.' }));
+    await expect(page.getByRole('button', { name: 'Confirm publish', exact: true })).toBeDisabled();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click(); await expect(action(`Publish ${ready.title}`)).toBeDisabled();
+    await expect(page.getByRole('alert').filter({ hasText: 'Changes are paused' })).toBeVisible();
+    await render('publication', { success: false, message: 'Synthetic management unavailable.' }, 'desktop');
+    await expect(page.getByRole('alert')).toHaveText('Synthetic management unavailable.'); await expect(details).toHaveCount(0);
+    assert.equal(await page.evaluate(() => window.__refreshes), 3);
+    assert.equal(await page.evaluate(() => window.__writes), 5);
+    assert.equal(await page.evaluate(() => window.__views), 0);
+    assert.equal(await page.evaluate(() => window.__navigation ?? null), null);
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,0 +1,18 @@
+:global([data-navigation-profile="desktop"]) .page { --dashboard-content-max-width: 1600px; }
+.container { container-type: inline-size; min-width: 0; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+.workspace > section { min-width: 0; margin-top: 0; }
+.workspace li { flex-wrap: wrap; }
+.selected { box-shadow: inset 3px 0 var(--action); background: var(--surface-hover); padding-inline: .75rem; }
+.inspect { min-height: 44px; background: var(--surface); color: var(--action); border-color: var(--border-strong); }
+.inspect[aria-pressed="true"] { border-color: var(--action); }
+.inspect:focus-visible, .workspace h2:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.details { padding: 1.25rem; overflow-wrap: anywhere; }
+.details h3, .details > p, .details > button { margin-top: 1rem; }
+.details > button { min-height: 44px; max-width: 100%; }
+.metadata { display: grid; gap: .75rem; margin-top: 1rem; }
+.metadata dt { color: var(--muted); font-size: .875rem; }
+.metadata dd { margin: .25rem 0 0; }
+@container (min-width: 58rem) {
+    .workspace { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+}
