@@ -5807,3 +5807,27 @@ docs/MASTER_CONTEXT_UPDATED.md
 **B.4.4 assessment only:** Option A (unpatterned surface/border/divider depth) fits ENERGY 1 / RHYTHM 2 / MOTION 1, already works with the existing Light/Dark tokens and keeps mobile content quiet; retaining it has no new regression or implementation cost. Additional shared depth changes would still need focused visual checks. Option B (very faint header-local texture) could add identity but currently has little navigation/status benefit, needs a specific Anti-Slop purpose rather than default decoration, and would require separate Light/Dark contrast, mobile readability and shared-header layering checks. Its CSS is small but introduces MEDIUM shared-presentation review risk. **Recommendation: retain the current unpatterned treatment after these corrections.** No texture, global pattern, new depth treatment, token or asset was implemented.
 
 **Preservation/remaining review:** LOW localized presentation regression likelihood; the existing browser checks cover affected Adviser/Student components. Existing B.2/B.3 links/hierarchy, global CSS/header, navigation/PWA logic, authentication, data/loading/Suspense, draft guards, PDF/dialogs, repository-heading CSS and Admin count markup remain intact. Six incoming paths receive only these scoped extensions and two previously clean tracked Workspace paths are added to the pending set; the other 14 incoming files remain byte-identical, and the incoming Master Context prefix is preserved. Final pending scope is 22 modified tracked files, no untracked files and an empty index. Owner review remains for real-content visual balance, physical keyboards/safe areas and separately authorized Preview acceptance. No staging, commit, push, merge, deployment, database/Storage operation or next-phase work.
+
+## Phase 10 — Batch B Preview Acceptance: PASS / CLOSED for agreed manual scope
+
+**Owner acceptance date: November 7, 2026. Owner-reported results: 7 PASS, 0 FAIL, 0 BLOCKED.** These are owner-reported Preview acceptance results, not independently rerun automated tests. This closure supersedes the pending owner-review status above only for the agreed manual scope; previous Batch A/B checkpoints and their evidence limits remain intact.
+
+**Accepted deployment baseline:** branch `feature/development`; accepted SHA `bef64713f8de5192c33d8442b3592c34082c8cef`. Minimal Batch B commit: `261fc0151f66e41abc35aca8b0feaa179fcb5001`; visual refinement commit: `bef64713f8de5192c33d8442b3592c34082c8cef`. GitHub remote HEAD was independently verified after the preceding normal push. The Vercel GitHub integration reported deployment completed for that SHA, linking to [the deployment](https://vercel.com/thesi-shs-ai/thesishs-ai/DDMXTkxe9pnUZ3BrUKp14qzCriXQ). Vercel dashboard Ready metadata was not independently verified by Codex. Authenticated Preview browser automation remained blocked: the Preview login redirected to Vercel Authentication, and automation could not attach to the existing browser session. No authentication bypass was used. These retained deployment facts are separate from the owner's manual acceptance and were not refreshed during this documentation task.
+
+**Owner-reported passed checks:**
+
+1. Student dashboard and summary cards.
+2. Student Research Workspace.
+3. Adviser dashboard and review emphasis.
+4. Admin dashboard and management.
+5. Shared Repository and navigation.
+6. Light/Dark themes and Settings.
+7. Adviser unsaved-feedback protection.
+
+**Completed Batch B scope:** mobile repository heading; Admin accessible filter-result announcements; contextual link styling; dashboard/page visual hierarchy; semantic review-card emphasis (positive actionable review counts accented, zero counts neutral); Student verification notice spacing; and Research Workspace spacing.
+
+**Preserved functionality within the accepted scope:** Batch A accepted behaviors; authentication and role restrictions; dashboard loading optimizations and skeletons; navigation modes, mobile bottom navigation and drawer; PWA Settings; Adviser draft protection; repository accessibility and Admin filter-result accessibility. Prior focused automated/local evidence remains recorded above with its synthetic and device limitations; no new build or browser test was run for this closure.
+
+**Deferred verification, not marked PASS:** physical installed-PWA safe areas; physical software-keyboard behavior; native PDF behavior; actual screen-reader announcements; and broader Production readiness, including retained hosted security/resource-isolation gates. This acceptance does not authorize Production deployment or certify Production readiness.
+
+**Documentation checkpoint:** entry verified clean `feature/development` at `bef64713f8de5192c33d8442b3592c34082c8cef`, empty index and no untracked files. Only this append is authorized for one local commit, `docs(phase10): close batch B preview acceptance`. Validation is limited to documentation content, append preservation and unstaged/staged whitespace checks. No application, test, dependency or deployment-configuration change; no push, merge, deployment, hosted operation or automatic next phase.
