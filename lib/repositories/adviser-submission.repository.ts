@@ -1,3 +1,4 @@
+import { currentMainAdviserPredicate } from "./research-supervision.repository";
 import { sql, type SQL } from "drizzle-orm";
 import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 import {
@@ -16,13 +17,13 @@ import {
     users,
 } from "@/db/schema";
 
-/** Minimal version metadata, constrained to one currently owned research project. */
+/** Minimal version metadata, constrained to one currently supervised research project. */
 export async function findSubmissionVersionsForAdviser(paperId: number, adviserId: number) {
     return db.select({ id: submissions.id, version: submissions.version, status: submissions.status })
         .from(submissions)
         .innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
         .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
-        .where(and(eq(submissions.paperId, paperId), eq(researchGroups.adviserId, adviserId)))
+        .where(and(eq(submissions.paperId, paperId), currentMainAdviserPredicate(adviserId)))
         .orderBy(desc(submissions.submittedAt), desc(submissions.id));
 }
 
@@ -32,10 +33,11 @@ export async function findSubmissionVersionsForAdviser(paperId: number, adviserI
  * research groups.
  *
  * The group IDs must already be verified
- * to belong to the authenticated Adviser.
+ * to be visible to the authenticated Main Adviser.
  */
 export async function findSubmissionsByGroupIds(
-    groupIds: number[]
+    groupIds: number[],
+    adviserId: number
 ) {
     if (groupIds.length === 0) {
         return [];
@@ -104,10 +106,7 @@ export async function findSubmissionsByGroupIds(
             )
         )
         .where(
-            inArray(
-                researchPapers.groupId,
-                groupIds
-            )
+            and(currentMainAdviserPredicate(adviserId), inArray(researchPapers.groupId, groupIds))
         )
         .orderBy(
             desc(
@@ -118,11 +117,12 @@ export async function findSubmissionsByGroupIds(
 
 /**
  * Retrieves a single submission belonging
- * to one of the Adviser's research groups.
+ * to institutional groups under current Main supervision.
  */
 export async function findSubmissionForAdviser(
     submissionId: number,
-    groupIds: number[]
+    groupIds: number[],
+    adviserId: number
 ) {
     if (groupIds.length === 0) {
         return undefined;
@@ -192,10 +192,7 @@ export async function findSubmissionForAdviser(
                 )
             )
             .where(
-                eq(
-                    submissions.id,
-                    submissionId
-                )
+                and(currentMainAdviserPredicate(adviserId), eq(submissions.id, submissionId), inArray(researchPapers.groupId, groupIds))
             );
 
     if (!submission) {
@@ -214,8 +211,8 @@ export async function findSubmissionForAdviser(
 }
 
 
-// Counts only, scoped in SQL to the verified Adviser's current ownership.
-// All historical versions and archived owned groups match the existing list semantics.
+// Counts only, scoped in SQL to the verified Adviser's current Main authority.
+// All historical versions and archived institutional groups match the existing list semantics.
 export async function getAdviserAIWorkflowAggregate(adviserId: number) {
     if (!Number.isSafeInteger(adviserId) || adviserId <= 0) throw new Error("Invalid account");
     const cohort = (predicate: SQL = sql`true`) => ({
@@ -234,6 +231,6 @@ export async function getAdviserAIWorkflowAggregate(adviserId: number) {
         .innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
         .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
         .innerJoin(users, eq(submissions.submittedBy, users.id))
-        .where(eq(researchGroups.adviserId, adviserId));
+        .where(currentMainAdviserPredicate(adviserId));
     return aggregate;
 }

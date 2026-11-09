@@ -6,6 +6,7 @@ import { createSubmissionUploadRepository } from "@/lib/repositories/submission-
 import { createSubmissionUploadStorage } from "./submission-upload-storage.service";
 import { createSubmissionUploadWorkflow } from "@/lib/uploads/submission-upload-workflow";
 import { notifyAdviserNewSubmission } from "./notification.service";
+import { getMainAdviserNotificationRecipient } from "@/lib/auth/main-adviser";
 
 export const submissionUploads = createSubmissionUploadWorkflow({
     repository: createSubmissionUploadRepository(db), storage: createSubmissionUploadStorage(),
@@ -14,4 +15,5 @@ export const submissionUploads = createSubmissionUploadWorkflow({
         return session ? getActiveResearchActor(3, session.userId) : null;
     },
     notify: notifyAdviserNewSubmission,
+    recipient: getMainAdviserNotificationRecipient,
 });

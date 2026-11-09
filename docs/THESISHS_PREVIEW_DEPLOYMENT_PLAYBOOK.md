@@ -73,6 +73,8 @@ Read `docs/VERCEL_PREVIEW_BASELINE.md` for the full evidence table; if the repos
 
 ## 6. Database safety without overengineering
 
+**Standing owner security policy (2026-11-09): ThesiSHS AI requires the Supabase Data API to remain disabled in Preview and Production. Database migrations and runtime access must not depend on enabling the Data API.** No development/testing convenience or REST/PostgREST fallback overrides this rule. If enabled is observed, stop and report a policy violation; do not automatically toggle the setting. Record the correct project's dated Dashboard evidence and whether reload confirmed the saved state. Separate Storage services and their authorization gates remain unchanged.
+
 For **Tier A** UI/read-only batches, reuse the owner-confirmed Preview Supabase assignment, verify no build-time migrations/seeds, and avoid hosted writes. Retain the documented Development/Preview test Storage sharing. Record that masked URLs and Production separation are not independently proven. **Do not demand a production-style backup/recovery drill merely to open a protected Preview UI.**
 
 For **any hosted mutation** (including tests that submit PDFs, create taskboard records, enroll devices or alter research status), require a correctly identified test target and authorized synthetic records. For migration/schema/grant work, follow the stricter database procedures and separate approval. If the preview DB target is demonstrably wrong, stop. A protected Preview URL does **not** itself make DB writes safe.

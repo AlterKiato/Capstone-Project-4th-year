@@ -13,21 +13,31 @@ import workspace from "../review-workspace.module.css";
 import StartReviewButton from "../StartReviewButton";
 import FeedbackForm from "../FeedbackForm";
 import FeedbackContent from "@/components/feedback-content";
+import MainDelegationPanel from "@/components/dashboard/main-delegation-panel";
+import CoAdviserReview from "@/components/dashboard/co-adviser-review";
+import { getCoAdviserAssignment } from "@/lib/services/co-adviser.service";
+import OfficialFeedbackDraft from "../OfficialFeedbackDraft";
+import ReviewWorkspace from "../ReviewWorkspace";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-export default async function AdviserSubmissionDetailsPage({ params }: { params: Promise<{ submissionId: string }> }) {
+export default async function AdviserSubmissionDetailsPage({ params, searchParams }: { params: Promise<{ submissionId: string }>; searchParams?: Promise<{ assignment?: string | string[] }> }) {
     const { submissionId } = await params;
     const parsedSubmissionId = Number(submissionId);
     if (!Number.isSafeInteger(parsedSubmissionId) || parsedSubmissionId <= 0) notFound();
     const details = await getAdviserReviewDetails(parsedSubmissionId);
-    if (!details) notFound();
+    if (!details) {
+        const assignmentId = Number((await searchParams)?.assignment);
+        const delegated = await getCoAdviserAssignment({submissionId:parsedSubmissionId,assignmentId});
+        if (!delegated.success || !delegated.data) notFound();
+        return <CoAdviserReview key={delegated.data.assignment.id} initial={delegated.data.assignment} email={delegated.data.email} />;
+    }
     const { submission, feedback, feedbackUnavailable } = details;
     const completed = submission.status === STATUS.APPROVED || submission.status === STATUS.REVISION_REQUIRED;
     const versions = details.versions.some(version => version.id === submission.id) ? details.versions :
         [{ id: submission.id, version: submission.version, status: submission.status }, ...details.versions];
-    return <ReviewDraftBoundary key={submission.id}><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
+    return <ReviewDraftBoundary key={submission.id}><OfficialFeedbackDraft><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
         <p><Link href="/dashboard/adviser/submissions" className="research-back context-back"><span aria-hidden="true">←</span>Back to Submissions</Link></p>
         <DashboardHeader title={submission.researchTitle} email={details.email} />
         <div className={workspace.summary}><p className="dashboard-context">{submission.groupName} · {submission.version}</p><SubmissionStatus status={submission.status} /></div>
@@ -43,13 +53,7 @@ export default async function AdviserSubmissionDetailsPage({ params }: { params:
         <div className={workspace.toolbar}><SubmissionVersionNavigator submissionId={submission.id} versions={versions} />
         {details.versionsUnavailable && <p role="status" className="form-help">Version history is unavailable. The selected submission remains open.</p>}
         </div>
-        <div className={workspace.container}><div className={workspace.workspace}>
-        <section className={`dashboard-panel ${workspace.document}`} aria-labelledby="document-heading">
-            <div className={workspace.panelHeading}><h2 id="document-heading">Research Document</h2><p className="form-help">{submission.version} · PDF</p></div>
-            <AuthorizedPdfPreview key={submission.id} submissionId={submission.id} version={submission.version} />
-        </section>
-        <section className={`dashboard-panel ${workspace.review}`} aria-labelledby="review-heading">
-            <div className={workspace.panelHeading}><h2 id="review-heading">Adviser Review</h2></div>
+        <ReviewWorkspace version={submission.version} document={<AuthorizedPdfPreview key={submission.id} submissionId={submission.id} version={submission.version} />}>
             <div className={workspace.reviewStatus}><p className="form-help">Review status</p><SubmissionStatus status={submission.status} /></div>
             <div className={workspace.reviewBody} tabIndex={0} role="region" aria-label="Adviser review content">
             {submission.status === STATUS.SUBMITTED ? <><p className="dashboard-context">Start review before recording feedback. This changes the submission to Under Review; it does not issue a decision.</p><StartReviewButton submissionId={submission.id} /></> :
@@ -67,7 +71,7 @@ export default async function AdviserSubmissionDetailsPage({ params }: { params:
                 </article>) : <p>No recorded feedback is available for this submission version.</p>}
             </section>}
             </div>
-        </section>
-        </div></div>
-    </main></ReviewDraftBoundary>;
+        </ReviewWorkspace>
+        <MainDelegationPanel key={`delegation-${submission.id}`} submissionId={submission.id} />
+    </main></OfficialFeedbackDraft></ReviewDraftBoundary>;
 }

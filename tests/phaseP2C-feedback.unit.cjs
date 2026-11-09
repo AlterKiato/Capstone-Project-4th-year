@@ -3,6 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { FEEDBACK_PREFIX, encodeFeedback, decodeFeedback, feedbackPlainText, validateFeedback, feedbackCommentsSchema } = require('../lib/utils/feedback-content.ts');
 const { createFeedbackSchema } = require('../lib/validations/feedback.ts');
+const { appendRecommendation } = require('../lib/utils/recommendation-import.ts');
 const rich = { version: 1, blocks: [
     { type: 'paragraph', content: [{ text: 'Clear ', bold: true }, { text: 'synthetic ', italic: true }, { text: 'feedback', underline: true }] },
     { type: 'bulletList', items: [[{ text: 'First revision', bold: true }], [{ text: 'Second revision' }]] },
@@ -57,4 +58,47 @@ test('valid malicious-looking text is data, never interpreted as HTML/URLs', () 
     assert.equal(validateFeedback(encoded), null); assert.equal(feedbackPlainText(encoded), text);
     const reservedLiteral = '\n' + FEEDBACK_PREFIX + '<script>alert(1)</script>';
     assert.equal(feedbackPlainText(feedbackCommentsSchema.parse(reservedLiteral)), reservedLiteral.trim());
+});
+
+const imported = { assignmentId: 8, submissionId: 1, author: 'Synthetic Co', text: 'Synthetic recommendation\nSecond paragraph' };
+const transportedScenarios = {
+    A_plain: 'Synthetic plain feedback\nSecond paragraph',
+    B_supported_formatting: encodeFeedback(rich),
+    C_plain_import: appendRecommendation('Synthetic plain draft', imported).value,
+    D_formatted_import: appendRecommendation(encodeFeedback(rich), imported).value,
+    E_multiple_imports: appendRecommendation(appendRecommendation(encodeFeedback(rich), imported).value, { ...imported, assignmentId: 9 }).value,
+};
+for (const [scenario, value] of Object.entries(transportedScenarios)) {
+    test(`multipart transport preserves valid feedback through action and service validation: ${scenario}`, async () => {
+        assert.equal(validateFeedback(value), null);
+        const form = new FormData(); form.set('submissionId', '1'); form.set('comments', value); form.set('decision', 'Revision Required');
+        // Decode our own request body locally. No fetch, server or network request.
+        const received = await new Request('http://offline.invalid/never-sent', { method: 'POST', body: form }).formData();
+        const action = createFeedbackSchema.safeParse(Object.fromEntries(received));
+        assert.equal(action.success, true, action.error?.issues[0]?.message);
+        const persisted = feedbackCommentsSchema.parse(action.data.comments);
+        assert.equal(persisted, action.data.comments, 'Action/service normalization must be idempotent');
+        assert.equal(feedbackPlainText(persisted).replace(/\r\n/g, '\n'), feedbackPlainText(value));
+        if (value.startsWith(FEEDBACK_PREFIX)) {
+            assert.equal(received.get('comments').slice(0, FEEDBACK_PREFIX.length + 1), FEEDBACK_PREFIX.replace('\n', '\r\n'));
+            assert.deepEqual(decodeFeedback(persisted), decodeFeedback(value));
+            assert.ok(persisted.startsWith(FEEDBACK_PREFIX));
+        }
+    });
+}
+test('only the known v1 LF/CRLF header is accepted; invalid content remains rejected', () => {
+    const wire = encodeFeedback(rich).replace(FEEDBACK_PREFIX, FEEDBACK_PREFIX.replace('\n', '\r\n'));
+    assert.deepEqual(decodeFeedback(wire), rich);
+    for (const input of [wire.replace(':1\r\n', ':2\r\n'), wire.replace(':1\r\n', ':1\r'), wire.replace(':1\r\n', ':1\r\r\n'), FEEDBACK_PREFIX.replace('\n', '\r\n') + '{',
+        FEEDBACK_PREFIX.replace('\n', '\r\n') + JSON.stringify({ version: 1, blocks: [{ type: 'paragraph', content: [{ text: 'x', html: '<script>unsafe</script>' }] }] })]) {
+        assert.equal(feedbackCommentsSchema.safeParse(input).success, false);
+    }
+});
+test('wire header allowance preserves the existing encoded-size bound', () => {
+    const small = encodeFeedback(rich), max = 524288;
+    const exact = small + ' '.repeat(max - small.length);
+    const wire = exact.replace(FEEDBACK_PREFIX, FEEDBACK_PREFIX.replace('\n', '\r\n'));
+    assert.equal(validateFeedback(exact), null); assert.equal(validateFeedback(wire), null);
+    assert.equal(decodeFeedback(wire + ' '), null); assert.match(validateFeedback(wire + ' '), /too large/);
+    assert.match(validateFeedback('x'.repeat(max + 1)), /too large/);
 });

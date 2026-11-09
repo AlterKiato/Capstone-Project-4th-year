@@ -4,6 +4,8 @@ import AdviserGroups from "@/components/dashboard/adviser-groups";
 import { getAdviserGroupsDirectory } from "@/lib/services/adviser-groups.service";
 import styles from "@/components/dashboard/adviser-groups.module.css";
 import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
+import CoAdviserGroups from "@/components/dashboard/co-adviser-groups";
+import { getCoAdviserWorkspace } from "@/lib/services/co-adviser.service";
 
 export default function AdviserGroupsPage() {
     return <Suspense fallback={<DashboardSkeleton page="groups" />}><GroupsDirectory /></Suspense>;
@@ -11,7 +13,11 @@ export default function AdviserGroupsPage() {
 
 async function GroupsDirectory() {
     const data = await getAdviserGroupsDirectory();
-    if (!data) return <main className="dashboard-page"><h1>Research Groups</h1><p role="alert">Your research groups could not be retrieved. Reload to try again.</p></main>;
+    if (!data) {
+        const delegated = await getCoAdviserWorkspace();
+        return delegated.success && delegated.data ? <CoAdviserGroups workspace={delegated.data} /> :
+            <main className="dashboard-page"><DashboardHeader title="Research Groups" email="" /><p role="alert" className="form-message">{delegated.message}</p></main>;
+    }
     return <main className={`dashboard-page ${styles.page}`}>
         <DashboardHeader title="Research Groups" email={data.email} />
         <AdviserGroups groups={data.groups} />

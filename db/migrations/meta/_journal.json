@@ -120,6 +120,13 @@
       "when": 1793874420209,
       "tag": "0016_collaborative_research_workspace",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794067459943,
+      "tag": "0017_research_supervision",
+      "breakpoints": true
     }
   ]
 }

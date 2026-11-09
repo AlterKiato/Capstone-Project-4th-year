@@ -2,6 +2,7 @@
 // it is not provider expiry metadata and does not revoke an issued capability.
 export const ADVISER_REVIEW_PDF_RENEWAL_SECONDS = 1680;
 export const PDF_ACCESS_WINDOW_MS = ADVISER_REVIEW_PDF_RENEWAL_SECONDS * 1000;
+export const CO_ADVISER_PDF_WINDOW_MS = 240_000;
 export type PdfAccessState = {
     submissionId: number;
     phase: "idle" | "requesting" | "available" | "expired" | "unavailable";
@@ -20,7 +21,8 @@ export class SubmissionPdfAccess {
         private now: () => number = () => Date.now(),
         // Native browser timers require the global receiver, not this controller.
         private schedule: (callback: () => void, delay: number) => ReturnType<typeof setTimeout> = (callback, delay) => globalThis.setTimeout(callback, delay),
-        private cancel: (timer: ReturnType<typeof setTimeout>) => void = timer => globalThis.clearTimeout(timer)) {
+        private cancel: (timer: ReturnType<typeof setTimeout>) => void = timer => globalThis.clearTimeout(timer),
+        private windowMs = PDF_ACCESS_WINDOW_MS) {
         this.state = { submissionId, phase: "idle", url: null, deadline: null };
     }
 
@@ -50,7 +52,7 @@ export class SubmissionPdfAccess {
         if (!this.active || this.state.phase === "requesting") return null;
         const generation = ++this.generation;
         try {
-            const deadline = this.now() + PDF_ACCESS_WINDOW_MS;
+            const deadline = this.now() + this.windowMs;
             this.clearTimer();
             this.update("requesting", null, deadline);
             this.timer = this.schedule(() => {

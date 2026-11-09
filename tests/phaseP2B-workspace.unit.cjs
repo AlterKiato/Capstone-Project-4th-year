@@ -210,25 +210,30 @@ const db = {
             state.metadataCalls++;
             assert.deepEqual(Object.keys(columns).sort(), ['id', 'status', 'version']);
             const query = dialect.sqlToQuery(predicate);
-            assert.match(query.sql, /research_groups.*adviser_id/); assert.match(query.sql, /submissions.*paper_id/);
-            return rows.filter(row => row.paperId === query.params[0] && row.adviserId === query.params[1])
+            assert.match(query.sql, /main_adviser_designation/); assert.match(query.sql, /submissions.*paper_id/);
+            return rows.filter(row => row.paperId === query.params[0] && state.actorId === 7)
                 .map(({ id, version, status }) => ({ id, version, status }));
         } }) }; return chain;
     } }),
 };
 const mocks = {
     'server-only': {}, '@/lib/db': { db },
+    '@/lib/auth/current-account': { getCurrentAccount: async () => state.active ? { userId: state.actorId, roleId: state.role } : null },
+    '@/lib/auth/main-adviser': { getCurrentMainAdviser: async expected => state.active && state.role === 2 && state.actorId === 7 && (expected === undefined || expected === 7) ? { userId: 7, roleId: 2 } : null },
+    '@/lib/repositories/co-adviser.repository': { readDelegatedDocument: async () => null },
     '@/lib/auth/authorization': { requireRole: async roles => { if (!state.active || !roles.includes(state.role)) throw Error('DENIED'); return { userId: state.actorId, roleId: state.role }; } },
     './dashboard-account.service': { getDashboardAccount: async () => state.active ? { roleId: state.role } : null },
     '@/lib/auth/research-mutation-account': { getActiveResearchActor: async (role, id) => state.active && state.role === role && id === state.actorId },
     '@/lib/repositories/user.repository': { findUserByIdForUpdate: async () => ({ isActive: state.active, roleId: state.role }), findUserById: async id => ({ id, isActive: state.active, roleId: state.role }) },
-    '@/lib/repositories/research-group.repository': { findResearchGroupsByAdviserId: async id => [{ id: id === 7 ? 100 : 200 }], findResearchGroupById: async () => ({ id: 100, adviserId: 7 }) },
+    '@/lib/repositories/research-group.repository': { findResearchGroupsForMainAdviser: async () => [{ id: 100 }, { id: 200 }], findResearchGroupById: async () => ({ id: 100, adviserId: 8 }) },
     '@/lib/repositories/research-paper.repository': { findResearchPaperById: async () => ({ id: 10, groupId: 100 }) },
     '@/lib/repositories/group-member.repository': { findGroupMember: async () => null },
     '@/lib/repositories/adviser-review-details.repository': { readOwnedSubmissionFeedback: async id => [{ submissionId: id, comments: 'Synthetic feedback' }] },
 };
 const original = Module._load;
 Module._load = function(id, ...args) { return Object.hasOwn(mocks, id) ? mocks[id] : original.call(this, id, ...args); };
+const supervision = require('../lib/repositories/research-supervision.repository.ts');
+mocks['./research-supervision.repository'] = { ...supervision, lockCurrentMainAdviser: async () => state.active && state.role === 2 && state.actorId === 7 ? [] : null };
 const repository = require('../lib/repositories/submission.repository.ts');
 const metadata = require('../lib/repositories/adviser-submission.repository.ts');
 let signCalls = 0;
@@ -237,7 +242,7 @@ mocks['@/lib/services/storage.service'] = { createResearchDocumentSignedUrl: asy
 mocks['@/lib/repositories/adviser-submission.repository'] = {
     ...metadata,
     findSubmissionForAdviser: async (id, groups) => {
-        const row = rows.find(row => row.id === id && (row.adviserId === 7 ? 100 : 200) === groups[0]);
+        const row = rows.find(row => row.id === id && groups.includes(row.adviserId === 7 ? 100 : 200));
         return row ? { ...row, groupId: groups[0], fileUrl: 'PRIVATE_PATH', status: 'Submitted' } : undefined;
     },
 };
@@ -246,13 +251,14 @@ const review = require('../lib/services/adviser-review.service.ts');
 const documentAccess = require('../lib/actions/storage.action.ts');
 Module._load = original;
 
-test('version metadata is minimal, project scoped and denied before querying for foreign or non-Adviser access', async () => {
+test('version metadata is minimal and project scoped for current Main; other Advisers and roles are denied before querying', async () => {
     const detail = await ui.getAdviserReviewDetails(1);
     assert.deepEqual(detail.versions.map(row => row.id), [1, 2]);
     assert.ok(!JSON.stringify(detail.versions).includes('PRIVATE_PATH'));
     assert.equal(detail.feedback[0].submissionId, 1);
+    assert.deepEqual((await ui.getAdviserReviewDetails(3)).versions.map(row => row.id), [3], 'Main may inspect foreign historical ownership');
     const calls = state.metadataCalls;
-    assert.equal(await ui.getAdviserReviewDetails(3), null); assert.equal(state.metadataCalls, calls);
+    state.actorId = 8; assert.equal(await ui.getAdviserReviewDetails(3), null); assert.equal(state.metadataCalls, calls); state.actorId = 7;
     for (const role of [1, 3, 4]) { state.role = role; await assert.rejects(ui.getAdviserReviewDetails(1), /DENIED/); }
     state.role = 2; state.active = false; await assert.rejects(ui.getAdviserReviewDetails(1), /DENIED/);
     state.active = true; assert.equal(state.metadataCalls, calls);
@@ -271,10 +277,10 @@ test('Start Review SQL prevents stale Approved/Revision Required and repeated re
     assert.equal((await review.startSubmissionReview(1, 7)).success, false); assert.equal(state.writes, writes);
     assert.match(state.predicates.at(-1).sql, /status/); assert.ok(state.predicates.at(-1).params.includes('Submitted'));
     state.active = false; assert.equal(await repository.updateSubmissionStatusForAdviser(1, 'Under Review', 7), undefined);
-    state.active = true; assert.equal((await review.startSubmissionReview(3, 7)).success, false);
+    state.active = true; state.actorId = 8; assert.equal((await review.startSubmissionReview(3, 8)).success, false); state.actorId = 7;
 });
 
-test('the existing document action still enforces active roles and exact Adviser ownership before signing', async () => {
+test('the existing document action enforces active roles and current Main authority before exact-version signing', async () => {
     state.actorId = 7; state.role = 2; state.active = true;
     assert.equal(await documentAccess.getSubmissionDownloadUrlAction(1), 'synthetic-capability');
     assert.equal(signCalls, 1);

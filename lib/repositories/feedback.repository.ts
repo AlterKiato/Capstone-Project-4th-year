@@ -1,8 +1,9 @@
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { findUserByIdForUpdate } from "@/lib/repositories/user.repository";
-import { ROLE_IDS } from "@/lib/auth/roles";
+import { lockCurrentMainAdviser } from "./research-supervision.repository";
+import { closeOpenDelegationsForDecision } from "./co-adviser.repository";
+import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 
 import {
     activityLogs,
@@ -85,8 +86,14 @@ export async function persistAdviserDecision(data: {
     activityDescription: string;
 }) {
     return db.transaction(async (tx) => {
-        const adviser = await findUserByIdForUpdate(data.teacherId, tx);
-        if (!adviser?.isActive || adviser.roleId !== ROLE_IDS.ADVISER) return null;
+        if (!await lockCurrentMainAdviser(tx, data.teacherId)) return null;
+        const [current] = await tx.select({ paperId: submissions.paperId, status: submissions.status })
+            .from(submissions).where(eq(submissions.id, data.submissionId)).for("update");
+        if (!current || current.paperId !== data.paperId) return null;
+        if (current.status !== SUBMISSION_STATUS.UNDER_REVIEW || data.expectedSubmissionStatus !== SUBMISSION_STATUS.UNDER_REVIEW)
+            throw new Error("The submission status changed before the decision was saved.");
+
+        await closeOpenDelegationsForDecision(tx, data.submissionId, data.teacherId);
 
         const [feedback] = await tx
             .insert(feedbacks)

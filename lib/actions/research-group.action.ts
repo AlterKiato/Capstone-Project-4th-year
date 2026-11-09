@@ -16,16 +16,16 @@ import {
 /**
  * Creates a new research group.
  *
- * Only Adviser users can create research groups.
+ * Only the current Main Research Adviser can create research groups.
  * The logged-in Adviser's user ID is automatically
  * assigned as the group's adviserId.
  */
 export async function createResearchGroupAction(
     formData: FormData
 ): Promise<{ success: boolean; message: string }> {
-    // Ensure that only Advisers can create research groups.
+    // Resolve current Main authority independently of historical group attribution.
     const session = await requireActiveGroupAdviser();
-    if (!session) return { success: false, message: "An active Adviser account is required." };
+    if (!session) return { success: false, message: "Current Main Research Adviser authority is required." };
 
     // Validate the group information from the form.
     const parsed = createResearchGroupSchema.safeParse({

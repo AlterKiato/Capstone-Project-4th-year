@@ -34,6 +34,7 @@ const summary = (intent: UploadIntent, uploaded = false): UploadResult => ({ suc
 
 export function createSubmissionUploadWorkflow(dependencies: {
     repository: UploadRepository; storage: UploadStorage; actor(): Promise<number | null>;
+    recipient(): Promise<number | null>;
     notify(adviserId: number, version: string, title: string): Promise<unknown>;
 }) {
     const { repository, storage } = dependencies;
@@ -156,18 +157,22 @@ export function createSubmissionUploadWorkflow(dependencies: {
             if (!plan.prepared?.finalPath || !plan.version) throw new UploadFailure("unavailable");
             await storage.writeOrReconcile(plan.prepared.finalPath, bytes, hash, signal);
             const committed = await locked(plan.prepared, async (tx, current) => {
-                if (current.state === "completed") return { result: completed(current, tx.context), fresh: false, adviserId: 0, title: "" };
+                if (current.state === "completed") return { result: completed(current, tx.context), fresh: false, title: "" };
                 pending(current, await tx.now());
                 const version = nextUploadVersion(tx.context.submissions);
                 if (version !== plan.version || current.finalPath !== plan.prepared!.finalPath || current.contentSha256 !== hash) throw new UploadFailure("conflict");
                 const submission = await tx.submit(current, version);
                 const saved = await tx.patch(current.id, { state: "completed", submissionId: submission.id });
                 return { result: completed(saved, { ...tx.context, submissions: [...tx.context.submissions, submission] }), fresh: true,
-                    adviserId: tx.context.group!.adviserId, title: tx.context.paper!.title };
+                    title: tx.context.paper!.title };
             }, signal);
             if (committed.fresh) {
-                try { onCommitted?.(committed.adviserId, committed.result.version!); } catch { /* Scheduling cannot change a committed result. */ }
-                try { await dependencies.notify(committed.adviserId, committed.result.version!, committed.title); } catch { /* Best effort; never undo a committed submission. */ }
+                let recipient: number | null = null;
+                try { recipient = await dependencies.recipient(); } catch { /* Unavailable designation skips delivery. */ }
+                if (recipient !== null) {
+                    try { onCommitted?.(recipient, committed.result.version!); } catch { /* Scheduling cannot change a committed result. */ }
+                    try { await dependencies.notify(recipient, committed.result.version!, committed.title); } catch { /* Best effort; never undo a committed submission. */ }
+                }
             }
             return committed.result;
         } catch (error) {

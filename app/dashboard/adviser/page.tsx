@@ -1,5 +1,7 @@
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import Link from "next/link";
+import CoAdviserOverview from "@/components/dashboard/co-adviser-overview";
+import { getCoAdviserWorkspace } from "@/lib/services/co-adviser.service";
 import styles from "@/components/dashboard/adviser-overview.module.css";
 import { getAdviserDashboard } from "@/lib/services/adviser-dashboard.service";
 import { Suspense } from "react";
@@ -23,9 +25,13 @@ export default async function AdviserPage() {
 
 async function AdviserOverview() {
     const overview = await getAdviserDashboard();
-    if (!overview) return <main className="dashboard-page"><h1>Adviser Dashboard</h1><p role="alert">Your dashboard could not be retrieved. Reload to try again.</p></main>;
+    if (!overview) {
+        const delegated = await getCoAdviserWorkspace();
+        return delegated.success && delegated.data ? <CoAdviserOverview workspace={delegated.data} /> :
+            <main className="dashboard-page"><DashboardHeader title="Adviser Dashboard" email="" /><p role="alert" className="form-message">{delegated.message}</p></main>;
+    }
     const metrics = [
-        { label: "My Research Groups", value: overview.totalGroups, help: "Groups you manage" },
+        { label: "Research Groups", value: overview.totalGroups, help: "Groups you manage" },
         { label: "Pending Reviews", value: overview.pending, help: "Submitted or under review" },
         { label: "Reviewed Submissions", value: overview.reviewed, help: "Approved or revision required" },
     ];
@@ -55,12 +61,12 @@ async function AdviserOverview() {
                 </li>)}</ul> : <p className={styles.empty}>You&apos;re all caught up. No submissions currently need your review.</p>}
             </section>
             <section className={`dashboard-panel ${styles.section}`} aria-labelledby="groups-heading">
-                <div className={styles.sectionHeader}><h2 id="groups-heading">My Research Groups</h2><Link className={`${styles.action} context-section`} href="/dashboard/adviser/groups">View All Groups<span aria-hidden="true">→</span></Link></div>
+                <div className={styles.sectionHeader}><h2 id="groups-heading">Research Groups</h2><Link className={`${styles.action} context-section`} href="/dashboard/adviser/groups">View All Groups<span aria-hidden="true">→</span></Link></div>
                 {overview.groups.length ? <ul className={styles.list}>{overview.groups.map(group => <li key={group.id} className={styles.row}>
                     <div className={styles.details}><h3>{group.groupName}</h3><p className="form-help">{[group.strand, group.section].filter(Boolean).join(" · ")}</p>
                         <p className="form-help">{group.memberCount} {group.memberCount === 1 ? "member" : "members"} · {group.projectCount} {group.projectCount === 1 ? "research project" : "research projects"}</p>
                     </div><Link className={`${styles.action} context-row`} href="/dashboard/adviser/groups" aria-label={`View Groups: ${group.groupName}`}>View Groups</Link>
-                </li>)}</ul> : <p className={styles.empty}>You have no research groups yet. Your groups will appear here once created or assigned.</p>}
+                </li>)}</ul> : <p className={styles.empty}>You have no research groups yet. Your groups will appear here once created.</p>}
             </section>
 
         </main>

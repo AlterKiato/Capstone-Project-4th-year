@@ -1,14 +1,14 @@
 import "server-only";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
-import { getDashboardAccount } from "./dashboard-account.service";
+import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
 import { getAdviserSubmission, getAdviserSubmissions } from "./adviser-submission.service";
 import { readOwnedSubmissionFeedback } from "@/lib/repositories/adviser-review-details.repository";
 import { findSubmissionVersionsForAdviser } from "@/lib/repositories/adviser-submission.repository";
 
 async function currentAdviser() {
     const session = await requireRole([ROLE_IDS.ADVISER]);
-    const account = await getDashboardAccount();
+    const account = await getCurrentMainAdviser(session.userId);
     return account?.roleId === ROLE_IDS.ADVISER && Number.isSafeInteger(session.userId) && session.userId > 0 ? session : null;
 }
 
@@ -36,6 +36,7 @@ export async function getAdviserReviewDetails(submissionId: number) {
         readOwnedSubmissionFeedback(submissionId, session.userId),
         findSubmissionVersionsForAdviser(result.data.paperId, session.userId),
     ]);
+    if (!await getCurrentMainAdviser(session.userId)) return null;
     return {
         email: session.email, submission: result.data,
         feedback: feedback.status === "fulfilled" ? feedback.value : [], feedbackUnavailable: feedback.status === "rejected",

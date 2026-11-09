@@ -1,7 +1,8 @@
 // Database layer for research group CRUD operations.
 
 import { db } from "@/lib/db";
-import { researchGroups, users } from "@/db/schema";
+import { activityLogs, researchGroups, users } from "@/db/schema";
+import { currentMainAdviserPredicate, lockCurrentMainAdviser } from "./research-supervision.repository";
 
 import { desc, eq } from "drizzle-orm";
 
@@ -50,6 +51,20 @@ export async function createResearchGroup(
         .returning();
 
     return group;
+}
+
+export async function findResearchGroupsForMainAdviser(adviserId: number) {
+    return db.select().from(researchGroups).where(currentMainAdviserPredicate(adviserId));
+}
+
+export async function createResearchGroupForMainAdviser(data: Omit<typeof researchGroups.$inferInsert, "adviserId">, actorId: number) {
+    return db.transaction(async tx => {
+        if (!await lockCurrentMainAdviser(tx, actorId)) return null;
+        const [group] = await tx.insert(researchGroups).values({ ...data, adviserId: actorId }).returning();
+        if (!group) throw new Error("Research group creation could not be confirmed.");
+        await tx.insert(activityLogs).values({ userId: actorId, action: "Research Group Created", description: `Created research group "${group.groupName}".` });
+        return group;
+    });
 }
 
 /**

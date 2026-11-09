@@ -1,21 +1,18 @@
 import "server-only";
-import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
+import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
 
 import {
     findSubmissionForAdviser,
 } from "@/lib/repositories/adviser-submission.repository";
 
 import {
-    findResearchGroupsByAdviserId,
+    findResearchGroupsForMainAdviser,
 } from "@/lib/repositories/research-group.repository";
 
 import {
     updateSubmissionStatusForAdviser,
 } from "@/lib/repositories/submission.repository";
 
-import {
-    ROLE_IDS,
-} from "@/lib/auth/roles";
 
 import type {
     ServiceResult,
@@ -29,8 +26,8 @@ import {
  * Starts the Adviser review process
  * for a submitted research document.
  *
- * The Adviser can only review submissions
- * belonging to their own research groups.
+ * The current Main Adviser can review submissions
+ * under current Main supervision across all research groups.
  */
 export async function startSubmissionReview(
     submissionId: number,
@@ -41,16 +38,16 @@ export async function startSubmissionReview(
         status: string;
     }>
 > {
-    if (!await getActiveResearchActor(ROLE_IDS.ADVISER, adviserId)) {
+    if (!await getCurrentMainAdviser(adviserId)) {
         return {
             success: false,
             message:
-                "An active Adviser account is required to review submissions.",
+                "Current Main Research Adviser authority is required to review submissions.",
         };
     }
 
     const groups =
-        await findResearchGroupsByAdviserId(
+        await findResearchGroupsForMainAdviser(
             adviserId
         );
 
@@ -70,7 +67,8 @@ export async function startSubmissionReview(
     const submission =
         await findSubmissionForAdviser(
             submissionId,
-            groupIds
+            groupIds,
+            adviserId
         );
 
     if (!submission) {

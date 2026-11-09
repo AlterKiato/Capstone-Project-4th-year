@@ -26,7 +26,7 @@ async function interpret(role: 1 | 2, input: unknown) {
                 current.eligibilityRevision === initial.eligibilityRevision && current.consentRevision === initial.consentRevision && current.termsVersion === initial.termsVersion;
         };
         if (!await sameEntitlement()) return fallback;
-        // Preparation scopes Adviser SQL to the session's current owned groups and applies k=5/complements.
+        // Preparation scopes Adviser SQL to the current Main's institutional supervision and applies k=5/complements.
         const currentScope = await prepare();
         if (!currentScope.success || JSON.stringify(currentScope.payload) !== JSON.stringify(aggregate.payload)) return fallback;
         release = await reserveAIPilotAttempt(initial.accountId); if (!release) return fallback;

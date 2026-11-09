@@ -10,6 +10,8 @@ import FeedbackEditor from "./FeedbackEditor";
 import FeedbackContent from "@/components/feedback-content";
 import { validateFeedback } from "@/lib/utils/feedback-content";
 import UnsavedFeedbackToast from "./UnsavedFeedbackToast";
+import { useOfficialFeedbackDraft } from "./OfficialFeedbackDraft";
+import { appendRecommendation } from "@/lib/utils/recommendation-import";
 
 export default function FeedbackForm({ submissionId }: { submissionId: number }) {
     const router = useRouter();
@@ -33,6 +35,21 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     const isSubmitting = phase === "submitting";
     const locked = isSubmitting || phase === "submitted" || phase === "unknown";
     const dirty = comments !== "" || decision !== "Revision Required";
+    const { register } = useOfficialFeedbackDraft();
+    const imported = useRef(new Set<number>());
+
+    useEffect(() => {
+        register(phase === "editing" && !editorError ? source => {
+            if (source.submissionId !== submissionId) return { success: false, message: "This recommendation belongs to another submission. Your draft has not changed." };
+            if (imported.current.has(source.assignmentId)) return { success: false, message: "This recommendation has already been added to this draft." };
+            const result = appendRecommendation(comments, source);
+            if (!result.success) return result;
+            imported.current.add(source.assignmentId);
+            setComments(result.value);draft?.setDirty(true);
+            return { success: true, message: "Recommendation appended to your editable draft. No feedback has been saved." };
+        } : null);
+        return () => register(null);
+    },[register,phase,editorError,submissionId,comments,draft]);
 
     useEffect(() => {
         draft?.setDirty(dirty);

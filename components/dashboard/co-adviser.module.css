@@ -1,0 +1,12 @@
+.section { min-width: 0; padding: 1rem; display: grid; gap: .75rem; overflow-wrap: anywhere; }
+.section h2, .section h3, .section h4, .section p { margin: 0; }
+.section h2 { font-size: 1.125rem; }
+.heading, .actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.actions { justify-content: flex-start; align-items: start; }
+.section button { min-height: 44px; max-width: 100%; white-space: normal; background: var(--surface); color: var(--action); border-color: var(--border-strong); }
+.section button:hover:not(:disabled) { background: var(--surface-hover); }
+.section .primary { background: var(--action); color: var(--on-action); border-color: var(--action); }
+.section .primary:hover:not(:disabled) { background: var(--action-hover); }
+.list { list-style: none; padding: 0; margin: 0; }
+.list > li { padding-block: 1rem; border-top: 1px solid var(--border); display: grid; gap: .75rem; min-width: 0; }
+.recommendation { white-space: pre-wrap; overflow-wrap: anywhere; }

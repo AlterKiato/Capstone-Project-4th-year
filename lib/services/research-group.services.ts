@@ -1,11 +1,13 @@
 import "server-only";
+import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
+import { createResearchGroupSchema } from "@/lib/validations/research-group";
 import { getActiveAIAccount } from "@/lib/auth/ai-authorization";
 import { researchGroupStatusSchema } from "@/lib/validations/research-group";
 import {
     findAllResearchGroups,
-    createResearchGroup as createResearchGroupRecord,
+    createResearchGroupForMainAdviser as createResearchGroupRecord,
     updateResearchGroupStatusForAdmin,
-    findResearchGroupsByAdviserId,
+    findResearchGroupsForMainAdviser,
 } from "@/lib/repositories/research-group.repository";
 
 import {
@@ -77,21 +79,12 @@ export async function createResearchGroup(
     data: CreateManagedResearchGroupInput,
     adviserId: number
 ): Promise<ServiceResult<ManagedResearchGroup>> {
-    // Create the research group.
-    const group = await createResearchGroupRecord({
-        groupName: data.groupName,
-        strand: data.strand,
-        section: data.section,
-        schoolYear: data.schoolYear,
-        adviserId,
-    });
-
-    // Record the successful research group creation.
-    await logActivity(
-        adviserId,
-        "Research Group Created",
-        `Created research group "${group.groupName}".`
-    );
+    const actor = await getCurrentMainAdviser(adviserId);
+    if (!actor) return { success: false, message: "Current Main Research Adviser authority is required." };
+    const parsed = createResearchGroupSchema.safeParse(data);
+    if (!parsed.success) return { success: false, message: "Invalid research group information." };
+    const group = await createResearchGroupRecord(parsed.data, actor.userId);
+    if (!group) return { success: false, message: "Current Main Research Adviser authority is required." };
 
     // Find all users with the Admin role.
     const admins = await findUsersByRoleId(
@@ -162,9 +155,8 @@ export async function changeResearchGroupStatus(
 export async function getResearchGroupsByAdviser(
     adviserId: number
 ): Promise<ServiceResult<ManagedResearchGroup[]>> {
-    const groups = await findResearchGroupsByAdviserId(
-        adviserId
-    );
+    if (!await getCurrentMainAdviser(adviserId)) return { success: false, message: "Current Main Research Adviser authority is required." };
+    const groups = await findResearchGroupsForMainAdviser(adviserId);
 
     return {
         success: true,

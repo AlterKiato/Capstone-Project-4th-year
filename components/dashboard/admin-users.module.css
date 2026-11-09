@@ -23,6 +23,10 @@
 .status { padding: .75rem; border: 1px solid var(--border); border-radius: .5rem; }
 .checkbox { display: flex !important; align-items: start; gap: .65rem; }
 .checkbox input { width: 1.25rem !important; height: 1.25rem; flex-shrink: 0; margin-top: .2rem; }
+.designation { margin-bottom: 1.5rem; }
+.designationControls { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin: 1rem 0; }
+.designationControls label { display: grid; gap: .35rem; min-width: 0; flex: 1 1 18rem; }
+.designationControls select { width: 100%; min-width: 0; }
 @media (max-width: 640px) {
     .toolbar { align-items: start; flex-direction: column; }
     .toolbar button { width: 100%; }

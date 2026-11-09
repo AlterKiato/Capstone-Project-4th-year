@@ -20,6 +20,8 @@
 .panelHeading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .25rem 1rem; min-height: 2.75rem; }
 .review { display: grid; gap: .75rem; align-content: start; }
 .reviewBody { min-width: 0; }
+.reloadAssignment { margin-top: .75rem; min-height: 44px; background: var(--surface); color: var(--foreground); border-color: var(--border-strong); }
+.reloadAssignment:hover:not(:disabled) { background: var(--surface-hover); }
 .reviewStatus { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
 .reviewStatus p { margin: 0; }
 .review .reviewForm { gap: 1rem; margin-top: 0; }

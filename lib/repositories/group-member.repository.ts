@@ -1,6 +1,7 @@
 // Database layer for research group member operations.
 
 import { db } from "@/lib/db";
+import { lockCurrentMainAdviser } from "./research-supervision.repository";
 
 import {
     groupMembers,
@@ -9,8 +10,38 @@ import {
 
 import {
     and,
+    asc,
     eq,
+    inArray,
 } from "drizzle-orm";
+
+export type MainGroupMemberScope = {
+    accounts: NonNullable<Awaited<ReturnType<typeof lockCurrentMainAdviser>>>;
+    groups: (typeof researchGroups.$inferSelect)[];
+    memberships: (typeof groupMembers.$inferSelect)[];
+    add(): Promise<typeof groupMembers.$inferSelect>;
+    remove(): Promise<void>;
+};
+
+/** Hold authority/Student/group locks while the service checks eligibility and mutates. */
+export async function withMainGroupMemberScope<T>(actorId: number, groupId: number, userId: number, operation: (scope: MainGroupMemberScope) => Promise<T>) {
+    return db.transaction(async tx => {
+        const accounts = await lockCurrentMainAdviser(tx, actorId, [userId]);
+        if (!accounts) return null;
+        const memberships = await tx.select().from(groupMembers).where(eq(groupMembers.userId, userId));
+        const groups = await tx.select().from(researchGroups)
+            .where(inArray(researchGroups.id, [...new Set([groupId, ...memberships.map(member => member.groupId)])]))
+            .orderBy(asc(researchGroups.id)).for("share");
+        return operation({ accounts, groups, memberships,
+            add: async () => {
+                const [member] = await tx.insert(groupMembers).values({ groupId, userId }).returning();
+                if (!member) throw new Error("Membership change could not be confirmed.");
+                return member;
+            },
+            remove: async () => { await tx.delete(groupMembers).where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId))); },
+        });
+    });
+}
 
 /**
  * Retrieves all members belonging

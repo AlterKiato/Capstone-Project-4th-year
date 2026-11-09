@@ -3,7 +3,8 @@
 // database + private-storage doubles. No environment, database connection or network.
 const assert = require('node:assert/strict');
 const Module = require('node:module');
-const { getTableName } = require('drizzle-orm');
+const { getTableName, eq } = require('drizzle-orm');
+const { users } = require('../db/schema/index.ts');
 const { PgDialect } = require('drizzle-orm/pg-core');
 const dialect = new PgDialect();
 const diagnostics = [], originalError = console.error;
@@ -57,7 +58,9 @@ function executor(draft = state, context = null) {
                 where(value) { predicate = value; return chain; },
                 orderBy() { return chain; },
                 async for(mode) {
-                    assert.equal(getTableName(table), 'users'); assert.equal(mode, 'update');
+                    assert.equal(mode, 'update');
+                    if (getTableName(table) === 'submissions') { assert.ok(context?.locked); events.push('submission:lock'); return result(); }
+                    assert.equal(getTableName(table), 'users');
                     assert.ok(context); if (onAccountLock) onAccountLock();
                     context.locked = true; events.push('account:lock'); return result();
                 },
@@ -99,12 +102,23 @@ const mocks = {
     'server-only': {},
     '@/lib/db': { db },
     '@/lib/auth/session': { getSession: async () => session },
+    '@/lib/auth/main-adviser': {
+        getCurrentMainAdviser: async expected => {
+            const current = accounts.find(account => account.id === session?.userId);
+            return ownGroup && session?.userId === 20 && session.roleId === 2 && current?.isActive && current.roleId === 2 && (expected === undefined || expected === 20) ? session : null;
+        },
+        getMainAdviserNotificationRecipient: async () => accounts.some(account => account.id === 20 && account.isActive && account.roleId === 2) ? 20 : null,
+    },
+    './research-supervision.repository': { lockCurrentMainAdviser: async (tx, actorId) => {
+        const [account] = await tx.select({ roleId: users.roleId, isActive: users.isActive }).from(users).where(eq(users.id, actorId)).for('update');
+        return ownGroup && actorId === 20 && account?.isActive && account.roleId === 2 ? [account] : null;
+    } },
     'next/navigation': { redirect: path => { throw Error('REDIRECT ' + path); } },
     'next/cache': { revalidatePath: () => {} },
     '@/lib/repositories/research-paper.repository': { findResearchPaperById: async id => state.research_papers.find(paper => paper.id === id) },
     '@/lib/repositories/research-group.repository': {
         findResearchGroupById: async id => id === 5 ? { id, adviserId: 20, status: groupActive ? 'active' : 'archived' } : undefined,
-        findResearchGroupsByAdviserId: async id => ownGroup && id === 20 ? [{ id: 5 }] : [{ id: 999 }],
+        findResearchGroupsForMainAdviser: async id => ownGroup && id === 20 ? [{ id: 5 }] : [{ id: 999 }],
     },
     '@/lib/repositories/group-member.repository': { findGroupMember: async (group, id) => membership && group === 5 && id === 30 ? { groupId: group, userId: id } : undefined },
     '@/lib/repositories/adviser-submission.repository': { findSubmissionForAdviser: async (id, groups) => {
@@ -180,7 +194,7 @@ async function main() {
         }
         reset(); seed(status); actor(role); membership = ownGroup = false;
         await noEffects(direct); await noEffects(action);
-        console.log('PASS ' + name + ': anonymous/missing/inactive/stale role/all wrong roles/forged actor/ownership denial; zero DB/storage/log/notice effects.');
+        console.log('PASS ' + name + ': anonymous/missing/inactive/stale role/all wrong roles/forged actor/Main or membership denial; zero DB/storage/log/notice effects.');
     }
 
     // Revoke after initial verification, before upload or persistence lock.

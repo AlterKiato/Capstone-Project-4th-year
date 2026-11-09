@@ -3,8 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 
 import { submissions } from "@/db/schema";
-import { findUserByIdForUpdate } from "@/lib/repositories/user.repository";
-import { ROLE_IDS } from "@/lib/auth/roles";
+import { lockCurrentMainAdviser } from "./research-supervision.repository";
 import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/constants/submission-lock";
 import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 
@@ -179,8 +178,7 @@ export async function updateSubmissionStatus(
  */
 export async function updateSubmissionStatusForAdviser(id: number, status: string, adviserId: number) {
     return db.transaction(async tx => {
-        const adviser = await findUserByIdForUpdate(adviserId, tx);
-        if (!adviser?.isActive || adviser.roleId !== ROLE_IDS.ADVISER) return undefined;
+        if (status !== SUBMISSION_STATUS.UNDER_REVIEW || !await lockCurrentMainAdviser(tx, adviserId)) return undefined;
         const [submission] = await tx.update(submissions).set({ status })
             .where(and(eq(submissions.id, id), eq(submissions.status, SUBMISSION_STATUS.SUBMITTED))).returning();
         return submission;

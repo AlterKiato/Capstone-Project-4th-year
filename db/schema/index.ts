@@ -16,3 +16,4 @@ export * from "./submission-upload-intent";
 export * from "./push-subscription";
 export * from "./group-task";
 export * from "./task-note";
+export * from "./research-supervision";

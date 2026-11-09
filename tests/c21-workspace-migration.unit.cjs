@@ -26,10 +26,10 @@ test('generated 0016 snapshot adds exactly two tables and preserves every old sc
     assert.ok(tasks); assert.ok(notes); assert.deepEqual(historicalTables, before.tables);
     for (const key of Object.keys(before).filter(k => !['id', 'prevId', 'tables'].includes(k))) assert.deepEqual(snapshot[key], before[key]);
     assert.equal(Object.keys(snapshot.tables).length, 19);
-    assert.equal(journal.entries.length, 17);
-    assert.deepEqual(journal.entries.at(-1), { idx: 16, version: '7', when: 1793874420209, tag: '0016_collaborative_research_workspace', breakpoints: true });
+    assert.equal(journal.entries.length, 18);
+    assert.deepEqual(journal.entries[16], { idx: 16, version: '7', when: 1793874420209, tag: '0016_collaborative_research_workspace', breakpoints: true });
     assert.equal(journal.entries.every((e, i) => e.idx === i && (!i || e.when > journal.entries[i - 1].when)), true);
-    assert.equal(readdirSync('db/migrations').filter(name => name.endsWith('.sql')).length, 17);
+    assert.equal(readdirSync('db/migrations').filter(name => name.endsWith('.sql')).length, 18);
     for (const entry of journal.entries) assert.ok(readFileSync(`db/migrations/${entry.tag}.sql`).length);
 });
 
@@ -108,8 +108,9 @@ function sourceDouble({ mutateMigrations = m => m, overrides = {}, repinWorkspac
     const read = path => Object.hasOwn(overrides, path) ? Buffer.from(overrides[path]) : readFileSync(path);
     let code = readFileSync('scripts/preview-migration-source.ts', 'utf8');
     if (repinWorkspace) {
-        const hash = createHash('sha256').update(JSON.stringify(migrations.map(m => ({ hash: m.hash, when: m.folderMillis }))))
-            .update(read('db/migrations/meta/0016_snapshot.json')).update(read('db/migrations/meta/_journal.json')).digest('hex');
+        const journal = JSON.parse(read('db/migrations/meta/_journal.json'));
+        const hash = createHash('sha256').update(JSON.stringify(migrations.slice(0, 17).map(m => ({ hash: m.hash, when: m.folderMillis }))))
+            .update(read('db/migrations/meta/0016_snapshot.json')).update(Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 17) }, null, 2))).digest('hex');
         code = code.replace(WORKSPACE_SOURCE_DIGEST, hash);
     }
     const exported = {};

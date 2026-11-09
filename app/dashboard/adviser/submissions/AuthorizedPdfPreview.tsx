@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { getSubmissionDownloadUrlAction } from "@/lib/actions/storage.action";
-import { SubmissionPdfAccess } from "@/lib/utils/submission-pdf-access";
+import { getDelegatedDocumentUrlAction } from "@/lib/actions/co-adviser.action";
+import { CO_ADVISER_PDF_WINDOW_MS, PDF_ACCESS_WINDOW_MS, SubmissionPdfAccess } from "@/lib/utils/submission-pdf-access";
 import styles from "./review-workspace.module.css";
 
 function closePlaceholder(tab: Window | null) {
@@ -31,9 +32,10 @@ function PdfFrame({ url, title }: { url: string; title: string }) {
     </>;
 }
 
-export default function AuthorizedPdfPreview({ submissionId, version }: { submissionId: number; version: string }) {
+export default function AuthorizedPdfPreview({ submissionId, version, assignmentId }: { submissionId: number; version: string; assignmentId?: number }) {
     const access = useMemo(() => new SubmissionPdfAccess(submissionId,
-        id => getSubmissionDownloadUrlAction(id, "adviser-review")), [submissionId]);
+        id => assignmentId === undefined ? getSubmissionDownloadUrlAction(id, "adviser-review") : getDelegatedDocumentUrlAction({ assignmentId, submissionId: id }),
+        Date.now, undefined, undefined, assignmentId === undefined ? PDF_ACCESS_WINDOW_MS : CO_ADVISER_PDF_WINDOW_MS), [submissionId, assignmentId]);
     const state = useSyncExternalStore(access.subscribe, access.snapshot, access.snapshot);
     const [previewFor, setPreviewFor] = useState<number | null>(null);
     const [popupError, setPopupError] = useState("");

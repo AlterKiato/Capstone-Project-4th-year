@@ -1,5 +1,7 @@
+import "server-only";
+import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
 import {
-    findResearchGroupsByAdviserId,
+    findResearchGroupsForMainAdviser,
 } from "@/lib/repositories/research-group.repository";
 
 import {
@@ -7,13 +9,6 @@ import {
     findSubmissionForAdviser,
 } from "@/lib/repositories/adviser-submission.repository";
 
-import {
-    findUserById,
-} from "@/lib/repositories/user.repository";
-
-import {
-    ROLE_IDS,
-} from "@/lib/auth/roles";
 
 import type {
     ServiceResult,
@@ -41,37 +36,15 @@ export interface AdviserSubmission {
 
 /**
  * Verifies that the supplied user is an Adviser
- * and retrieves the research groups owned by them.
+ * and retrieves the research groups supervised by the current Main.
  */
 async function getAdviserGroupIds(
     adviserId: number
 ): Promise<ServiceResult<number[]>> {
-    const adviser =
-        await findUserById(
-            adviserId
-        );
-
-    if (!adviser) {
-        return {
-            success: false,
-            message:
-                "Adviser account not found.",
-        };
-    }
-
-    if (
-        adviser.roleId !==
-        ROLE_IDS.ADVISER
-    ) {
-        return {
-            success: false,
-            message:
-                "Only Adviser users can access Adviser submissions.",
-        };
-    }
+    if (!await getCurrentMainAdviser(adviserId)) return { success: false, message: "Current Main Research Adviser authority is required." };
 
     const groups =
-        await findResearchGroupsByAdviserId(
+        await findResearchGroupsForMainAdviser(
             adviserId
         );
 
@@ -87,7 +60,7 @@ async function getAdviserGroupIds(
 
 /**
  * Retrieves all submissions belonging
- * to research groups owned by the Adviser.
+ * to research groups under Main supervision.
  */
 export async function getAdviserSubmissions(
     adviserId: number
@@ -121,9 +94,11 @@ export async function getAdviserSubmissions(
 
     const submissions =
         await findSubmissionsByGroupIds(
-            groupIds
+            groupIds,
+            adviserId
         );
 
+    if (!await getCurrentMainAdviser(adviserId)) return { success: false, message: "Current Main Research Adviser authority is required." };
     return {
         success: true,
         message:
@@ -134,7 +109,7 @@ export async function getAdviserSubmissions(
 
 /**
  * Retrieves one submission only when
- * its research group belongs to the Adviser.
+ * the caller remains the current Main Adviser.
  */
 export async function getAdviserSubmission(
     submissionId: number,
@@ -169,7 +144,8 @@ export async function getAdviserSubmission(
     const submission =
         await findSubmissionForAdviser(
             submissionId,
-            groupIds
+            groupIds,
+            adviserId
         );
 
     if (!submission) {
@@ -180,6 +156,7 @@ export async function getAdviserSubmission(
         };
     }
 
+    if (!await getCurrentMainAdviser(adviserId)) return { success: false, message: "Current Main Research Adviser authority is required." };
     return {
         success: true,
         message:

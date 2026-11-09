@@ -6,25 +6,30 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 // The workspace source is separately pinned; source readiness never implies database application.
 export const PREVIEW_SOURCE_DIGEST = "37824a5d2df42e54df9e50ee115c6eb7d6c42a94864c99aedfb1d63b4dbf51e0";
 export const WORKSPACE_SOURCE_DIGEST = "66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc";
+export const SUPERVISION_SOURCE_DIGEST = "2e914ebc46baa807051618a2dc6542ec3f859b166bf4a759fca6f7a56a35ef40";
 
 function reviewedSources() {
     const migrations = readMigrationFiles({ migrationsFolder: "db/migrations" });
     const baselineSnapshot = readFileSync("db/migrations/meta/0015_snapshot.json");
     const workspaceSnapshot = readFileSync("db/migrations/meta/0016_snapshot.json");
+    const supervisionSnapshot = readFileSync("db/migrations/meta/0017_snapshot.json");
     const journalBytes = readFileSync("db/migrations/meta/_journal.json");
     const journal = JSON.parse(journalBytes.toString("utf8"));
     // This serialization exactly reproduces the pre-0016 journal bytes, verified before
     // generation. It is used only in memory; historical metadata is never rewritten.
     const baselineJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 16) }, null, 2));
+    const workspaceJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 17) }, null, 2));
     const sourceHash = (count: number, snapshot: Buffer, bytes: Buffer) => createHash("sha256")
         .update(JSON.stringify(migrations.slice(0, count).map(m => ({ hash: m.hash, when: m.folderMillis }))))
         .update(snapshot).update(bytes).digest("hex");
-    if (migrations.length !== 17 || journal.entries.length !== 17 || sourceHash(16, baselineSnapshot, baselineJournal) !== PREVIEW_SOURCE_DIGEST ||
-        sourceHash(17, workspaceSnapshot, journalBytes) !== WORKSPACE_SOURCE_DIGEST)
+    if (migrations.length !== 18 || journal.entries.length !== 18 || sourceHash(16, baselineSnapshot, baselineJournal) !== PREVIEW_SOURCE_DIGEST ||
+        sourceHash(17, workspaceSnapshot, workspaceJournal) !== WORKSPACE_SOURCE_DIGEST ||
+        sourceHash(18, supervisionSnapshot, journalBytes) !== SUPERVISION_SOURCE_DIGEST)
         throw new Error("Reviewed Preview migration source mismatch.");
     return {
         baseline: { migrations: migrations.slice(0, 16), snapshot: JSON.parse(baselineSnapshot.toString("utf8")), hash: PREVIEW_SOURCE_DIGEST },
-        workspace: { migrations, snapshot: JSON.parse(workspaceSnapshot.toString("utf8")), hash: WORKSPACE_SOURCE_DIGEST },
+        workspace: { migrations: migrations.slice(0, 17), snapshot: JSON.parse(workspaceSnapshot.toString("utf8")), hash: WORKSPACE_SOURCE_DIGEST },
+        supervision: { migrations, snapshot: JSON.parse(supervisionSnapshot.toString("utf8")), hash: SUPERVISION_SOURCE_DIGEST },
     };
 }
 
@@ -32,6 +37,8 @@ function reviewedSources() {
 export function previewMigrationSource() { return reviewedSources().baseline; }
 /** Current generated source: 17 migrations through 0016, not a target-readiness assertion. */
 export function workspaceMigrationSource() { return reviewedSources().workspace; }
+/** The separate 0017 upgrade consumes only the final entry after exact 0016 validation. */
+export function supervisionMigrationSource() { return reviewedSources().supervision; }
 
 type Ledger = { id?: number; hash: string; created_at: string }[];
 export function verifyPreviewLedger(ledger: { id?: number; hash: string; created_at: string }[], entries: 15 | 16 = 16) {
@@ -54,6 +61,18 @@ export function recognizeWorkspaceLedger(ledger: Ledger) {
     }
     verifyWorkspaceLedger(ledger, 17);
     return { state: "workspace-recorded", entries: 17 } as const;
+}
+
+export function verifySupervisionLedger(ledger: Ledger, entries: 17 | 18 = 18) {
+    if (entries !== 17 && entries !== 18) throw new Error("Supervision migration ledger version refused.");
+    verifyLedger(ledger, supervisionMigrationSource().migrations, entries);
+}
+
+/** Recognition permits inspection of an installed target; execution still requires exactly 17. */
+export function recognizeSupervisionLedger(ledger: Ledger) {
+    const entries = ledger.length === 17 ? 17 : 18;
+    verifySupervisionLedger(ledger, entries);
+    return { state: entries === 17 ? "pre-supervision" : "supervision-recorded", entries } as const;
 }
 
 function verifyLedger(ledger: Ledger, migrations: ReturnType<typeof readMigrationFiles>, entries: number) {

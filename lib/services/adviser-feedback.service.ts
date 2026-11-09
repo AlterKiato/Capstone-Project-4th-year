@@ -1,9 +1,9 @@
 import "server-only";
-import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
+import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
 import { feedbackCommentsSchema } from "@/lib/utils/feedback-content";
 
 import {
-    findResearchGroupsByAdviserId,
+    findResearchGroupsForMainAdviser,
 } from "@/lib/repositories/research-group.repository";
 
 import {
@@ -14,9 +14,6 @@ import {
     persistAdviserDecision,
 } from "@/lib/repositories/feedback.repository";
 
-import {
-    ROLE_IDS,
-} from "@/lib/auth/roles";
 
 import type {
     ServiceResult,
@@ -43,8 +40,8 @@ import {
  * Creates Adviser feedback for a specific
  * research submission.
  *
- * The Adviser can only provide feedback
- * for submissions belonging to their own
+ * The current Main Adviser can provide feedback
+ * for submissions under current Main supervision across all
  * research groups.
  */
 export async function createAdviserFeedback(
@@ -62,16 +59,16 @@ export async function createAdviserFeedback(
         decision: string;
     }>
 > {
-    if (!await getActiveResearchActor(ROLE_IDS.ADVISER, adviserId)) {
+    if (!await getCurrentMainAdviser(adviserId)) {
         return {
             success: false,
             message:
-                "An active Adviser account is required to provide feedback.",
+                "Current Main Research Adviser authority is required to provide feedback.",
         };
     }
 
     const groups =
-        await findResearchGroupsByAdviserId(
+        await findResearchGroupsForMainAdviser(
             adviserId
         );
 
@@ -91,7 +88,8 @@ export async function createAdviserFeedback(
     const submission =
         await findSubmissionForAdviser(
             submissionId,
-            groupIds
+            groupIds,
+            adviserId
         );
 
     if (!submission) {
@@ -173,7 +171,7 @@ export async function createAdviserFeedback(
     });
 
     if (!feedback) {
-        return { success: false, message: "An active Adviser account is required to provide feedback." };
+        return { success: false, message: "Current Main Research Adviser authority is required to provide feedback." };
     }
 
     try { onCommitted?.(submission.submittedBy); } catch { /* Scheduling cannot change the committed decision. */ }

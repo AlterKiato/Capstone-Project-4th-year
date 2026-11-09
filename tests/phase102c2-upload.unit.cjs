@@ -17,7 +17,7 @@ const pdf = () => new Uint8Array(Buffer.from('%PDF-1.7\nsynthetic fixture'));
 function fixture() {
     const state = { time: Date.now(), actor: 11, active: true, role: 3, member: true, groupStatus: 'active',
         intents: new Map(), submissions: [], objects: new Map(), notifications: [], reads: 0, writes: 0, minted: 0, activeTx: 0,
-        failSubmit: false, failComplete: false, loseCommit: false, offline: false, beforeWrite: null, duringRead: null };
+        failSubmit: false, failComplete: false, loseCommit: false, offline: false, beforeWrite: null, duringRead: null, mainAdviserId: 90, failRecipient: false };
     let queue = Promise.resolve(); const transactionScope = new AsyncLocalStorage();
     const repository = {
         owned: async (id, student) => { if (state.offline) throw Error('synthetic-private-database-error'); const i = state.intents.get(id); return i?.studentId === student ? structuredClone(i) : undefined; },
@@ -67,12 +67,26 @@ function fixture() {
         },
     };
     const workflow = createSubmissionUploadWorkflow({ repository, storage, actor: async () => state.actor,
+        recipient: async () => { noLock(); if (state.failRecipient) throw Error('Synthetic designation failure'); return state.mainAdviserId; },
         notify: async (...args) => { state.notifications.push(args); } });
     const input = (paperId = 10) => ({ requestKey: randomUUID(), paperId, fileName: '../Synthetic thesis.pdf', size: pdf().length, contentType: 'application/pdf', remarks: ' Synthetic remarks ' });
     const start = async (paperId = 10) => { const data = input(paperId), result = await workflow.initiate(data); assert.equal(result.success, true); return { data, result, intent: state.intents.get(result.intentId) }; };
     const uploaded = async (paperId = 10) => { const row = await start(paperId); state.objects.set(row.intent.stagingPath, pdf()); return row; };
     return { state, workflow, repository, storage, input, start, uploaded };
 }
+
+test('S3.2 post-commit routing follows current Main; missing/failed designation keeps Student success without fallback', async () => {
+    const f = fixture(), { intent } = await f.uploaded(), pushes = [];
+    f.state.mainAdviserId = 91; // replacement after upload initiation, before finalization
+    assert.equal((await f.workflow.finalize(intent.id, (...args) => pushes.push(args))).code, 'completed');
+    assert.deepEqual(pushes, [[91, 'v1']]); assert.equal(f.state.notifications[0][0], 91);
+    for (const lookupFailure of [false, true]) {
+        const g = fixture(), row = await g.uploaded(); g.state.mainAdviserId = null; g.state.failRecipient = lookupFailure;
+        const sent = [];
+        assert.equal((await g.workflow.finalize(row.intent.id, (...args) => sent.push(args))).code, 'completed');
+        assert.equal(g.state.submissions.length, 1); assert.equal(g.state.notifications.length, 0); assert.equal(sent.length, 0);
+    }
+});
 test('intent ownership, current account/group authorization and strict inputs fail before external effects', async () => {
     for (const patch of [{ actor: null }, { active: false }, { role: 1 }, { role: 2 }, { role: 4 }, { member: false }, { groupStatus: 'archived' }]) {
         const f = fixture(); Object.assign(f.state, patch); assert.equal((await f.workflow.initiate(f.input())).success, false);
@@ -137,13 +151,14 @@ test('P.3D fresh initial/revised commits expose only server-resolved recipient/v
     };
     const first = await f.uploaded();
     assert.equal((await f.workflow.finalize(first.intent.id, committed)).code, 'completed');
-    assert.deepEqual(events, [[22, 'v1']]);
+    assert.deepEqual(events, [[90, 'v1']]);
     await f.workflow.finalize(first.intent.id, committed); assert.equal(events.length, 1);
     f.state.submissions[0].status = 'Revision Required';
     const revision = await f.uploaded();
     assert.equal((await f.workflow.finalize(revision.intent.id, committed)).version, 'v2');
     await f.workflow.finalize(revision.intent.id, committed);
-    assert.deepEqual(events, [[22, 'v1'], [22, 'v2']]); assert.equal(f.state.notifications.length, 2);
+    assert.deepEqual(events, [[90, 'v1'], [90, 'v2']]); assert.equal(f.state.notifications.length, 2);
+    assert.ok(f.state.notifications.every(args => args[0] === 90), 'in-app and push use current Main, never historical group Adviser 22');
     assert.equal(f.state.submissions.length, 2);
 });
 
@@ -158,6 +173,7 @@ test('P.3D failed/uncertain commits never schedule; scheduling and in-app failur
     assert.equal(f.state.notifications.length, 1);
     const g = fixture(), other = await g.uploaded(); let scheduled = 0;
     const workflow = createSubmissionUploadWorkflow({ repository: g.repository, storage: g.storage, actor: async () => g.state.actor,
+        recipient: async () => g.state.mainAdviserId,
         notify: async () => { throw Error('synthetic in-app failure'); } });
     assert.equal((await workflow.finalize(other.intent.id, () => { scheduled++; })).success, true);
     assert.equal(scheduled, 1); assert.equal(g.state.submissions.length, 1);
@@ -169,7 +185,7 @@ test('same-intent concurrent finalization and two-Student same-paper contention 
     const g = fixture(), first = await g.uploaded(); g.state.actor = 12; const second = await g.uploaded();
     const a = g.workflow.finalize(first.intent.id); // Actor reads before switching back, so use separate secured entry factories below.
     await a; assert.equal(g.state.submissions.length, 0);
-    const services = [11, 12].map(id => createSubmissionUploadWorkflow({ repository: g.repository, storage: g.storage, actor: async () => id, notify: async () => g.state.notifications.push('new') }));
+    const services = [11, 12].map(id => createSubmissionUploadWorkflow({ repository: g.repository, storage: g.storage, actor: async () => id, recipient: async () => g.state.mainAdviserId, notify: async () => g.state.notifications.push('new') }));
     const settled = await Promise.all([services[0].finalize(first.intent.id), services[1].finalize(second.intent.id)]);
     assert.equal(settled.filter(r => r.code === 'completed').length, 1); assert.equal(g.state.submissions.length, 1); assert.equal(g.state.notifications.length, 1);
 });

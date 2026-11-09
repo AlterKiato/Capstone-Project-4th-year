@@ -1,7 +1,7 @@
 // Database layer, can do CRUD only
 
 import { db } from "@/lib/db";
-import { users } from "@/db/schema";
+import { mainAdviserDesignation, users } from "@/db/schema";
 import { eq, desc, inArray, asc, sql } from "drizzle-orm";
 
 // Stage 1 must also run BEFORE the verification migration is applied. Explicit
@@ -168,6 +168,14 @@ export async function updateManagedUserForAdmin(actorId: number, userId: number,
         const actor = accounts.find(account => account.id === actorId);
         if (!actor?.isActive || actor.roleId !== 1 || actorId === userId) return { kind: "denied" } as const;
         if (!accounts.some(account => account.id === userId)) return { kind: "missing" } as const;
+        // Designation writes take these locks in the same order. Missing schema/row
+        // fails closed; a stale client cannot invalidate a concurrently selected Main.
+        const [designation] = await tx.select({ mainAdviserId: mainAdviserDesignation.mainAdviserId })
+            .from(mainAdviserDesignation).where(eq(mainAdviserDesignation.id, 1)).for("update");
+        if (!designation) throw new Error("Main Adviser configuration unavailable.");
+        if (designation.mainAdviserId === userId &&
+            (("isActive" in change && !change.isActive) || ("roleId" in change && change.roleId !== 2)))
+            return { kind: "main-adviser-protected" } as const;
         const [updated] = await tx.update(users).set({ ...change, updatedAt: new Date() }).where(eq(users.id, userId))
             .returning({ id: users.id, firstName: users.firstName, lastName: users.lastName });
         return updated ? { kind: "updated", user: updated } as const : { kind: "missing" } as const;

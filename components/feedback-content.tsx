@@ -1,4 +1,4 @@
-import { decodeFeedback, FEEDBACK_PREFIX, type FeedbackRun } from "@/lib/utils/feedback-content";
+import { decodeFeedback, isFormattedFeedback, type FeedbackRun } from "@/lib/utils/feedback-content";
 import styles from "./feedback-content.module.css";
 
 function Runs({ runs }: { runs: FeedbackRun[] }) {
@@ -13,7 +13,7 @@ function Runs({ runs }: { runs: FeedbackRun[] }) {
 
 /** Shared server/client renderer: text nodes and five allowed semantic elements only. */
 export default function FeedbackContent({ value }: { value: string }) {
-    if (!value.startsWith(FEEDBACK_PREFIX)) return <div className={styles.content}>{value}</div>;
+    if (!isFormattedFeedback(value)) return <div className={styles.content}>{value}</div>;
     const document = decodeFeedback(value);
     return <div className={styles.content}>{document ? document.blocks.map((block, index) => {
         if (block.type === "paragraph") return <p key={index}><Runs runs={block.content} /></p>;

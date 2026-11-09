@@ -5831,3 +5831,250 @@ docs/MASTER_CONTEXT_UPDATED.md
 **Deferred verification, not marked PASS:** physical installed-PWA safe areas; physical software-keyboard behavior; native PDF behavior; actual screen-reader announcements; and broader Production readiness, including retained hosted security/resource-isolation gates. This acceptance does not authorize Production deployment or certify Production readiness.
 
 **Documentation checkpoint:** entry verified clean `feature/development` at `bef64713f8de5192c33d8442b3592c34082c8cef`, empty index and no untracked files. Only this append is authorized for one local commit, `docs(phase10): close batch B preview acceptance`. Validation is limited to documentation content, append preservation and unstaged/staged whitespace checks. No application, test, dependency or deployment-configuration change; no push, merge, deployment, hosted operation or automatic next phase.
+
+## Phase 10.S3.1 — Research Supervision database foundation and Main Adviser configuration
+
+**Locally implemented; focused offline checks PASS; real PostgreSQL verification BLOCKED.** Entry verified clean `feature/development` at `ff95cd2f00a4ec0df80953c9c47132db2db59b1e` (`feat(phase10): add desktop publication oversight workspace`), empty index, matching cached `origin/feature/development`. No fetch or Git mutation. The owner's supplied task reports P4 CLOSED/8-of-8 Preview PASS, S1 source feasibility PASS and finalized S2 policy; these remain owner-provided context, not newly executed hosted acceptance.
+
+### Implemented scope and safeguards
+
+- Two additive schemas and generated migration 0017, including one unconfigured singleton lock target. Co assignments are persistence only; multiple distinct Co-Advisers are supported and duplicate open submission/Co pairs are constrained. All historical relationships and migration/snapshot bytes through 0016 are preserved. The private recommendation bound is 20,000 characters, consistent with the existing bounded-note convention; recommendations have no runtime read/write surface yet.
+- Admin User Management displays the current Main/unconfigured state and eligible active Advisers. Initial selection and replacement require an explicit confirmation with captured target/current revision. Same-target submission is disabled; stale/ineligible/uncertain failures require refresh before another write. Existing directory, account creation, eligibility and role/status interfaces remain intact. The panel uses existing themes/dialogs and ENERGY 1 / RHYTHM 2 / MOTION 1.
+- Strict action input rejects actor-ID injection and unconfirmed/malformed requests. Current-account resolution precedes the repository; the transaction rechecks active Admin and active Adviser target under ascending user-row locks, then locks/checks the singleton revision. Designation plus old/new-ID/revision activity entry commits atomically. Logging failure rolls back the designation; cache-refresh failure preserves committed success.
+- Existing managed account updates acquire user rows and singleton in the same order, preventing deactivation/demotion of the current Main until replacement. A missing table/singleton fails closed for configuration and managed role/status writes. This is a migration prerequisite, not permission to deploy partially configured source.
+- Existing academic permissions remain per-group until S3.2. No group ownership migration, review/status/PDF/notification/publication authority transition, Co workflow, milestone/revision tables or AI activation. S3.2 and S3.3 must complete before integrated deployment readiness.
+
+### Focused verification and limits
+
+**PASS:** installed Next.js forms/Server Actions/revalidation guidance read before coding; Drizzle generation/check; TypeScript `--noEmit --incremental false`; targeted ESLint; diff/whitespace review. The focused command below reports **32 tests, 32 pass, 0 fail** (including an existing standalone service test reported as one file). New coverage comprises seven action/service/repository transaction-contract cases plus two schema/source cases; existing user-management and migration-safety regressions retain their assertions.
+
+```text
+node --import tsx --test tests/s31-research-supervision.unit.cjs tests/s31-research-supervision-schema.unit.cjs tests/phase977b-users.unit.cjs tests/c21-workspace-migration.unit.cjs tests/c71-preview-workspace.unit.cjs tests/c22a-local-migration.unit.cjs
+```
+
+Coverage includes initial designation/replacement, inactive/non-Adviser targets, non-Admin/anonymous/inactive/forged-role denial, expected-revision conflicts and concurrent initial/replacement requests, protected deactivation/demotion, target lifecycle interleavings, audit rollback, unchanged historical group associations, missing-singleton failure and committed-success refresh handling. Transactions use deterministic row-lock/rollback doubles, not PostgreSQL.
+
+**PASS:** one bounded synthetic Chromium component test, `node tests/s31-main-adviser-ui.browser.cjs`, with mocked actions and blocked external requests. It checks empty/current states, eligible choices, explicit confirmation/cancel/focus return, captured revision, stale refresh, uncertain replay prevention, duplicate-submit guard and 360px Light/1280px Dark overflow. Screenshots were visually inspected. The first layout assertion failed because the fixture omitted Tailwind preflight; including the actual app reset corrected the fixture without a product CSS workaround. The initial sandbox bundle attempt was blocked by parent-directory access; the approved bounded unsandboxed component run passed. This does not establish authenticated Next/Server Action/database/PWA acceptance.
+
+**BLOCKED:** PostgreSQL 18 binaries are installed, but initializing a fresh disposable local cluster failed under the sandbox's Windows restricted-token handling. Automatic approval review rejected the bounded unsandboxed initialization, citing AGENTS.md's separate approval requirement for database operations. No workaround was used; no cluster directory/server was created and no database connection/migration occurred. Real constraint enforcement, migration application/compatibility and PostgreSQL concurrency remain unverified until explicitly approved.
+
+**NOT TESTED:** existing local/project or hosted databases, runtime grants, authenticated full-app workflow, full production build, hosted/physical-device acceptance and integrated S3.2/S3.3 behavior. No Storage/provider operation, environment change, staging, commit, push, merge or deployment. Ignored synthetic evidence is under `test-results/s31/`.
+
+### Exact S3.1 file inventory (24 paths)
+
+```text
+app/dashboard/admin/users/page.tsx
+components/dashboard/admin-main-adviser.tsx
+components/dashboard/admin-users.module.css
+db/schema/research-supervision.ts
+db/schema/index.ts
+db/migrations/0017_research_supervision.sql
+db/migrations/meta/0017_snapshot.json
+db/migrations/meta/_journal.json
+lib/actions/research-supervision.action.ts
+lib/repositories/research-supervision.repository.ts
+lib/repositories/user.repository.ts
+lib/services/research-supervision.service.ts
+lib/services/user.service.ts
+lib/validations/research-supervision.ts
+types/research-supervision.ts
+scripts/preview-migration-source.ts
+tests/s31-research-supervision.unit.cjs
+tests/s31-research-supervision-schema.unit.cjs
+tests/s31-main-adviser-ui.browser.cjs
+tests/c21-workspace-migration.unit.cjs
+docs/SOURCE_OF_TRUTH_UPDATED.md
+docs/ARCHITECTURE_UPDATED.md
+docs/DATABASE (1).md
+docs/MASTER_CONTEXT_UPDATED.md
+```
+
+**Single smallest next action:** explicitly approve creating/running a fresh disposable local PostgreSQL cluster for focused 0017 compatibility/constraint and concurrency checks. This is not approval to migrate any existing local/hosted database or to start S3.2/S3.3, commit or deploy.
+
+
+## Phase 10.S3.2 - Main Research Adviser authorization transition (2026-11-08)
+
+**Locally implemented; focused offline PASS; real S3.2 database/runtime verification pending.** Entry: `feature/development`, HEAD `ff95cd2f00a4ec0df80953c9c47132db2db59b1e`, empty index and the 24 unstaged S3.1 paths. All S3.1 work is retained. Only its supervision repository is extended with additional helpers; the existing S3.1 designation functions and account lifecycle guards are unchanged. Its four documentation files receive append-only handoffs. Schema/0017/snapshots/journal/source pins are byte-preserved.
+
+The prior disposable S3.1 verification receipt under `test-results/s31-pg-20261108-b8f5fe94-35cf-4b8e-989f-d2471c8ceb70/` records **20 real PostgreSQL PASS, 0 remaining FAIL**, spanning an initial run and continuation after temporary harness corrections. Its owned server/data directory were cleaned up. That evidence remains separate from the simulated S3.2 checks below, and was not rerun. Existing development/hosted databases still have not received 0017; P4's 8/8 Preview result remains owner-reported, not refreshed here.
+
+### Authorization and directly necessary changes
+
+- One uncached current-Main helper composes current-account/active Role ID 2 checks with the S3.1 designation. Repository SQL predicates protect all institutional dashboard/group/member/project/submission/version/feedback/aggregate reads. Historical group Adviser associations no longer confer academic authority. Main can supervise groups owned historically by another Adviser; ordinary and former Main accounts cannot continue using those paths. Page layout/navigation is retained; only restricted-state wording and institutional group labels change. The non-Main submission page does not render the Adviser Assistant control. Anti-Slop During and React review retain ENERGY 1 / RHYTHM 2 / MOTION 1.
+- Group creation validates again in its service, derives the authenticated Main, rechecks under transaction locks, records historical creator identity and logs atomically. Membership eligibility reads are Main-only. The directly necessary membership fix moves existing group/Student/duplicate/one-active-group checks and add/remove into one Student-locked transaction. Archived membership and removal rules remain intact. Existing Admin archive/reactivate authority/policy is unchanged.
+- Official Start Review and final feedback/Revision Required/Approved operations require current Main authority in both services and transactions. Existing version/status/single-decision rules and feedback attribution remain. Decision persistence now checks exact submission/paper association under a submission lock and preserves atomic feedback/status/paper/activity writes. Lock order is ascending involved accounts, singleton, resource; submissions precede paper writes. Existing S3.1 replacement/lifecycle functions retain their original behavior. Co assignment closure is deferred to S3.3.
+- Main submission PDF signing preserves 1,800-second review and 300-second ordinary durations, exact persisted version/path validation, private signing and Student rules. Authority is checked before signing/return; ordinary Advisers are denied. Existing published-repository access and Admin publication sources are unchanged. Previously issued signed URLs retain their expiry-based capability window.
+- Fresh Student upload completion resolves the current Main only after commit, passing the same recipient to existing in-app and push hooks. Missing/failed designation skips delivery and preserves success, with no historical-owner fallback. Existing replay/lost-ack/version/upload semantics remain. The retired File transport's internal notification service is also aligned.
+- Adviser Assistant static actions and internal aggregate reads are Main-only, retain existing minimized metrics/k=5/complement safeguards and reject results after authority changes. Internal interpretation inherits that boundary. Shared static system guidance has no research-data query; governance and synthetic-only CLI pilot are unchanged. No operational Groq/Co AI, prompts or providers are added.
+
+### Verification and limits
+
+**PASS:** TypeScript `--noEmit --incremental false`; targeted ESLint with zero warnings/errors; diff/whitespace and exact preservation checks. The focused offline command reports **41 tests, 41 pass, 0 fail**, including standalone legacy test files counted as one each. The new file contains ten named S3.2 cases. The upload fixture adds one current-Main/missing-recipient case and updates recipient assertions; existing PDF/AI/F1 fixture boundaries are aligned to the new policy without weakening their domain assertions.
+
+```text
+node --import tsx --test tests/s32-main-adviser.unit.cjs tests/phase102c2-upload.unit.cjs tests/phase5-document-access.unit.cjs tests/phase5-repository-document.unit.cjs tests/phase8-local-ai.unit.cjs tests/f1-research-mutations.unit.cjs tests/s31-research-supervision.unit.cjs tests/s31-research-supervision-schema.unit.cjs
+```
+
+Coverage: current Main institutional visibility across foreign historical ownership; role-only/ordinary/former Main denial; absent/inactive/stale/forged authority; Main-only group/member/review decisions; simulated membership contention and replacement/decision ordering; duplicate-decision and audit rollback; exact paper binding; PDF version/path/duration/Student contracts and post-sign revocation; current-Main notification/push routing, missing/error recipient success, replay/commit behavior; AI pre/post gates and SQL predicates. Existing Admin publication/role/JWT source is unchanged; published-document authorization regressions pass. Transaction tests are deterministic doubles and SQL-shape checks, not PostgreSQL scheduling evidence.
+
+Initial fixture assertions exposed correlated eligibility subqueries in the SQL capture and historical-recipient expectations. These were corrected to check the outer Main scope and current recipient. A global transaction-count assertion in the upload fixture was replaced with its existing AsyncLocalStorage per-request transaction check so another concurrent request does not masquerade as this request holding a transaction. Final focused results pass. An edit-script encoding issue was corrected before final validation; original Unicode/BOM content is preserved rather than introducing unrelated text fixes.
+
+**PENDING / NOT TESTED:** real PostgreSQL checks of S3.2's new academic/member lock paths; authenticated full-app, browser/PWA/physical-device and hosted acceptance; full production build and deployment/runtime grants. No new cluster, database connection, Storage/provider/hosted operation, environment change, migration regeneration/application, staging/commit/push/merge or deployment. Existing S3.1 PostgreSQL checks are not rerun. The absent 0017/unconfigured designation intentionally denies Main-only operations until separately authorized setup.
+
+S3.3 still needs exact-assignment Co projections/permissions, private recommendation workflow, finalization/closure integration and delegated signing policy. No milestone/revision/grading work or deferred rich-text fix starts. This source is not ready for integrated deployment until separately scoped S3.3 and integrated acceptance complete.
+
+### Exact S3.2 delta inventory (38 paths; includes existing S3.1 files extended/appended)
+
+```text
+app/dashboard/adviser/groups/page.tsx
+app/dashboard/adviser/page.tsx
+app/dashboard/adviser/submissions/page.tsx
+docs/ARCHITECTURE_UPDATED.md
+docs/DATABASE (1).md
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+lib/actions/research-group.action.ts
+lib/auth/main-adviser.ts
+lib/repositories/adviser-dashboard.repository.ts
+lib/repositories/adviser-groups.repository.ts
+lib/repositories/adviser-review-details.repository.ts
+lib/repositories/adviser-submission.repository.ts
+lib/repositories/feedback.repository.ts
+lib/repositories/group-member.repository.ts
+lib/repositories/research-group.repository.ts
+lib/repositories/research-supervision.repository.ts
+lib/repositories/submission.repository.ts
+lib/services/adviser-dashboard.service.ts
+lib/services/adviser-feedback.service.ts
+lib/services/adviser-groups.service.ts
+lib/services/adviser-review.service.ts
+lib/services/adviser-submission.service.ts
+lib/services/adviser-submissions-ui.service.ts
+lib/services/ai-aggregation.service.ts
+lib/services/ai-foundation.service.ts
+lib/services/ai-interpretation.service.ts
+lib/services/group-member.services.ts
+lib/services/research-group.services.ts
+lib/services/submission-document.service.ts
+lib/services/submission-upload.service.ts
+lib/services/submission.service.ts
+lib/uploads/submission-upload-workflow.ts
+tests/f1-research-mutations.unit.cjs
+tests/phase102c2-upload.unit.cjs
+tests/phase5-document-access.unit.cjs
+tests/phase8-local-ai.unit.cjs
+tests/s32-main-adviser.unit.cjs
+```
+
+**Single smallest next action:** separately authorize focused disposable local PostgreSQL verification of the new Main-decision/replacement and membership lock interactions, without replaying the full S3.1 matrix or migrating any existing database. Stop after this local report; S3.3 and release actions require separate scope/authorization.
+
+
+## Phase 10.S3.3 - Co-Adviser delegation and private recommendations (2026-11-08)
+
+**Local implementation and focused offline/component verification PASS; real S3.3 PostgreSQL/integration NOT TESTED.** Entry verified feature/development at ff95cd2f00a4ec0df80953c9c47132db2db59b1e, empty index and 57 incoming S3.1/S3.2 changed/new paths. All incoming work is preserved: 47 paths remain byte-identical, six receive directly scoped source/test extensions and four canonical docs receive append-only handoffs. Final pending scope is 69 paths, empty index; S3.3 delta is 22 paths (ten new files, two previously clean tracked files, ten incoming extensions/appends). No reset/stash/discard, staging, commit, push, merge or deployment.
+
+The prior S3.2 disposable receipt at test-results/s32-pg-20261108-aa495123-9e1b-45d1-a7de-f05965a518ef records 17 actual PostgreSQL PASS, nine competing-connection races and verified cleanup. It supersedes earlier pending S3.2 PostgreSQL labels only within that tested scope; it was not rerun and does not prove S3.3 scheduling. Prior S3.1 20 PostgreSQL PASS and owner-reported P4 Preview acceptance retain their own evidence boundaries.
+
+### Implemented behavior
+
+- Existing Main submission review adds exact-version multi-Adviser delegation, confirmed cancellation, assignment states and private completed recommendations. Official review remains optional/non-blocking; the panel reloads its own authorized data without navigation or refreshing away official drafts. Existing Desktop workspace, PDF controls, version navigation, editor and decision dialogs are preserved.
+- Existing submissions route serves a separate restricted Co workspace for active non-Main Advisers: own open title/version assignments, exact PDF request, bounded plain-text recommendation dialog and minimal completed/closed history. No institution directory, Student/group identity, remarks, storage path, official feedback, other recommendation, version navigation or AI aggregates are projected. Dashboard links to that route without revealing institutional metrics.
+- Strict actions/services derive actor from the session. Repository transactions recheck account/current Main or exact Co ownership and open/eligible state. Accounts ascending -> singleton -> submission -> assignments prevents an introduced reverse resource-to-account path. Create/cancel/complete/finalize share the exact submission lock. Duplicate open pairs, forged identities, inactive/role-changed actors, stale authority, terminal writes and other versions are denied. Submitted and Under Review are the only delegable statuses.
+- Co completion persists text, state, completion time and audit atomically, without official feedback/status writes. The 1-20,000 character plain-text value is rendered as text, never HTML. Completed and Closed are terminal; a later assignment inserts new history.
+- Main finalization closes exact-submission open assignments in the existing feedback/status/paper/activity transaction, attributing Main and official-decision reason. Completed recommendations and other versions are preserved. No wait for recommendations, no reopening official decisions. Audit failure rolls assignment and academic changes back together.
+- Delegated PDF requests have fixed 300-second TTL and require exact assignment/submission/owner, active account, open/eligible state and persisted paper/version path before signing; account and scope/path are checked again before return. Completed/Closed/changed-role/disabled accounts cannot mint new links. Previously issued links retain the explicitly approved expiry limitation. Main review remains 1,800 seconds, other existing contracts 300 seconds.
+- Existing in-app notifications run best-effort outside transactions: new assignment -> Co; completion -> current Main. No private text or signed URL is delivered in messages; failures do not change committed success. Creation, completion, cancellation and automatic closure are attributable in existing activity logs. No new provider or live send occurred.
+
+### Verification and corrections
+
+**PASS:** TypeScript --noEmit --incremental false; targeted ESLint; diff/whitespace; incoming-byte/schema/migration/index preservation review. React best-practices and Anti-Slop During review preserve scoped native controls/themes and ENERGY 1 / RHYTHM 2 / MOTION 1.
+
+**46 offline tests PASS, zero FAIL/BLOCKED/skipped** (two existing standalone legacy files count as one each), including sixteen new S3.3 named cases:
+
+~~~text
+node --import tsx --test tests/s33-co-adviser.unit.cjs tests/s32-main-adviser.unit.cjs tests/phase5-document-access.unit.cjs tests/phase5-repository-document.unit.cjs tests/phaseP2B-workspace.unit.cjs tests/s31-research-supervision-schema.unit.cjs
+~~~
+
+Coverage includes active distinct candidates, duplicate/terminal reassignment, cancellation confirmation, own-only projections, Student/other-Co denial, Main private reads, Co official-decision denial, bounded private persistence, immutable authorship, finalization without recommendations, exact-version closure, completed history, late audit rollback, both simulated completion/finalization orderings, stale Main, lifecycle eligibility, current recipient resolution, signing TTL/path/terminal/post-sign guards and action actor/purpose/TTL injection. Transaction and Storage boundaries are deterministic doubles, not PostgreSQL or Supabase evidence.
+
+**11 synthetic Chromium groups PASS, zero FAIL**, node tests/s33-co-adviser-ui.browser.cjs. Extends the existing component-fixture approach with real components and mocked actions: loading/empty, multi-select input/pending, confirmed/cancelled cancellation/focus return, private literal text, uncertain result/reload, restricted list/history, PDF denial, keyboard dialog, dirty draft cancellation, recommendation completion and 360px Light/1280px Dark layouts. Screenshots inspected; all external requests blocked; no Next server or real account. Sandbox esbuild parent-directory denial was resolved by the bounded approved unsandboxed fixture run. A final token correction was verified by rerunning this same fixture.
+
+Initial offline harness corrections: explicit transaction enqueue observation replaced an unreliable preflight scheduling assumption; a historical-owner SQL regex was narrowed so it does not reject the intended co_adviser_id predicate. The older P2 fixture still assumed pre-S3.2 per-group authority; its mocks/expectations now use current Main institutional access while retaining exact-project metadata, inactive/non-Main denial, fixed PDF duration and conditional status assertions. New dependency stubs keep legacy tests offline. No application defect was found or unrelated behavior fixed.
+
+**NOT TESTED:** S3.3 real PostgreSQL competing-connection behavior, migration/runtime grants, authenticated Next Server Action/whole-app persistence, hosted pooler/TLS/Storage/delivery, physical Desktop/Mobile PWA or full production build. No database environment was initialized or connected; no Storage/provider request, environment change, schema/migration regeneration, hosted/Production operation or new testing framework. Existing 0017 remains unapplied to development/hosted databases. Deferred rich-text feedback defect, operational AI, milestones/revisions, auth roles, historical ownership and Admin publication authority remain untouched.
+
+### Exact S3.3 delta inventory (22 paths)
+
+~~~text
+app/dashboard/adviser/page.tsx
+app/dashboard/adviser/submissions/[submissionId]/page.tsx
+app/dashboard/adviser/submissions/page.tsx
+components/dashboard/co-adviser-workspace.tsx
+components/dashboard/co-adviser.module.css
+components/dashboard/main-delegation-panel.tsx
+docs/ARCHITECTURE_UPDATED.md
+docs/DATABASE (1).md
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+lib/actions/co-adviser.action.ts
+lib/repositories/co-adviser.repository.ts
+lib/repositories/feedback.repository.ts
+lib/services/co-adviser.service.ts
+lib/services/submission-document.service.ts
+lib/validations/co-adviser.ts
+tests/phase5-document-access.unit.cjs
+tests/phaseP2B-workspace.unit.cjs
+tests/s32-main-adviser.unit.cjs
+tests/s33-co-adviser-ui.browser.cjs
+tests/s33-co-adviser.unit.cjs
+types/co-adviser.ts
+~~~
+
+Ignored evidence: test-results/s33/baseline.json, delta-paths.json, browser-results.json, screenshots and completion.json. Single smallest next action: separately authorize one fresh disposable LOCAL PostgreSQL verification of the new S3.3 lifecycle/closure/signing authority lock paths, with synthetic data, bounded competing connections and owned-resource cleanup. No existing development/hosted target substitution or automatic next checkpoint. Stop here for owner review.
+
+
+## Phase 10.S3.4 UI - Co-Adviser workspace and recommendation reuse (2026-11-08)
+
+**Compatible local UI implemented; formatted Co persistence BLOCKED.** Verified feature/development at ff95cd2f00a4ec0df80953c9c47132db2db59b1e, 69 incoming pending paths and empty index. Existing work is retained. Non-Main Advisers now have assignment-only workload/recent cards, read-only delegated groups and an exact-version workspace reusing the Main PDF layout. Completed recommendations can be explicitly appended as literal text to an editable official draft after fresh current-Main/exact-submission authorization; no import saves feedback or changes academic state. The Main dashboard body, existing lifecycle transactions and server signer are unchanged. Co/Main signing remains 300/1800 seconds.
+
+The Co recommendation column and validator remain plain text. Formatted save/reload is blocked under the owner's compatibility restriction; the proposed nullable versioned document column is design only, with no generated/applied migration. The shared Main editor was retained because the reported formatting defect was not reproduced in focused coverage. Full behavior, exact file manifest, verification classifications and owner checklist: [S3.4 UI handoff](PHASE10_S34_UI_HANDOFF.md).
+
+Focused evidence: 34 unit/service checks, 26 synthetic Chromium groups, TypeScript, targeted lint and whitespace checks PASS; no unresolved executed failure. Actions/signers/document responses are mocked, SQL concurrency is simulated, and no authenticated whole-app, real PostgreSQL/Storage, physical-PWA or hosted acceptance is claimed for this delta. Retained prior 0017 local application, S3.4A 13-group and owner-reported 7/7 acceptance are not rerun here. No database/Storage/provider operation, environment change, staging/commit/push/merge/deployment or S3.4B. Smallest next action: owner reviews the read-only local Co dashboard, delegated groups and workspace navigation.
+
+
+## S3.4 UI Main feedback formatting boundary fix (2026-11-09)
+
+**Locally corrected; focused offline/synthetic verification PASS; owner authenticated retest pending.** Entry feature/development at ff95cd2f00a4ec0df80953c9c47132db2db59b1e, 84 incoming pending paths and empty index; all prior work retained. Native multipart FormData changes the versioned feedback marker from LF to CRLF, while the old decoder required LF. This reproduces the owner's exact formatting error at Server Action schema validation even without imports, before service/persistence calls. The codec now accepts only the known v1 LF/CRLF spelling and canonicalizes to the existing LF storage representation. Strict markup/text/size limits and the semantic renderer remain; invalid payloads return actionable guidance without losing the draft. No editor rewrite, Co storage change, authority/academic-rule change or migration.
+
+18 focused unit/import checks and 17 synthetic Chromium groups PASS, covering all supported formatting, paragraphs, single/multiple imports, explicit confirmation, Action/service validation, failed-request draft preservation, zero invalid academic writes in doubles and reload rendering. Before-fix replay reproduced eight formatted rejections; plain variants passed. TypeScript, targeted lint and whitespace checks PASS. Source/fixture details, exact six-file delta, representative safe payload and owner retest: [S3.4 UI handoff correction](PHASE10_S34_UI_HANDOFF.md#s34-ui-formatting-defect-correction-2026-11-09). No app-server/database/Storage/provider operation, historical PostgreSQL matrix, staging/commit/push/deployment or next phase. The owner's six listed UI acceptance items are owner-reported; actual authenticated formatted persistence is not independently verified here. Smallest next action: owner retests one intended local synthetic formatted feedback decision and reloads the saved result.
+
+
+## S3.4B.1 - Preview 0017 operator preparation (2026-11-09)
+
+**LOCAL SOURCE / OFFLINE PASS; no hosted connection or database operation.** Entry: feature/development at ff95cd2f00a4ec0df80953c9c47132db2db59b1e, 53 modified tracked plus 35 untracked paths and empty index. The existing Preview runner now has separate read-only inspect and bounded upgrade modes for exact 0016-to-0017. Pinned source/target/ledger checks, private backup byte/hash and pre-state evidence binding, old-table writer locks/fingerprints, canonical schema checks, exactly three minimum grants, public/anon/authenticated exposure checks and independent durable readback are prepared. Existing initialization/0015/0016 modes and the 0016-only waiver stay bounded; 0017 refuses replay, waiver/account-only recovery, incomplete states and automatic destructive recovery.
+
+41 focused offline checks PASS (17 new; 24 selected existing source/operator cases), TypeScript, targeted lint and whitespace/preservation PASS. Database/catalog/parser/backup-loading boundaries are synthetic; no actual PostgreSQL, backup, TLS/pooler, grant or hosted acceptance is claimed. Migration 0017, schemas, snapshots/journal and application S3.1-S3.4 work remain untouched. Current supervision 7/7, UI 6/6 and formatting 7/7 LOCAL acceptance are owner-reported and supersede earlier pending owner-retest wording only. Exact changes, evidence schema, future commands/approvals and remaining gates: [operator preparation](PHASE10_S34B1_PREVIEW_OPERATOR.md). No stage/commit/push/merge/deploy, provider/Storage access or new phase. Smallest next action: owner reviews the prepared operator, then separately scopes Preview read-only preflight and private backup preparation.
+
+
+## S3.4B.2C.1 - Catalog-only 0017 compatibility (2026-11-09)
+
+LOCAL SOURCE / OFFLINE PASS. Verified feature/development at ff95cd2f00a4ec0df80953c9c47132db2db59b1e, 94 incoming pending paths and empty index. The guarded 0017 path now verifies exact metadata without temporary DDL during read-only preflight, baseline/precommit checks and durable inspection. Existing local temporary canonicalization and older operator modes remain available. Source/identity/ledger, minimum grants/exposure, backup binding, preservation and no-replay gates remain. No migration, snapshot, journal, application authority, environment or private-backup change.
+
+63 focused offline tests, TypeScript, targeted lint and whitespace checks PASS. Finite deparser forms are exact allowlists, not arbitrary SQL equivalence; synthetic full-catalog acceptance does not independently establish all live-server renderings or provider event-trigger effects. No database connection or new instance ran. Current Data API state remains unverified; the supported read-only administrative proof is the pinned project Dashboard Enable Data API switch, independently reloaded without changing it. The CLI flag and published PostgREST config response cannot prove disablement. Details, exact eight-path delta and limitations: [catalog-only operator handoff](PHASE10_S34B1_PREVIEW_OPERATOR.md#s34b2c1---catalog-only-compatibility-2026-11-09).
+
+Smallest next action: separately authorize read-only Preview catalog revalidation plus current Data API Dashboard evidence. Existing backup freshness/binding and explicit migration/grant approval remain execution prerequisites. No hosted/Storage/provider operation, Git write, deployment or next phase.
+
+
+## S3.4B.2C.2 - Hosted read-only compatibility revalidation (2026-11-10)
+
+PASS for live pinned Preview identity, exact 17-entry 0016 ledger, catalog-only compatibility, absence of 0017/partial objects, existing runtime privileges, retained archive checksum/fresh binding and unchanged preservation digests. Explicit transaction READ ONLY verified; server default read-only remains off and was not changed. Data API DISABLED is owner-provided November 9 Dashboard evidence; direct browser setting/refresh confirmation was unavailable. The permanent disabled-Data-API policy is recorded in Source of Truth, database guidance and deployment playbook. The [operator handoff](PHASE10_S34B1_PREVIEW_OPERATOR.md#s34b2c2---resumed-hosted-read-only-result-and-prevention-2026-11-10) records exact provenance, four earlier blockers/resolutions and receipt-wrapper limitations. Only five documentation files changed; application/operator/migration source and the Git index remain preserved. No hosted writes, temporary DDL, grants, backup/export/restore, Storage or deployment. Next: owner review and separately authorize guarded 0017/three-grant execution; recheck freshness and bound pre-state at that time.
+
+## S3.4B.3 - Reviewed local supervision checkpoint (2026-11-10)
+
+This handoff supersedes earlier pending migration and owner-retest instructions. The closure commit containing this section has parent `ff95cd2f00a4ec0df80953c9c47132db2db59b1e` on `feature/development`; resolve its SHA with `git log -1 --oneline`. Its reviewed scope is the 97 pending application, schema, operator, regression-test and documentation paths. No additional feature or migration is included. Co-Adviser recommendations remain plain text; formatted Co-Adviser persistence is deferred.
+
+The separately authorized S3.4B.2C execution receipt records one successful 0017 transaction and independent durable readback against the pinned Preview project `cbkplqkkjuoglpimwmib`, database `postgres`, OID 5, native cluster `7678069749886157684`. The source-matching ledger advanced from 17 to 18 entries. Exactly three minimum runtime grant statements were applied. All 19 existing application tables' records, definitions, ACLs and sequence state were preserved. At that receipt, the singleton was unconfigured at revision 0 and assignment count was zero. The private application/ledger archive remains outside Git; its scope excludes infrastructure, roles and Storage. These are retained execution results, not a fresh database inspection during the Git checkpoint. See the [operator execution handoff](PHASE10_S34B1_PREVIEW_OPERATOR.md#s34b2c---verified-preview-execution-2026-11-10).
+
+Local supervision 7/7, UI refinement 6/6 and formatting retest 7/7 PASS are owner-reported acceptance. The retained successful production build used synthetic non-routable settings without environment files; all 66 pending application/schema files match its source snapshot byte-for-byte. Fresh checkpoint TypeScript and targeted lint (84 files) PASS. Retained focused offline/synthetic evidence remains bounded by its documented doubles; no historical PostgreSQL matrix was repeated.
+
+Supabase Data API must always remain disabled. Its accepted disabled-state evidence is the owner's November 9 Dashboard observation; independent post-refresh confirmation remains unconfirmed. Authenticated Preview supervision, real private PDF delivery and owner-led Preview acceptance remain pending. This checkpoint authorizes one local commit only: no push, deployment, database/Storage/provider operation or subsequent phase. Smallest next action: owner review of the local commit before separately authorizing Preview source publication, which may trigger deployment.

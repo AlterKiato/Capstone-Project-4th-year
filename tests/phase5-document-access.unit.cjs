@@ -9,9 +9,12 @@ let group = { id: 30, adviserId: 2 };
 let member = true;
 let failure = false;
 let session = { userId: 3, roleId: 3 };
+let mainAdviserId = 2;
 const calls = [];
 const mocks = {
     'server-only': {},
+    '@/lib/repositories/co-adviser.repository': { readDelegatedDocument: async () => { throw Error('Legacy document access must not use delegation'); } },
+    '@/lib/repositories/research-supervision.repository': { findCurrentMainAdviserId: async () => mainAdviserId },
     '@/lib/repositories/user.repository': { findUserById: async () => actor },
     '@/lib/repositories/submission.repository': { findSubmissionById: async () => submission },
     '@/lib/repositories/research-paper.repository': { findResearchPaperById: async () => paper },
@@ -30,8 +33,8 @@ const { getSubmissionDownloadUrlAction } = require('../lib/actions/storage.actio
 const { isSubmissionDocumentPath } = require('../lib/validations/submission-document.ts');
 async function denied() {
     const before = calls.length;
-    assert.equal(await createSubmissionDocumentUrl(10, 3), null);
-    assert.equal(await createSubmissionDocumentUrl(10, 3, 'adviser-review'), null);
+    assert.equal(await createSubmissionDocumentUrl(10, actor?.id ?? 3), null);
+    assert.equal(await createSubmissionDocumentUrl(10, actor?.id ?? 3, 'adviser-review'), null);
     assert.equal(calls.length, before, 'Denied metadata/identity must never reach storage');
 }
 async function main() {
@@ -40,6 +43,7 @@ async function main() {
     assert.equal(await getSubmissionDownloadUrlAction(10, 'adviser-review'), null, 'A Student cannot select the Adviser duration');
     member = false; await denied(); member = true;
     actor = { id: 2, roleId: 2, isActive: true };
+    session = { userId: 2, roleId: 2 };
     assert.equal(await createSubmissionDocumentUrl(10, 2), 'synthetic-signed-url');
     assert.deepEqual(calls.pop(), ['research/20/v1/test.pdf', 300], 'Legacy Adviser download stays at 300 seconds');
     session = { userId: 2, roleId: 2 };
@@ -54,7 +58,10 @@ async function main() {
     }
     assert.equal(await getSubmissionDownloadUrlAction(10, 'adviser-review', 7200), 'synthetic-signed-url');
     assert.deepEqual(calls.pop(), ['research/20/v1/test.pdf', 1800], 'Extra input cannot increase the fixed server TTL');
-    group = { id: 30, adviserId: 4 }; await denied(); group = { id: 30, adviserId: 2 };
+    group = { id: 30, adviserId: 4 };
+    assert.equal(await createSubmissionDocumentUrl(10, 2), 'synthetic-signed-url', 'historical Adviser no longer limits the current Main'); calls.pop();
+    mainAdviserId = 4; await denied(); mainAdviserId = 2;
+    group = { id: 30, adviserId: 2 };
     submission = { ...submission, version: 'v2' }; await denied();
     submission = { ...submission, version: 'v1' };
     const adviserSubmission = submission;

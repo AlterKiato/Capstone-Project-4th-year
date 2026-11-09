@@ -1,5 +1,5 @@
 // Pure orchestration: a single attempt and one independent durable inspection; never an automatic retry.
-import { verifyPreviewLedger, verifyWorkspaceLedger } from "./preview-migration-source";
+import { verifyPreviewLedger, verifyWorkspaceLedger, verifySupervisionLedger } from "./preview-migration-source";
 import { PreviewSchemaAssertion } from "./preview-schema";
 import { createHash } from "node:crypto";
 import { readFileSync, realpathSync, statSync } from "node:fs";
@@ -86,14 +86,21 @@ export async function upgradePreview0016(io: {
     return changePreview(io, approval, expectedSource, 16);
 }
 
+export async function upgradePreview0017(io: {
+    inspect(): Promise<PreviewState>; apply(before: PreviewState): Promise<string>;
+}, approval: { execute: boolean; target: string; source: string }, expectedSource: string) {
+    return changePreview(io, approval, expectedSource, 17);
+}
+
 async function changePreview(io: {
     inspect(): Promise<PreviewState>; apply(before: PreviewState): Promise<string>;
-}, approval: { execute: boolean; target: string; source: string }, expectedSource: string, upgrade: false | 15 | 16) {
+}, approval: { execute: boolean; target: string; source: string }, expectedSource: string, upgrade: false | 15 | 16 | 17) {
     if (!approval.execute || approval.source !== expectedSource) throw new Error("Preview initialization refused.");
     const before = await io.inspect();
     if (before.target !== approval.target) throw new Error("Preview target confirmation mismatch.");
     if (upgrade) {
-        if (upgrade === 16) verifyWorkspaceLedger(before.ledger, 16);
+        if (upgrade === 17) verifySupervisionLedger(before.ledger, 17);
+        else if (upgrade === 16) verifyWorkspaceLedger(before.ledger, 16);
         else verifyPreviewLedger(before.ledger, 15);
         if (before.empty || !before.preservedData) throw new Error("Preview upgrade requires a populated verified baseline.");
     } else if (!before.empty || before.ledger.length) throw new Error("Preview target is not a verified empty application schema.");
@@ -106,10 +113,11 @@ async function changePreview(io: {
         throw new Error("Preview initialization unconfirmed; review durable state before any further attempt.", { cause: error });
     }
     const after = await io.inspect();
-    if (upgrade === 16) verifyWorkspaceLedger(after.ledger, 17);
+    if (upgrade === 17) verifySupervisionLedger(after.ledger, 18);
+    else if (upgrade === 16) verifyWorkspaceLedger(after.ledger, 17);
     else verifyPreviewLedger(after.ledger);
-    if (after.target !== before.target || after.catalog !== verifiedCatalog || after.ledger.length !== (upgrade === 16 ? 17 : 16) ||
+    if (after.target !== before.target || after.catalog !== verifiedCatalog || after.ledger.length !== (upgrade === 17 ? 18 : upgrade === 16 ? 17 : 16) ||
         upgrade && after.preservedData !== before.preservedData)
         throw new Error("Preview durable result does not match the verified migration result.");
-    return upgrade === 16 ? "upgraded-0016-confirmed" : upgrade ? "upgraded-0015-confirmed" : "initialized-confirmed";
+    return upgrade === 17 ? "upgraded-0017-confirmed" : upgrade === 16 ? "upgraded-0016-confirmed" : upgrade ? "upgraded-0015-confirmed" : "initialized-confirmed";
 }

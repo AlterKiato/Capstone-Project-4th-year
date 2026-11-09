@@ -19,6 +19,7 @@ const admin = { totalUsers: 5, totalGroups: 10, totalResearchPapers: 15, totalPu
 const originalLoad = Module._load;
 const mocks = {
     'server-only': {},
+    '@/lib/auth/main-adviser': { getCurrentMainAdviser: async expected => !fail && session?.roleId === 2 && user?.isActive && user.roleId === 2 && Number.isSafeInteger(session.userId) && session.userId > 0 && (expected === undefined || expected === session.userId) ? session : null },
     '@/lib/auth/session': { getSession: async () => session },
     '@/lib/repositories/user.repository': { findUserById: async () => {
         if (fail) throw new Error('PRIVATE_ERROR');
@@ -113,6 +114,6 @@ async function main() {
     }
     const provider = fs.readFileSync('lib/ai/groq-provider.ts','utf8');
     assert.ok(!/repositories|storage|lib\/db|process\.env/.test(provider));
-    console.log('PASS active-role/local ownership binding, strict inputs, adult denial despite assertions/flags, static fallbacks and zero provider/aggregate calls from UI actions');
+    console.log('PASS active-role/Main authority boundary double, strict inputs, adult denial despite assertions/flags, static fallbacks and zero provider/aggregate calls from UI actions');
 }
 main().catch(error => {console.error(error);process.exitCode=1;});

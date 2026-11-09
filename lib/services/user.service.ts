@@ -37,6 +37,7 @@ async function updateAccount(userId: number, change: { roleId: number } | { isAc
         const result = await updateManagedUserForAdmin(actorId, userId, change);
         if (result.kind === "denied") return denied;
         if (result.kind === "missing") return { success: false, message: "User not found. Refresh the directory." };
+        if (result.kind === "main-adviser-protected") return { success: false, message: "Designate a replacement Main Research Adviser before deactivating this account or changing it to another role." };
         const action = roleChange ? "User Role Changed" : change.isActive ? "User Activated" : "User Deactivated";
         const message = roleChange ? "User role updated successfully." : change.isActive ? "User activated successfully." : "User deactivated successfully.";
         try {

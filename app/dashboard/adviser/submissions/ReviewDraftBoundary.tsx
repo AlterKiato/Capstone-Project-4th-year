@@ -10,7 +10,7 @@ export const useReviewDraft = () => useContext(DraftContext);
 const DraftStatusContext = createContext({ dirty: false, session: 0 });
 export const useReviewDraftStatus = () => useContext(DraftStatusContext);
 
-export default function ReviewDraftBoundary({ children }: { children: React.ReactNode }) {
+export default function ReviewDraftBoundary({ children, draftLabel = "feedback" }: { children: React.ReactNode; draftLabel?: "feedback" | "recommendation" }) {
     const [status, setStatus] = useState({ dirty: false, session: 0 });
     const { dirty } = status;
     const current = useRef({ dirty: false, pending: false, confirmedUntil: 0 });
@@ -25,12 +25,12 @@ export default function ReviewDraftBoundary({ children }: { children: React.Reac
         confirmLeave() {
             confirmationCancels.current.forEach(cancel => cancel());
             if (!current.current.dirty) return true;
-            if (current.current.pending) { window.alert("Feedback is still being submitted. Please wait before leaving."); return false; }
-            const leave = window.confirm("Discard unsaved feedback for this submission and leave?");
+            if (current.current.pending) { window.alert(`${draftLabel === "feedback" ? "Feedback" : "Recommendation"} is still being submitted. Please wait before leaving.`); return false; }
+            const leave = window.confirm(`Discard unsaved ${draftLabel} for this submission and leave?`);
             if (leave) current.current.confirmedUntil = Date.now() + 1000;
             return leave;
         },
-    }), []);
+    }), [draftLabel]);
 
     useEffect(() => {
         const navigate = (event: Event) => { if (!controls.confirmLeave()) event.preventDefault(); };

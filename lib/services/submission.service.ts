@@ -1,4 +1,5 @@
 import "server-only";
+import { getMainAdviserNotificationRecipient } from "@/lib/auth/main-adviser";
 
 import { getActiveResearchActor } from "@/lib/auth/research-mutation-account";
 import { ROLE_IDS } from "@/lib/auth/roles";
@@ -310,9 +311,10 @@ export async function submitResearch(
         // The database commit succeeded, so cleanup is no longer appropriate.
         uploadedPath = undefined;
 
-        const notificationResult =
+        const recipient = await getMainAdviserNotificationRecipient();
+        const notificationResult = recipient === null ? { success: true, message: "" } :
             await notifyAdviserNewSubmission(
-                group.adviserId,
+                recipient,
                 submission.version,
                 paper.title
             );
