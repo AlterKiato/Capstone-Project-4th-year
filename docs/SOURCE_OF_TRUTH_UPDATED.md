@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-11-05 (P.3F.4 documentation closure; P.3F.3 Preview Web Push CLOSED / PASS)\
+**Last reviewed:** 2026-11-10 (workflow optimization; current progress/evidence in Master Context)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -10,9 +10,11 @@ immediate next actions belong in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 **CLOSED / PASS for the agreed synthetic Preview scope.** Migration 0015 and runtime grants, Preview-only VAPID, the configured Ready deployment at `f82a08105158713ffad5161c0235fac1d23327fd`, and Android Adviser enrollment are verified. The owner confirmed notification receipt after a synthetic Student submission and tap navigation to Adviser notifications. See the [current closure evidence and next phase](MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05). This supersedes older disabled/unapplied/unverified P.3 status labels below within their historical checkpoints; missing configuration still defaults off in other environments.
 
-Production readiness/release, iOS and broader device/reliability testing, and retained hosted security/Storage acceptance remain deferred. P.4 Admin Desktop Publication Oversight is the recommended next separately scoped development phase; R.1-R.3 remain later work. No roadmap entry automatically authorizes execution.
+Production readiness/release, iOS and broader device/reliability testing, and retained hosted security/Storage acceptance remain deferred. That November 5 recommendation is historical: P.4 and the owner-accepted S3 supervision scope have subsequent closure evidence in the [current Master Context](MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10). R.1-R.3 remain separately scoped; no roadmap entry automatically authorizes execution.
 
 ## Future release policy (owner decision, 2026-11-05)
+
+**Workflow refinement (owner decision, 2026-11-10):** the [Preview playbook](THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md) is the canonical two-prompt procedure: approved feature implementation, dependency/operator preparation and focused checks with one local commit only if explicitly authorized; then separately authorized pinned fast-forward push/automatic protected Preview publication. The owner performs hosted manual acceptance one action at a time after publication stops. Reuse unchanged [configuration/fixture evidence](VERCEL_PREVIEW_BASELINE.md) and applicable [prevention entries](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register); do not duplicate checklists here. Hosted migrations/grants, fixture creation/cleanup, sensitive configuration, destructive/unbounded writes and Production retain separate explicit approvals. Prompt count never overrides those boundaries.
 
 | Change | Minimum release procedure |
 |---|---|
@@ -966,3 +968,8 @@ This current handoff supersedes older pending migration/retest labels. S3.1-S3.4
 The separately authorized guarded Preview migration 0017 execution and independent durable readback PASS: 18 exact ledger entries, the two additive tables, exactly three minimum runtime grant statements and preservation of all 19 existing application tables' records/catalog/ACL/sequence state. The singleton was unconfigured and assignments empty at that receipt. SQL and historical migration sources are unchanged. Details and evidence limits are in the [operator execution handoff](PHASE10_S34B1_PREVIEW_OPERATOR.md#s34b2c---verified-preview-execution-2026-11-10). No database operation occurs during the local Git checkpoint.
 
 Supabase Data API must remain disabled permanently; owner-provided November 9 Dashboard evidence is retained with independent post-refresh confirmation unconfirmed. The one local closure commit has parent `ff95cd2f00a4ec0df80953c9c47132db2db59b1e`; resolve its resulting SHA from Git. Source publication, protected Preview deployment, authenticated acceptance and real private PDF verification require separate owner scope/authorization. No push, deployment, provider activation or subsequent phase follows automatically.
+
+
+## Supervision publication and accepted-scope handoff (2026-11-10)
+
+The [current Master Context](MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10) supersedes S3.4B.3's pending-publication/acceptance instructions: owner-supplied evidence records the supervision commit pushed, protected Preview published and S3.4B.5 **PARTIAL PASS / closed for the accepted scope**. Retained 0017/minimum-grant execution evidence remains unchanged. Automatic Open-assignment closure is NOT TESTED; full signed-URL expiry and formatted Co-Adviser recommendation persistence are deferred; no v5 completion is inferred. This workflow documentation task authorizes no Git write, hosted operation or next feature. Historical scope permissions above are not standing approval.

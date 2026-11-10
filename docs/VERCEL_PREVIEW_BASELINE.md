@@ -1,19 +1,18 @@
 # ThesiSHS AI — Vercel Preview Configuration Baseline
 
-Recorded: **2026-11-06**. Scope: reusable Phase 10 Preview configuration reference, based on the owner's supplied screenshot findings and confirmations, with a read-only repository check. This document does not authorize a push, deployment, provider change or database operation.
+**Updated:** 2026-11-10 (Asia/Manila). Canonical environment-specific facts and reusable fixture inventory. The [playbook](THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md) owns the procedure; [Master Context](MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10) owns current progress; the [prevention register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register) owns incidents. This baseline authorizes no execution.
 
-## Evidence and repository boundary
+## Evidence and reuse boundary
 
-| Classification | Meaning in this baseline |
+| Classification | Meaning |
 |---|---|
-| **SCREENSHOT-VERIFIED** | Configuration reported as visible in the owner's Vercel or Supabase screenshots. This task received the owner's written capture of those findings; Codex did not inspect the original images or live dashboards. This label attributes the supplied screenshot evidence, not independent verification in this task. |
-| **OWNER-CONFIRMED** | Explicit owner confirmation beyond what the screenshot establishes; not independently checked by Codex. |
-| **HISTORICAL / CODEX-REPORTED** | Evidence retained in repository handoffs, or the local source/preflight inspection performed for this document. Each use identifies which applies; neither establishes current hosted configuration. |
-| **UNVERIFIED** | Not established by the supplied evidence or local inspection; requires the relevant future check. |
+| **LOCAL INSPECTION — 2026-11-10** | Repository only: branch `feature/development`, HEAD and locally stored `origin/feature/development` both `d564c3d8404d935843c0d0366ab9fff155b3c4cf`; entry tree/index clean; origin URL matches the repository below. No fetch/remote query or hosted inspection occurred. A stored tracking ref is not a fresh remote-tip observation. |
+| **SCREENSHOT-VERIFIED** | Attributed November owner-supplied Dashboard findings; this task did not inspect original pixels or live settings. Masked values are not validated. |
+| **OWNER-CONFIRMED** | Accepted owner statements, including November 10 publication/acceptance and fixtures supplied for this checkpoint; not independently rerun. |
+| **HISTORICAL / CODEX-REPORTED** | Retained repository/operator receipts or dated source checks; no automatic promotion to current hosted assurance. |
+| **UNVERIFIED / NOT TESTED** | Fact or behavior not established within the recorded scope. |
 
-**HISTORICAL / CODEX-REPORTED — local preflight on 2026-11-06:** branch `feature/development`; HEAD `4404f7db4f4bcad6ca0c24dc144f6c4389fc94de` (`feat(phase10): checkpoint UI refinements and dashboard performance`); working tree clean and staging index empty before this document was created. This is a local checkpoint, not a claim that this commit is deployed.
-
-The [Master Context](MASTER_CONTEXT_UPDATED.md) controls implementation status. The [future release policy](SOURCE_OF_TRUTH_UPDATED.md#future-release-policy-owner-decision-2026-11-05) controls proportionate release checks. Reuse unchanged evidence, but investigate any contradictory current evidence. This baseline does not replace those canonical documents or expand their authorization.
+Reuse accepted configuration when unchanged and uncontradicted. Refresh only affected facts after relevant settings/code/target changes or contradictory evidence. Dashboard screenshots do not prove secret correctness; GitHub deployment-completed messages do not independently prove Ready or runtime acceptance. Actual Production isolation remains a hard requirement before sensitive hosted writes. Keep values, credentials and raw private screenshots out of Git and reports.
 
 ## GitHub, Vercel environments and domains
 
@@ -27,7 +26,7 @@ The [Master Context](MASTER_CONTEXT_UPDATED.md) controls implementation status. 
 | Preview custom domain | None shown | SCREENSHOT-VERIFIED — limited to the captured view |
 | Environment boundary | Production and Preview are distinct Vercel environments | SCREENSHOT-VERIFIED — does not prove underlying database/Storage isolation |
 
-**UNVERIFIED — future deployment targeting:** `feature/development` targets Preview only while no conflicting branch assignment, custom environment or deployment rule overrides that handling. Reconfirm the effective target before an approved push; branch naming alone is insufficient.
+**Reuse rule:** accepted November configuration maps `feature/development` to Preview via unassigned branches and `main` to Production. Recheck effective targeting when branch assignments, custom environments, deployment rules or contradictory evidence change; do not rediscover this mapping for every push. Branch naming alone is insufficient.
 
 **HISTORICAL / CODEX-REPORTED — retained P.3F.4 handoff:** the [limited synthetic Preview Web Push closure](MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05) records a Ready Preview at `f82a08105158713ffad5161c0235fac1d23327fd` and stable installed-PWA origin `https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app`. That branch URL is distinct from a Preview custom domain. This task did not refresh deployment metadata or verify that the local HEAD is deployed.
 
@@ -35,7 +34,7 @@ The [Master Context](MASTER_CONTEXT_UPDATED.md) controls implementation status. 
 
 **SCREENSHOT-VERIFIED:** the owner-provided Vercel capture shows **16 variables**, scoped to **Preview** and restricted to **`feature/development`**, covering Web Push, Database, Supabase and Authentication. No values were accessed or recorded.
 
-**HISTORICAL / CODEX-REPORTED — current local source inspection:** the identifiers below are supported by the checked-out code. The inventory contains 16 names consistent with those categories, but the supplied screenshot transcription does not enumerate every row. **UNVERIFIED:** exact one-to-one membership of this inventory in the screenshot, current live presence, per-variable scope and value validity. Do not infer those findings from the matching count.
+**HISTORICAL / CODEX-REPORTED — 2026-11-06 local source inspection:** the identifiers below are supported by the checked-out code. The inventory contains 16 names consistent with those categories, but the supplied screenshot transcription does not enumerate every row. **UNVERIFIED:** exact one-to-one membership of this inventory in the screenshot, current live presence, per-variable scope and value validity. Do not infer those findings from the matching count.
 
 | Category | Code-backed identifiers | Repository source |
 |---|---|---|
@@ -79,9 +78,9 @@ The following rows are **SCREENSHOT-VERIFIED**, attributed to the owner's Vercel
 | Deployment Checks | None configured |
 | Rolling Releases | Disabled |
 
-**HISTORICAL / CODEX-REPORTED — current local source inspection:** [package.json](../package.json) declares Next.js `16.4.3`, React/ReactDOM `19.2.4`, `build: next build` and `start: next start`; it has no `engines` pin or root install/build lifecycle hook that invokes migration, initialization, reset or seeding. The database seed/bootstrap/cleanup scripts are separate commands. No tracked `vercel.json`, `.nvmrc` or `.node-version` was found. [next.config.ts](../next.config.ts) was inspected; no configuration was changed. These observations do not audit every dependency installation side effect or prove live command defaults.
+**HISTORICAL / CODEX-REPORTED — 2026-11-06 local source inspection:** [package.json](../package.json) declares Next.js `16.4.3`, React/ReactDOM `19.2.4`, `build: next build` and `start: next start`; it has no `engines` pin or root install/build lifecycle hook that invokes migration, initialization, reset or seeding. The database seed/bootstrap/cleanup scripts are separate commands. No tracked `vercel.json`, `.nvmrc` or `.node-version` was found. [next.config.ts](../next.config.ts) was inspected; no configuration was changed. These observations do not audit every dependency installation side effect or prove live command defaults.
 
-**UNVERIFIED — next release compatibility:** perform a focused repository compatibility check for the actual Node.js 24 runtime and reviewed commit before deployment. Select checks according to dependency/configuration changes and existing evidence; use the project's isolated, credential-free build approach when needed. No package installation, build, application test or runtime connection check was run for this documentation task. Historical builds do not establish compatibility of a later checkpoint or current hosted settings.
+**Compatibility reuse:** Node.js 24 remains the accepted Dashboard baseline. Reuse relevant passed build evidence and perform focused checks when dependencies/runtime/build configuration change. The S3.4B.3 handoff retains a successful isolated build with synthetic non-routable settings; it does not establish hosted connectivity. No application build or runtime check runs for the November 10 documentation task.
 
 ## Deployment protection
 
@@ -101,22 +100,37 @@ The following rows are **SCREENSHOT-VERIFIED**, attributed to the owner's Vercel
 
 **UNVERIFIED:** effective current protection coverage, Trusted Sources scope, automation-bypass validity and actual authorized/unauthorized access behavior. Preserve protection during acceptance; use an approved authenticated access path. Dashboard settings do not establish application role/ownership authorization. Do not include bypass tokens, share tokens, credentials or raw screenshots in Git.
 
-## Reusable Preview deployment checklist
+## Data API — standing security policy
 
-This is a future procedure, not execution approval. Follow the [owner's release policy](SOURCE_OF_TRUTH_UPDATED.md#future-release-policy-owner-decision-2026-11-05); a Git push may itself trigger deployment.
+**ALWAYS DISABLED** in Preview and Production, including development/testing use. Database migrations/runtime must use approved PostgreSQL paths, never depend on enabling the Data API. If observed enabled, stop and report; no automatic toggle. Separate private Storage safeguards still apply.
 
-1. **Read this baseline and current handoffs.** Reuse unchanged settings and bounded evidence; contradictory current evidence takes precedence. Do not repeat complete configuration discovery or synthetic-account backup/restore setup for routine releases.
-2. **Verify Git.** Record the current branch, exact reviewed SHA, working tree and index; preserve unrelated work. Confirm the intended release remains on `feature/development`.
-3. **Review relevant changes.** Inspect the checkpoint diff for configuration, dependencies, database/schema/grants, Storage, authentication, push origin/keys and deployment behavior. Determine which existing focused checks and approvals apply.
-4. **Reconfirm live targeting and assignments.** Confirm the correct connected repository/project, Production branch `main`, effective Preview handling of `feature/development`, relevant variable names/scopes and approved database/Storage assignments. Resolve conflicting branch/environment rules. Verify assignments privately without copying values into reports; keep operator credentials outside runtime. Reconfirm relevant protection settings and the installed-PWA origin when affected.
-5. **Check automatic commands before triggering a build.** Review current package lifecycle scripts, build/install overrides and deployment rules for migration, initialization, reset or seed operations. Do not let an ordinary build perform an unsafe database operation. Schema source alone does not establish the hosted migration ledger or runtime grants; any required migration uses its separately approved, target-verified operator path. Add backup/recovery precautions for destructive changes under the existing policy.
-6. **Run focused compatibility checks when necessary.** Establish Node.js 24 compatibility for the reviewed checkpoint, using relevant existing static/build checks and prior evidence where applicable. Do not substitute a local compile for hosted runtime/resource acceptance or launch a broad matrix without a demonstrated need.
-7. **Push only the approved checkpoint.** Obtain the separate push/deployment authorization required by the handoff, accounting for automatic Git deployment triggers. Do not advance `main` or release Production as part of Preview work.
-8. **Verify the resulting Preview.** Check the exact deployment SHA, Preview environment, Ready/build result and effective protection. Verify the intended branch origin and relevant runtime/resource configuration through approved checks; do not assume the newest local commit matches the deployment.
-9. **Perform focused authenticated acceptance and regression checks.** Use approved synthetic accounts/data and owner-led visible workflows for changed behavior; use bounded sequential automation only when necessary. Record source/metadata evidence separately from owner/device reports. Retain deferred hosted authorization, Storage/expiry, broader device and reliability gates; Preview acceptance does not authorize Production.
+Accepted disabled-state evidence is the owner's November 9 Dashboard observation for `cbkplqkkjuoglpimwmib`; independent saved-state confirmation after reload remains **unconfirmed**. This limitation is not silently upgraded by the accepted scope. For an affected sensitive operation, use the [established evidence procedure](PHASE10_S34B1_PREVIEW_OPERATOR.md#current-data-api-evidence-procedure---not-executed); CLI attestations, SQL ACLs and HTTP 401/503 are not proof of the Dashboard service setting. No comprehensive Dashboard rediscovery is required for unchanged UI batches.
 
-## Remaining verification and this task's result
+## CA certificate advisory
 
-**UNVERIFIED for a future release:** effective live branch/deployment rules; exact current variable inventory, scopes and private assignment validity; current Node.js 24 compatibility; absence of newly introduced automatic database side effects; any required schema/ledger/grant alignment; effective protection/access; exact deployed SHA/environment and focused authenticated acceptance. Production isolation and retained production-readiness security/device gates remain separate. None of these checks was executed against hosted services in this task.
+The owner-supplied November publication evidence identifies the visibility advisory as concerning the intended **public CA certificate**. That advisory alone is nonblocking and does not independently establish a TLS failure. It does not relax server-only handling, strict CA trust/hostname verification or target pins. A private key/credential disclosure, wrong certificate or actual TLS error requires separate investigation. No PEM/secret value was read for this task.
 
-**Documentation result — PASS:** only `docs/VERCEL_PREVIEW_BASELINE.md` was created. The document was reviewed for unsupported claims and secret content; identifier/source checks, local file-link checks, credential-pattern inspection, `git diff --check` and the untracked document's `git diff --no-index --check` passed. HEAD is unchanged, the index is empty and the sole working-tree entry is this untracked document. No source/configuration/dependency edits, secret-value access, raw screenshot copies, database/Storage operations, provider changes, staging, commit, push or deployment occurred. Work stops at this documentation checkpoint; remaining deployment checks do not block its completion.
+## Reusable synthetic Preview fixture inventory
+
+**OWNER-CONFIRMED — supplied 2026-11-10; historical reusable test data, not a live query.** These identifiers confer no permissions. Verify only necessary current role/authority/status through an approved observation before dependent acceptance; never assume user 2 is still designated Main merely from its label.
+
+| Fixture | Identifier |
+|---|---|
+| Admin | user `1`, `preview.admin@example.com` |
+| Main Adviser | user `2`, `preview.adviser.e4a@example.com` |
+| Student | user `3`, `preview.student.e4a@example.com` |
+| Co-Adviser | user `4`, `preview.co.adviser@example.com` |
+| Research group | `1` (`PreviewGroup` in historical handoffs) |
+| Research paper | `1` |
+| Historical submission | submission `4` / `v4`, Revision Required feedback |
+| Later revision | `v5` uploaded and manually moved to **Under Review**; database submission ID not supplied |
+
+Do **fixture lookup before fixture creation**. Reuse does not mean disposable history can be reset: preserve audit rows, feedback, submitted versions, notification history and Storage objects. Creation/cleanup and actual acceptance writes need explicit owner authorization. Do not infer v5 delegation, finalization or automatic assignment closure; current state is not freshly inspected.
+
+## Accepted November 10 release evidence
+
+**OWNER-CONFIRMED — supplied for this documentation checkpoint:** supervision commit `d564c3d8404d935843c0d0366ab9fff155b3c4cf` was pushed to `origin/feature/development`; protected Vercel deployment `5rwbC8SzqAt1wHRVhMxjbd1bL43M` was published. Its deployment-specific URL/independent Ready metadata were not supplied or fetched. The historical branch origin above remains a navigation reference, not a fresh SHA/alias check.
+
+The [operator execution receipt](PHASE10_S34B1_PREVIEW_OPERATOR.md#s34b2c---verified-preview-execution-2026-11-10) records completed 0017/minimum runtime grants and independent durable readback; no migration is repeated. Hosted S3.4B.5 acceptance is **PARTIAL PASS / closed for the accepted scope**, with owner-confirmed PDF, recommendation, import and feedback behaviors. **NOT TESTED:** automatic closure of an Open Co-Adviser assignment during Main finalization. **Deferred:** full signed-URL expiry observation and Co-Adviser rich-text recommendation persistence. v5 remains recorded as Under Review with no inferred completion.
+
+Earlier November 6 local SHA `4404f7db4f4bcad6ca0c24dc144f6c4389fc94de`, baseline-untracked and pending-publication statements were historical import evidence; they are superseded as current status. No deployment, hosted settings, secret values or database/Storage state were freshly verified here. Use [Prompt 2](THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md#5-prompt-2--guarded-preview-publication) for future publication; do not maintain a second release checklist in this baseline.

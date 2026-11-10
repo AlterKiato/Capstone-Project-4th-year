@@ -10,7 +10,15 @@ For `feature/development` Preview deployments, read [the deployment playbook](do
 
 Preserve authentication, authorization, data integrity and Git safeguards. Explicit authorization is still required for pushes, deployments, hosted mutations, migrations and Production operations. This guidance refines the Preview procedure without authorizing those actions or superseding the existing release policy's security and target-verification requirements.
 
-## Current closure and release handoff (2026-11-05)
+## Current workflow and closure (owner decision, 2026-11-10)
+
+Use the [two-prompt playbook](docs/THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md): approved implementation/dependency checks/focused validation plus one local commit only when explicitly authorized; then separately authorized pinned fast-forward push and automatic protected Preview publication. Owner-led hosted acceptance is the default, one action at a time; publication stops before executing the user workflow. Consult the [baseline and fixture inventory](docs/VERCEL_PREVIEW_BASELINE.md) and [existing prevention register](docs/PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register) only for affected dependencies. Do not repeat unchanged comprehensive preparation.
+
+S3.4B.5 is **PARTIAL PASS / closed for the accepted scope**, per owner November 10 evidence. Current publication, migration and acceptance facts/limits are in the [current Master Context handoff](docs/MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10); it supersedes historical next-phase/pending-publication instructions below. Open-assignment automatic closure remains NOT TESTED; full signed-URL expiry and formatted Co-Adviser persistence remain deferred. v5 is recorded as Under Review, with no inferred completion. Supabase Data API must ALWAYS remain disabled; retain all existing security/target/Git safeguards.
+
+This documentation checkpoint authorizes edits and documentation checks only. No staging/commit/push/merge/deployment, database/Storage connection or mutation, provider/configuration change or R1 implementation. Historical execution permissions are not standing authorization. The owner reviews the workflow before approving a documentation commit or separately scoped R1 work.
+
+## Historical closure and release handoff (2026-11-05)
 
 **P.3F.3 is CLOSED / PASS for the agreed synthetic Preview Web Push scope.** Migration 0015/runtime grants, Preview-only VAPID and Ready deployment `f82a08105158713ffad5161c0235fac1d23327fd` on `feature/development` are verified; Android Adviser enrollment is server-verified and notification receipt/tap navigation are owner-confirmed. The [P.3F.4 handoff](docs/MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05) supersedes older pending/unimplemented P.3 labels and next-action instructions below. Production, broader device/reliability coverage and retained security gates remain separate; Groq/Resend stay disabled and Expo frozen.
 
@@ -92,7 +100,7 @@ This file is intended for the project owner and other contributors to resume wor
 3. Never invent a commit hash or claim a test passed unless confirmed.
 4. If information is uncertain, label it `Needs verification`.
 5. Before starting, check this file, the relevant source files, branch, commit, and working tree.
-6. After each meaningful milestone, update the checkpoint and handoff log and commit the progress document.
+6. After each meaningful milestone, update only affected checkpoint/handoff documentation. Create a reviewed local commit only when the active owner prompt explicitly authorizes it; do not stage or commit merely because this historical guide mentions closure.
 
 ### Feature tracking template
 ```md

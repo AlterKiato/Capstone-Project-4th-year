@@ -1,8 +1,20 @@
 # ThesiSHS AI — Master Context
 
-> **Current closure — 2026-11-05 (P.3F.4): P.3F.3 is CLOSED / PASS for the agreed synthetic Preview Web Push scope.** Migration 0015, minimum runtime grants, Preview VAPID, deployment/build and Android Adviser enrollment are verified; Android receipt and tap/navigation are owner-confirmed PASS. Verified deployed HEAD: `f82a08105158713ffad5161c0235fac1d23327fd`, `feature/development`. See the [closure and development handoff](#p3f4-web-push-closure-and-development-handoff-2026-11-05). This current notice and that handoff supersede conflicting pending/disabled/next-step labels in the retained November 4 snapshot and historical sections below. Production readiness remains separate.
->
-> **Documentation-only checkpoint:** preserve the six incoming unstaged paths and their existing edits, including this file's earlier reconciliation. No staging, commit, push, deployment or database operation is authorized here. Next recommended development scope: P.4 Admin Desktop Publication Oversight, after owner scope approval.
+## Current handoff (2026-11-10)
+
+**S3.4B.5 — PARTIAL PASS / CLOSED for the owner-accepted hosted supervision scope.** This supersedes older current/next-action wording below, including pending-publication/acceptance instructions in S3.4B.3; historical test limitations remain attached to their own receipts. P.4 is already implemented/owner-accepted, not the next unimplemented phase.
+
+- **Local repository inspection, November 10:** `feature/development`, HEAD `d564c3d8404d935843c0d0366ab9fff155b3c4cf` (parent `ff95cd2f00a4ec0df80953c9c47132db2db59b1e`); entry tree/index clean. Stored `origin/feature/development` matches HEAD and origin points to `AlterKiato/Capstone-Project-4th-year`; no fresh remote query/fetch occurred.
+- **Retained operator evidence:** Preview migration 0017 and exactly three minimum runtime grant statements completed with independent durable readback and existing-data/catalog/ACL/sequence preservation. See [execution receipt](PHASE10_S34B1_PREVIEW_OPERATOR.md#s34b2c---verified-preview-execution-2026-11-10); no database reinspection here.
+- **Owner-supplied November 10 evidence:** commit `d564c3d8404d935843c0d0366ab9fff155b3c4cf` pushed to `origin/feature/development`; protected Vercel deployment `5rwbC8SzqAt1wHRVhMxjbd1bL43M` published. Hosted PDF/recommendation/import/feedback behaviors passed for the accepted scope. Codex did not independently rerun hosted acceptance or fetch deployment metadata in this task; deployment-specific URL/independent Ready status remain unconfirmed here.
+- **NOT TESTED:** automatic closure of an Open Co-Adviser assignment during Main finalization. **Deferred:** full signed-URL expiry observation and Co-Adviser rich-text recommendation persistence. Historical v4 has Revision Required feedback; v5 was uploaded and manually moved to **Under Review**. No v5 delegation/finalization/automatic closure is inferred or performed.
+- **Standing boundaries:** Data API ALWAYS DISABLED; accepted owner November 9 disabled-state evidence retains its unconfirmed independent-refresh limitation. Runtime/operator separation, strict TLS, private Storage, Production isolation and retained security/device/reliability gates remain. Groq/Resend disabled, Expo frozen.
+
+The [playbook](THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md) now owns the default **Prompt 1: approved implementation + optional explicitly authorized local commit → Prompt 2: separately authorized guarded push/automatic protected Preview publication → owner-led acceptance, one action at a time**. Configuration/fixtures live in the [baseline](VERCEL_PREVIEW_BASELINE.md); incident remedies live in the [existing prevention register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register). Reuse unchanged evidence and focused delta checks.
+
+**This checkpoint:** documentation edits/checks only; no application build/test, staging/commit/push/merge/deployment, database/Storage connection, hosted mutation, configuration change or provider call. **Single smallest next action:** owner reviews the updated playbook before authorizing a documentation commit or beginning a separately approved R1 specification. No R1 implementation starts automatically.
+
+## Historical snapshot (retained)
 
 **Last reconciled:** 2026-11-04 (documentation consistency review; latest implementation entries dated 2026-11-02)
 **Current branch:** `feature/development`
@@ -558,10 +570,10 @@ This entry supersedes the pending live-acceptance status in the preceding Phase 
 - Known limitations, not blockers: Issued URLs remain usable until 300-second expiry after revocation/unpublication; storage objects may be removed after publication; strict legacy paths rejected; approved-document resolution dynamic. This verification supports the capstone delivery/demo, not enterprise production hardening.
 - Git/stop gate: HEAD 70b8fb4, Phase 5.4 commits a6bae0f/70b8fb4 untouched; everything unstaged/uncommitted. No Phase 6, CI, .github changes, AI work, reset/rebase/amend, commit or push. Suggested manual commits for accumulated work: feat(repository): secure published PDF access; test(phase5): verify capstone repository workflow; docs(phase5): close research repository phase.
 
-## Handoff ? 2026-10-08 ? Phase 6 Lean Repository Discovery
+## Handoff — 2026-10-08 — Phase 6 Lean Repository Discovery
 
 - Status: Complete for the owner-approved lean scope; focused runtime acceptance and static checks PASS.
-- Branch / starting and ending HEAD: `feature/development`, `482b112` ? `docs(phase5): close research repository phase`. Working tree was clean at start; all changes remain unstaged/uncommitted. No staging, commit, push, CI or `.github/` changes.
+- Branch / starting and ending HEAD: `feature/development`, `482b112` — `docs(phase5): close research repository phase`. Working tree was clean at start; all changes remain unstaged/uncommitted. No staging, commit, push, CI or `.github/` changes.
 - Inspection: Read current progress/source-of-truth/architecture docs, repository listing/detail/service/query/action/schema and Phase 5 tests; read installed Next.js 16.2.9 page/searchParams guide before editing. Historical Phase 6 discovery was already in HEAD, so no duplicate implementation was created.
 - Scope: Reuse title/abstract/keyword SQL ILIKE search with escaped wildcards, exact category/school-year/strand filters, count/limit/offset pagination at 10 per page, criteria-preserving links and existing empty/Clear filters state. Simplified ordering to newest first with stable paper-ID tie-breaker; removed the old sort selector/types/validation/branches. Obsolete URL sort values are ignored.
 - Authorization: Existing server-side requireRole runs before listing queries for Students and Advisers. Existing Phase 5 Admin/Panel archive access is preserved; no new evaluation or role semantics. Published row + approved paper + approved submission predicates remain required in SQL. Detail, publication, document actions, database account/role checks and private 300-second signing are unchanged.
@@ -2906,7 +2918,7 @@ Owner review comes next. Recommended Phase 10.1B.2 scope: approve an isolated te
 No migration SQL, migrate/push, seeds, real/shared database mutation, actual email, dependency installation, deployment, staging, commit or push occurred. Leave this checkpoint unstaged/uncommitted at the original HEAD and do not start Phase 10.1B.2 automatically.
 
 
-## 2026-10-21 ? Phase 10.1B.1 PostgreSQL migration and database acceptance
+## 2026-10-21 — Phase 10.1B.1 PostgreSQL migration and database acceptance
 
 ### Authority and isolation
 

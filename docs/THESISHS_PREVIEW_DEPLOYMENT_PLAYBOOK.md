@@ -1,106 +1,110 @@
-# ThesiSHS AI — Lean Vercel Preview Deployment & Testing Playbook
+# ThesiSHS AI — Development and Protected Preview Playbook
 
-**Established:** 2026-11-06 (Asia/Manila)\
-**Audience:** Future ChatGPT project conversations, Codex agents, and the project owner\
-**Purpose:** Ship small, reviewable feature batches to **Vercel Preview**, test the actual deployed system promptly, and prevent planning/audit/recovery work from becoming larger than the feature test itself.\
-**Status:** Working project guidance; **not** proof of a live deployment or permission to perform unapproved operations.
+**Updated:** 2026-11-10 (Asia/Manila). Canonical operating procedure for small feature batches. This document grants no execution permission. Current progress belongs in [Master Context](MASTER_CONTEXT_UPDATED.md); configuration and synthetic fixtures belong in the [Preview baseline](VERCEL_PREVIEW_BASELINE.md); incident causes and established remedies belong in the [prevention register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register).
 
-**Repository import note (2026-11-06):** Adapted from the owner-supplied playbook. Historical conversation/source-review claims below are attributed to that supplied document; they were not independently reconstructed during this import. The configuration baseline retains its evidence limits, including the distinction between the reported screenshot count/scope and the code-backed variable inventory. Existing canonical Development/Preview test Storage sharing remains unchanged; no new resource-isolation verification is claimed.
+## 1. Default: two prompts per feature batch
 
-> **Start here in future chats:** Read this playbook, then `docs/VERCEL_PREVIEW_BASELINE.md`, current `AGENTS.md` and relevant project docs. Check the *actual current Git state*. Treat the baseline as previously observed settings, not live assurance. For changes that do not affect deployment, database, storage, authentication, or environment configuration, use **delta checks** instead of rediscovering all Vercel settings.
+**Prompt 1 implements the approved feature and, only if explicitly authorized, creates one reviewed local commit. Prompt 2 publishes that pinned commit to protected Preview after explicit push/deployment authorization.** Owner-led acceptance follows publication, one action at a time. Simple batches may use one prompt containing both explicitly authorized checkpoints, conditional on every applicable gate passing. Two prompts are a default, not permission to cross a security boundary.
 
-## 1. Governing principle — capstone demonstration first, not enterprise preparation
+Read this playbook, the baseline, current `AGENTS.md`, Master Context and Source of Truth before release work. Inspect actual Git state and affected source. Treat dated handoffs as historical evidence, never reusable authorization. Preserve unrelated work. Prefer the smallest check that detects a concrete changed risk; reuse accepted evidence when its dependencies are unchanged. Do not turn routine UI work into a complete infrastructure or recovery audit.
 
-**Deliver a working, safe demonstration of the Student–Adviser research workflow.** Prefer the smallest check that can detect a meaningful risk. Do not delay a low-risk Preview UI test behind a production-grade recovery exercise, exhaustive device matrix, generalized disaster plan, repeated architecture review, or a new test harness. Preserve authentication and authorization, isolate test activity from real user data, retain deployment protection, and require authorization for hosted writes.
+## 2. Compact dependency check before coding
 
-**Scope test:** Before proposing more preparation, answer: (a) What specific failure could this prevent for *this batch*? (b) Does existing evidence already cover it? (c) What is the shortest safe test? (d) Is it a release concern rather than a Preview smoke-test concern? If no concrete incremental benefit, **stop preparing and test the deployed feature**.
+Record each row as **changed / unchanged / not applicable**, with only the affected prerequisite, existing evidence and next check. Resolve implementation dependencies before coding; do not connect to hosted services merely to fill this table.
 
-**Time/token discipline:** One short readiness pass; one focused deployment; one focused smoke test. Prefer concise PASS / BLOCKED / NOT TESTED reports, exact evidence, and the **single smallest next action**. Do not create multi-phase reviews of a check already passed unless evidence changed. Keep the owner informed of blockers; don't repeatedly request the same screenshots or inputs.
+| Dependency | Change-sensitive question |
+|---|---|
+| Schema and migration operator | Does the feature need a migration? Does the actual intended local database have it? Can the guarded Preview operator inspect and apply exactly that transition? Source files alone prove neither applied state nor operator support. |
+| Grants and authorization | Which runtime permissions and current role/account/paper/assignment checks change? Prepare minimum-grant support and focused denial/integrity tests in the same batch. |
+| Existing local/Preview data | Does current ledger or workflow state satisfy the feature? Reuse the baseline fixture inventory before proposing creation; do not reset history to fit a test. |
+| Private Supabase Storage | Does upload/signing/path/TTL/policy behavior change? Development and Preview share test Storage; local PostgreSQL does not make a Storage workflow local-only. |
+| Authentication and session | Are login, active-account/current-role checks, session lifetime or revocation affected? Test the changed boundary. |
+| Environment and scopes | Any new/renamed variable, target, origin, routing or secret scope? Compare names/scopes only; reuse unchanged baseline evidence. |
+| Notifications and providers | Any new recipients, privacy exposure, post-commit side effects or external calls? Keep failures isolated and Groq/Resend disabled. |
+| Fixtures and acceptance | Which existing disposable account/paper/version and current status are needed? State safe actions, owner authorizations and deferred coverage before testing. |
 
-## 2. Evidence from prior work, with limits
+For UI work also read `DESIGN.md` and `ANTISLOP.md`, apply approved During mode and retain themes, accessibility, routes and workflow semantics. Read relevant installed Next.js guides before writing application code. Preserve UI → Server Actions → Zod → services → repositories → Drizzle layering and server-side authorization.
 
-- **P.3A Push Feasibility Planning (available source):** Approved a capstone demonstration-first strategy; split implementation into small checkpoints, favor focused testing, defer enterprise-scale infrastructure, preserve necessary security and failure isolation. It explicitly warned against repeating feasibility/design phases without a genuine blocker.
-- **Group Taskboard integration (limited access):** The owner reports that earlier group-taskboard Preview pushes worked using the Preview Supabase project. This is supporting historical context for reusing known deployment procedures, **not an independently reconstructed log of the entire chat**. Do not invent its exact commands, tests, or incidents. If that transcript becomes available, incorporate only confirmed lessons.
-- **Current Batch A:** A previously excessive readiness gate stopped a UI/performance Preview push when an authenticated Vercel browser/CLI was unavailable, even though a later owner-assisted review established branch tracking, variable scopes, build settings, and protection. The lesson is to **re-use captured evidence with a lightweight change-sensitive gate**, not to weaken material safety controls.
-- **Captured configuration:** `VERCEL_PREVIEW_BASELINE.md` was documented using owner screenshots. Evidence is marked screenshot-verified, owner-confirmed, historical/Codex-reported, or unverified. Never silently promote evidence levels.
+## 3. Risk tiers and execution boundaries
 
-## 3. Known Vercel Preview baseline (snapshot, not permanent truth)
-
-| Item | Recorded understanding | Evidence / caveat |
+| Tier | Scope | Minimum relevant checks |
 |---|---|---|
-| Repository | `AlterKiato/Capstone-Project-4th-year` | Owner screenshot |
-| Production tracking | `main` | Owner screenshot |
-| Preview tracking | Enabled for unassigned branches; intended `feature/development` | Owner screenshot; check for new overrides if relevant |
-| Preview environment variables | 16 entries reported scoped to Preview and `feature/development` | Owner-supplied screenshot findings; exact row membership of the code-backed inventory remains unverified; **values masked** |
-| Preview Supabase | Project `ThesiSHS AI`, reference `cbkplqkkjuoglpimwmib`, Singapore | Project identity screenshot findings; Preview/testing use owner-confirmed; canonical Development/Preview test Storage sharing retained |
-| DB and Supabase URLs | Owner says Preview `DATABASE_URL` and `SUPABASE_URL` came from that test project | Owner-confirmed; masked values not independently inspected |
-| Build | Next.js default commands, repository root; Vercel Node.js `24.x` | Screenshot; dependency compatibility still needs focused review |
-| Protection | Vercel Authentication enabled for all deployments | Screenshot; do not bypass for automation |
-| Production DB/Storage separation | Not independently established | **Unverified**; stronger checks mandatory before migrations or significant hosted writes |
+| **A — UI/read-only** | Layout, CSS, read-only views/queries | Affected behavior, accessibility and query scope; focused static/build checks when relevant; Git and Preview routing delta. No comprehensive database audit. |
+| **B — Authentication, permissions, data-writing** | Sessions, submissions, feedback, publication, enrollment | Tier A plus focused authorization/data-integrity regressions, intended test resource, reusable synthetic records and bounded acceptance prerequisites. |
+| **C — Schema/infrastructure/sensitive resources** | Migrations, grants, Storage policy, secret scope, Production routing | Prepare reviewed operator support with implementation. Before execution require separate explicit approval, exact resource/target/source/ledger/grant checks and risk-appropriate preservation/recovery. |
 
-Read `docs/VERCEL_PREVIEW_BASELINE.md` for the full evidence table; if the repository uses a different location, locate it without creating duplicates.
+Assign the highest applicable tier; a UI label does not hide a write or permission change. Preparation of an approved additive migration/operator is local work; an unexpected security-sensitive or destructive requirement stops at its applicable approval boundary.
 
-## 4. Risk-tiered deployment gate (match effort to change)
+Separate explicit authorization remains required for hosted migrations/grants, destructive or unbounded changes, new fixture creation/cleanup, push/deployment, sensitive configuration changes and all Production operations. Publication alone authorizes none of those other actions. Reusing fixtures is not authorization to mutate them. A single prompt can pre-authorize precise safe conditional steps; unmet gates stop only the dependent operation.
 
-| Tier | Examples | Minimum checks | Avoid |
-|---|---|---|---|
-| **A — UI / read-only** | CSS, layout, sidebar, skeletons, read-only query optimization | Correct branch/commit; fast-forward; no unexpected deploy scripts; reuse branch/env baseline; focused build compatibility check if dependencies changed; Preview deploy + visual/auth smoke test | Full disaster recovery, exhaustive DB inspection, broad test suites, re-collecting unchanged screenshots |
-| **B — Auth / data-writing behavior** | Login/session changes, submissions, feedback, repository writes, push enrollment | Tier A **plus** targeted authorization and data-integrity checks; confirm intended test resource; use pre-existing synthetic test data; bounded state-changing acceptance only with authorization | Full production resilience program, indiscriminate seed/reset |
-| **C — Schema / infrastructure / sensitive resources** | Migrations, grants, storage policy changes, new DB target, secret scope, production routing | Pause for explicit approval; verify exact target/resource identity, migration SQL, compatibility and rollback/backup appropriate to risk; inspect impacted access policies | Automatic migration, unrestricted push, guessing masked values |
+**Hard stops:** wrong/unverified sensitive-write target or Production isolation, unexpected remote/commit, secrets exposed, cross-user authorization failure, automatic destructive database step, or actions beyond approved scope. **Supabase Data API must ALWAYS remain disabled in Preview and Production, including testing.** If enabled is observed, stop and report; never toggle it or use REST/PostgREST as a migration/runtime fallback. Retain strict CA/hostname TLS, private credential-file safeguards, runtime/operator separation, private PDFs, audit/history and Deployment Protection.
 
-**Hard stops (all tiers):** Production is the deploy target; incorrect/unexpected remote commit; suspicious secret disclosure; automatic destructive DB step; known wrong DB target; cross-user authorization regression; or a requested operation would change hosted data beyond authorization. **Unknown non-critical metadata is not automatically a blocker** for a Tier A build-only Preview push when prior scoped evidence is consistent and no relevant configuration changed. State the residual uncertainty honestly.
+Follow the [release policy](SOURCE_OF_TRUTH_UPDATED.md#future-release-policy-owner-decision-2026-11-05). Routine releases do not require repeated synthetic-account backup/restore setup. Existing guarded operators retain their own prerequisites: the 0017 backup gate and the historical 0016-only waiver are not interchangeable. Destructive work needs its separately approved recovery precautions.
 
-**Do not equate push permission with permission for migrations, resets, test-user provisioning, submission/publication, real notifications, or production promotion.** Those remain separate actions.
+## 4. Prompt 1 — implementation and local Git checkpoint
 
-## 5. Default batch workflow (efficient and traceable)
+1. Inspect actual branch/HEAD/index/tree, approved specification and affected source/contracts. Identify dependencies using section 2, classify A/B/C and consult only applicable prevention entries.
+2. Implement the complete approved batch. Prepare needed additive migration, operator compatibility, minimum-grant plan and acceptance support together. Keep hosted execution separately gated. Reuse existing Preview fixture inventory.
+3. Run focused unit/integration and authorization checks, relevant lint/TypeScript and build checks. Include changed transport/persistence boundaries rather than only component mocks (for example multipart FormData normalization). Distinguish doubles, real local database tests and hosted evidence. No hosted test mutation without approval.
+4. Inspect the diff for secret disclosure, authorization/schema regressions, install/build migration or seed side effects, and unintended changes. Fix routine test whitespace, documentation reconciliation and commit preparation in this same checkpoint. Update only affected canonical documentation.
+5. If committing was explicitly authorized, review exact file scope, branch, parent, remote ancestry, staged diff and whitespace; create **one local commit**. Preserve unrelated modifications; no broad staging, push, merge or deployment. If committing was not authorized, leave edits unstaged and report that status.
+6. Return SHA (or explicitly no commit), tier, validation and evidence limits, new variables/schema/operator/grant implications, fixture prerequisites, concrete blockers and the smallest next action.
 
-1. **Identify the delta.** List only files changed since the last approved/Preview-tested commit; classify tier. Record new env vars, packages, schema, CI/scripts, permissions and deployments. Do not rerun an entire feature audit already closed.
-2. **Focused local verification.** Run lint/type/build checks relevant to the delta. Reuse previous PASS evidence unless code or environment affecting that evidence changed. If Vercel Node 24 and local runtime differ, validate declared runtime/dependencies quickly and let the actual Preview build provide the decisive hosted check.
-3. **Git preflight.** Confirm `feature/development`, intended SHA, current remote fast-forward, no staged surprises and no secrets. A separate documentation-only commit may be appropriate, but **do not make a large new closure process merely to record the baseline**. No force push or `main` merge.
-4. **Preview route check.** Read existing baseline and confirm no known changes to branch tracking or Preview scopes. If this batch changes env/DB/storage/hosting, verify that specific change. If owner screenshots are current and unchanged, don't insist on a fresh browser connector solely to duplicate the same observations.
-5. **Push, only when authorized.** A push may auto-trigger a protected Preview build. Record the exact deployed SHA, environment, status and URL. A successful build is **not** acceptance.
-6. **Smoke-test the affected feature.** Owner-led protected sign-in is valid when agents cannot access Vercel Authentication. Test the new functionality, one prior critical workflow that it could break, and relevant role restrictions. Use existing synthetic accounts. Record PASS / FAIL / BLOCKED / NOT TESTED with direct observation.
-7. **Fix only discovered failures.** Isolate the smallest patch; focused retest; new reviewed commit/push with approval. After subsequent batches, rerun **targeted regression** against older batches touched by shared code. Perform broader integrated acceptance before production readiness.
-8. **Handoff.** Give a compact status with SHA, URL/status, what actually passed, what remains owner-only, and one next task. No invented results.
+Do not spawn a new planning checkpoint for routine corrections. A meaningful failure or unexpected sensitive/destructive dependency justifies a bounded stop and specific next step.
 
-### Minimum Batch A/early navigation Preview acceptance
+## 5. Prompt 2 — guarded Preview publication
 
-- Protected Preview opens; Student, Adviser, Admin test-account login and logout.
-- Student dashboard/submissions/workspace, Adviser dashboard/groups, Admin dashboard load; skeletons resolve; report observed delays rather than assuming DB read-count reductions are time gains.
-- Installation and push controls appear in intended Settings/platform contexts (do **not** trigger real push unless authorized).
-- Web/Desktop sidebar preferences and Mobile navigation destinations; basic drawer/keyboard close behavior and Adviser unsaved-feedback navigation guard where testable.
-- No unexplained crashes, wrong-role access or incorrect database target. Mark physical installed-device coverage pending when unavailable.
+1. Confirm explicit authorization covers **one normal fast-forward push and its automatic protected Preview deployment**. Pin exact local HEAD on `feature/development`; require clean working tree and index. Confirm origin URL, destination ref and fresh remote tip through an authorized read-only remote query/fetch; verify remote is an ancestor of pinned HEAD. Stop on drift/divergence; no force push, merge, rebase or `main` advancement.
+2. Review only changes since the prior reviewed/published checkpoint: dependencies, scripts/CI, build/install overrides, routing, env, auth, schema and Storage. Reuse previously accepted repository/project, branch mapping, protection and variable-scope evidence in the baseline unless affected or contradicted. Verify only new/changed variables and routing; do not rediscover all 16 entries.
+3. For schema-dependent code, establish that the **separately approved** migration and minimum grants are applied to the correct Preview target using applicable durable receipts/current delta checks. Source presence or a local migration does not suffice. If required state is missing/unverified, stop publication of incompatible code; do not run the migration under push approval.
+4. Perform **one authorized fast-forward push** of the pinned commit to `origin/feature/development`. Observe the Git-triggered protected Preview build. Do not create an additional CLI deployment or retry a push after an uncertain result; inspect the remote/deployment first.
+5. When accessible, verify deployed SHA, Preview environment, status, URL and protection. If access is unavailable, use the section 7 fallback and label each missing fact. A GitHub deployment-completed notification is a reported completion, not independent Ready/runtime acceptance.
+6. Return pinned SHA, Preview URL, observed deployment status/provenance, configuration deltas and a short acceptance procedure: intended fixture, changed feature, one affected prior workflow/role restriction and remaining gaps. **Stop before executing the user workflow.** Do not automatically submit, finalize, delegate, enroll, publish records or clean up data.
 
-## 6. Database safety without overengineering
+A historical passed check is reusable evidence, not a claim that the present deployment was inspected. Missing noncritical metadata is not automatically a Tier A publication blocker when unchanged accepted evidence remains consistent. Exact deployed SHA/environment/protection may remain unconfirmed and must be reported as such; never turn that uncertainty into PASS.
 
-**Standing owner security policy (2026-11-09): ThesiSHS AI requires the Supabase Data API to remain disabled in Preview and Production. Database migrations and runtime access must not depend on enabling the Data API.** No development/testing convenience or REST/PostgREST fallback overrides this rule. If enabled is observed, stop and report a policy violation; do not automatically toggle the setting. Record the correct project's dated Dashboard evidence and whether reload confirmed the saved state. Separate Storage services and their authorization gates remain unchanged.
+## 6. Owner-led manual acceptance
 
-For **Tier A** UI/read-only batches, reuse the owner-confirmed Preview Supabase assignment, verify no build-time migrations/seeds, and avoid hosted writes. Retain the documented Development/Preview test Storage sharing. Record that masked URLs and Production separation are not independently proven. **Do not demand a production-style backup/recovery drill merely to open a protected Preview UI.**
+The **owner performs hosted user-facing acceptance**. Codex gives **ONE action at a time**, with fixture/current-state prerequisite, expected visible result and any authorized mutation made explicit. Wait for the owner's **PASS / FAIL / BLOCKED** before the next action. A short overall checklist may accompany publication; execution remains sequential and owner-led.
 
-For **any hosted mutation** (including tests that submit PDFs, create taskboard records, enroll devices or alter research status), require a correctly identified test target and authorized synthetic records. For migration/schema/grant work, follow the stricter database procedures and separate approval. If the preview DB target is demonstrably wrong, stop. A protected Preview URL does **not** itself make DB writes safe.
+Reuse safe historical synthetic records after fixture lookup. Obtain owner authorization for actual hosted mutations; fixture reuse does not permit resets. Preserve submissions, feedback, assignment/audit rows, notification history and Storage objects. Previously accepted tests repeat only when an affected dependency or contradiction justifies it. Focused technical verification remains useful for unit tests, authorization regressions and repeatable technical checks; whole browser user workflows are not the default. Necessary automation is sequential, bounded and resource-limited.
 
-## 7. Escalation and anti-loop rules
+Record **local automated**, **owner-reported hosted**, **deployment metadata**, **BLOCKED** and **NOT TESTED/deferred** separately. Full device/reliability/security/expiry gates and Production readiness remain separate. A partial accepted scope can close as **PARTIAL PASS** while named coverage remains untested. Fix observed failures narrowly and obtain new commit/push approval when needed.
 
-- Attempt unavailable authenticated browser/CLI integration **once**, document failure, then use owner-assisted evidence or owner-led acceptance. Do not repeatedly install tools, extract cookies, or request a bypass token.
-- Don't run repeated full audits of the same unchanged deployment configuration. Record the baseline and investigate **deltas**.
-- Don't declare a failure merely because a nice-to-have proof, metric, screenshot, or enterprise hardening document is missing. Distinguish **blocking risk** from **residual uncertainty**.
-- If a blocker exists, name the exact impacted action and propose the **smallest reversible next step**; do not expand to unrelated redesigns, disaster-recovery engineering, or broad load tests.
-- Production readiness is a different gate from **Preview testing**. Do not silently convert one into the other.
-- Never claim `PASS` for hosted authentication, push delivery or actual installed PWA behavior based solely on local/synthetic tests.
+## 7. Anti-loop escalation
 
-## 8. Current handoff snapshot (refresh before acting)
+Attempt the approved authenticated inspection channel **once**. If unavailable, classify it as **TOOLING / EVIDENCE ACCESS**, then use accepted dated evidence or owner Dashboard screenshots where sufficient. Request only facts that evidence cannot establish. Continue the existing checkpoint when applicable gates pass; do not repeatedly repair unrelated browser tooling or duplicate accepted configuration checks. No cookie extraction, protection bypass or token request.
 
-- Approved UI/performance checkpoint: `4404f7db4f4bcad6ca0c24dc144f6c4389fc94de` on `feature/development`.
-- Last reported remote HEAD: `dc6249c2032e404f38e1fb6cbc87bf9c8f179cae`.
-- Current local documentation: `docs/VERCEL_PREVIEW_BASELINE.md` created as **untracked** by Codex; no staging/commit/push/deploy reported after creation.
-- Owner screenshots captured Vercel Git/Environments, Preview variable names/scopes, Build & Deployment, Deployment Protection, and Supabase Preview project identity.
-- Node.js 24 compatibility remains a focused check; the database/Storage Production separation is not independently proven; Preview acceptance is not yet performed.
-- **Do not treat these as live current Git/hosted status.** Refresh before any action. No push, deploy or hosted mutation is authorized by this document alone.
+| Classification | Response |
+|---|---|
+| Application failure | Capture the affected behavior and repair/retest the narrow defect. |
+| Configuration failure | Identify the wrong setting/target; obtain required configuration authorization before changing it. |
+| Tooling failure | Use the one-attempt fallback above; do not label it an application defect. |
+| Missing evidence | Name the exact required fact and smallest suitable observation; advisory gaps do not become blanket release gates. |
+| Authorization/security failure | Stop the affected operation, preserve evidence and resolve the applicable hard requirement. |
 
-## 9. Suggested new-chat instruction
+The intended public CA certificate's visibility advisory is nonblocking by itself; it is not independent proof of TLS failure. Actual CA/hostname verification failures, wrong target, secret exposure or disabled-Data-API violations remain security gates. See the [incident register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register) for established resolutions and fresh-check triggers.
 
-> Read `docs/THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md` and `docs/VERCEL_PREVIEW_BASELINE.md` first. Follow the demonstration-first, risk-tiered Preview workflow. Avoid repeating completed feasibility, Vercel configuration, recovery or broad testing work without a specific changed risk. Use prior evidence with explicit confidence labels, run only relevant delta checks, preserve existing work, and distinguish build success from hosted acceptance. Ask for authorization only at real action boundaries (push, deployment, migrations, hosted writes, Production), not for every read-only step. For the current task, report the shortest safe path to Preview testing and any concrete blocker.
+## 8. Reusable prompts (future instructions; no present authorization)
 
----
+### Prompt 1 template — next R1 batch
 
-**Source limitations:** The P3A source was available and reviewed directly. The complete Group Taskboard integration conversation was not available in the accessible records; only owner descriptions and baseline references were used. Any detailed claim about that conversation requires the original chat/transcript.
+```text
+Read AGENTS.md, current Master Context/Source of Truth, the Preview playbook and baseline, relevant architecture/database guidance, and applicable prevention entries. Implement only this approved R1 specification: [paste exact approved paper-scoped milestone scope, roles, validation rules and exclusions]. Do not infer the entire R1-R3 roadmap as approved.
+
+Inspect actual Git/source state; identify dependencies before coding and classify Tier A/B/C. Reuse current-Main/paper authority and existing architecture. Prepare any approved additive migration, guarded operator compatibility, minimum-grant plan and acceptance prerequisites in the same batch. Use the reusable Preview fixture inventory; do not create/reset fixtures. Read installed Next.js guidance and DESIGN.md/ANTISLOP.md when applicable.
+
+Run focused relevant tests/static/build checks, inspect secret/authorization/schema regressions, correct routine test/documentation issues and update only affected docs. I authorize ONE reviewed local commit containing only this approved batch after applicable checks pass. Preserve unrelated work. Stop for an unexpected security-sensitive/destructive requirement. No push, deployment, database/Storage connection or hosted mutation, configuration change or provider call is authorized. Return SHA, validation/evidence limits, Preview dependencies and the smallest next action.
+```
+
+### Prompt 2 template — publish the reviewed R1 checkpoint
+
+```text
+I authorize ONE normal fast-forward push of reviewed R1 commit [full SHA] from feature/development to origin/feature/development in AlterKiato/Capstone-Project-4th-year and its automatic protected Vercel Preview deployment. Read the playbook/baseline/current handoff. Verify pinned HEAD, clean tree/index, destination, fresh remote ancestry and applicable delta checks. Reuse unchanged accepted Vercel configuration evidence; check only affected routing, scripts and new/changed variable names/scopes. Preserve protection; no force push or main change.
+
+If R1 needs schema/grants, publish only after the separately approved exact migration/minimum-grant result is established on the intended Preview target: [receipt/reference, or not applicable]. Stop incompatible publication if missing; this prompt does NOT authorize migration/grant execution. Push once, observe the automatic deployment, and report URL, deployed SHA/environment/protection/status when accessible with evidence limits. Use the one-attempt tooling fallback.
+
+Prepare a short owner-led acceptance procedure using existing safe fixtures, one action at a time when I begin testing. Stop before executing it. No hosted user-workflow writes, fixture creation/cleanup, Storage operation, sensitive configuration change, provider call or Production operation is authorized.
+```
+
+Replace placeholders before use. Schema execution can require an additional explicit authorization; the two-prompt default never waives it. The owner reviews this documentation checkpoint before authorizing a documentation commit or beginning R1.
