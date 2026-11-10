@@ -3,6 +3,9 @@
 import assert from "node:assert/strict";
 
 const checks: Record<string, string> = {
+    research_milestones_title_check: "CHECK ((((char_length((title)::text) >= 1) AND (char_length((title)::text) <= 200)) AND ((title)::text ~ '[^[:space:]]'::text)))",
+    research_milestones_revision_check: "CHECK ((revision >= 0))",
+    research_milestones_verification_check: "CHECK ((((verified_by IS NULL) AND (verified_at IS NULL)) OR ((verified_by IS NOT NULL) AND (verified_at IS NOT NULL) AND (submission_id IS NOT NULL))))",
     ai_consent_event_check: "CHECK ((((event_kind)::text = ANY ((ARRAY['accepted'::character varying, 'declined'::character varying, 'withdrawn'::character varying])::text[])) AND (((event_kind)::text <> 'accepted'::text) OR (eligibility_event_id IS NOT NULL))))",
     ai_consent_terms_check: "CHECK (((length((terms_version)::text) > 0) AND ((terms_digest)::text ~ '^[a-f0-9]{64}$'::text)))",
     ai_eligibility_decision_check: "CHECK (((decision)::text = ANY ((ARRAY['Eligible'::character varying, 'Not Eligible'::character varying, 'Pending Verification'::character varying])::text[])))",

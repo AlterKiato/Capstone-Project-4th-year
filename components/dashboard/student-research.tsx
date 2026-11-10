@@ -9,6 +9,7 @@ import DownloadSubmissionButton from "@/app/dashboard/student/submissions/Downlo
 import ResearchDialog from "./research-dialog";
 import styles from "./student-ui.module.css";
 import FeedbackContent from "@/components/feedback-content";
+import ResearchProgress from "./research-progress";
 
 export default function StudentResearch({ workspace, target }: { workspace: StudentWorkspace; target: ResearchTarget }) {
     const [notice, setNotice] = useState("");
@@ -54,6 +55,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
                 <div id="project-description" className={styles.details} hidden={!details}><h4>Abstract</h4><p>{project.abstract}</p><h4>Keywords</h4><p>{project.keywords || "Not specified"}</p></div>
             </> : <p>{selectedId ? "Loading the created research project…" : workspace.groups.length ? "No research projects yet. Create a project after your title proposal has been accepted." : "Your Adviser must assign you to a research group before you can create a project."}</p>}
         </section>
+        {project && <ResearchProgress paperId={project.id} />}
         <section className={`dashboard-panel ${styles.section}`} aria-labelledby="history-heading">
             <div className={styles.toolbar}><h2 id="history-heading">Submission History</h2>{project && <button type="button" onClick={() => setModal("upload")}>Submit PDF</button>}</div>
             {!history.length ? <p>{project ? "Not yet submitted. Submit a PDF for this project’s first version." : "Submission versions will appear here after you create a project and submit a PDF."}</p> :

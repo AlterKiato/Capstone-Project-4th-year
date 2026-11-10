@@ -17,7 +17,7 @@ const account = (id, roleId) => ({ id, roleId, isActive: true });
 const actor = role => { session = { userId: role === 3 ? 30 : 20, roleId: role }; };
 function reset() {
     accounts = [account(20, 2), account(30, 3), account(99, 1)];
-    state = { submissions: [], research_papers: [{ id: 10, groupId: 5, title: 'Synthetic F1', status: 'Draft' }, { id: 11, groupId: 5, title: 'Second project', status: 'Draft' }], feedbacks: [], activity_logs: [], notifications: [] };
+    state = { submissions: [], research_papers: [{ id: 10, groupId: 5, title: 'Synthetic F1', status: 'Draft' }, { id: 11, groupId: 5, title: 'Second project', status: 'Draft' }], feedbacks: [], activity_logs: [], notifications: [], co_adviser_review_assignments: [] };
     objects = new Map([['unrelated.pdf', Buffer.from('preserved')]]); events = [];
     onUpload = onPaperLock = onAccountLock = null;
     failInsert = failCleanup = failActivity = noticeFailure = false;

@@ -8,10 +8,13 @@ export const PREVIEW_SOURCE_DIGEST = "37824a5d2df42e54df9e50ee115c6eb7d6c42a9486
 export const WORKSPACE_SOURCE_DIGEST = "66ae30ee48e5aef8497b11015acbeb81fc339f9799eea6fe619361319385ffbc";
 export const SUPERVISION_SOURCE_DIGEST = "2e914ebc46baa807051618a2dc6542ec3f859b166bf4a759fca6f7a56a35ef40";
 
+export const PROGRESS_SOURCE_DIGEST = "9cc94f061162696564eada77af9f67f1887f57b21c3df26ec595b60eafd07001";
+
 function reviewedSources() {
     const migrations = readMigrationFiles({ migrationsFolder: "db/migrations" });
     const baselineSnapshot = readFileSync("db/migrations/meta/0015_snapshot.json");
     const workspaceSnapshot = readFileSync("db/migrations/meta/0016_snapshot.json");
+    const progressSnapshot = readFileSync("db/migrations/meta/0018_snapshot.json");
     const supervisionSnapshot = readFileSync("db/migrations/meta/0017_snapshot.json");
     const journalBytes = readFileSync("db/migrations/meta/_journal.json");
     const journal = JSON.parse(journalBytes.toString("utf8"));
@@ -19,17 +22,20 @@ function reviewedSources() {
     // generation. It is used only in memory; historical metadata is never rewritten.
     const baselineJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 16) }, null, 2));
     const workspaceJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 17) }, null, 2));
+    const supervisionJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 18) }, null, 2));
     const sourceHash = (count: number, snapshot: Buffer, bytes: Buffer) => createHash("sha256")
         .update(JSON.stringify(migrations.slice(0, count).map(m => ({ hash: m.hash, when: m.folderMillis }))))
         .update(snapshot).update(bytes).digest("hex");
-    if (migrations.length !== 18 || journal.entries.length !== 18 || sourceHash(16, baselineSnapshot, baselineJournal) !== PREVIEW_SOURCE_DIGEST ||
+    if (migrations.length !== 19 || journal.entries.length !== 19 || sourceHash(16, baselineSnapshot, baselineJournal) !== PREVIEW_SOURCE_DIGEST ||
         sourceHash(17, workspaceSnapshot, workspaceJournal) !== WORKSPACE_SOURCE_DIGEST ||
-        sourceHash(18, supervisionSnapshot, journalBytes) !== SUPERVISION_SOURCE_DIGEST)
+        sourceHash(18, supervisionSnapshot, supervisionJournal) !== SUPERVISION_SOURCE_DIGEST ||
+        sourceHash(19, progressSnapshot, journalBytes) !== PROGRESS_SOURCE_DIGEST)
         throw new Error("Reviewed Preview migration source mismatch.");
     return {
         baseline: { migrations: migrations.slice(0, 16), snapshot: JSON.parse(baselineSnapshot.toString("utf8")), hash: PREVIEW_SOURCE_DIGEST },
         workspace: { migrations: migrations.slice(0, 17), snapshot: JSON.parse(workspaceSnapshot.toString("utf8")), hash: WORKSPACE_SOURCE_DIGEST },
-        supervision: { migrations, snapshot: JSON.parse(supervisionSnapshot.toString("utf8")), hash: SUPERVISION_SOURCE_DIGEST },
+        progress: { migrations, snapshot: JSON.parse(progressSnapshot.toString("utf8")), hash: PROGRESS_SOURCE_DIGEST },
+        supervision: { migrations: migrations.slice(0, 18), snapshot: JSON.parse(supervisionSnapshot.toString("utf8")), hash: SUPERVISION_SOURCE_DIGEST },
     };
 }
 
@@ -82,4 +88,16 @@ function verifyLedger(ledger: Ledger, migrations: ReturnType<typeof readMigratio
     // hash and timestamp pairs above; generated IDs must be valid and ordered, never consecutive.
     if (ledger.some(r => r.id !== undefined) && ledger.some((r, i) => !Number.isSafeInteger(r.id) || r.id! <= 0 ||
         i > 0 && r.id! <= ledger[i - 1].id!)) throw new Error("Preview migration ledger ID ordering mismatch.");
+}
+
+/** 0018 source readiness only; no database access. */
+export function progressMigrationSource() { return reviewedSources().progress; }
+export function verifyProgressLedger(ledger: Ledger, entries: 18 | 19 = 19) {
+    if (entries !== 18 && entries !== 19) throw new Error("Progress migration ledger version refused.");
+    verifyLedger(ledger, progressMigrationSource().migrations, entries);
+}
+export function recognizeProgressLedger(ledger: Ledger) {
+    const entries = ledger.length === 18 ? 18 : 19;
+    verifyProgressLedger(ledger, entries);
+    return { entries } as const;
 }

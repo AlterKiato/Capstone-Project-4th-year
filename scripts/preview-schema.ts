@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import type postgres from "postgres";
-import { previewMigrationSource, workspaceMigrationSource, supervisionMigrationSource } from "./preview-migration-source";
+import { previewMigrationSource, workspaceMigrationSource, supervisionMigrationSource, progressMigrationSource } from "./preview-migration-source";
 import { catalogCheck, catalogDefault, catalogIndex } from "./preview-catalog-contract";
 const pgName = (name: string) => name.slice(0, 63);
 
@@ -22,7 +22,7 @@ export function verifyPreviewColumnNames(table: string, actual: string[], expect
 }
 
 // Legacy/local verifier: PostgreSQL canonicalizes trusted SQL in temporary tables.
-export type PreviewSchemaMode = "initialize" | "upgrade-0015" | "workspace-baseline" | "upgrade-0016" | "supervision-baseline" | "upgrade-0017" | "supervision-installed";
+export type PreviewSchemaMode = "initialize" | "upgrade-0015" | "workspace-baseline" | "upgrade-0016" | "supervision-baseline" | "upgrade-0017" | "supervision-installed" | "progress-installed" | "upgrade-0018";
 export async function verifyPreviewSchema(client: postgres.Sql, mode: PreviewSchemaMode = "initialize") {
     if (!["initialize", "upgrade-0015", "workspace-baseline", "upgrade-0016", "supervision-baseline", "upgrade-0017"].includes(mode)) throw new Error("Preview schema mode refused.");
     return verifySchema(client, mode);
@@ -30,8 +30,8 @@ export async function verifyPreviewSchema(client: postgres.Sql, mode: PreviewSch
 
 // Hosted 0017 path. The caller verifies authenticated target/ledger/privileges first and supplies
 // a bounded READ ONLY transaction for inspection. All SQL emitted here is SELECT, including on failure.
-export async function verifyPreviewCatalog(client: postgres.Sql, mode: "supervision-baseline" | "supervision-installed" | "upgrade-0017") {
-    if (!["supervision-baseline", "supervision-installed", "upgrade-0017"].includes(mode)) throw new Error("Preview catalog mode refused.");
+export async function verifyPreviewCatalog(client: postgres.Sql, mode: "supervision-baseline" | "supervision-installed" | "upgrade-0017" | "progress-installed" | "upgrade-0018") {
+    if (!["supervision-baseline", "supervision-installed", "upgrade-0017", "progress-installed", "upgrade-0018"].includes(mode)) throw new Error("Preview catalog mode refused.");
     await verifyLedgerCatalog(client);
     return verifySchema(client, mode, undefined, true);
 }
@@ -82,7 +82,7 @@ export async function verifyLocalWorkspaceSchema(client: postgres.Sql, entries: 
 async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, localEntries?: 15 | 16 | 17, catalogOnly = false) {
     let schemaObject = "public", schemaAssertion = "table-set";
     try {
-        const snapshot = mode === "upgrade-0017" || mode === "supervision-installed" ? supervisionMigrationSource().snapshot :
+        const snapshot = mode === "upgrade-0018" || mode === "progress-installed" ? progressMigrationSource().snapshot : mode === "upgrade-0017" || mode === "supervision-installed" ? supervisionMigrationSource().snapshot :
             mode === "upgrade-0016" || mode === "supervision-baseline" ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot;
         // 0015 only added push_subscriptions: derive the preceding catalog from pinned source.
         if (localEntries === 15) delete snapshot.tables["public.push_subscriptions"];
@@ -205,7 +205,7 @@ async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, local
             // the caller separately compares fingerprints of every existing row and sequence before/after.
             if (mode === "initialize" || mode === "upgrade-0015" && table.name === "push_subscriptions" ||
                 mode === "upgrade-0016" && ["group_tasks", "task_notes"].includes(table.name) ||
-                mode === "upgrade-0017" && table.name === "co_adviser_review_assignments") {
+                mode === "upgrade-0017" && table.name === "co_adviser_review_assignments" || mode === "upgrade-0018" && table.name === "research_milestones") {
                 schemaAssertion = "empty-table";
                 const [empty] = await client`select count(*)::int as count from ${client(`public.${table.name}`)}`; assert.equal(empty.count, 0);
             }
@@ -245,7 +245,7 @@ async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, local
             assert.equal(String(s.start_value), '1'); assert.equal(String(s.min_value), '1'); assert.equal(String(s.max_value), '2147483647');
             assert.equal(String(s.increment_by), '1'); assert.equal(String(s.cache_size), '1'); assert.equal(s.cycle, false);
             if (mode === "initialize" || mode === "upgrade-0016" && ["group_tasks_id_seq", "task_notes_id_seq"].includes(s.sequencename) ||
-                mode === "upgrade-0017" && s.sequencename === "co_adviser_review_assignments_id_seq") {
+                mode === "upgrade-0017" && s.sequencename === "co_adviser_review_assignments_id_seq" || mode === "upgrade-0018" && s.sequencename === "research_milestones_id_seq") {
                 const [v] = await client`select last_value::text as value,is_called from ${client(`public.${s.sequencename}`)}`;
                 assert.equal(v.value, '1'); assert.equal(v.is_called, false);
             }

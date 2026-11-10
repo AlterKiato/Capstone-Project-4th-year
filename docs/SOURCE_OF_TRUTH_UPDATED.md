@@ -1,6 +1,6 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-11-10 (workflow optimization; current progress/evidence in Master Context)\
+**Last reviewed:** 2026-11-11 (minimal R1 rules; current progress/evidence in Master Context)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -13,6 +13,8 @@ immediate next actions belong in `docs/MASTER_CONTEXT_UPDATED.md`.
 Production readiness/release, iOS and broader device/reliability testing, and retained hosted security/Storage acceptance remain deferred. That November 5 recommendation is historical: P.4 and the owner-accepted S3 supervision scope have subsequent closure evidence in the [current Master Context](MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10). R.1-R.3 remain separately scoped; no roadmap entry automatically authorizes execution.
 
 ## Future release policy (owner decision, 2026-11-05)
+
+**R1 minimal tracker (owner-approved Option B, implemented locally 2026-11-11):** milestones are paper-scoped and managed by the current active designated Main Adviser. Authorized group Students link existing same-paper submission versions; only explicit Main verification of Approved evidence completes a milestone. Store exact verified evidence/user/time, clear verification on real title/deadline/evidence changes, and preserve it on no-op saves or newer uploads. Derive overdue using Asia/Manila dates and show verified counts without weights/AI scoring. Feedback/recommendation privacy, submission/review authority and Co-Adviser boundaries remain unchanged. [R1 handoff](R1_MINIMAL_RESEARCH_PROGRESS.md) records 0018/operator preparation and validation limits; local implementation is not migration execution or hosted acceptance. R2/R3 remain deferred.
 
 **Workflow refinement (owner decision, 2026-11-10):** the [Preview playbook](THESISHS_PREVIEW_DEPLOYMENT_PLAYBOOK.md) is the canonical two-prompt procedure: approved feature implementation, dependency/operator preparation and focused checks with one local commit only if explicitly authorized; then separately authorized pinned fast-forward push/automatic protected Preview publication. The owner performs hosted manual acceptance one action at a time after publication stops. Reuse unchanged [configuration/fixture evidence](VERCEL_PREVIEW_BASELINE.md) and applicable [prevention entries](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register); do not duplicate checklists here. Hosted migrations/grants, fixture creation/cleanup, sensitive configuration, destructive/unbounded writes and Production retain separate explicit approvals. Prompt count never overrides those boundaries.
 

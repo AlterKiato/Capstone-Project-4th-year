@@ -127,6 +127,13 @@
       "when": 1794067459943,
       "tag": "0017_research_supervision",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794327465140,
+      "tag": "0018_research_progress",
+      "breakpoints": true
     }
   ]
 }

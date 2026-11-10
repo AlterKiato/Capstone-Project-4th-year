@@ -10,7 +10,7 @@ const vm=require('node:vm');
 const ts=require('typescript');
 
 function fixture(entries=17,mutate=()=>{}) {
-    const snapshot=(entries===18?source.supervisionMigrationSource():source.workspaceMigrationSource()).snapshot;
+    const snapshot=(entries===19?source.progressMigrationSource():entries===18?source.supervisionMigrationSource():source.workspaceMigrationSource()).snapshot;
     const constraints=t=>[
         ...Object.values(t.foreignKeys).map(f=>({name:f.name.slice(0,63),type:'f',target:f.tableTo,target_schema:'public',confmatchtype:'s',
             columns:f.columnsFrom,referenced:f.columnsTo,confdeltype:({'no action':'a',restrict:'r',cascade:'c','set null':'n'})[f.onDelete],confupdtype:'a'})),
@@ -65,7 +65,7 @@ function fixture(entries=17,mutate=()=>{}) {
     };
     const sql=(parts,...params)=>typeof parts==='string'?{identifier:parts}:Promise.resolve(query(parts.join('?').trim(),params));
     sql.unsafe=()=>{throw Error('unsafe SQL is forbidden in catalog inspection');};
-    return {state,run:(mode=entries===18?'supervision-installed':'supervision-baseline')=>verifyPreviewCatalog(sql,mode)};
+    return {state,run:(mode=entries===19?'progress-installed':entries===18?'supervision-installed':'supervision-baseline')=>verifyPreviewCatalog(sql,mode)};
 }
 
 test('complete canonical 0016 and installed 0017 catalogs pass with SELECT-only SQL',async()=>{
@@ -150,4 +150,16 @@ test('existing explicit local verifier still uses PostgreSQL temporary canonical
         throw Error('unexpected local fixture query');
     };
     await assert.rejects(exports.verifyLocalWorkspaceSchema(sql,17),e=>e===sentinel);
+});
+
+
+test('0018 installed and new catalogs retain exact composite evidence FK, verification checks and fresh sequence',async()=>{
+    const result=await fixture(19).run('upgrade-0018');assert.equal(result.tables,22);
+    for(const mutate of [
+        s=>s.tables.find(t=>t.name==='research_milestones').constraints.find(c=>c.name==='research_milestones_submission_paper_fk').referenced=['id','id'],
+        s=>s.tables.find(t=>t.name==='research_milestones').constraints.find(c=>c.name==='research_milestones_verification_check').definition+=' OR true',
+        s=>s.tables.find(t=>t.name==='submissions').constraints.find(c=>c.name==='submissions_id_paper_unique').columns=['id'],
+        s=>s.newCount=1,s=>s.newSequenceCalled=true,
+    ])await assert.rejects(fixture(19,mutate).run('upgrade-0018'));
+    await fixture(19,s=>{s.newCount=2;s.newSequenceCalled=true;}).run();
 });

@@ -46,6 +46,7 @@ export const submissions = pgTable(
             .notNull(),
     },
     (table) => ({
+        idPaperUnique: unique("submissions_id_paper_unique").on(table.id, table.paperId),
         paperVersionUnique: unique(
             "submissions_paper_version_unique"
         ).on(

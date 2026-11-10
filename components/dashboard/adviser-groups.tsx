@@ -7,6 +7,7 @@ import { addGroupMemberAction, eligibleGroupStudentsAction, removeGroupMemberAct
 import type { readAdviserGroups, readEligibleGroupStudents } from "@/lib/repositories/adviser-groups.repository";
 import styles from "./adviser-groups.module.css";
 import shared from "./student-ui.module.css";
+import ResearchProgress from "./research-progress";
 
 type Group = Awaited<ReturnType<typeof readAdviserGroups>>[number];
 type Student = Awaited<ReturnType<typeof readEligibleGroupStudents>>[number];
@@ -22,6 +23,7 @@ export default function AdviserGroups({ groups }: { groups: Group[] }) {
     const [creating, setCreating] = useState(false);
     const [managing, setManaging] = useState<number | null>(null);
     const [notice, setNotice] = useState("");
+    const [progressPaper, setProgressPaper] = useState<number | null>(null);
     const query = search.trim().replace(/\s+/g, " ").toLocaleLowerCase();
     const filtered = groups.filter(group => [group.groupName, group.strand, group.section].some(text => text.replace(/\s+/g, " ").toLocaleLowerCase().includes(query)));
     const selected = groups.find(group => group.id === managing);
@@ -49,7 +51,7 @@ export default function AdviserGroups({ groups }: { groups: Group[] }) {
                     <div className={styles.detailHeader}><h4>Current Members ({group.members.length})</h4><button disabled={refreshing} onClick={() => setManaging(group.id)}>Manage Members</button></div>
                     {!group.members.length ? <p>No students are currently assigned to this group.</p> : <ul className={styles.members}>{group.members.map(member => <li key={member.id}><strong>{name(member)}</strong><span className="form-help">{member.email}</span></li>)}</ul>}
                     <h4>Research Projects ({group.projects.length})</h4>
-                    {!group.projects.length ? <p>This group has no research projects yet.</p> : <ul className={styles.projects}>{group.projects.map(project => <li key={project.id}><strong>{value(project.title)}</strong><span className="form-help">{value(project.status)}</span></li>)}</ul>}
+                    {!group.projects.length ? <p>This group has no research projects yet.</p> : <ul className={styles.projects}>{group.projects.map(project => <li key={project.id}><strong>{value(project.title)}</strong><span className="form-help">{value(project.status)}</span><button type="button" aria-expanded={progressPaper === project.id} onClick={() => setProgressPaper(progressPaper === project.id ? null : project.id)}>Research progress for {value(project.title)}</button>{expanded === group.id && progressPaper === project.id && <ResearchProgress paperId={project.id} />}</li>)}</ul>}
                 </div>
             </li>)}</ul>}
         </section>
