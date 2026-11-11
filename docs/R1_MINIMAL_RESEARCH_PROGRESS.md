@@ -1,5 +1,42 @@
 # R1 minimal research progress tracker
 
+## UI-R1.1 Student Dashboard widget (2026-11-11)
+
+**Status: implemented locally; focused validation recorded below. Hosted UI-R1.1 acceptance is NOT TESTED.** This is a bounded read-only UI refinement, not R3 or completion of deferred R1/R2 acceptance. Local checkpoint parent: `cb2e7d00bdb1864e84e089ecfe204619b493447a`; resolve the resulting commit from Git by its message `feat(ui): add student research progress dashboard widget`.
+
+### Scope and unchanged dependencies
+
+- One Research Progress card sits alongside the existing R2 Revision Checklist on wider Dashboard layouts; cards stack at 640px and below. Existing surfaces, spacing, typography, native compact progress indicators and contextual Help are reused. No unrelated Dashboard redesign or new UI dependency.
+- One local Research project selector controls both cards. It uses the existing authorized directory, deterministic default and validated `?project=` context. No global/persistent selection system or cross-project aggregate. Switching remounts each project's data view; abandoned reads cannot replace the new selection.
+- The R1 card calls existing `readResearchProgressAction` and its authorization-enforced service/repository. Only explicitly verified milestones count as completed. Existing `milestoneCompleted`, `completedMilestones` and `milestoneOverdue` rules drive the summary.
+- Show selected title, completed/total, a compact progress bar, overdue incomplete count and the nearest incomplete deadline on/after the service's Manila date. Due today is not overdue; date ties resolve by milestone ID. All-complete and overdue-only data show no upcoming deadline.
+- No milestones shows **Milestones not configured.**, without a misleading zero/complete progress bar. No-project, loading, safe error and working retry states are explicit.
+- **View progress** opens `/dashboard/student/submissions?project=<id>#research-progress`, a focusable anchor around the existing R1 panel. R2 retains its existing project-specific Revision Checklist destination. Help explains Main verification and why submitting/linking a PDF alone is insufficient; native popover supports keyboard, Escape, pointer and touch.
+- **Changed:** Dashboard presentation, local selection ownership, summary derivation and the existing Submissions anchor. **Unchanged:** schema/migrations (existing 0018/0019), grants, role/account/membership authorization, authentication, environment variables, Storage, providers, notifications and audit writes. No operator/schema work is needed. This is Playbook Tier A.
+- All hosted records are untouched: Paper 1/v1-v5, v5 Under Review, official feedback, designations/recommendations, R1 milestones/evidence, R2 revisions/responses, notifications and audit history. Supabase Data API and Preview/Production isolation settings are unchanged; no database/Storage or hosted operation occurred.
+
+### Focused local evidence
+
+- `node --import tsx --test tests/ui-r1-dashboard.unit.cjs tests/r1-progress.unit.cjs`: **16/16 PASS** (five new presentation/route checks plus eleven existing R1 offline checks). Covers verification versus linkage, overdue exclusions, today/Manila midnight, nearest deadline/ties, empty/all-complete/overdue-only data and malformed/foreign project selection. Existing service doubles and real-repository SQL doubles cover active role/membership and exact-paper denial; these are not live database tests.
+- `node tests/ui-r1-dashboard.browser.cjs`: **PASS**, one bounded sequential synthetic Chromium context using actual Dashboard and Submissions pages, mocked services/actions and blocked external requests. Shared selection, loading/stale-switch isolation, both actual project-specific navigation destinations, empty/no-project/error/retry, all/none-complete states, keyboard Enter/Escape/Tab and touch Help, 360/768/1440px layouts, Light/Dark/System, text contrast >=4.5:1 and 44px Help targets passed. Zero mutation calls, unexpected requests or browser/console errors. Desktop Light/Dark and narrow Dark screenshots were inspected.
+- TypeScript with an ignored focused config excluding `test-results/`: **PASS**. The initial root command included a stale ignored R2 build snapshot with the old widget signature; no application type defect was found. Targeted ESLint: **PASS**, zero warnings.
+- Isolated one-worker Next.js 16.4.3 webpack production build on Node 24.18.0: **PASS**, including TypeScript and 27/27 page-generation tasks, with no environment files and synthetic non-routable database/Storage settings. The final seven changed application/style files match the build manifest. This proves neither hosted configuration/connectivity nor authenticated Preview acceptance. The existing multiple-lockfile/root-inference warning remains nonblocking; no configuration change was made.
+- Initial sandbox esbuild resolution failed before browser startup; the authorized isolated harness then passed outside that filesystem sandbox. A missing mock resolve directory was corrected before the passing run. No hosted fallback or protection bypass.
+- Anti-Slop During-mode delivery gate: **PASS** for the scoped widget, with item-by-item evidence in ignored `test-results/ui-r1.1/design-gate.md`. ENERGY 1 / RHYTHM 2 / MOTION 1 and existing academic design retained. React review retained small serializable props, keyed project state, primitive effect dependencies and cancellation; no new cache/library or authorization duplication.
+- Local artifacts only, ignored: `test-results/ui-r1.1/` (screenshots, browser evidence, typecheck config, build manifest/log/result). No credentials, environment files or generated artifacts belong in the checkpoint.
+
+### Retained acceptance and next action
+
+**R1 PARTIAL PASS, R2 PARTIAL PASS and S3.4B.5 supervision PARTIAL PASS remain unchanged.** All prior NOT TESTED classifications are retained. UI-R1.1 does not verify hosted Main completion/evidence changes, hosted structured-correction finalization, Action Taken persistence/transitions, real revision counts or historical response preservation.
+
+After separately authorized protected Preview publication, the owner can perform read-only acceptance one action at a time:
+1. Open the Student Dashboard for the existing authorized Paper 1; compare its milestone summary/deadlines with the existing Submissions panel, without changing records.
+2. Use **View progress** to confirm the correct project/panel and preserved history; check **View revisions** still opens that project's checklist. Exercise project switching only if another legitimate authorized project already exists; otherwise defer hosted multi-project acceptance.
+3. Open/close Help by keyboard/touch, then inspect narrow/wide layouts and themes. Do not create milestones, responses, projects or submissions to fill missing states.
+
+Main Adviser progress discoverability remains a separately scoped deferred refinement. R3 is not started. Smallest next action: review this local checkpoint, then separately authorize its pinned fast-forward Preview publication. No push/deployment or hosted manual acceptance is included here.
+
+
 **R1 — PARTIAL PASS / CLOSED FOR CURRENT ACCEPTED SCOPE**, owner-confirmed 2026-11-11 (Asia/Manila). Approved Option B: paper-scoped milestones, existing submission evidence and explicit Main Adviser verification. This closure records completed work and bounded acceptance; it authorizes no further execution.
 
 ## Current closure and evidence

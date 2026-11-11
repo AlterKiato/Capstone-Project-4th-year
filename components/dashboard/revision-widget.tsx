@@ -27,14 +27,10 @@ function ProjectWidget({ project }: { project: { id: number; title: string } }) 
         <Link className="context-detail" href={`/dashboard/student/submissions?project=${project.id}#revision-checklist`}>View revisions</Link>
     </div>;
 }
-export default function RevisionWidget({ projects, initialProjectId }: { projects: { id: number; title: string }[]; initialProjectId?: number }) {
-    const [selected, setSelected] = useState(initialProjectId ?? projects[0]?.id);
-    const project = projects.find(row => row.id === selected) ?? projects[0];
+export default function RevisionWidget({ project }: { project?: { id: number; title: string } }) {
     return <section className={`dashboard-panel ${styles.widget}`} aria-labelledby="revision-widget-heading">
         <div className={styles.heading}><h2 id="revision-widget-heading">Revision Checklist</h2>
             <ContextHelp label="About revision progress">Counts cover your saved Action Taken responses in this project&apos;s latest correction cycle. Addressed does not mean Approved. Select a project to view its own counts.</ContextHelp></div>
-        {projects.length > 1 && <><label htmlFor="revision-widget-project">Research project</label><select id="revision-widget-project" value={project?.id} onChange={event => setSelected(Number(event.target.value))}>
-            {projects.map(row => <option key={row.id} value={row.id}>{row.title}</option>)}</select></>}
         {project ? <ProjectWidget key={project.id} project={project} /> : <p>No active research project.</p>}
     </section>;
 }

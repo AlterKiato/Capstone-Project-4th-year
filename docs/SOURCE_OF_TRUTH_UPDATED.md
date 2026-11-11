@@ -1,6 +1,17 @@
 # ThesiSHS AI --- Source of Truth
 
-**Last reviewed:** 2026-11-11 (R1 partial acceptance closure; current progress/evidence in Master Context)\
+## UI-R1.1 Student Dashboard refinement (2026-11-11)
+
+**Implemented locally; hosted UI-R1.1 acceptance NOT TESTED.** One compact read-only Research Progress card reuses existing R1 authorized milestone reads, explicit Main-verification counts and Manila deadline rules. It shows completed/total, progress, overdue count and nearest upcoming incomplete deadline. A shared local project selector keeps R1/R2 titles, data and links aligned; **View progress** opens the selected project's existing Submissions progress panel. Cards are responsive, with concise accessible Help and honest empty/loading/error states.
+
+No schema/migration/grant, role/permission, environment or provider change; no database/Storage connection, hosted mutation or fixture generation. Paper 1/v1-v5, v5 Under Review and all feedback, supervision, milestone, revision, notification and audit history remain preserved. Existing Data API/isolation safeguards remain unchanged.
+
+Focused local evidence: 16/16 offline tests, bounded synthetic Chromium, TypeScript and targeted ESLint PASS. Isolated one-worker Next.js 16.4.3 webpack build PASS (27/27 page-generation tasks), with no environment files and synthetic non-routable service settings; this is not hosted runtime evidence. Details and the short owner-led Preview plan are in the [R1 widget handoff](R1_MINIMAL_RESEARCH_PROGRESS.md#ui-r11-student-dashboard-widget-2026-11-11).
+
+The incoming R2 closure records remain intact. **R1 PARTIAL PASS, R2 PARTIAL PASS and S3.4B.5 PARTIAL PASS, including all NOT TESTED scenarios, are unchanged.** No full R1/R2 hosted-workflow validation is implied. Main Adviser discoverability stays deferred; this is not R3. Next action is separately authorized pinned Preview publication after the local checkpoint, then owner-led read-only acceptance without creating evidence.
+
+
+**Last reviewed:** 2026-11-11 (R2 partial acceptance closure; current progress/evidence in Master Context)\
 **Scope:** This document defines the stable architecture, product rules,
 design decisions, constraints, and long-term direction for ThesiSHS AI.
 Current implementation progress, testing evidence, blockers, and
@@ -10,13 +21,24 @@ immediate next actions belong in `docs/MASTER_CONTEXT_UPDATED.md`.
 
 R2 is a bounded extension of official review: current Main alone finalizes immutable structured corrections with the existing Revision Required feedback/status/audit transaction. Approved does not publish draft corrections. Active group Students may view these structured corrections and edit only their own Action Taken during the exact originating latest Revision Required window. This explicit group-visible structured-correction scope does not widen original-submitter-only full official feedback or private Co-Adviser recommendation access. Nonempty saved text means Addressed, never Approved. Both existing manuscript submission transactions freeze previous responses to the next submission; historical corrections, feedback, responses and versions remain intact. Main can read responses; Co-Adviser/Admin/Panel gain no revision editing authority.
 
-Main UI has Review/Revisions/Co-Adviser tabs with shared secure PDF/header and persistent local drafts. One Student Dashboard widget derives counts for one selected authorized project's latest correction cycle. No per-item approval, new upload/review workflow, R1 dashboard widget or AI scoring is introduced. Additive 0019/operator/minimum grants are prepared locally; hosted execution/publication/acceptance requires separate authorization. See the [R2 handoff](R2_LEAN_REVISION_MANAGEMENT.md) and [current Master Context](MASTER_CONTEXT_UPDATED.md#r2-local-implementation-checkpoint-2026-11-11). The retained R1 and S3.4B.5 PARTIAL PASS evidence below remains unchanged; older next-development wording is historical.
+Main UI has Review/Revisions/Co-Adviser tabs with shared secure PDF/header and persistent local drafts. One Student Dashboard widget derives counts for one selected authorized project's latest correction cycle. No per-item approval, new upload/review workflow, R1 dashboard widget or AI scoring is introduced. Reused accepted evidence, recorded as reported, establishes implementation commit `cb2e7d00bdb1864e84e089ecfe204619b493447a` (`cb2e7d0`), 129/129 focused offline tests PASS, successful additive Preview migration 0019, verified runtime grants and backup integrity, completed GitHub branch publication, Vercel integration reporting deployment completed, and confirmed Preview authentication protection. Independent Vercel Dashboard Ready verification is not claimed. See the [R2 handoff](R2_LEAN_REVISION_MANAGEMENT.md#current-partial-acceptance-closure-2026-11-11) and [current Master Context](MASTER_CONTEXT_UPDATED.md#r2-partial-acceptance-closure-2026-11-11).
+
+**R2 — PARTIAL PASS / CLOSED FOR CURRENT ACCEPTED SCOPE.** Owner-reported manual acceptance, not independently reproduced by Codex:
+
+1. Main Adviser Review / Revisions / Co-Adviser tabs visible — PASS.
+2. Tab navigation and existing review/delegation controls accessible — PASS.
+3. Student Dashboard Revision Checklist widget displays its appropriate empty state — PASS.
+4. Student widget navigation opens the relevant submissions area and Paper 1 history remains accessible — PASS.
+
+**NOT TESTED in hosted manual acceptance:** Main Adviser creation and official finalization of structured revision items on hosted Preview; Student Action Taken persistence and Pending/Addressed transitions with actual revision records; Dashboard counts with real revision items; historical response preservation after a later manuscript submission. Local automated tests cover these scenarios; full hosted R2 workflow validation is not established.
+
+Preserve Paper 1/v1–v5, v5 Under Review, existing official feedback, Main/Co-Adviser designations and recommendations, the R1 milestone and its linked evidence, notifications and audit history. Avoid unnecessary fixture creation; no additional test projects, uploads, revision items, responses or fixtures are authorized. Deferred acceptance can resume when legitimate eligible revision records exist and the specific owner-led actions are separately authorized. R1 PARTIAL PASS and Phase 10 supervision S3.4B.5 PARTIAL PASS remain unchanged; deferred R1 acceptance is not an R2 prerequisite. The next development recommendation is to agree one bounded, separately scoped R3 requirement; this documentation-only closure does not select or authorize a feature or further execution. This current closure supersedes older R2 future-work and next-action labels below; their historical acceptance results remain unchanged.
 
 ## Preview Web Push closure (P.3F.3, recorded 2026-11-05)
 
 **CLOSED / PASS for the agreed synthetic Preview scope.** Migration 0015 and runtime grants, Preview-only VAPID, the configured Ready deployment at `f82a08105158713ffad5161c0235fac1d23327fd`, and Android Adviser enrollment are verified. The owner confirmed notification receipt after a synthetic Student submission and tap navigation to Adviser notifications. See the [current closure evidence and next phase](MASTER_CONTEXT_UPDATED.md#p3f4-web-push-closure-and-development-handoff-2026-11-05). This supersedes older disabled/unapplied/unverified P.3 status labels below within their historical checkpoints; missing configuration still defaults off in other environments.
 
-Production readiness/release, iOS and broader device/reliability testing, and retained hosted security/Storage acceptance remain deferred. That November 5 recommendation is historical: P.4 and the owner-accepted S3 supervision scope have subsequent closure evidence in the [current Master Context](MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10). R1's accepted partial closure is recorded below; R2/R3 remain separately scoped future work, and no roadmap entry automatically authorizes execution.
+Production readiness/release, iOS and broader device/reliability testing, and retained hosted security/Storage acceptance remain deferred. That November 5 recommendation is historical: P.4 and the owner-accepted S3 supervision scope have subsequent closure evidence in the [current Master Context](MASTER_CONTEXT_UPDATED.md#current-handoff-2026-11-10). R1's accepted partial closure is recorded below; R2's accepted partial closure is recorded above. R3 remains separately scoped future work, and no roadmap entry automatically authorizes execution.
 
 ## Future release policy (owner decision, 2026-11-05)
 

@@ -1,6 +1,34 @@
 # R2 Lean Revision Management
 
+## Current partial acceptance closure (2026-11-11)
+
+**R2 — PARTIAL PASS / CLOSED FOR CURRENT ACCEPTED SCOPE.** This closure supersedes pending migration/publication/acceptance wording in the historical implementation and preparation sections below. It does not establish full hosted validation of the revision workflow.
+
+**Reused accepted implementation/publication evidence, recorded as reported:** R2 implementation commit `cb2e7d00bdb1864e84e089ecfe204619b493447a` (`cb2e7d0`); 129/129 focused offline tests PASS; additive Preview migration 0019 successfully applied with verified runtime grants and backup integrity; GitHub branch publication completed; Vercel integration reported deployment completed; Preview authentication protection confirmed. Deployment ID: `4Bctp88wG6na7kSpKJgGwxhpKQoZ`; [branch Preview](https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app/). Direct Vercel Dashboard Ready verification remains unconfirmed. No validation, hosted inspection or publication is repeated in this documentation checkpoint. Existing ignored receipts: `test-results/r2/`, `test-results/r2-preview-0019-20261111/`, `test-results/r2-publication-20261111/`.
+
+**Owner-reported manual acceptance:** the owner reported exactly these four results; Codex did not independently reproduce them.
+
+1. Main Adviser Review / Revisions / Co-Adviser tabs visible — PASS.
+2. Tab navigation and existing review/delegation controls accessible — PASS.
+3. Student Dashboard Revision Checklist widget displays its appropriate empty state — PASS.
+4. Student widget navigation opens the relevant submissions area and Paper 1 history remains accessible — PASS.
+
+**NOT TESTED in hosted manual acceptance:**
+
+- Main Adviser creation and official finalization of structured revision items on hosted Preview.
+- Student Action Taken persistence and Pending/Addressed transitions with actual revision records.
+- Dashboard counts with real revision items.
+- Historical response preservation after a later manuscript submission.
+
+These scenarios remain covered by local automated tests but lack hosted manual acceptance. The four owner-reported passes do not validate the entire R2 workflow.
+
+**Preservation and fixture decision:** preserve Paper 1 and submissions v1–v5, v5 Under Review, existing official feedback, Main/Co-Adviser designations and recommendations, the R1 milestone and its linked evidence, notifications and audit history. No additional test projects, uploads, revision items, responses or fixtures are authorized. Avoid unnecessary fixture creation; keep this accepted cycle closed and resume deferred testing only when legitimate eligible revision records exist and the specific owner-led actions are separately authorized. Do not infer v5 completion or alter history to satisfy a test. R1 PARTIAL PASS and Phase 10 supervision S3.4B.5 PARTIAL PASS remain unchanged; deferred R1 acceptance is not an R2 prerequisite.
+
+**This checkpoint:** documentation changes and lightweight consistency/diff checks only; no application changes, tests, database/Storage access, provider/configuration or GitHub/Vercel operations, staging/commit/push/merge/rebase/deployment. Leave the three documentation changes unstaged and uncommitted. **Smallest recommended next development priority:** agree one bounded, separately scoped R3 requirement before implementation; this closure neither selects nor authorizes an R3 feature.
+
 ## Local checkpoint (2026-11-11)
+
+**Historical implementation checkpoint:** the status and authorization below describe Prompt 1 at that time; the current partial closure above governs present status and next actions.
 
 **Implementation complete; local validation PASS. Hosted migration, publication and owner acceptance NOT RUN.** Starting branch `feature/development`, parent `1fe763d51c42e444494dc632e7de34dcced153e4`. The authorized local checkpoint commit is `feat(r2): add structured revision tracking and streamline review UI`; resolve its SHA with `git log -1 --format=%H` after creation. No push, merge, rebase or deployment belongs to this checkpoint.
 
@@ -61,7 +89,9 @@ Checks reject broader table/column/sequence grants, grant options, PUBLIC/anon/a
 - TypeScript, changed-file ESLint, Drizzle check, whitespace/source/secret checks and the isolated one-worker Next.js 16.4.3 webpack build on Node 24.18.0 PASS (27/27 page-generation tasks). Build uses no `.env` files and non-routable synthetic service settings; it proves neither hosted configuration nor connectivity. Initial stale test doubles and an omitted existing script in the build snapshot were corrected before the passing final runs.
 - Ignored local evidence: `test-results/r2/` (focused test log, disposable-PostgreSQL result, screenshots, isolated build manifest/log/result). Initial approval review misclassified the current R2 request under the older documentation-only checkpoint; rereading the latest explicit test scope resolved the approvals. No bypass or hosted fallback was used.
 
-## Owner-led protected Preview acceptance (prepared; not executed)
+## Historical owner-led protected Preview acceptance plan
+
+This plan was prepared before publication and acceptance. The current partial closure above records the four owner-reported passes and the exact hosted scenarios still NOT TESTED; the plan does not authorize additional execution or fixtures.
 
 Use the canonical two-prompt playbook. Give **one action**, expected result and any separately authorized mutation, then wait for **PASS / FAIL / BLOCKED**.
 

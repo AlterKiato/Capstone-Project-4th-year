@@ -1,6 +1,40 @@
 # ThesiSHS AI — Master Context
 
+## UI-R1.1 Student Dashboard research progress (2026-11-11)
+
+**Implemented locally; hosted acceptance NOT TESTED.** Bounded Tier A UI refinement, not R3. One read-only Research Progress card complements R2, using the existing R1 authorized read action/service/repository and verification/Manila-date rules. It shows verified completed/total, compact progress, overdue incomplete count and the nearest incomplete deadline today or later (ID tie-break). Empty data has no misleading progress indicator; loading/error/retry/no-project states are explicit.
+
+One lightweight Dashboard project selector now controls both cards, preserving the existing authorized project/default/URL conventions. **View progress** targets the selected project's existing Submissions R1 panel via `?project=<id>#research-progress`; R2 navigation is preserved. Cards sit alongside each other on wider screens and stack on narrow screens. Existing Help supports pointer/touch, keyboard and Escape.
+
+**Dependencies:** no schema, migration, grant, authorization, environment, Storage/provider or notification/audit-write change. No database/Storage connection, hosted operation or fixture creation. Existing accepted 0018/0019 evidence is reused. Paper 1/v1-v5, v5 Under Review, feedback, designations/recommendations, milestones/evidence, revisions/responses and histories remain untouched.
+
+**Local evidence:** 16/16 focused offline tests PASS; one isolated synthetic Chromium scenario PASS, including shared selection/stale reads, both navigation destinations, all UI states, 360/768/1440px Light/Dark/System, text contrast and keyboard/touch Help, with zero mutations/unexpected requests/console errors. Focused TypeScript and targeted ESLint PASS. Isolated one-worker Next.js 16.4.3 webpack build PASS (27/27 page-generation tasks), with no environment files and synthetic non-routable service settings; this is not hosted runtime evidence. See the [R1 widget handoff](R1_MINIMAL_RESEARCH_PROGRESS.md#ui-r11-student-dashboard-widget-2026-11-11) for exact commands, artifact boundaries and initial harness/ignored-snapshot corrections.
+
+**Preservation:** the three incoming reviewed R2 closure documentation changes are included intact in this checkpoint; R2's own handoff is unchanged from entry. R1, R2 and S3.4B.5 remain PARTIAL PASS / closed for their accepted scopes; every existing NOT TESTED item remains deferred. This UI work does not complete any prior hosted acceptance.
+
+**Next:** separately authorized pinned Preview publication, followed by owner-led read-only Dashboard/Help/navigation/layout acceptance, one action at a time, using existing eligible records. Multi-project hosted checks require an existing second authorized project; no manufactured fixtures. Main Adviser discoverability remains deferred. Local checkpoint message: `feat(ui): add student research progress dashboard widget`, parent `cb2e7d00bdb1864e84e089ecfe204619b493447a`; resolve its resulting SHA from Git. Stop after the authorized local commit; no push, deployment or automatic acceptance.
+
+
+## R2 partial acceptance closure (2026-11-11)
+
+**R2 — PARTIAL PASS / CLOSED FOR CURRENT ACCEPTED SCOPE.** Reused accepted evidence, recorded as reported: implementation commit `cb2e7d00bdb1864e84e089ecfe204619b493447a` (`cb2e7d0`), 129/129 focused offline tests PASS, successful additive Preview migration 0019, verified runtime grants and migration-backup integrity, completed GitHub branch publication, Vercel integration reporting deployment completed, and confirmed Preview authentication protection. Deployment `4Bctp88wG6na7kSpKJgGwxhpKQoZ`; [branch Preview](https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app/). This is reused evidence, not new execution. Independent Vercel Dashboard Ready verification remains unconfirmed; no authenticated functional checks beyond the owner's results are claimed.
+
+**Owner-reported manual acceptance:** Codex did not independently reproduce these results.
+
+1. Main Adviser Review / Revisions / Co-Adviser tabs visible — PASS.
+2. Tab navigation and existing review/delegation controls accessible — PASS.
+3. Student Dashboard Revision Checklist widget displays its appropriate empty state — PASS.
+4. Student widget navigation opens the relevant submissions area and Paper 1 history remains accessible — PASS.
+
+**NOT TESTED in hosted manual acceptance:** Main Adviser creation and official finalization of structured revision items on hosted Preview; Student Action Taken persistence and Pending/Addressed transitions with actual revision records; Dashboard counts with real revision items; historical response preservation after a later manuscript submission. These remain covered by local automated tests, with hosted manual acceptance deferred. Do not mark the entire R2 workflow fully validated. The [R2 closure handoff](R2_LEAN_REVISION_MANAGEMENT.md#current-partial-acceptance-closure-2026-11-11) owns detailed scope and evidence limits.
+
+**Preservation:** retain Paper 1/v1–v5, v5 Under Review, official feedback, Main/Co-Adviser designations and recommendations, the R1 milestone and its linked evidence, notifications and audit history. Avoid unnecessary fixture creation: no additional test projects, uploads, revision items, responses or fixtures are authorized. Resume deferred testing only when legitimate eligible revision records exist and the specific owner-led actions are separately authorized. R1 PARTIAL PASS and Phase 10 supervision S3.4B.5 PARTIAL PASS remain unchanged; deferred R1 acceptance is not an R2 prerequisite.
+
+**This checkpoint:** documentation edits and lightweight consistency/diff checks only; no application changes, tests, database/Storage access, GitHub/Vercel operations, dependencies, migrations/grants, staging/commit/push/merge/rebase/deployment. Only the three named documentation files change, left unstaged and uncommitted. **Smallest recommended next development priority:** agree one bounded, separately scoped R3 requirement before implementation; no R3 feature is selected or authorized here. This closure supersedes earlier R2 pending-execution/acceptance and next-action wording while preserving historical results below.
+
 ## R2 local implementation checkpoint (2026-11-11)
+
+**Historical Prompt 1 record:** retained within its original local-only evidence and authorization scope; current R2 status is the partial closure above.
 
 **R2 implemented locally; hosted migration/publication/acceptance NOT RUN.** Parent `1fe763d51c42e444494dc632e7de34dcced153e4`, branch `feature/development`. The authorized checkpoint commit is `feat(r2): add structured revision tracking and streamline review UI`; resolve its SHA from Git after creation. The three incoming R1 closure documentation changes below are preserved and included in the same reviewed commit.
 

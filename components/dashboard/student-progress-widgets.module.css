@@ -1,0 +1,15 @@
+.widgets { margin-top: 1rem; min-width: 0; }
+.selector { max-width: 28rem; margin-bottom: .75rem; }
+.selector label { display: block; font-weight: 600; }
+.selector select { display: block; width: 100%; margin-top: .35rem; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.cards > section { margin: 0; padding: 1.25rem; }
+.count { margin: .65rem 0; }
+.deadlines { display: grid; gap: .6rem; margin: .75rem 0; }
+.deadlines > div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.deadlines dt { flex-shrink: 0; color: var(--muted); }
+.deadlines dd { margin: 0; min-width: 0; text-align: right; overflow-wrap: anywhere; }
+.deadlineTitle { display: block; color: var(--muted); font-size: .875rem; }
+.progressLink { display: inline-flex; align-items: center; min-height: 44px; }
+.progressTarget { scroll-margin-top: 1.5rem; }
+@media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }

@@ -10,6 +10,7 @@ import ResearchDialog from "./research-dialog";
 import styles from "./student-ui.module.css";
 import FeedbackContent from "@/components/feedback-content";
 import ResearchProgress from "./research-progress";
+import progressStyles from "./student-progress-widgets.module.css";
 import RevisionChecklist from "./revision-checklist";
 
 export default function StudentResearch({ workspace, target }: { workspace: StudentWorkspace; target: ResearchTarget }) {
@@ -56,7 +57,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
                 <div id="project-description" className={styles.details} hidden={!details}><h4>Abstract</h4><p>{project.abstract}</p><h4>Keywords</h4><p>{project.keywords || "Not specified"}</p></div>
             </> : <p>{selectedId ? "Loading the created research project…" : workspace.groups.length ? "No research projects yet. Create a project after your title proposal has been accepted." : "Your Adviser must assign you to a research group before you can create a project."}</p>}
         </section>
-        {project && <ResearchProgress paperId={project.id} />}
+        {project && <div id="research-progress" tabIndex={-1} className={progressStyles.progressTarget}><ResearchProgress paperId={project.id} /></div>}
         {project && <section className={`dashboard-panel ${styles.section}`}><RevisionChecklist key={project.id} paperId={project.id} /></section>}
         <section className={`dashboard-panel ${styles.section}`} aria-labelledby="history-heading">
             <div className={styles.toolbar}><h2 id="history-heading">Submission History</h2>{project && <button type="button" onClick={() => setModal("upload")}>Submit PDF</button>}</div>

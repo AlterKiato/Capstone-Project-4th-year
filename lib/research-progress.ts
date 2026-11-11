@@ -25,3 +25,15 @@ export function manilaToday(now = new Date()) {
 export function completedMilestones(milestones: ProgressMilestone[]) {
     return milestones.filter(milestoneCompleted).length;
 }
+
+export function researchProgressSummary({ milestones, today }: Pick<ResearchProgress, "milestones" | "today">) {
+    const incomplete = milestones.filter(milestone => !milestoneCompleted(milestone));
+    const upcoming = incomplete.filter(milestone => milestone.dueDate >= today)
+        .sort((a, b) => a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : a.id - b.id);
+    return {
+        completed: completedMilestones(milestones),
+        total: milestones.length,
+        overdue: milestones.filter(milestone => milestoneOverdue(milestone, today)).length,
+        next: upcoming[0] ?? null,
+    };
+}
