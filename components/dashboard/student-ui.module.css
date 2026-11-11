@@ -63,6 +63,8 @@
 .feedbackScroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; }
 @media (max-width: 640px) {
     .overview { grid-template-columns: 1fr; }
+    .projectSummary > div { flex: 0 0 100%; }
+    .projectSummary > .badge { max-width: 100%; overflow-wrap: anywhere; }
     .toolbar { align-items: stretch; }
     .toolbar > button, .selector { width: 100%; }
     .dialog { width: calc(100% - 1rem); max-height: calc(100dvh - 1rem); padding: 1rem; }

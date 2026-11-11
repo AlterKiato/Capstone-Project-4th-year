@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { readRevisionsAction } from "@/lib/actions/revision.action";
 import { revisionCounts, type RevisionChecklist } from "@/lib/revisions";
 import ContextHelp from "./context-help";
+import NavigationIcon from "./navigation-icon";
 import styles from "./revisions.module.css";
 
 function ProjectWidget({ project }: { project: { id: number; title: string } }) {
@@ -29,7 +30,7 @@ function ProjectWidget({ project }: { project: { id: number; title: string } }) 
 }
 export default function RevisionWidget({ project }: { project?: { id: number; title: string } }) {
     return <section className={`dashboard-panel ${styles.widget}`} aria-labelledby="revision-widget-heading">
-        <div className={styles.heading}><h2 id="revision-widget-heading">Revision Checklist</h2>
+        <div className={styles.heading}><h2 id="revision-widget-heading" className="dashboard-label"><NavigationIcon name="checklist" size={18} />Revision Checklist</h2>
             <ContextHelp label="About revision progress">Counts cover your saved Action Taken responses in this project&apos;s latest correction cycle. Addressed does not mean Approved. Select a project to view its own counts.</ContextHelp></div>
         {project ? <ProjectWidget key={project.id} project={project} /> : <p>No active research project.</p>}
     </section>;

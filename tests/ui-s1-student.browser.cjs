@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict'), fs = require('node:fs');
 const { build } = require('esbuild'), { chromium, expect } = require('@playwright/test');
 async function main() {
-    const out = 'test-results/ui-s1'; fs.mkdirSync(out, { recursive: true });
+    const out = 'test-results/ui-s1.1'; fs.mkdirSync(out, { recursive: true });
     const formatted = '\u001eTHESISHS_FEEDBACK:1\n' + JSON.stringify({ version: 1, blocks: [
         { type: 'paragraph', content: [{ text: 'Synthetic complete feedback. ', bold: true, italic: true, underline: true }] },
         ...Array.from({ length: 30 }, (_, i) => ({ type: 'paragraph', content: [{ text: `Paragraph ${i}: explain the research method and preserve the complete official comments. <img src=x onerror=alert(1)>` }] })),
@@ -52,6 +52,11 @@ export const createStudentResearchAction=forbidden,respondToRevisionAction=forbi
         await expect(workspace.locator('dd')).toHaveText(['2', '0', '1']);
         await expect(page.getByText('0 / 1 completed', { exact: true })).toBeVisible();
         await expect(page.getByText('0 / 1 Addressed', { exact: true })).toBeVisible();
+        for (const label of ['Research Group', 'Latest Feedback', 'Research Progress', 'Revision Checklist', 'Group Workspace']) {
+            const heading = page.getByRole('heading', { name: label, exact: true });
+            await expect(heading.locator('svg')).toHaveAttribute('width', '18');
+            await expect(heading.locator('svg')).toHaveAttribute('aria-hidden', 'true');
+        }
         await page.getByLabel('Research project', { exact: true }).selectOption('20');
         await expect(workspace.locator('dd')).toHaveText(['0', '1', '0']);
         await expect(page.getByRole('region', { name: 'Research Progress', exact: true }).getByText('Milestones not configured.', { exact: true })).toBeVisible();
@@ -127,7 +132,7 @@ export const createStudentResearchAction=forbidden,respondToRevisionAction=forbi
         for (const [hash, tab] of [['research-progress', 'Progress'], ['revision-checklist', 'Revisions']]) { await page.goto('http://ui-s1.invalid/dashboard/student/submissions?project=10#' + hash); await expect(page.getByRole('tab', { name: tab, exact: true })).toHaveAttribute('aria-selected', 'true'); }
         evidence.push('Submissions tabs: keyboard, no inactive reads, local draft retention, icon reload loading/disabled, correct hash panels and feedback deep links/private scope PASS');
 
-        for (const [width, theme] of [[1440, 'light'], [1440, 'dark'], [768, 'light'], [360, 'light'], [360, 'dark']]) {
+        for (const [width, theme] of [[1440, 'light'], [1440, 'dark'], [768, 'light'], [640, 'light'], [360, 'light'], [360, 'dark']]) {
             await page.setViewportSize({ width, height: 900 });
             for (const route of ['student?project=10', 'student/submissions?project=10', 'student/workspace?project=10&tab=tasks']) {
                 await page.goto('http://ui-s1.invalid/dashboard/' + route); await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
@@ -138,6 +143,24 @@ export const createStudentResearchAction=forbidden,respondToRevisionAction=forbi
                     assert.ok(bounds.x >= 11 && bounds.x + bounds.width <= width - 11); await page.keyboard.press('Escape');
                 }
                 if (route.includes('workspace')) { const cols = await Promise.all(['To Do', 'In Progress', 'Done'].map(name => page.getByRole('region', { name, exact: true }).boundingBox())); assert.ok(width > 800 ? Math.abs(cols[0].y - cols[2].y) < 2 : cols[1].y > cols[0].y); }
+                if (route.includes('submissions')) {
+                    const title = theme === 'dark' ? 'PREVIEW_E4A_SYNTHETIC_' + 'X'.repeat(60) : 'PREVIEW_E4A_SYNTHETIC research on student collaboration and manuscript revision';
+                    await page.evaluate(title => { window.model.workspace.projects[0].title = title; window.render(); }, title);
+                    const card = page.getByRole('region', { name: title, exact: true });
+                    await expect(card.getByRole('heading')).toHaveText(title);
+                    const container = await card.boundingBox(), titleRow = await card.getByRole('heading').locator('..').boundingBox();
+                    const control = await card.getByRole('button', { name: 'View Details', exact: true }).boundingBox();
+                    if (width <= 640) {
+                        assert.ok(titleRow.width >= container.width - 35, 'Mobile title gets the whole content row');
+                        assert.ok(control.y >= titleRow.y + titleRow.height, 'Details stays below the title');
+                    }
+                    assert.ok(await card.getByRole('heading').evaluate(el => el.scrollWidth <= el.clientWidth));
+                    await expect(page.getByRole('heading', { name: 'Submission History', exact: true }).locator('svg')).toHaveAttribute('width', '18');
+                    await card.getByRole('button', { name: 'View Details', exact: true }).click();
+                    await expect(card.getByText('Preserved project abstract.', { exact: true })).toBeVisible();
+                    await card.getByRole('button', { name: 'Hide Details', exact: true }).click();
+                    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+                }
                 await page.screenshot({ path: `${out}/${route.includes('workspace') ? 'workspace' : route.includes('submissions') ? 'submissions' : 'dashboard'}-${width}-${theme}.png`, fullPage: true });
                 if (route.includes('submissions') && width === 360 && theme === 'dark') {
                     await page.locator('button[aria-controls="version-4"]').click(); await page.getByRole('button', { name: 'View Full Feedback', exact: true }).click();

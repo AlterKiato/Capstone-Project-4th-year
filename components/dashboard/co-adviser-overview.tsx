@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DashboardHeader from "./dashboard-header";
+import NavigationIcon from "./navigation-icon";
 import { coAssignmentSummary, coReviewHref } from "@/lib/utils/co-adviser-workspace";
 import type { CoWorkspace } from "@/types/co-adviser";
 import styles from "./adviser-overview.module.css";
@@ -13,7 +14,7 @@ export default function CoAdviserOverview({ workspace, error }: { workspace: CoW
         {!workspace ? <p role="alert" className="form-message">{error || "Assignments could not be loaded. Reload to try again."}</p> : <>
             <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Co-Adviser assignments">
                 {[{label:"Total Assigned",value:summary.total},{label:"Open / Pending Review",value:summary.open},{label:"Completed Recommendations",value:summary.completed}].map(metric =>
-                    <div className="dashboard-panel" key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}
+                    <div className="dashboard-panel" key={metric.label}><dt className="dashboard-label"><NavigationIcon name={metric.label === "Completed Recommendations" ? "checklist" : "document"} size={18} /><span>{metric.label}</span></dt><dd>{metric.value}</dd></div>)}
             </dl>
             <section className={`dashboard-panel ${styles.section}`} aria-labelledby="delegated-recent-heading">
                 <div className={styles.sectionHeader}><h2 id="delegated-recent-heading">Recent delegated manuscripts</h2><Link href="/dashboard/adviser/submissions" className={styles.action}>View All Assignments</Link></div>

@@ -6,6 +6,7 @@ import { workspaceTaskCounts } from "@/lib/student-experience-view";
 import { TASK_STATUSES } from "@/lib/workspace/task-board-view";
 import { workspaceHref } from "@/lib/workspace/workspace-view";
 import ContextHelp from "./context-help";
+import NavigationIcon from "./navigation-icon";
 import common from "./revisions.module.css";
 import styles from "./student-progress-widgets.module.css";
 
@@ -22,7 +23,7 @@ export default function GroupWorkspaceWidget({ project }: { project?: { id: numb
         return () => { active = false; };
     }, [paperId, attempt]);
     return <section className={`dashboard-panel ${common.widget}`} aria-labelledby="group-workspace-widget-heading">
-        <div className={common.heading}><h2 id="group-workspace-widget-heading">Group Workspace</h2>
+        <div className={common.heading}><h2 id="group-workspace-widget-heading" className="dashboard-label"><NavigationIcon name="workspace" size={18} />Group Workspace</h2>
             <ContextHelp label="About group workspace">Tasks track your group&apos;s work. Done does not mean a research milestone is verified or a manuscript is Approved.</ContextHelp></div>
         {!project ? <p>No active research project.</p> : <div aria-busy={!state}>
             <h3>{project.title}</h3>

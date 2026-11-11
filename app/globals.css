@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 .verification-email { overflow-wrap: anywhere; }
+.dashboard-label { display: flex; align-items: center; gap: .45rem; min-width: 0; }
+.dashboard-label > svg { flex-shrink: 0; color: var(--brand); }
+.dashboard-label > span { min-width: 0; }
 .verification-message { padding: 0.75rem; border-left: 3px solid var(--action); background: var(--notice); color: var(--foreground); }
 
 :root {

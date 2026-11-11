@@ -6,6 +6,7 @@ import { getStudentWorkspace } from "@/lib/services/student-workspace.service";
 import { getCurrentStudentVerificationStatus } from "@/lib/services/email-verification-status.service";
 import FeedbackContent from "@/components/feedback-content";
 import StudentProgressWidgets from "@/components/dashboard/student-progress-widgets";
+import NavigationIcon from "@/components/dashboard/navigation-icon";
 import { resolveResearchTarget } from "@/lib/student-research-view";
 
 export default async function StudentPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -27,7 +28,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Prom
         {!verification && <p className={`research-notice ${styles.verificationNotice}`} role="status">Email verification status is temporarily unavailable. Your research workspace remains available. <Link href="/dashboard/student/verify-email">Check verification status</Link>.</p>}
         {!groups.length ? <section className="dashboard-panel"><h2>No Research Group Assigned</h2><p>Research group details and adviser feedback will appear after your Adviser assigns you to a group.</p></section> :
             <div className={styles.overview}>
-                <section className="dashboard-panel"><h2>Research Group</h2>{groups.map(group => {
+                <section className="dashboard-panel"><h2 className="dashboard-label"><NavigationIcon name="group" size={18} />Research Group</h2>{groups.map(group => {
                     const groupProjects = projects.filter(project => project.groupId === group.id);
                     const latest = submissions.find(submission => groupProjects.some(project => project.id === submission.paperId));
                     return <div key={group.id}>
@@ -37,7 +38,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Prom
                         {latest && <p className="form-help">{projects.find(project => project.id === latest.paperId)?.title} · {latest.version}</p>}
                     </div>;
                 })}</section>
-                <section className="dashboard-panel"><h2>Latest Feedback</h2>{latestFeedback ? <>
+                <section className="dashboard-panel"><h2 className="dashboard-label"><NavigationIcon name="feedback" size={18} />Latest Feedback</h2>{latestFeedback ? <>
                     <div className={styles.excerpt}><FeedbackContent value={latestFeedback.feedback.comments} /></div>
                     <p className="form-help">{latestFeedback.submission.version} · Reviewed <time dateTime={latestFeedback.feedback.createdAt}>{new Date(latestFeedback.feedback.createdAt).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
                     <Link className="context-detail" href={`/dashboard/student/submissions?project=${latestFeedback.submission.paperId}&submission=${latestFeedback.submission.id}&feedback=${latestFeedback.feedback.id}#feedback-${latestFeedback.feedback.id}`}>View Full Feedback</Link>

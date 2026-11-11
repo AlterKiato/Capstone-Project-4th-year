@@ -288,6 +288,41 @@ export const markNotificationAsReadAction=async()=>({success:true});export const
         await expect(shell).toHaveAttribute('data-sidebar-mode', 'expanded');
         await page.getByRole('button', { name: 'Collapse sidebar', exact: true }).click(); await expect(shell).toHaveAttribute('data-sidebar-mode', 'compact');
         await configure({ mode: 'standalone', platform: 'desktop' }); await setDesktopMode('hidden');
+        for (const [role, count] of [[3, 6], [2, 6], [1, 8], [4, 3]]) {
+            await page.setViewportSize({ width: 1024, height: 700 });
+            await configure({ role, mode: 'standalone', platform: 'desktop' });
+            for (const mode of ['expanded', 'compact']) {
+                await setDesktopMode(mode); await expect(sidebar).toBeVisible();
+                const rail = await sidebar.boundingBox(), main = await geometry();
+                assert.equal(rail.x, 12); assert.equal(rail.y, 12);
+                assert.equal(rail.width, mode === 'compact' ? 64 : 240);
+                assert.ok(main.x >= rail.x + rail.width + 12, 'Content reserves both island gaps');
+                await expect(sidebar.getByRole('link')).toHaveCount(count);
+                assert.deepEqual(await sidebar.locator('svg').evaluateAll(els => [...new Set(els.map(el => el.getAttribute('width')))]), ['22']);
+                const small = await sidebar.locator('a,button').evaluateAll(els => els.filter(el => { const r = el.getBoundingClientRect(); return r.width < 44 || r.height < 44; }).map(el => el.getAttribute('aria-label')));
+                assert.deepEqual(small, [], 'Compact targets remain at least 44px');
+                await noOverflow();
+                if (mode === 'expanded') await page.screenshot({ path: join(evidence, `ui-s11-role${role}-desktop.png`), fullPage: false });
+            }
+            await setDesktopMode('hidden'); await expect(sidebar).toBeHidden();
+            assert.equal(await shell.evaluate(el => getComputedStyle(el).paddingLeft), '0px');
+            for (const width of [1023, 360]) {
+                await page.setViewportSize({ width, height: 320 });
+                await configure({ role, mode: 'standalone', platform: 'android' });
+                await menu.click(); await expect(dialog).toBeVisible();
+                const bounds = await dialog.boundingBox();
+                assert.equal(bounds.x, 12); assert.equal(bounds.y, 12);
+                assert.ok(bounds.y + bounds.height <= 308 && bounds.x + bounds.width <= width - 12);
+                const logout = dialog.getByRole('button', { name: 'Logout', exact: true });
+                const footer = await logout.boundingBox(); assert.ok(footer.y + footer.height <= bounds.y + bounds.height);
+                const last = dialog.getByRole('link').last(); await last.scrollIntoViewIfNeeded(); await expect(last).toBeVisible();
+                await expect(page.locator('[data-navigation-backdrop]')).toBeVisible();
+                await noOverflow();
+                if (width === 360) await page.screenshot({ path: join(evidence, `ui-s11-role${role}-short-drawer.png`), fullPage: false });
+                await page.keyboard.press('Escape'); await expect(dialog).toHaveCount(0); await expect(menu).toBeFocused();
+            }
+        }
+        console.log('PASS UI-S1.1 all-role island geometry at 1024/1023/360px, compact targets, hidden offset, 22px icons and short drawer scroll/logout/focus');
         // Emulated touch checks the actual Radix touch path, without physical-device claims.
         const touch = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
         const touchPage = await touch.newPage();

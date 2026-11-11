@@ -1,6 +1,53 @@
 # ThesiSHS AI — Master Context
 
+## UI-S1.1 responsive and visual refinement (2026-11-12)
+
+**Status: local implementation and focused validation PASS; hosted UI-S1.1 acceptance NOT TESTED.** Approved presentation-only checkpoint on `feature/development`, parent `b7f750e8c7481babcf0e1287f4142a8197c37953`. One reviewed local commit is authorized with message `feat(ui): polish responsive layouts and floating navigation`; resolve its resulting SHA from Git. No push, deployment or hosted acceptance is included.
+
+- **Mobile project summary:** at 640px and below the existing title/category wrapper receives a full-row flex basis; status and View Details follow it without fragmenting the title. Complete titles, emergency unbroken-text wrapping, desktop compact layout, selection, Create Project and disclosure behavior remain intact. No project-summary icon is added, avoiding renewed compression.
+- **Notes:** existing native disclosures become compact single-column bordered cards with Task-compatible spacing/radius, two-line previews, smaller creator/update metadata, visible keyboard focus and a consistent action separator. Full content and the same Recently Deleted presentation remain available. No Notes TSX, permission, persistence, draft/conflict, delete/restore or linked-task logic changes.
+- **Icons:** the existing outline SVG primitive retains its 22px default and gains an optional size. Four semantic glyphs (feedback, checklist, workspace, history) support selected 18px Student headings, Main/Co-Adviser summaries and Admin metrics, including Reports reuse. Existing glyphs cover groups/progress/users/documents/repository. Text labels/counts remain; decorative SVGs stay hidden from assistive technology. Admin icons remain inside existing `dt` elements. Panel gains no invented cards; route metadata is unchanged.
+- **Shared floating navigation:** all roles inherit the existing shell. Visible desktop rails retain 240px/64px widths and receive 12px external gaps, rounded corners and a subtle theme-compatible border. Content reservation includes both gaps; hidden mode retains no rail offset. Reduced rail padding preserves compact targets. The existing Radix Sheet uses safe-area-aware 12px insets and constrained height instead of `100dvh`, keeping navigation scrollable and Logout reachable. Drawer state, focus restoration, draft guards, exact links, active indicators, logout, mobile bottom navigation and Panel fallback are unchanged. No viewport-fit, z-index, routing, navigation framework or preference-store change.
+
+**Focused evidence:** 15/15 offline checks PASS (`tests/dashboard-navigation.unit.cjs`, `tests/c4-research-notes.unit.cjs`). Four sequential synthetic Chromium checks PASS: extended `tests/ui-s1-student.browser.cjs` (long titles/icons and existing Student workflow presentation), extended `tests/c4-research-notes.browser.cjs` (12 interaction groups, creator controls, Recently Deleted/restore, full long content, drafts/conflicts), extended `tests/dashboard-navigation.browser.cjs` (all four roles, expanded/compact/hidden, exact routes, 1024/1023/360px island geometry, 44px compact targets, short drawer scroll/logout, keyboard/backdrop/touch, existing Adviser draft boundary and mocked logout), and `tests/ui-s11-summary.browser.cjs` (actual Main/Co-Adviser/Admin/Reports markup, counts and metric structure). Light/Dark, mobile/tablet/desktop screenshots were reviewed. All browser actions/services are synthetic; no database, Storage or hosted application request.
+
+TypeScript for current tracked sources and targeted ESLint PASS. The default TypeScript include also collected an obsolete ignored R2 build snapshot; the scoped check excludes historical artifacts without changing project configuration. Final isolated one-worker Next.js 16.4.3 webpack production build on Node 24.18.0 PASS, including TypeScript and 27/27 page-generation tasks, with no environment files and synthetic non-routable services. The existing multiple-lockfile/root-inference warning is nonblocking. Chromium/esbuild required the existing execution fallback outside the filesystem restriction. This establishes local integration, not hosted connectivity or device acceptance. Ignored build, screenshot, preservation and review evidence: `test-results/ui-s1.1/`; navigation/Notes harnesses also report temporary screenshot paths.
+
+Both incoming UI-S1 closure documents are retained intact. **UI-S1 PASS / CLOSED; UI-R1.1 PASS / CLOSED; R1 PARTIAL PASS; R2 PARTIAL PASS; Phase 10 supervision PARTIAL PASS** and all existing NOT TESTED scenarios remain unchanged. The three November 12 UI-S1.1 observations below are now addressed locally, not hosted-accepted. Multi-project switching, broader physical-device coverage, actual safe-area/keyboard behavior and owner-led UI-S1.1 Preview acceptance remain unverified. No schema, migration, grant, dependency, environment, authentication/authorization, task/note business rule or research workflow change. Paper 1/v1–v5, v5 Under Review, feedback/PDFs, milestones/v4 evidence, revision history, Main/Co-Adviser data, workspace records, notifications and audits were not accessed or mutated.
+
+**Smallest next action:** separately authorize one pinned normal fast-forward publication of the resulting local commit to protected Preview. Publication must stop before owner-led acceptance, which can use existing accounts/records one action at a time without new fixtures. This handoff supersedes historical next-action wording below without rewriting accepted results.
+
+## UI-S1 manual acceptance closure (2026-11-12)
+
+**UI-S1 — PASS / CLOSED FOR AGREED MANUAL SCOPE.** The following hosted acceptance results are **owner-reported**, not independently reproduced by Codex:
+
+1. Student Dashboard — compact Research Progress, Revision Checklist and Group Workspace widgets — **PASS**.
+2. Research Submissions — compact project summary and History-first navigation — **PASS**.
+3. Submission History — version readability, expansion and full adviser feedback dialog — **PASS**.
+4. Help/Reload — borderless Help icons, anchored popovers, dismissal and compact Reload controls — **PASS**.
+5. Group Workspace — Tasks desktop columns, mobile stacking and existing task visibility — **PASS**.
+
+**Separate local automated evidence, reused without rerunning:** 44/44 offline checks; four scoped synthetic Chromium scenarios; TypeScript, targeted lint and production build PASS (27/27 page-generation tasks). These checks do not establish hosted acceptance beyond the five owner-reported results above. Published SHA: `b7f750e8c7481babcf0e1287f4142a8197c37953`; Vercel deployment ID: `GZvNScwU8ZQs41soFcpx452XyhY1`. Publication evidence records the Vercel integration reporting “Deployment has completed” and the Preview authentication challenge. **Independent Vercel Dashboard Ready verification is not claimed.**
+
+### Deferred UI-S1.1 observations
+
+These three observations are deferred UI improvements, not UI-S1 functional acceptance failures. No implementation is authorized by this closure.
+
+| Observation | Problem | Recommended direction and preservation boundary | Priority |
+| --- | --- | --- | --- |
+| Mobile Research Project Details | Long project titles wrap into extremely narrow fragments because status badges and actions compete for horizontal space. | Responsive vertical layout on narrow screens. Preserve project information and existing actions. | High |
+| Group Workspace Notes | Notes visually retains the older text-heavy design while Tasks received the modern taskboard styling. | Compact cards, consistent spacing, short previews and expandable details. Preserve Notes functionality, creator permissions and Recently Deleted behavior. | Medium |
+| Floating island sidebar | The desktop sidebar remains attached to viewport edges. | Subtle external margins, rounded corners and a modern floating appearance. Preserve existing desktop collapse/expand behavior and mobile drawer navigation. Inspect implications for Student, Adviser and Admin before authorizing implementation. | Medium |
+
+**Preserved classifications and limits:** UI-R1.1 PASS / CLOSED FOR AGREED MANUAL SCOPE; R1 PARTIAL PASS; R2 PARTIAL PASS; Phase 10 supervision (S3.4B.5) PARTIAL PASS; all existing NOT TESTED scenarios remain unchanged. Multi-project switching and broader device coverage are **not manually verified** by this closure. No milestone verification, new revision evidence or wider workflow completion is implied.
+
+All existing research records and history remain preserved: Paper 1 submissions v1–v5, v5 Under Review, official feedback and historical PDFs, R1 milestone/linked v4 evidence, R2 revision history, Main/Co-Adviser designations and recommendations, Group Workspace tasks/notes, notifications and audit records. This documentation-only checkpoint accesses no database, Storage or hosted service, creates no fixtures, runs no application tests and makes no code, CSS, environment or publication change. Edits remain unstaged and uncommitted.
+
+**Smallest next action:** review and approve a bounded UI-S1.1 scope, beginning with the High-priority mobile Research Project Details layout. The shared sidebar needs Student/Adviser/Admin implications inspected before implementation authorization. This closure supersedes the historical UI-S1 pending publication/acceptance and next-action wording below; historical evidence remains intact.
+
 ## UI-S1 Student experience refinement (2026-11-11)
+
+**Historical implementation checkpoint:** the UI-S1 closure above controls current acceptance and next actions; original local evidence and pending direction below are retained as history.
 
 **Status: implemented locally; hosted UI-S1 acceptance NOT TESTED.** Owner-approved UI-only checkpoint on `feature/development`, parent `bf93466de1af777d07d4ee390d45480d01ff2784`. Local commit message: `feat(ui): refine student dashboard submissions and workspace`; resolve its resulting SHA from Git. This is not R3 and does not reopen earlier accepted cycles.
 

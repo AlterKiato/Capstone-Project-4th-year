@@ -11,6 +11,7 @@ import styles from "./student-ui.module.css";
 import { feedbackPlainText } from "@/lib/utils/feedback-content";
 import { researchTabFromHash, type ResearchTab } from "@/lib/student-experience-view";
 import StudentFeedbackDialog from "./student-feedback-dialog";
+import NavigationIcon from "./navigation-icon";
 import ResearchProgress from "./research-progress";
 import RevisionChecklist from "./revision-checklist";
 
@@ -84,7 +85,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
                     }}>{choice === "history" ? "History" : choice === "progress" ? "Progress" : "Revisions"}</button>)}
             </div>{project && <button type="button" className={styles.primary} onClick={() => setModal("upload")}>Submit PDF</button>}</div>
             <div id="research-history" role="tabpanel" aria-labelledby="research-history-tab" hidden={tab !== "history"} className={styles.tabPanel}>
-            <h2 id="history-heading" className={styles.historyHeading}>Submission History</h2>
+            <h2 id="history-heading" className={`${styles.historyHeading} dashboard-label`}><NavigationIcon name="history" size={18} />Submission History</h2>
             {!history.length ? <p>{project ? "Not yet submitted. Submit a PDF for this project’s first version." : "Submission versions will appear here after you create a project and submit a PDF."}</p> :
                 <ol className={styles.history}>{history.map(submission => <li key={submission.id}>
                     <h3><button type="button" className={styles.row} aria-expanded={expanded === submission.id} aria-controls={`version-${submission.id}`} onClick={() => setExpanded(expanded === submission.id ? null : submission.id)}>

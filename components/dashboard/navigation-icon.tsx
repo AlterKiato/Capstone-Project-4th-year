@@ -1,4 +1,6 @@
-import type { NavigationIcon as IconName } from "@/lib/constants/dashboard-navigation";
+import type { NavigationIcon } from "@/lib/constants/dashboard-navigation";
+
+type IconName = NavigationIcon | "feedback" | "checklist" | "workspace" | "history";
 
 const paths: Record<IconName, string> = {
     home: "m3 10 9-7 9 7v11h-6v-7H9v7H3Z",
@@ -14,8 +16,12 @@ const paths: Record<IconName, string> = {
     collapse: "M4 3h16v18H4Z M9 3v18 m7-13-4 4 4 4",
     logout: "M9 3H4v18h5 M9 12h12 m-5-5 5 5-5 5",
     settings: "m10 3 4 0 .6 3 2 .9 2.8-.9 2 3.5-2.2 2v2l2.2 2-2 3.5-2.8-.9-2 .9-.6 3h-4l-.6-3-2-.9-2.8.9-2-3.5 2.2-2v-2l-2.2-2 2-3.5 2.8.9 2-.9Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
+    feedback: "M4 4h16v12H9l-5 4Z M8 8h8 M8 12h5",
+    checklist: "m3 6 2 2 3-4 M11 6h10 m-18 7 2 2 3-4 M11 13h10 M4 20h3 M11 20h10",
+    workspace: "M9 4H5v17h14V4h-4 M9 2h6v4H9Z M8 11h8 M8 15h8",
+    history: "M5 12V3h9l5 5v3 M14 3v5h5 M21 17a6 6 0 1 1-12 0 6 6 0 0 1 12 0Z M15 14v3l2 1",
 };
 
-export default function NavigationIcon({ name }: { name: IconName }) {
-    return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>;
+export default function NavigationIcon({ name, size = 22 }: { name: IconName; size?: number }) {
+    return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d={paths[name]} /></svg>;
 }

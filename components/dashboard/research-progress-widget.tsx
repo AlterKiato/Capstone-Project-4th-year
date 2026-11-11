@@ -6,6 +6,7 @@ import { readResearchProgressAction } from "@/lib/actions/research-progress.acti
 import { researchProgressSummary, type ResearchProgress } from "@/lib/research-progress";
 import { taskDueDate } from "@/lib/workspace/task-board-view";
 import ContextHelp from "./context-help";
+import NavigationIcon from "./navigation-icon";
 import common from "./revisions.module.css";
 import styles from "./student-progress-widgets.module.css";
 
@@ -24,7 +25,7 @@ export default function ResearchProgressWidget({ project }: { project?: { id: nu
     const summary = state?.data ? researchProgressSummary(state.data) : null;
     return <section className={`dashboard-panel ${common.widget}`} aria-labelledby="research-progress-widget-heading">
         <div className={common.heading}>
-            <h2 id="research-progress-widget-heading">Research Progress</h2>
+            <h2 id="research-progress-widget-heading" className="dashboard-label"><NavigationIcon name="report" size={18} />Research Progress</h2>
             <ContextHelp label="About research progress">Completion requires Main Adviser verification. Submitting or linking a PDF alone does not complete a milestone. Deadlines use Manila dates.</ContextHelp>
         </div>
         {!project ? <p>No active research project.</p> : <div aria-busy={!state}>

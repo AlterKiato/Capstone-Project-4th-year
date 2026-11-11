@@ -1,6 +1,7 @@
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import Link from "next/link";
 import CoAdviserOverview from "@/components/dashboard/co-adviser-overview";
+import NavigationIcon from "@/components/dashboard/navigation-icon";
 import { getCoAdviserWorkspace } from "@/lib/services/co-adviser.service";
 import styles from "@/components/dashboard/adviser-overview.module.css";
 import { getAdviserDashboard } from "@/lib/services/adviser-dashboard.service";
@@ -44,7 +45,7 @@ async function AdviserOverview() {
 
             <dl className={`${styles.metrics} dashboard-metrics`} aria-label="Adviser workload">
                 {metrics.map(metric => <div key={metric.label} className="dashboard-panel" data-priority={metric.label === "Pending Reviews" && metric.value > 0 ? "pending" : undefined}>
-                    <dt>{metric.label}</dt><dd>{metric.value}</dd><dd className="form-help">{metric.help}</dd>
+                    <dt className="dashboard-label"><NavigationIcon name={metric.label === "Research Groups" ? "group" : metric.label === "Pending Reviews" ? "document" : "checklist"} size={18} /><span>{metric.label}</span></dt><dd>{metric.value}</dd><dd className="form-help">{metric.help}</dd>
                 </div>)}
             </dl>
             <section className={`dashboard-panel ${styles.section}`} aria-labelledby="attention-heading">

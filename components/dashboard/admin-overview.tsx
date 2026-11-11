@@ -1,6 +1,7 @@
 import type { AdminDashboardStats, RecentActivity } from "@/lib/services/dashboard.service";
 import type { ServiceResult } from "@/types/auth";
 import styles from "./admin-overview.module.css";
+import NavigationIcon from "./navigation-icon";
 
 export function AdminMetrics({ stats, reports = false }: { stats: AdminDashboardStats; reports?: boolean }) {
     const metrics = [
@@ -11,7 +12,7 @@ export function AdminMetrics({ stats, reports = false }: { stats: AdminDashboard
     ];
     return <dl className={`${styles.metrics} ${reports ? styles.reportMetrics : ""} dashboard-metrics`} aria-label="System statistics">
         {metrics.map(metric => <div key={metric.label} className="dashboard-panel">
-            <dt>{metric.label}</dt><dd>{metric.value}</dd><dd className="form-help">{metric.help}</dd>
+            <dt className="dashboard-label"><NavigationIcon name={metric.label === "Total Users" ? "users" : metric.label.includes("Groups") ? "group" : metric.label.includes("Repository") ? "book" : "document"} size={18} /><span>{metric.label}</span></dt><dd>{metric.value}</dd><dd className="form-help">{metric.help}</dd>
         </div>)}
     </dl>;
 }

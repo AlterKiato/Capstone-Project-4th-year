@@ -80,6 +80,8 @@ const notes=s.mode==='error'?{success:false,kind:'unavailable',message:'Denied'}
         await expect(own).toContainText('Literal <script>not executable</script>'); await expect(own).toContainText('Literature outline');
         await expect(own).toContainText('UTC'); await expect(peer.getByRole('button')).toHaveCount(0); await expect(peer).toContainText('Read only');
         await expect(page.getByText('Deleted by peer', { exact: true })).toHaveCount(0); assert.equal(await page.locator('main script').count(), 0); groups++;
+        assert.ok(await own.evaluate(el => parseFloat(getComputedStyle(el.closest('li')).borderRadius) > 0), 'Notes use bordered cards');
+        assert.equal(await own.locator('summary').evaluate(el => getComputedStyle(el.querySelector('span:nth-child(2)')).webkitLineClamp), '2');
         // Create: required limits/options, failed save preserves draft, double click yields one mutation.
         await page.getByRole('button', { name: 'New Note', exact: true }).click();
         await expect(select).toBeDisabled(); await expect(page.getByRole('tab', { name: 'Tasks', exact: true })).toBeDisabled();
@@ -179,6 +181,9 @@ const notes=s.mode==='error'?{success:false,kind:'unavailable',message:'Denied'}
         for (const width of [1280, 360]) for (const theme of ['light', 'dark']) {
             await page.setViewportSize({ width, height: 820 }); await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+            const expanded = page.locator('details[open]').first();
+            assert.ok(await expanded.evaluate(el => el.querySelector('p').textContent.length > 1000), 'Full long content remains available');
+            await page.screenshot({ path: join(tmpdir(), `thesishs-ui-s11-notes-${width}-${theme}.png`), fullPage: true });
             await page.getByRole('button', { name: 'New Note', exact: true }).click();
             await expect(modal()).toBeVisible(); assert.ok(await modal().evaluate(d => d.getBoundingClientRect().width <= innerWidth));
             const contrastFailures = await page.locator('main').evaluate(root => {
