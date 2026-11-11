@@ -1,6 +1,7 @@
 import "server-only";
 import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
 import { feedbackCommentsSchema } from "@/lib/utils/feedback-content";
+import { revisionDraftsSchema, type RevisionDraft } from "@/lib/validations/revision";
 
 import {
     findResearchGroupsForMainAdviser,
@@ -49,7 +50,8 @@ export async function createAdviserFeedback(
     adviserId: number,
     comments: string,
     decision: string,
-    onCommitted?: (studentId: number) => void
+    onCommitted?: (studentId: number) => void,
+    revisionItems: RevisionDraft[] = []
 ): Promise<
     ServiceResult<{
         id: number;
@@ -117,6 +119,8 @@ export async function createAdviserFeedback(
 
     const trimmedDecision =
         decision.trim();
+    const corrections = revisionDraftsSchema.safeParse(revisionItems);
+    if (!corrections.success) return { success: false, message: "Check the revision corrections before finalizing." };
 
     if (
         trimmedDecision !== SUBMISSION_STATUS.REVISION_REQUIRED &&
@@ -162,6 +166,7 @@ export async function createAdviserFeedback(
         teacherId: adviserId,
         comments: trimmedComments,
         decision: trimmedDecision,
+        revisionItems: isRevisionRequired ? corrections.data : [],
         expectedSubmissionStatus: SUBMISSION_STATUS.UNDER_REVIEW,
         researchStatus,
         activityAction,

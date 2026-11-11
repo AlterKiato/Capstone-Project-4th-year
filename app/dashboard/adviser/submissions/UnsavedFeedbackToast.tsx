@@ -21,6 +21,9 @@ export default function UnsavedFeedbackToast() {
         const update = () => {
             const anchor = marker.current;
             if (!anchor) return;
+            // Review stays mounted in its tab. A portaled toast must not outlive
+            // its hidden anchor or measure a zero-width inactive panel.
+            if (!anchor.getClientRects().length) { setPlacement(null); return; }
             const viewport = window.visualViewport;
             const leftEdge = viewport?.offsetLeft ?? 0, topEdge = viewport?.offsetTop ?? 0;
             const rightEdge = leftEdge + (viewport?.width ?? window.innerWidth);

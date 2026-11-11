@@ -1,6 +1,7 @@
 "use server";
 
 import { requestResearchPush } from "@/lib/push/request";
+import { revisionDraftsFromForm } from "@/lib/validations/revision";
 
 import {
     revalidatePath,
@@ -41,6 +42,7 @@ export async function createAdviserFeedbackAction(
 
     const parsed =
         createFeedbackSchema.safeParse({
+            revisionItems: revisionDraftsFromForm(formData.get("revisionItems")),
             submissionId:
                 formData.get(
                     "submissionId"
@@ -73,7 +75,8 @@ export async function createAdviserFeedbackAction(
             session.userId,
             parsed.data.comments,
             parsed.data.decision,
-            recipientId => push({ recipientId, event: parsed.data.decision === "Revision Required" ? "revision-required" : "approved" })
+            recipientId => push({ recipientId, event: parsed.data.decision === "Revision Required" ? "revision-required" : "approved" }),
+            parsed.data.revisionItems
         );
 
     if (!result.success) {
@@ -95,6 +98,7 @@ export async function createAdviserFeedbackAction(
     revalidatePath(
         "/dashboard/student/submissions"
     );
+    revalidatePath("/dashboard/student");
 
     return {
         success: true,

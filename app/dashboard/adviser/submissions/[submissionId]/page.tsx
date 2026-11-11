@@ -13,11 +13,12 @@ import workspace from "../review-workspace.module.css";
 import StartReviewButton from "../StartReviewButton";
 import FeedbackForm from "../FeedbackForm";
 import FeedbackContent from "@/components/feedback-content";
-import MainDelegationPanel from "@/components/dashboard/main-delegation-panel";
 import CoAdviserReview from "@/components/dashboard/co-adviser-review";
 import { getCoAdviserAssignment } from "@/lib/services/co-adviser.service";
 import OfficialFeedbackDraft from "../OfficialFeedbackDraft";
 import ReviewWorkspace from "../ReviewWorkspace";
+import ReviewTabs from "../ReviewTabs";
+import RevisionDraftProvider from "../RevisionDraft";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -37,7 +38,7 @@ export default async function AdviserSubmissionDetailsPage({ params, searchParam
     const completed = submission.status === STATUS.APPROVED || submission.status === STATUS.REVISION_REQUIRED;
     const versions = details.versions.some(version => version.id === submission.id) ? details.versions :
         [{ id: submission.id, version: submission.version, status: submission.status }, ...details.versions];
-    return <ReviewDraftBoundary key={submission.id}><OfficialFeedbackDraft><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
+    return <ReviewDraftBoundary key={submission.id}><OfficialFeedbackDraft><RevisionDraftProvider><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
         <p><Link href="/dashboard/adviser/submissions" className="research-back context-back"><span aria-hidden="true">←</span>Back to Submissions</Link></p>
         <DashboardHeader title={submission.researchTitle} email={details.email} />
         <div className={workspace.summary}><p className="dashboard-context">{submission.groupName} · {submission.version}</p><SubmissionStatus status={submission.status} /></div>
@@ -54,15 +55,12 @@ export default async function AdviserSubmissionDetailsPage({ params, searchParam
         {details.versionsUnavailable && <p role="status" className="form-help">Version history is unavailable. The selected submission remains open.</p>}
         </div>
         <ReviewWorkspace version={submission.version} document={<AuthorizedPdfPreview key={submission.id} submissionId={submission.id} version={submission.version} />}>
+            <ReviewTabs submissionId={submission.id} paperId={submission.paperId} editable={submission.status === STATUS.UNDER_REVIEW}>
             <div className={workspace.reviewStatus}><p className="form-help">Review status</p><SubmissionStatus status={submission.status} /></div>
             <div className={workspace.reviewBody} tabIndex={0} role="region" aria-label="Adviser review content">
             {submission.status === STATUS.SUBMITTED ? <><p className="dashboard-context">Start review before recording feedback. This changes the submission to Under Review; it does not issue a decision.</p><StartReviewButton submissionId={submission.id} /></> :
                 submission.status === STATUS.UNDER_REVIEW ? <FeedbackForm key={submission.id} submissionId={submission.id} /> :
                     <p className="dashboard-context">{completed ? `Review complete for ${submission.version}. The recorded decision is read-only.` : `This version is ${submission.status}. Feedback is available only while Under Review.`}</p>}
-            {!completed && <section className={workspace.criteria} aria-labelledby="assessment-criteria-heading">
-                <h3 id="assessment-criteria-heading">Assessment Criteria</h3>
-                <p className="form-help">Criteria-based assessment is planned and is not yet available. You can review this submission using general feedback and a review decision.</p>
-            </section>}
             {completed && <section className={workspace.history} aria-labelledby="recorded-feedback-heading">
                 <h3 id="recorded-feedback-heading">Recorded feedback for {submission.version}</h3>
                 {feedbackUnavailable ? <p role="alert" className="form-message">Recorded feedback could not be retrieved. Reload to try again.</p> : feedback.length ? feedback.map(entry => <article className={styles.feedback} key={entry.id}>
@@ -71,7 +69,7 @@ export default async function AdviserSubmissionDetailsPage({ params, searchParam
                 </article>) : <p>No recorded feedback is available for this submission version.</p>}
             </section>}
             </div>
+            </ReviewTabs>
         </ReviewWorkspace>
-        <MainDelegationPanel key={`delegation-${submission.id}`} submissionId={submission.id} />
-    </main></OfficialFeedbackDraft></ReviewDraftBoundary>;
+    </main></RevisionDraftProvider></OfficialFeedbackDraft></ReviewDraftBoundary>;
 }

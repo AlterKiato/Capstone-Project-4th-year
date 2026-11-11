@@ -57,6 +57,7 @@ function executor(draft) {
     }
     function project(base,row,fields) { return fields ? Object.fromEntries(Object.entries(fields).map(([key,column])=>[key,related(base,column.table,row)?.[camel(column.name)]])) : structuredClone(row); }
     return {
+        async execute(query) { assert.match(dialect.sqlToQuery(query).sql,/pg_advisory_xact_lock/);events.push('paper:advisory'); },
         select(fields) {
             let table,predicate;const result=()=>rows(table).filter(row=>matches(row,predicate,getTableName(table))).map(row=>project(getTableName(table),row,fields));
             const chain={from(t){table=t;return chain;},where(p){predicate=p;return chain;},innerJoin(){return chain;},orderBy(){return chain;},

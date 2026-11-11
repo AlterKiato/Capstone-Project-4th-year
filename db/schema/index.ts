@@ -18,3 +18,4 @@ export * from "./group-task";
 export * from "./task-note";
 export * from "./research-supervision";
 export * from "./research-milestone";
+export * from "./revision";

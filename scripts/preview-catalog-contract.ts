@@ -3,6 +3,10 @@
 import assert from "node:assert/strict";
 
 const checks: Record<string, string> = {
+    revision_items_correction_check: "CHECK ((((char_length(correction) >= 1) AND (char_length(correction) <= 2000)) AND (correction ~ '[^[:space:]]'::text)))",
+    revision_items_position_check: "CHECK (((\"position\" >= 0) AND (\"position\" <= 29)))",
+    revision_responses_action_check: "CHECK ((char_length(action_taken) <= 2000))",
+    revision_responses_revision_check: "CHECK ((revision > 0))",
     research_milestones_title_check: "CHECK ((((char_length((title)::text) >= 1) AND (char_length((title)::text) <= 200)) AND ((title)::text ~ '[^[:space:]]'::text)))",
     research_milestones_revision_check: "CHECK ((revision >= 0))",
     research_milestones_verification_check: "CHECK ((((verified_by IS NULL) AND (verified_at IS NULL)) OR ((verified_by IS NOT NULL) AND (verified_at IS NOT NULL) AND (submission_id IS NOT NULL))))",
@@ -49,10 +53,17 @@ export function catalogCheck(name: string) {
     return checks[name];
 }
 
+// PostgreSQL deparses the column-name keyword position with quotes.
+export function catalogIdentifier(name: string) {
+    assert.match(name, /^[a-z_][a-z0-9_]*$/);
+    return name === "position" ? '"position"' : name;
+}
+
 export function catalogDefault(column: { type: string; default?: unknown }) {
     if (!("default" in column)) return null;
     const value = column.default;
     if (value === "now()") return "now()";
+    if (column.type === "text" && value === "''") return "''::text";
     if (column.type === "boolean" && typeof value === "boolean" || column.type === "integer" && Number.isSafeInteger(value)) return String(value);
     if (/^varchar\(\d+\)$/.test(column.type) && typeof value === "string" && /^'(?:[^']|'')*'$/.test(value)) return `${value}::character varying`;
     assert.fail("Unreviewed default representation");
@@ -65,7 +76,7 @@ export function catalogIndex(table: string, item: Index) {
     const keys = item.columns.map(c => {
         assert.equal(c.asc, true); assert.equal(c.nulls, "last");
         if (c.isExpression) { assert.equal(table, "ai_pilot_attempts"); assert.equal(c.expression, "(1)"); return "(1)"; }
-        assert.match(c.expression, /^[a-z_][a-z0-9_]*$/); return c.expression;
+        return catalogIdentifier(c.expression);
     });
     let predicate = "";
     if (item.where) {

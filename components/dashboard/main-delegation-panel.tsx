@@ -6,6 +6,7 @@ import { useOfficialFeedbackDraft } from "@/app/dashboard/adviser/submissions/Of
 import type { MainDelegationPanel as Panel } from "@/types/co-adviser";
 import ResearchDialog from "./research-dialog";
 import styles from "./co-adviser.module.css";
+import ContextHelp from "./context-help";
 
 export default function MainDelegationPanel({ submissionId }: { submissionId: number }) {
     const [panel, setPanel] = useState<Panel | null>(null);
@@ -49,7 +50,7 @@ export default function MainDelegationPanel({ submissionId }: { submissionId: nu
     const choices = panel?.advisers.filter(adviser => !panel.assignments.some(row => row.coAdviserId === adviser.id && row.state === "open")) ?? [];
     return <section className={`dashboard-panel ${styles.section}`} aria-labelledby={heading} aria-busy={loading}>
         <div className={styles.heading}><h2 id={heading}>Co-Adviser recommendations</h2><button type="button" onClick={() => void reload()} disabled={loading}>Reload assignments</button></div>
-        <p className="form-help">Private recommendations support your review. You can issue an official decision without waiting for them.</p>
+        <ContextHelp label="About Co-Adviser recommendations">Private recommendations support your review. You can issue an official decision without waiting for them.</ContextHelp>
         <p role="status" aria-live="polite">{loading ? "Loading assignments…" : message}</p>
         {panel && !loading && <>
             {panel.eligible ? <><button type="button" className={styles.primary} disabled={!choices.length} onClick={() => { setRequiresReload(false); setDialog("delegate"); }}>Delegate this version</button>

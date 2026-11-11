@@ -21,10 +21,11 @@ let reviewStatus = 'Submitted', writes = 0;
 const mocks = {
     'server-only': {},
     '@/lib/auth/session': { getSession: async () => session },
+    '@/lib/auth/main-adviser': { getCurrentMainAdviser: async id => account?.roleId===2 && session?.roleId===2 && session.userId===7 && (id===undefined || id===7) ? session : null },
     '@/lib/auth/authorization': { requireRole: async roles => { assert.deepEqual(roles, [2]); if (!session || session.roleId !== 2) throw Error('redirect'); return session; } },
     './dashboard-account.service': { getDashboardAccount: async () => account },
     '@/lib/repositories/user.repository': { findUserById: async () => ({ roleId: 2, isActive: true }) },
-    '@/lib/repositories/research-group.repository': { findResearchGroupsByAdviserId: async id => [{ id: id === 7 ? 100 : 200 }] },
+    '@/lib/repositories/research-group.repository': { findResearchGroupsForMainAdviser: async id => [{ id: id === 7 ? 100 : 200 }] },
     '@/lib/repositories/adviser-submission.repository': {
         findSubmissionVersionsForAdviser: async (paperId, adviserId) => adviserId === 7 ? records.filter(item => item.paperId === paperId).map(({ id, version, status }) => ({ id, version, status })) : [],
         findSubmissionsByGroupIds: async groups => { calls.push(groups); if (fail) throw Error('PRIVATE'); return groups[0] === 100 ? [{ ...records[0], submittedAt: new Date(records[0].submittedAt), fileUrl: 'PRIVATE', remarks: 'PRIVATE' }] : []; },
@@ -50,7 +51,7 @@ async function main() {
     const data = await service.getAdviserSubmissionsDirectory(); assert.equal(data.submissions.length, 1); assert.ok(!JSON.stringify(data).includes('PRIVATE'));
     let detail = await service.getAdviserReviewDetails(1); assert.equal(detail.feedback[0].submissionId, 1); assert.deepEqual(feedbackCalls, [[1, 7]]);
     assert.equal(await service.getAdviserReviewDetails(2), null); assert.equal(feedbackCalls.length, 1);
-    session.userId = 8; assert.deepEqual((await service.getAdviserSubmissionsDirectory()).submissions, []); assert.equal(await service.getAdviserReviewDetails(1), null); assert.equal(feedbackCalls.length, 1);
+    session.userId = 8; assert.equal(await service.getAdviserSubmissionsDirectory(), null); assert.equal(await service.getAdviserReviewDetails(1), null); assert.equal(feedbackCalls.length, 1);
     session.userId = 7; feedbackFail = true; detail = await service.getAdviserReviewDetails(1); assert.equal(detail.feedbackUnavailable, true); assert.deepEqual(detail.feedback, []);
     fail = true; assert.equal(await service.getAdviserSubmissionsDirectory(), null);
     assert.equal((await startSubmissionReview(1, 8)).success, false);

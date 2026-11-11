@@ -5,6 +5,7 @@ import * as schema from "@/db/schema";
 import type { UploadContext, UploadIntent, UploadRepository, UploadTransaction } from "@/lib/uploads/contract";
 import { UploadFailure } from "@/lib/uploads/contract";
 import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/constants/submission-lock";
+import { freezeRevisionResponses } from "./revision.repository";
 
 type Database = PostgresJsDatabase<typeof schema>;
 const intents = schema.submissionUploadIntents;
@@ -71,7 +72,9 @@ export function createSubmissionUploadRepository(database: Database): UploadRepo
                         if (!intent.finalPath) throw new UploadFailure("unavailable");
                         const [row] = await tx.insert(schema.submissions).values({ paperId, submittedBy: studentId, version, fileUrl: intent.finalPath,
                             remarks: intent.remarks, status: "Submitted" }).returning();
-                        if (!row) throw new UploadFailure("unavailable"); return row;
+                        if (!row) throw new UploadFailure("unavailable");
+                        await freezeRevisionResponses(tx, paperId, row.id);
+                        return row;
                     },
                 };
                 const result = await operation(operations);

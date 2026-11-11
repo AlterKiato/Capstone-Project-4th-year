@@ -3,14 +3,14 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const {verifyPreviewCatalog,PreviewSchemaAssertion}=require('../scripts/preview-schema.ts');
-const {catalogCheck,catalogDefault,catalogIndex}=require('../scripts/preview-catalog-contract.ts');
+const {catalogCheck,catalogDefault,catalogIndex,catalogIdentifier}=require('../scripts/preview-catalog-contract.ts');
 const source=require('../scripts/preview-migration-source.ts');
 const {readFileSync}=require('node:fs');
 const vm=require('node:vm');
 const ts=require('typescript');
 
 function fixture(entries=17,mutate=()=>{}) {
-    const snapshot=(entries===19?source.progressMigrationSource():entries===18?source.supervisionMigrationSource():source.workspaceMigrationSource()).snapshot;
+    const snapshot=(entries===20?source.revisionMigrationSource():entries===19?source.progressMigrationSource():entries===18?source.supervisionMigrationSource():source.workspaceMigrationSource()).snapshot;
     const constraints=t=>[
         ...Object.values(t.foreignKeys).map(f=>({name:f.name.slice(0,63),type:'f',target:f.tableTo,target_schema:'public',confmatchtype:'s',
             columns:f.columnsFrom,referenced:f.columnsTo,confdeltype:({'no action':'a',restrict:'r',cascade:'c','set null':'n'})[f.onDelete],confupdtype:'a'})),
@@ -23,7 +23,7 @@ function fixture(entries=17,mutate=()=>{}) {
         columns:Object.values(t.columns).map(c=>({name:c.name,type:c.type==='serial'?'integer':c.type.replace(/^varchar/,'character varying').replace(/^timestamp$/,'timestamp without time zone'),
             not_null:c.notNull,default_collation:true,attidentity:'',attgenerated:'',default_value:c.type==='serial'?`nextval('${t.name}_${c.name}_seq'::regclass)`:catalogDefault(c)})),
         constraints:constraints(t),indexes:[...Object.values(t.indexes).map(i=>({indexname:i.name,indexdef:catalogIndex(t.name,i)})),
-            ...constraints(t).filter(c=>['p','u'].includes(c.type)).map(c=>({indexname:c.name,indexdef:`CREATE UNIQUE INDEX ${c.name} ON public.${t.name} USING btree (${c.columns.join(', ')})`}))],
+            ...constraints(t).filter(c=>['p','u'].includes(c.type)).map(c=>({indexname:c.name,indexdef:`CREATE UNIQUE INDEX ${c.name} ON public.${t.name} USING btree (${c.columns.map(catalogIdentifier).join(', ')})`}))],
         health:constraints(t).filter(c=>['p','u'].includes(c.type)).concat(Object.values(t.indexes)).map(()=>({indisvalid:true,indisready:true,indislive:true,indimmediate:true})),
     }));
     const sequenceNames=Object.values(snapshot.tables).flatMap(t=>Object.values(t.columns).filter(c=>c.type==='serial').map(c=>t.name+'_'+c.name+'_seq')).sort();
@@ -65,7 +65,7 @@ function fixture(entries=17,mutate=()=>{}) {
     };
     const sql=(parts,...params)=>typeof parts==='string'?{identifier:parts}:Promise.resolve(query(parts.join('?').trim(),params));
     sql.unsafe=()=>{throw Error('unsafe SQL is forbidden in catalog inspection');};
-    return {state,run:(mode=entries===19?'progress-installed':entries===18?'supervision-installed':'supervision-baseline')=>verifyPreviewCatalog(sql,mode)};
+    return {state,run:(mode=entries===20?'revision-installed':entries===19?'progress-installed':entries===18?'supervision-installed':'supervision-baseline')=>verifyPreviewCatalog(sql,mode)};
 }
 
 test('complete canonical 0016 and installed 0017 catalogs pass with SELECT-only SQL',async()=>{
@@ -162,4 +162,15 @@ test('0018 installed and new catalogs retain exact composite evidence FK, verifi
         s=>s.newCount=1,s=>s.newSequenceCalled=true,
     ])await assert.rejects(fixture(19,mutate).run('upgrade-0018'));
     await fixture(19,s=>{s.newCount=2;s.newSequenceCalled=true;}).run();
+});
+
+test('0019 catalog verifies immutable correction links, own-response uniqueness and both fresh tables/sequences',async()=>{
+    assert.equal((await fixture(20).run('upgrade-0019')).tables,24);
+    for(const mutate of [
+        s=>s.tables.find(t=>t.name==='revision_items').constraints.find(c=>c.type==='f').target='submissions',
+        s=>s.tables.find(t=>t.name==='revision_responses').constraints.find(c=>c.name==='revision_responses_item_student_unique').columns=['item_id'],
+        s=>s.tables.find(t=>t.name==='revision_items').constraints.find(c=>c.name==='revision_items_correction_check').definition+=' OR true',
+        s=>s.newCount=1,s=>s.newSequenceCalled=true,
+    ])await assert.rejects(fixture(20,mutate).run('upgrade-0019'));
+    await fixture(20,s=>{s.newCount=2;s.newSequenceCalled=true;}).run();
 });

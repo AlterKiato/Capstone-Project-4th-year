@@ -10,17 +10,17 @@ const dialect = new PgDialect();
 const diagnostics = [], originalError = console.error;
 console.error = (...args) => diagnostics.push(args);
 let session, accounts, state, objects, events, onUpload, onPaperLock, onAccountLock;
-let failInsert = false, failCleanup = false, failActivity = false, noticeFailure = false;
+let failInsert = false, failCleanup = false, failActivity = false, noticeFailure = false, failCorrections = false;
 let groupActive = true, membership = true, ownGroup = true, transactions = 0;
 const pdf = () => new File(['%PDF-1.7\nsynthetic F1'], 'synthetic.pdf', { type: 'application/pdf' });
 const account = (id, roleId) => ({ id, roleId, isActive: true });
 const actor = role => { session = { userId: role === 3 ? 30 : 20, roleId: role }; };
 function reset() {
     accounts = [account(20, 2), account(30, 3), account(99, 1)];
-    state = { submissions: [], research_papers: [{ id: 10, groupId: 5, title: 'Synthetic F1', status: 'Draft' }, { id: 11, groupId: 5, title: 'Second project', status: 'Draft' }], feedbacks: [], activity_logs: [], notifications: [], co_adviser_review_assignments: [] };
+    state = { submissions: [], research_papers: [{ id: 10, groupId: 5, title: 'Synthetic F1', status: 'Draft' }, { id: 11, groupId: 5, title: 'Second project', status: 'Draft' }], feedbacks: [], revision_items: [], activity_logs: [], notifications: [], co_adviser_review_assignments: [] };
     objects = new Map([['unrelated.pdf', Buffer.from('preserved')]]); events = [];
     onUpload = onPaperLock = onAccountLock = null;
-    failInsert = failCleanup = failActivity = noticeFailure = false;
+    failInsert = failCleanup = failActivity = noticeFailure = failCorrections = false;
     groupActive = membership = ownGroup = true; transactions = 0; actor(3);
 }
 function matches(row, predicate) {
@@ -72,6 +72,11 @@ function executor(draft = state, context = null) {
             const run = () => {
                 write(table);
                 if (failInsert || (failActivity && getTableName(table) === 'activity_logs')) throw Error('synthetic persistence failure');
+                if (getTableName(table) === 'revision_items') {
+                    if (failCorrections) throw Error('synthetic correction failure');
+                    const inserted = data.map((value, index) => ({ id: rows(table).length + index + 1, ...value }));
+                    rows(table).push(...inserted); return structuredClone(inserted);
+                }
                 const row = { id: rows(table).length + 1, submittedAt: new Date('2026-10-18T00:00:00Z'), ...data };
                 rows(table).push(row); return [structuredClone(row)];
             };
@@ -101,6 +106,9 @@ const notify = async (...args) => {
 const mocks = {
     'server-only': {},
     '@/lib/db': { db },
+    // Existing cases have no structured corrections. R2's real SQL/freeze behavior
+    // is covered separately in r2-revisions.unit.cjs, keeping this legacy double bounded.
+    './revision.repository': { freezeRevisionResponses: async () => {} },
     '@/lib/auth/session': { getSession: async () => session },
     '@/lib/auth/main-adviser': {
         getCurrentMainAdviser: async expected => {
@@ -269,6 +277,24 @@ async function main() {
     assert.equal((await createAdviserFeedback(1, 20, 'Keep decision', 'Approved')).success, true);
     assert.equal(state.feedbacks.length, 1); assert.equal(state.activity_logs.length, 1);
     console.log('PASS atomic feedback/status/activity rollback and post-commit notification failure preserves success.');
+
+    const corrections = [{correction:'Correct the method',reference:'Section 3'},{correction:'Explain the result',reference:''}];
+    reset(); actor(2); seed('Under Review');
+    const request = feedbackForm('Revision Required'); request.set('revisionItems', JSON.stringify(corrections));
+    const received = await new Request('http://offline.invalid/never-sent',{method:'POST',body:request}).formData();
+    assert.equal((await createAdviserFeedbackAction(received)).success,true);
+    assert.deepEqual(state.revision_items.map(({feedbackId,position,correction,reference})=>({feedbackId,position,correction,reference})),corrections.map((row,position)=>({...row,position,feedbackId:state.feedbacks[0].id})));
+    const finalized = snapshot(); await noEffects(()=>createAdviserFeedback(1,20,'Repeat','Revision Required',undefined,corrections));assert.equal(snapshot(),finalized);
+    for(const fail of ['corrections','activity']) {
+        reset();actor(2);seed('Under Review');const before=snapshot();
+        if(fail==='corrections')failCorrections=true;else failActivity=true;
+        await assert.rejects(()=>createAdviserFeedback(1,20,'Atomic','Revision Required',undefined,corrections));
+        assert.equal(snapshot(),before);assert.equal(state.revision_items.length,0);assert.equal(state.feedbacks.length,0);
+    }
+    reset();actor(2);seed('Under Review');assert.equal((await createAdviserFeedback(1,20,'Approve','Approved',undefined,corrections)).success,true);assert.equal(state.revision_items.length,0);
+    reset();actor(2);seed('Under Review');const malformed=feedbackForm('Revision Required');malformed.set('revisionItems','{');await noEffects(()=>createAdviserFeedbackAction(malformed));
+    assert.equal((await createAdviserFeedback(1,20,'Invalid','Revision Required',undefined,[{correction:' ',reference:''}])).success,false);
+    console.log('PASS R2 multipart Action -> service -> real decision repository: ordered feedback-linked corrections, Approved exclusion, repeat denial and correction/audit failure rollback with zero partial publication.');
     reset(); assert.equal(objects.size, 1); assert.equal(transactions, 0);
     assert.ok(diagnostics.some(args => String(args[0]).includes('Failed to clean up research document')));
     assert.ok(diagnostics.some(args => String(args[0]).includes('Failed to notify student')));

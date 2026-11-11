@@ -12,6 +12,9 @@ import { validateFeedback } from "@/lib/utils/feedback-content";
 import UnsavedFeedbackToast from "./UnsavedFeedbackToast";
 import { useOfficialFeedbackDraft } from "./OfficialFeedbackDraft";
 import { appendRecommendation } from "@/lib/utils/recommendation-import";
+import { useRevisionDraft } from "./RevisionDraft";
+import { revisionDraftsSchema } from "@/lib/validations/revision";
+import ContextHelp from "@/components/dashboard/context-help";
 
 export default function FeedbackForm({ submissionId }: { submissionId: number }) {
     const router = useRouter();
@@ -22,6 +25,9 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     const [message, setMessage] = useState("");
     const [failed, setFailed] = useState(false);
     const [editorError, setEditorError] = useState("");
+    const revisions = useRevisionDraft();
+    const revisionItems = revisions?.items;
+    const setRevisionLocked = revisions?.setLocked;
     const draft = useReviewDraft();
     const draftStatus = useReviewDraftStatus();
     const submitting = useRef(false);
@@ -34,9 +40,10 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     const focusSubmit = useRef(false);
     const isSubmitting = phase === "submitting";
     const locked = isSubmitting || phase === "submitted" || phase === "unknown";
-    const dirty = comments !== "" || decision !== "Revision Required";
+    const dirty = comments !== "" || decision !== "Revision Required" || !!revisionItems?.length;
     const { register } = useOfficialFeedbackDraft();
     const imported = useRef(new Set<number>());
+    useEffect(() => { setRevisionLocked?.(phase !== "editing"); }, [setRevisionLocked, phase]);
 
     useEffect(() => {
         register(phase === "editing" && !editorError ? source => {
@@ -92,7 +99,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
         closeConfirmation(false);
         setComments(nextComments);
         setDecision(nextDecision);
-        draft?.setDirty(nextComments !== "" || nextDecision !== "Revision Required");
+        draft?.setDirty(nextComments !== "" || nextDecision !== "Revision Required" || !!revisionItems?.length);
     }
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -100,7 +107,10 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
         if (phase !== "editing" || submitting.current || confirmed.current || !event.currentTarget.reportValidity()) return;
         const validation = editorError || validateFeedback(comments);
         if (validation) { setFailed(true); setMessage(validation); return; }
-        const payload = createReviewConfirmation({ submissionId, comments, decision });
+        if (decision === "Revision Required" && !revisionDraftsSchema.safeParse(revisionItems ?? []).success) {
+            setFailed(true); setMessage("Check each correction in Revisions. Correction text is required (up to 2,000 characters); page or section is optional (up to 120). Maximum 30 items."); return;
+        }
+        const payload = createReviewConfirmation({ submissionId, comments, decision, revisionItems: revisionItems ?? [] });
         generation.current++;
         confirmed.current = payload;
         setConfirmation(payload); setPhase("confirming");
@@ -111,7 +121,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     function confirmAndSubmit() {
         const payload = confirmed.current;
         if (!active.current || phase !== "confirming" || submitting.current || !payload) return;
-        if (!matchesReviewConfirmation(payload, { submissionId, comments, decision })) { closeConfirmation(); return; }
+        if (!matchesReviewConfirmation(payload, { submissionId, comments, decision, revisionItems: revisionItems ?? [] })) { closeConfirmation(); return; }
         submitting.current = true;
         confirmed.current = null; setConfirmation(null);
         const attempt = ++generation.current;
@@ -127,11 +137,13 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
             formData.set("submissionId", String(payload.submissionId));
             formData.set("comments", payload.comments);
             formData.set("decision", payload.decision);
+            formData.set("revisionItems", JSON.stringify(payload.decision === "Revision Required" ? payload.revisionItems ?? [] : []));
             const result = await createAdviserFeedbackAction(formData);
             if (!current()) return;
             setMessage(result.message);
             setFailed(!result.success);
             if (result.success) {
+                revisions?.setItems([]);
                 setPhase("submitted"); changeDraft("", "Revision Required");
                 try { router.refresh(); } catch { setMessage("Feedback was saved. Reload this submission to view the recorded decision."); }
             }
@@ -148,7 +160,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
 
     return (
         <form onSubmit={handleSubmit} className={`dashboard-form ${styles.reviewForm}`} aria-busy={isSubmitting} aria-describedby="feedback-instructions feedback-message">
-            <p id="feedback-instructions">Record feedback for this version. Comments and a decision are required.</p>
+            <div id="feedback-instructions"><strong>Official feedback</strong> <ContextHelp label="About official feedback">Comments and a decision are required. Draft corrections are managed in Revisions and publish only with Revision Required.</ContextHelp></div>
             <p className={styles.draftIndicator} hidden={!draftStatus.dirty} aria-describedby="feedback-draft-guard-help">Unsaved changes</p>
             <span id="feedback-draft-guard-help" className={styles.srOnly}>Page links, logout and the version selector ask before discarding feedback. Browser Back and other programmatic navigation may discard this draft. Feedback is not automatically saved.</span>
             <span className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{draftStatus.dirty ? "Unsaved feedback. Leaving this review may discard your changes." : ""}</span>
@@ -162,12 +174,14 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
                     <option value="Approved">Approved</option>
                 </select>
                 <p id="decision-help" className="form-help">Revision Required allows a revised submission. Approved records your approval of this version.</p>
+                {!!revisionItems?.length && <p className="form-help">{decision === "Approved" ? "Draft corrections will not be published with Approved." : `${revisionItems.length} draft corrections will be finalized with this decision.`}</p>}
             </div>
             {phase === "confirming" && confirmation && <section className={styles.confirmation} aria-labelledby="review-confirmation-heading">
                 <h3 id="review-confirmation-heading">Confirm decision: {confirmation.decision}</h3>
                 <p role="status">Submission {confirmation.submissionId}. Review your feedback before submitting.</p>
                 <h4>Feedback to submit</h4>
                 <FeedbackContent value={confirmation.comments} />
+                {confirmation.decision === "Revision Required" && !!confirmation.revisionItems?.length && <><h4>Corrections to finalize</h4><ol>{confirmation.revisionItems.map((item, i) => <li key={i}>{item.correction}{item.reference && ` (${item.reference})`}</li>)}</ol></>}
                 <div className={styles.confirmationActions}>
                     <button ref={backButton} type="button" className={styles.neutral} onClick={() => closeConfirmation()}>Back to Edit</button>
                     <button type="button" onClick={confirmAndSubmit}>Confirm &amp; Submit</button>

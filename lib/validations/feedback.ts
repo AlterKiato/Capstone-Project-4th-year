@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
 import { feedbackCommentsSchema } from "@/lib/utils/feedback-content";
+import { revisionDraftsSchema } from "./revision";
 
 /**
  * Validates Adviser feedback submitted
@@ -19,6 +20,7 @@ export const createFeedbackSchema =
             SUBMISSION_STATUS.REVISION_REQUIRED,
             SUBMISSION_STATUS.APPROVED,
         ]),
+        revisionItems: revisionDraftsSchema.default([]),
     });
 
 export type CreateFeedbackInput =

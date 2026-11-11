@@ -1,4 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { revisionDraftsSchema, type RevisionDraft } from "@/lib/validations/revision";
+import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/constants/submission-lock";
 
 import { db } from "@/lib/db";
 import { lockCurrentMainAdviser } from "./research-supervision.repository";
@@ -10,6 +12,7 @@ import {
     feedbacks,
     researchPapers,
     submissions,
+    revisionItems,
 } from "@/db/schema";
 
 /**
@@ -84,8 +87,11 @@ export async function persistAdviserDecision(data: {
     researchStatus: string;
     activityAction: string;
     activityDescription: string;
+    revisionItems?: RevisionDraft[];
 }) {
+    const corrections = revisionDraftsSchema.parse(data.revisionItems ?? []);
     return db.transaction(async (tx) => {
+        await tx.execute(sql`select pg_advisory_xact_lock(${SUBMISSION_LOCK_NAMESPACE}, ${data.paperId})`);
         if (!await lockCurrentMainAdviser(tx, data.teacherId)) return null;
         const [current] = await tx.select({ paperId: submissions.paperId, status: submissions.status })
             .from(submissions).where(eq(submissions.id, data.submissionId)).for("update");
@@ -107,6 +113,9 @@ export async function persistAdviserDecision(data: {
 
         if (!feedback) {
             throw new Error("The feedback could not be saved.");
+        }
+        if (data.decision === SUBMISSION_STATUS.REVISION_REQUIRED && corrections.length) {
+            await tx.insert(revisionItems).values(corrections.map((item, position) => ({ ...item, feedbackId: feedback.id, position })));
         }
 
         const [updatedSubmission] = await tx

@@ -6,6 +6,7 @@ import { submissions } from "@/db/schema";
 import { lockCurrentMainAdviser } from "./research-supervision.repository";
 import { SUBMISSION_LOCK_NAMESPACE } from "@/lib/constants/submission-lock";
 import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
+import { freezeRevisionResponses } from "./revision.repository";
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -118,12 +119,14 @@ export async function findSubmissionById(
 export async function createSubmission(
     data: typeof submissions.$inferInsert,
     executor: typeof db | DbTransaction = db
-) {
+): Promise<typeof submissions.$inferSelect> {
+    if (executor === db) return withPaperSubmissionLock(data.paperId, tx => createSubmission(data, tx));
     const [submission] = await executor
         .insert(submissions)
         .values(data)
         .returning();
 
+    if (submission) await freezeRevisionResponses(executor as DbTransaction, submission.paperId, submission.id);
     return submission;
 }
 
