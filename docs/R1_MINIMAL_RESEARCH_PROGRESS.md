@@ -1,6 +1,41 @@
 # R1 minimal research progress tracker
 
+## UI-R1.1 manual acceptance closure (2026-11-11)
+
+**UI-R1.1 — PASS / CLOSED FOR AGREED MANUAL SCOPE.** These results are owner-reported, not independently reproduced by Codex. Published implementation: `bf93466de1af777d07d4ee390d45480d01ff2784`. This documentation checkpoint adds no implementation or new validation execution.
+
+| Owner-reported manual check | Result |
+|---|---|
+| Research Progress and Revision Checklist widgets display correctly | PASS |
+| Dashboard progress figures match Paper 1's existing milestone details | PASS |
+| View Progress opens the correct project and existing progress panel | PASS |
+| Help popover opens, explains verification correctly and closes | PASS, with positioning observation |
+| Responsive Dashboard layout remains usable | PASS, with visual inconsistencies |
+| Both widgets reference the same authorized project | PASS |
+
+**Acceptance boundary:** multi-project switching was **NOT TESTED**; no second existing project was used. Same-project consistency does not establish switching acceptance. Paper 1 showed **0/1 verified**, a **November 30, 2026** deadline and **0 overdue at acceptance**. Existing linked v4 evidence remains unverified. No milestone completion or new evidence creation is implied.
+
+### Deferred UI refinement observations
+
+These are UX refinements, not functional acceptance failures:
+
+- Global Help popover positioning: anchor to its trigger and follow scrolling.
+- Reposition popovers near viewport edges.
+- Consistent Help icon alignment.
+- Compact Reload revisions placement.
+- Mobile Submission History row alignment.
+- Consistent version/status badge positioning.
+- Improved Submit PDF button visual hierarchy.
+
+The owner may provide additional UI observations before the next refinement scope is approved. No fixes are implemented or authorized by this closure. Main Adviser discoverability remains separately deferred.
+
+**Preservation:** Paper 1/v1–v5, v5 Under Review, official feedback, the R1 milestone and linked v4 evidence, R2 revision history, Main/Co-Adviser data, audit and notification records are retained. **R1 PARTIAL PASS, R2 PARTIAL PASS and Phase 10 supervision S3.4B.5 PARTIAL PASS remain unchanged**, including all existing deferred NOT TESTED scenarios. This widget closure does not complete those workflows.
+
+**Smallest next action:** collect any further owner UI observations, then agree one bounded refinement scope before implementation. Leave this documentation checkpoint unstaged and uncommitted. This closure supersedes the historical pending UI-R1.1 publication/acceptance and next-action wording below without rewriting its evidence.
+
 ## UI-R1.1 Student Dashboard widget (2026-11-11)
+
+**Historical implementation checkpoint:** the manual closure above controls current UI-R1.1 acceptance and next actions. The original local evidence and pre-publication plan below are retained as history.
 
 **Status: implemented locally; focused validation recorded below. Hosted UI-R1.1 acceptance is NOT TESTED.** This is a bounded read-only UI refinement, not R3 or completion of deferred R1/R2 acceptance. Local checkpoint parent: `cb2e7d00bdb1864e84e089ecfe204619b493447a`; resolve the resulting commit from Git by its message `feat(ui): add student research progress dashboard widget`.
 

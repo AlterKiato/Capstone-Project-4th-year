@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ResearchProgressWidget from "./research-progress-widget";
 import RevisionWidget from "./revision-widget";
+import GroupWorkspaceWidget from "./group-workspace-widget";
 import styles from "./student-progress-widgets.module.css";
 
 export default function StudentProgressWidgets({ projects, initialProjectId }: { projects: { id: number; title: string }[]; initialProjectId?: number }) {
@@ -16,8 +17,9 @@ export default function StudentProgressWidgets({ projects, initialProjectId }: {
             </select>
         </div>}
         <div className={styles.cards}>
-            <ResearchProgressWidget key={project?.id ?? "none"} project={project} />
+            <ResearchProgressWidget key={`progress:${project?.id ?? "none"}`} project={project} />
             <RevisionWidget project={project} />
+            <GroupWorkspaceWidget key={`workspace:${project?.id ?? "none"}`} project={project} />
         </div>
     </div>;
 }

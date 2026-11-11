@@ -83,6 +83,7 @@ export default function StudentTaskBoard({ projects, project, invalidProject, bo
                                             <span className={styles.taskTitle}>{task.title}</span>
                                             {task.description && <span className={styles.preview}>{task.description}</span>}
                                             <span className={styles.meta}>{task.assignee?.name ?? "Unassigned"}{task.assignee && !task.assignee.eligible && " · Needs reassignment"} · {taskDueDate(task.dueDate)}</span>
+                                            <span className={shared.badge}>{task.status}</span><span className={styles.expand}>Expand details</span>
                                         </summary>
                                             <div className={styles.details}>
                                                 <p className={styles.description}>{task.description || "No description provided."}</p>

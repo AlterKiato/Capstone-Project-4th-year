@@ -5,6 +5,7 @@ import { readResearchProgressAction, mutateResearchProgressAction } from "@/lib/
 import { completedMilestones, milestoneCompleted, milestoneOverdue, milestoneStatus, type ProgressMilestone, type ResearchProgress as Progress } from "@/lib/research-progress";
 import { taskDueDate } from "@/lib/workspace/task-board-view";
 import ResearchDialog from "./research-dialog";
+import ReloadControl from "./reload-control";
 import styles from "./student-ui.module.css";
 import local from "./research-progress.module.css";
 
@@ -30,7 +31,7 @@ function ProgressPanel({ paperId }: { paperId: number }) {
     }, [paperId, reload]);
     function refresh() { setLoading(true); setProgress(null); setModal(null); setReload(value => value + 1); }
     return <section className={`dashboard-panel ${styles.section} ${local.panel}`} aria-labelledby={heading} aria-busy={loading}>
-        <div className={styles.toolbar}><h2 id={heading}>Research Progress</h2><button type="button" disabled={loading} onClick={refresh}>Reload progress</button></div>
+        <div className={styles.toolbar}><h2 id={heading}>Research Progress</h2><ReloadControl label="Reload progress" loading={loading} onClick={refresh} /></div>
         <p role="status" aria-live="polite">{loading ? "Loading research progress..." : message}</p>
         {progress && <>
             <p>{progress.milestones.length ? `${completedMilestones(progress.milestones)} of ${progress.milestones.length} milestones completed` : "Milestones not configured."}</p>

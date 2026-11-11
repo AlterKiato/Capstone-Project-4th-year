@@ -3,7 +3,7 @@
 .tabs button[aria-selected="true"] { border-bottom-color: var(--action); font-weight: 700; background: var(--surface-secondary); }
 .tabs button:hover:not(:disabled) { background: var(--surface-hover); }
 .tabs button:focus-visible, .helpButton:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-.heading { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: .65rem; }
+.heading { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem; margin-bottom: .5rem; }
 .heading h2, .heading h3 { margin: 0; }
 .heading > button:last-child { margin-left: auto; }
 .checklist, .widget { min-width: 0; }
@@ -18,9 +18,11 @@
 .cycle { margin-top: .75rem; }
 .cycle summary { padding: .6rem 0; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
 .response { margin-top: .5rem; }
-.help { display: inline-flex; }
-.helpButton { display: inline-grid; place-items: center; min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--border); border-radius: .4rem; background: var(--surface); color: var(--foreground); font-weight: 700; }
-.popover { inset: auto; top: 25%; left: 50%; transform: translateX(-50%); width: min(24rem, calc(100vw - 2rem)); margin: 0; padding: 1rem; background: var(--surface); color: var(--foreground); border: 1px solid var(--border); border-radius: .5rem; box-shadow: 0 4px 20px #0002; }
+.help { display: inline-flex; margin-left: auto; }
+.heading > .help + button:last-child { margin-left: 0; }
+.helpButton { display: inline-grid; place-items: center; flex-shrink: 0; min-width: 2.75rem; min-height: 2.75rem; padding: .4rem; border: 0; border-radius: .4rem; background: transparent; color: var(--foreground); font-weight: 700; }
+.helpButton:disabled { opacity: .45; }
+.popover { position: fixed; inset: auto; top: 0; left: 0; width: min(22rem, calc(100vw - 1.5rem)); max-height: calc(100dvh - 1.5rem); overflow-y: auto; margin: 0; padding: .85rem; background: var(--surface); color: var(--foreground); border: 1px solid var(--border); border-radius: .5rem; box-shadow: 0 4px 20px #0002; }
 .helpButton:hover:not(:disabled) { background: var(--surface-hover); }
 .progress { width: 100%; height: .45rem; accent-color: var(--action); }
 @media (max-width: 640px) { .tabs button { font-size: .875rem; } .heading { gap: .35rem; } }

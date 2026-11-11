@@ -8,9 +8,10 @@ import SubmissionUploadDialog from "./submission-upload-dialog";
 import DownloadSubmissionButton from "@/app/dashboard/student/submissions/DownloadSubmissionButton";
 import ResearchDialog from "./research-dialog";
 import styles from "./student-ui.module.css";
-import FeedbackContent from "@/components/feedback-content";
+import { feedbackPlainText } from "@/lib/utils/feedback-content";
+import { researchTabFromHash, type ResearchTab } from "@/lib/student-experience-view";
+import StudentFeedbackDialog from "./student-feedback-dialog";
 import ResearchProgress from "./research-progress";
-import progressStyles from "./student-progress-widgets.module.css";
 import RevisionChecklist from "./revision-checklist";
 
 export default function StudentResearch({ workspace, target }: { workspace: StudentWorkspace; target: ResearchTarget }) {
@@ -27,12 +28,29 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
     const [expanded, setExpanded] = useState<number | null>(initial.expandedId);
     const [details, setDetails] = useState(false);
     const [modal, setModal] = useState<"create" | "upload" | null>(null);
-    const highlighted = useRef<HTMLDivElement>(null);
+    const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+    const [tab, setTab] = useState<ResearchTab>("history");
+    const [visited, setVisited] = useState({ history: true, progress: false, revisions: false });
+    const [feedback, setFeedback] = useState<{ submissionId: number; feedbackId: number } | null>(initial.feedbackId && initial.expandedId ? { submissionId: initial.expandedId, feedbackId: initial.feedbackId } : null);
     const project = workspace.projects.find(item => item.id === selectedId);
     const history = resolveResearchTarget(workspace, { project: String(selectedId), submission: undefined, feedback: undefined }).submissions;
+    const choices = ["history", "progress", "revisions"] as const;
+    const panels = { history: "research-history", progress: "research-progress", revisions: "research-revisions-panel" };
+    const viewedSubmission = history.find(row => row.id === feedback?.submissionId);
+    const viewedFeedback = viewedSubmission?.feedback.find(row => row.id === feedback?.feedbackId);
     useEffect(() => {
-        if (initial.feedbackId) { highlighted.current?.scrollIntoView({ block: "center" }); highlighted.current?.focus({ preventScroll: true }); }
-    }, [initial.feedbackId]);
+        let scrollFrame = 0;
+        function reveal() {
+            const next = researchTabFromHash(window.location.hash);
+            setTab(next); setVisited(value => ({ ...value, [next]: true }));
+            scrollFrame = requestAnimationFrame(() => {
+                document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "start" });
+            });
+        }
+        const frame = requestAnimationFrame(reveal);
+        window.addEventListener("hashchange", reveal);
+        return () => { cancelAnimationFrame(frame); cancelAnimationFrame(scrollFrame); window.removeEventListener("hashchange", reveal); };
+    }, []);
     function success(projectId?: number) {
         const creating = modal === "create";
         setModal(null); setNotice(creating ? "Research project created successfully." : "Research submitted successfully.");
@@ -44,38 +62,52 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
             {workspace.projects.length > 0 && <div className={styles.selector}><label htmlFor="research-project">Research project</label>
                 <select id="research-project" value={selectedId} disabled={modal !== null} onChange={event => {
                     const id = Number(event.target.value);
-                    setSelectedId(id); setDetails(false); setNotice("");
+                    setSelectedId(id); setDetails(false); setNotice(""); setFeedback(null); setTab("history"); setVisited({ history: true, progress: false, revisions: false });
                     setExpanded(resolveResearchTarget(workspace, { project: String(id), submission: undefined, feedback: undefined }).expandedId);
                 }}>{workspace.projects.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>}
-            {workspace.groups.length > 0 && <button type="button" onClick={() => setModal("create")}>Create Project</button>}
+            {workspace.groups.length > 0 && <button type="button" className={styles.toggle} onClick={() => setModal("create")}>Create Project</button>}
         </div>
-        <p role="status">{notice}</p>
-        <section className={`dashboard-panel ${styles.section}`} aria-labelledby="project-heading"><h2 id="project-heading">Research Project Details</h2>
-            {project ? <><div className={styles.projectSummary}><h3>{project.title}</h3>{project.category && <p>{project.category}</p>}<p><span className={`${styles.badge} academic-status`} data-status={project.status}>{project.status}</span></p>
+        <p role="status" className={styles.notice}>{notice}</p>
+        <section className={`dashboard-panel ${styles.compactProject}`} aria-labelledby="project-heading">
+            {project ? <><div className={styles.projectSummary}><div><h2 id="project-heading">{project.title}</h2>{project.category && <p className="form-help">{project.category}</p>}</div><span className={`${styles.badge} academic-status`} data-status={project.status}>{project.status}</span>
                 <button type="button" className={styles.toggle} aria-expanded={details} aria-controls="project-description" onClick={() => setDetails(!details)}>{details ? "Hide Details" : "View Details"}</button>
                 </div>
                 <div id="project-description" className={styles.details} hidden={!details}><h4>Abstract</h4><p>{project.abstract}</p><h4>Keywords</h4><p>{project.keywords || "Not specified"}</p></div>
-            </> : <p>{selectedId ? "Loading the created research project…" : workspace.groups.length ? "No research projects yet. Create a project after your title proposal has been accepted." : "Your Adviser must assign you to a research group before you can create a project."}</p>}
+            </> : <><h2 id="project-heading">Research Project</h2><p>{selectedId ? "Loading the created research project…" : workspace.groups.length ? "No research projects yet." : "Your Adviser must assign you to a research group before you can create a project."}</p></>}
         </section>
-        {project && <div id="research-progress" tabIndex={-1} className={progressStyles.progressTarget}><ResearchProgress paperId={project.id} /></div>}
-        {project && <section className={`dashboard-panel ${styles.section}`}><RevisionChecklist key={project.id} paperId={project.id} /></section>}
-        <section className={`dashboard-panel ${styles.section}`} aria-labelledby="history-heading">
-            <div className={styles.toolbar}><h2 id="history-heading">Submission History</h2>{project && <button type="button" onClick={() => setModal("upload")}>Submit PDF</button>}</div>
+        <section className={`dashboard-panel ${styles.submissionsPanel}`} aria-label="Research submissions">
+            <div className={styles.toolbar}><div role="tablist" aria-label="Research submissions" className={styles.researchTabs}>
+                {choices.map((choice, index) => <button key={choice} ref={element => { tabs.current[index] = element; }} id={`research-${choice}-tab`} type="button" role="tab" aria-controls={panels[choice]} aria-selected={tab === choice} tabIndex={tab === choice ? 0 : -1}
+                    onClick={() => { setTab(choice); setVisited(value => ({ ...value, [choice]: true })); }} onKeyDown={event => {
+                        const next = event.key === "ArrowRight" ? (index + 1) % 3 : event.key === "ArrowLeft" ? (index + 2) % 3 : event.key === "Home" ? 0 : event.key === "End" ? 2 : null;
+                        if (next !== null) { event.preventDefault(); tabs.current[next]?.focus(); }
+                    }}>{choice === "history" ? "History" : choice === "progress" ? "Progress" : "Revisions"}</button>)}
+            </div>{project && <button type="button" className={styles.primary} onClick={() => setModal("upload")}>Submit PDF</button>}</div>
+            <div id="research-history" role="tabpanel" aria-labelledby="research-history-tab" hidden={tab !== "history"} className={styles.tabPanel}>
+            <h2 id="history-heading" className={styles.historyHeading}>Submission History</h2>
             {!history.length ? <p>{project ? "Not yet submitted. Submit a PDF for this project’s first version." : "Submission versions will appear here after you create a project and submit a PDF."}</p> :
                 <ol className={styles.history}>{history.map(submission => <li key={submission.id}>
                     <h3><button type="button" className={styles.row} aria-expanded={expanded === submission.id} aria-controls={`version-${submission.id}`} onClick={() => setExpanded(expanded === submission.id ? null : submission.id)}>
-                        <span>{submission.version}</span><time dateTime={submission.submittedAt}>{new Date(submission.submittedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time><span className={`${styles.badge} academic-status`} data-status={submission.status}>{submission.status}</span><span>{expanded === submission.id ? "Hide" : "View"}</span>
+                        <strong>{submission.version}</strong><time dateTime={submission.submittedAt}>{new Date(submission.submittedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time><span className={`${styles.badge} academic-status`} data-status={submission.status}>{submission.status}</span><span className={styles.expandLabel}>{expanded === submission.id ? "Hide" : "View"}</span>
                     </button></h3>
                     <div id={`version-${submission.id}`} hidden={expanded !== submission.id} className={styles.body}>
                         <h4>Submission remarks</h4><p className="research-comments">{submission.remarks || "No remarks provided."}</p>
                         <DownloadSubmissionButton submissionId={submission.id} />
                         <h4>Adviser Feedback · {submission.version}</h4>
-                        {submission.feedbackUnavailable ? <p role="alert">Feedback could not be retrieved. Reload to try again.</p> : submission.feedbackRestricted ? <p>Feedback for this version is available to the Student who submitted it.</p> : !submission.feedback.length ? <p>No feedback recorded for this version yet.</p> : submission.feedback.map(item => <div id={`feedback-${item.id}`} key={item.id} tabIndex={item.id === initial.feedbackId ? -1 : undefined} ref={item.id === initial.feedbackId ? highlighted : undefined} className={`${styles.feedbackEntry} ${item.id === initial.feedbackId ? styles.target : "feedback-entry"}`}>
-                            <p><strong>Decision: {item.decision}</strong></p><FeedbackContent value={item.comments} /><p className="form-help">Reviewed <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
+                        {submission.feedbackUnavailable ? <p role="alert">Feedback could not be retrieved. Reload to try again.</p> : submission.feedbackRestricted ? <p>Feedback for this version is available to the Student who submitted it.</p> : !submission.feedback.length ? <p>No feedback recorded for this version yet.</p> : submission.feedback.map(item => <div key={item.id} className={styles.feedbackEntry}>
+                            <p><strong>Decision: {item.decision}</strong> · <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
+                            <p className={styles.feedbackPreview}>{feedbackPlainText(item.comments).slice(0, 180)}{feedbackPlainText(item.comments).length > 180 ? "…" : ""}</p>
+                            <button id={`feedback-${item.id}`} type="button" className={styles.toggle} onClick={() => setFeedback({ submissionId: submission.id, feedbackId: item.id })}>View Full Feedback</button>
                         </div>)}
                     </div>
                 </li>)}</ol>}
+            </div>
+            <div id="research-progress" role="tabpanel" aria-labelledby="research-progress-tab" tabIndex={-1} hidden={tab !== "progress"} className={styles.tabPanel}>{project && visited.progress && <ResearchProgress paperId={project.id} />}</div>
+            <div id="research-revisions-panel" role="tabpanel" aria-labelledby="research-revisions-tab" tabIndex={-1} hidden={tab !== "revisions"} className={styles.tabPanel}>{project && visited.revisions && <RevisionChecklist key={project.id} paperId={project.id} />}</div>
         </section>
+        {viewedSubmission && viewedFeedback && <StudentFeedbackDialog version={viewedSubmission.version} decision={viewedFeedback.decision} reviewedAt={viewedFeedback.createdAt} comments={viewedFeedback.comments} onClose={() => {
+            setFeedback(null); requestAnimationFrame(() => document.getElementById(`feedback-${viewedFeedback.id}`)?.focus());
+        }} />}
         {modal === "create" && <ResearchDialog title="Create Research Project" submitLabel="Create Research Project" action={createStudentResearchAction} onSuccess={success} onClose={() => setModal(null)}>
             <p className="form-help">Create a project after your title proposal has been accepted. Group, title and abstract are required.</p>
             <div><label htmlFor="groupId">Research Group</label><select id="groupId" name="groupId" required defaultValue={workspace.groups[0]?.id}>{workspace.groups.map(group => <option key={group.id} value={group.id}>{group.groupName}</option>)}</select></div>

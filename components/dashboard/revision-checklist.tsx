@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { readRevisionsAction, respondToRevisionAction } from "@/lib/actions/revision.action";
 import { revisionCounts, type RevisionChecklist as Checklist, type RevisionItem } from "@/lib/revisions";
 import ContextHelp from "./context-help";
+import ReloadControl from "./reload-control";
 import styles from "./revisions.module.css";
 
 function ResponseEditor({ item, paperId, editable, onSaved }: { item: RevisionItem; paperId: number; editable: boolean; onSaved: (data: Checklist) => void }) {
@@ -49,7 +50,7 @@ export default function RevisionChecklist({ paperId, submissionId }: { paperId: 
     return <section id="revision-checklist" className={styles.checklist} aria-labelledby="revision-checklist-heading" aria-busy={loading}>
         <div className={styles.heading}><h3 id="revision-checklist-heading">Revision Checklist</h3>
             <ContextHelp label="About Action Taken">Each group member records their own response. Addressed means a response was saved; it does not mean Approved. Responses become read-only when the next manuscript version is submitted.</ContextHelp>
-            <button type="button" disabled={loading} onClick={reload}>Reload revisions</button></div>
+            <ReloadControl label="Reload revisions" loading={loading} onClick={reload} /></div>
         {loading ? <p role="status">Loading revisions...</p> : message ? <p role="alert">{message}</p> : !data?.cycles.length ? <p>No finalized revision items for this {submissionId ? "version" : "project"}.</p> : data.cycles.map(cycle => {
             const counts = revisionCounts(cycle);
             return <details key={cycle.feedbackId} open={data.cycles[0] === cycle} className={styles.cycle}>

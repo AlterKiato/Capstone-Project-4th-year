@@ -4,7 +4,7 @@ const assert = require('node:assert/strict'), fs = require('node:fs');
 const { build } = require('esbuild'), { chromium, expect } = require('@playwright/test');
 
 async function main() {
-    const out = 'test-results/ui-r1.1'; fs.mkdirSync(out, { recursive: true });
+    const out = 'test-results/ui-s1/r1-regression'; fs.mkdirSync(out, { recursive: true });
     const bundle = await build({ write: false, outfile: 'widget.js', bundle: true, platform: 'browser', format: 'iife', jsx: 'automatic',
         define: { 'process.env.NODE_ENV': '"production"' }, stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React from 'react'; import {createRoot} from 'react-dom/client';
@@ -36,6 +36,7 @@ export async function readResearchProgressAction({paperId}){
  return fail?{success:false,message:'Research progress is unavailable for this account or paper.'}:{success:true,data:{canManage:false,today:m.today,milestones:rows,submissions:[]}};
 }
 export async function readRevisionsAction({paperId}){window.model.reads.push(['revisions',paperId]);return {success:true,data:{canManage:false,cycles:paperId===10?[{feedbackId:1,submissionId:1,version:'v1',createdAt:'2026-11-11T01:00:00Z',editable:true,items:[{id:1,correction:'Synthetic correction',pageReference:null,responses:[]}]}]:[]}};}
+export async function listWorkspaceTasksAction(){return {success:true,kind:'success',message:'Loaded',data:[]};}
 const forbidden=async()=>{window.model.mutations.push('unexpected');throw Error('Unexpected mutation')};
 export const mutateResearchProgressAction=forbidden,respondToRevisionAction=forbidden,createStudentResearchAction=forbidden,getSubmissionDownloadUrlAction=forbidden,initiateSubmissionUploadAction=forbidden,renewSubmissionUploadAction=forbidden,getSubmissionUploadStatusAction=forbidden,cancelSubmissionUploadAction=forbidden,finalizeSubmissionUploadAction=forbidden;
 ` }));

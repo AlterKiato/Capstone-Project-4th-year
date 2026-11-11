@@ -1,6 +1,25 @@
 # ThesiSHS AI --- Source of Truth
 
+## UI-S1 Student experience refinement (2026-11-11)
+
+**Implemented locally; hosted UI-S1 acceptance NOT TESTED.** This approved UI-only refinement compacts R1/R2 Dashboard cards and adds one read-only Group Workspace status-count card using the existing authorized task-list action and shared project selector. Student Submissions uses a compact project summary and History-first tabs; visited Progress/Revisions panels retain local state, and existing project/version/feedback/hash deep links remain. Version rows align consistently; complete original feedback uses the existing safe renderer in a read-only, scrollable modal with focus/close/Escape handling. Private PDF access is unchanged.
+
+Existing shared Help gains borderless accessible triggers, anchored scroll-aware/edge-adjusted positioning and native dismissal. Compact icon reloads preserve behavior/errors. Existing Tasks/Notes retain all controls and rules; task columns stack on mobile. No new dependency, route, schema, migration, grant, role, permission, environment or business rule; no database/Storage or hosted operation.
+
+Local evidence: 44/44 focused offline tests PASS; scoped synthetic Student, Dashboard regression, taskboard and Notes Chromium checks cover the changed UI and retained controls. TypeScript and targeted lint PASS. Final isolated one-worker Next.js 16.4.3 webpack production build PASS (27/27 page-generation tasks), no environment files and synthetic non-routable services; no hosted runtime claim. Details, evidence limits, the fixed project-key regression and the lean owner-led Preview plan belong to the [UI-S1 handoff](MASTER_CONTEXT_UPDATED.md#ui-s1-student-experience-refinement-2026-11-11).
+
+The incoming UI-R1.1 closure records remain intact. **UI-R1.1 PASS, R1 PARTIAL PASS, R2 PARTIAL PASS and S3.4B.5 PARTIAL PASS**, with all outstanding NOT TESTED scenarios, are preserved. Paper 1/v1-v5, v5 Under Review, official feedback, milestone/v4 evidence, R2 history, Main/Co-Adviser data, notifications and audit history are untouched. Data API/TLS/private Storage/Production isolation safeguards remain unchanged. Main Adviser discoverability and broader hosted/device acceptance stay deferred. Next is separately authorized pinned protected Preview publication after the one reviewed local commit, followed by owner-led acceptance without manufacturing evidence.
+
+
+## UI-R1.1 manual acceptance closure (2026-11-11)
+
+**UI-R1.1 — PASS / CLOSED FOR AGREED MANUAL SCOPE.** Owner-reported, not independently reproduced by Codex: both widgets display correctly; Paper 1 figures match milestone details; View Progress reaches the correct project/panel; Help opens, explains verification and closes; responsive layout is usable; and both cards reference the same authorized project. Help positioning and responsive visual inconsistencies are deferred UX observations, not functional failures. **Multi-project switching is NOT TESTED**, because no second existing project was used. Paper 1 showed **0/1 verified**, a **November 30, 2026** deadline and **0 overdue at acceptance**; linked v4 evidence remains unverified, with no completion or new evidence implied.
+
+The [R1 manual closure](R1_MINIMAL_RESEARCH_PROGRESS.md#ui-r11-manual-acceptance-closure-2026-11-11) owns the concise backlog: Help trigger/scroll positioning and viewport-edge adjustment, icon alignment, Reload revisions placement, mobile history rows, version/status badges and Submit PDF hierarchy. The owner may add observations before approving the next bounded refinement scope; no fixes are implemented here. Paper 1/v1–v5, v5 Under Review, feedback, R1 milestone/v4 evidence, R2 history, Main/Co-Adviser data, audit and notifications remain preserved. **R1 PARTIAL PASS, R2 PARTIAL PASS and S3.4B.5 supervision PARTIAL PASS, with all existing deferred NOT TESTED scenarios, remain unchanged.** This documentation-only closure supersedes older UI-R1.1 pending wording below; next action is to consolidate observations and approve scope, with no automatic implementation or publication.
+
 ## UI-R1.1 Student Dashboard refinement (2026-11-11)
+
+**Historical implementation checkpoint:** the closure above controls current manual acceptance and next actions; original local evidence and pending direction are retained below.
 
 **Implemented locally; hosted UI-R1.1 acceptance NOT TESTED.** One compact read-only Research Progress card reuses existing R1 authorized milestone reads, explicit Main-verification counts and Manila deadline rules. It shows completed/total, progress, overdue count and nearest upcoming incomplete deadline. A shared local project selector keeps R1/R2 titles, data and links aligned; **View progress** opens the selected project's existing Submissions progress panel. Cards are responsive, with concise accessible Help and honest empty/loading/error states.
 

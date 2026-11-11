@@ -1,15 +1,17 @@
-.board { margin-top: .25rem; min-width: 0; }
-.projectTitle { font-size: 1.15rem; font-weight: 650; overflow-wrap: anywhere; margin-bottom: 1.5rem; }
-.notice { min-height: 1.5rem; margin: .65rem 0; }
-.category + .category { margin-top: 1.75rem; }
+.board { margin-top: .25rem; min-width: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.projectTitle { grid-column: 1 / -1; font-size: 1.05rem; font-weight: 650; overflow-wrap: anywhere; margin-bottom: 0; }
+.notice { margin: .5rem 0; }
+.notice:empty { margin: 0; }
+.category { min-width: 0; padding: .75rem; border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); }
 .category > h3 { display: flex; align-items: center; gap: .65rem; padding-bottom: .6rem; border-bottom: 1px solid var(--border-strong); font-size: 1rem; font-weight: 650; }
 .category > h3 span { display: inline-grid; place-items: center; min-width: 1.6rem; padding: .1rem .35rem; border-radius: .25rem; background: var(--surface-secondary); font-size: .875rem; }
 .tasks { list-style: none; margin: 0; padding: 0; }
-.tasks > li { border-bottom: 1px solid var(--border); }
-.tasks summary { cursor: pointer; padding: 1rem .5rem; min-height: 44px; overflow-wrap: anywhere; }
+.tasks > li { border: 1px solid var(--border); border-radius: .4rem; margin-top: .65rem; }
+.tasks summary { cursor: pointer; padding: .7rem; min-height: 44px; overflow-wrap: anywhere; }
 .tasks summary::marker { color: var(--muted); }
 .tasks summary:hover { background: var(--surface-hover); }
 .taskTitle { font-weight: 600; }
+.expand { display: block; color: var(--action); font-size: .8rem; margin-top: .5rem; }
 .preview { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; white-space: pre-wrap; margin: .4rem 0; }
 .meta { display: block; margin-top: .4rem; font-size: .875rem; color: var(--muted); }
 .details { padding: .25rem .5rem 1rem; }
@@ -24,6 +26,7 @@
 .warning { padding: 1rem; border: 1px solid var(--border-strong); background: var(--surface-secondary); margin-bottom: 1rem; }
 .warning p { margin-bottom: .75rem; }
 .dialogTask { overflow-wrap: anywhere; font-weight: 600; }
+@media (max-width: 800px) { .board { grid-template-columns: 1fr; } }
 @media (max-width: 640px) {
     .controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .controls > p { grid-column: 1 / -1; }
