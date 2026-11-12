@@ -94,6 +94,8 @@
 }
 @media (max-width: 640px) {
     .remarks { grid-template-columns: minmax(0, 1fr); }
+    .reviewTabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .reviewTabs button { min-height: 2.75rem; overflow-wrap: normal; }
 }
 @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
     /* Widen only this detail route; the shell and other pages keep their P.1 limits. */

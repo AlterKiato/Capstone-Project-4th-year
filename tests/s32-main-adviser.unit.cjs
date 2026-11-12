@@ -49,6 +49,7 @@ function executor(draft, context) {
     const projection=(row, fields)=>fields?Object.fromEntries(Object.entries(fields).map(([key,column])=>[key,row[column.name.replace(/_([a-z])/g,(_,c)=>c.toUpperCase())]])):structuredClone(row);
     const write=table=>{ assert.ok(context.main,'academic writes require the singleton lock'); events.push('write:'+getTableName(table)); };
     return {
+        async execute(query) { assert.match(dialect.sqlToQuery(query).sql, /select pg_advisory_xact_lock/); events.push('paper:advisory-lock'); return []; },
         select(fields) {
             let table, predicate;
             const result=()=>rows(table).filter(row=>matches(row,predicate)).map(row=>projection(row,fields));
@@ -80,7 +81,8 @@ const membersRepo=load('lib/repositories/group-member.repository.ts',repoMocks);
 const groupsRepo=load('lib/repositories/research-group.repository.ts',repoMocks);
 const coRepo=load('lib/repositories/co-adviser.repository.ts',repoMocks);
 const feedbackRepo=load('lib/repositories/feedback.repository.ts',{...repoMocks,'./co-adviser.repository':coRepo});
-const submissionsRepo=load('lib/repositories/submission.repository.ts',repoMocks);
+// R2 added a manuscript-only dependency. S3.2 review checks must never invoke that path.
+const submissionsRepo=load('lib/repositories/submission.repository.ts',{...repoMocks,'./revision.repository':{freezeRevisionResponses:async()=>{throw Error('Manuscript submission outside S3.2 regression scope');}}});
 const mainAuth={'getCurrentMainAdviser':getMain};
 const groupRead={findResearchGroupsForMainAdviser:async()=>state.research_groups,findResearchGroupById:async id=>state.research_groups.find(g=>g.id===id),createResearchGroupForMainAdviser:groupsRepo.createResearchGroupForMainAdviser};
 const submissionRead={findSubmissionForAdviser:async(id,groups,actor)=>{assert.equal(actor,current());const row=state.submissions.find(s=>s.id===id);return row&&groups.includes(1)?{...row,researchTitle:'Synthetic',groupId:1}:undefined;},findSubmissionsByGroupIds:async(groups,actor)=>{assert.equal(actor,current());return state.submissions.filter(s=>groups.includes(state.research_papers.find(p=>p.id===s.paperId).groupId));}};

@@ -17,6 +17,15 @@ import {
     users,
 } from "@/db/schema";
 
+/** Existence-only AI demonstration scope check; never retrieves research text or paths. */
+export async function canAccessResearchDemoSubmission(submissionId: number, adviserId: number) {
+    const [row] = await db.select({ id: submissions.id }).from(submissions)
+        .innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
+        .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
+        .where(and(eq(submissions.id, submissionId), currentMainAdviserPredicate(adviserId))).limit(1);
+    return row?.id === submissionId;
+}
+
 /** Minimal version metadata, constrained to one currently supervised research project. */
 export async function findSubmissionVersionsForAdviser(paperId: number, adviserId: number) {
     return db.select({ id: submissions.id, version: submissions.version, status: submissions.status })
