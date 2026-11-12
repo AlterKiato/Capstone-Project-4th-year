@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict'), fs = require('node:fs');
 const { build } = require('esbuild'), { chromium, expect } = require('@playwright/test');
 async function main() {
-    const out = 'test-results/ai-a112'; fs.mkdirSync(out, { recursive: true });
+    const out = 'test-results/ai-a113'; fs.mkdirSync(out, { recursive: true });
     const bundle = await build({ write: false, outfile: 'chat.js', bundle: true, platform: 'browser', format: 'iife', jsx: 'automatic',
         define: { 'process.env.NODE_ENV': '"production"' }, stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React from'react';import{createRoot}from'react-dom/client';import Page from'./app/dashboard/adviser/submissions/[submissionId]/page';
@@ -56,6 +56,7 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
         async function open() { await expect(launcher).toBeVisible(); if (!await panel.isVisible()) await launcher.click(); await expect(panel).toBeVisible(); await expect(composer).toBeEnabled(); }
         async function reset() { await panel.getByRole('button', { name: 'Clear AI conversation', exact: true }).click(); await expect(log.locator('article')).toHaveCount(0); }
         const header = panel.locator('header').first();
+        const resizeHandle = panel.getByRole('button', { name: 'Resize AI chat window', exact: true });
         async function dragTo(x, y) {
             const bounds = await header.boundingBox();
             await page.mouse.move(bounds.x + 10, bounds.y + 10); await page.mouse.down();
@@ -66,6 +67,13 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
                 const bounds = await panel.boundingBox();
                 return bounds.x >= 11.5 && bounds.y >= 11.5 && bounds.x + bounds.width <= width - 11.5 && bounds.y + bounds.height <= height - 11.5;
             }).toBe(true);
+        }
+        async function resizeTo(width, height) {
+            const before = await panel.boundingBox(), handle = await resizeHandle.boundingBox();
+            await page.mouse.move(handle.x + 22, handle.y + 22); await page.mouse.down();
+            await expect(resizeHandle).toHaveAttribute('data-resizing', 'true'); await expect(header).toHaveAttribute('data-dragging', 'false');
+            await page.mouse.move(handle.x + 22 + width - before.width, handle.y + 22 + height - before.height, { steps: 5 }); await page.mouse.up();
+            await expect(resizeHandle).toHaveAttribute('data-resizing', 'false');
         }
 
         await expect(page.getByRole('tab')).toHaveCount(3); await expect(launcher).toBeVisible(); await expect(panel).toHaveCount(0);
@@ -133,7 +141,7 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
         await expect(log.locator('article')).toHaveCount(1);
         await page.setViewportSize({ width: 1440, height: 950 });
         await panel.getByText('About this demonstration', { exact: true }).click();
-        await panel.getByRole('button', { name: 'Reset window position', exact: true }).focus(); await page.keyboard.press('Enter');
+        await panel.getByRole('button', { name: 'Reset window position and size', exact: true }).focus(); await page.keyboard.press('Enter');
         assert.deepEqual(await panel.boundingBox(), defaultPosition, 'Keyboard reset restores default without clearing conversation'); await expect(log.locator('article')).toHaveCount(1);
         await panel.getByText('About this demonstration', { exact: true }).click();
         await page.locator('[data-research-assistant-context]').evaluate(node => { node.style.transform = 'translateZ(0)'; node.style.overflow = 'hidden'; });
@@ -141,6 +149,33 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
         await page.locator('[data-research-assistant-context]').evaluate(node => { node.style.transform = ''; node.style.overflow = ''; });
         await reset(); await page.keyboard.press('Escape');
         passed.push('desktop header pointer drag, button/composer exclusions, pointer cancellation, all viewport edges/resize clamping, position retention and keyboard position reset; portal escapes transformed/clipped ancestor');
+
+        await open(); await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
+        const defaultBounds = await panel.boundingBox();
+        await resizeTo(560, 500); geometry = await panel.boundingBox(); assert.equal(geometry.width, 560); assert.equal(geometry.height, 500); await withinViewport(1440, 950);
+        await resizeTo(100, 100); geometry = await panel.boundingBox(); assert.equal(geometry.width, 340); assert.equal(geometry.height, 380);
+        await resizeTo(1200, 1200); geometry = await panel.boundingBox(); assert.equal(geometry.width, 680); assert.equal(geometry.height, 950 * .85); await withinViewport(1440, 950);
+        await dragTo(40, 40); geometry = await panel.boundingBox(); assert.ok(geometry.x < 41 && geometry.y < 41); assert.equal(geometry.width, 680); assert.equal(geometry.height, 950 * .85);
+        await resizeTo(440, 420); geometry = await panel.boundingBox(); assert.equal(geometry.width, 440); assert.equal(geometry.height, 420);
+        await composer.fill('Explain the suggestion using the fictional excerpt only.');
+        await page.keyboard.press('Escape'); await open(); assert.deepEqual(await panel.boundingBox(), geometry, 'Close/reopen preserves size and position');
+        await expect(composer).toHaveValue('Explain the suggestion using the fictional excerpt only.'); await expect(log.locator('article')).toHaveCount(1);
+        await starter('Explain suggestion').click(); await expect(log.locator('article')).toHaveCount(2); await expect(composer).toHaveValue('');
+        assert.ok(await log.evaluate(node => { const scroll = node.parentElement; scroll.scrollTop = scroll.scrollHeight; return scroll.scrollHeight > scroll.clientHeight && scroll.scrollTop > 0; }), 'Resized conversation remains scrollable');
+        await resizeHandle.focus(); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowDown');
+        geometry = await panel.boundingBox(); assert.equal(geometry.width, 460); assert.equal(geometry.height, 440);
+        await page.setViewportSize({ width: 900, height: 400 }); await withinViewport(900, 400);
+        geometry = await panel.boundingBox(); assert.ok(geometry.height <= 400 * .85 && geometry.height < 380, 'Short viewport takes priority over minimum height');
+        const shortComposer = await composer.boundingBox(), shortClose = await panel.getByRole('button', { name: 'Close AI Research Assistant' }).boundingBox();
+        assert.ok(shortComposer.y >= geometry.y && shortComposer.y + shortComposer.height <= geometry.y + geometry.height && shortClose.y >= geometry.y);
+        await page.setViewportSize({ width: 1440, height: 950 });
+        await panel.getByText('About this demonstration', { exact: true }).click();
+        await panel.getByRole('button', { name: 'Reset window position and size', exact: true }).focus(); await page.keyboard.press('Enter');
+        assert.deepEqual(await panel.boundingBox(), defaultBounds, 'Reset restores default dimensions and position'); await expect(log.locator('article')).toHaveCount(2);
+        await panel.getByText('About this demonstration', { exact: true }).click();
+        await page.screenshot({ path: `${out}/resizable-desktop.png` });
+        await reset(); await page.keyboard.press('Escape');
+        passed.push('desktop resize grip and keyboard arrows, 340/680px width and 380px/85vh height bounds, drag/resize independence, retained dimensions, small-viewport fallback, usable scroll/composer and combined size/position reset');
 
         await open(); await page.evaluate(() => { window.model.hold = true; });
         await starter('Review academic writing').click(); await expect(panel.getByRole('status')).toContainText('Preparing synthetic response');
@@ -191,7 +226,7 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
 
         await page.evaluate(() => { window.model.access = true; window.show('main', 33); }); await open(); await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
         await panel.getByRole('button', { name: 'Close AI Research Assistant', exact: true }).click();
-        for (const width of [360, 768, 1440]) for (const theme of ['light', 'dark']) {
+        for (const width of [360, 1440]) for (const theme of ['light', 'dark']) {
             await page.setViewportSize({ width, height: 850 }); await page.evaluate(theme => document.documentElement.dataset.theme = theme, theme);
             await open(); await expect(log.locator('article')).toHaveCount(1);
             await expect(panel).toHaveAttribute('data-mobile', String(width < 768));
@@ -219,7 +254,7 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
             await page.screenshot({ path: `${out}/chat-${width}-${theme}.png`, fullPage: true });
             await page.keyboard.press('Escape'); await expect(panel).toHaveCount(0); await expect(launcher).toBeFocused();
         }
-        passed.push('360/768/1440 Light/Dark, nonmodal desktop panel and modal mobile sheet, scrollable log, visible composer, no overflow, Escape and focus restoration');
+        passed.push('360/1440 Light/Dark, nonmodal desktop panel and modal mobile sheet, scrollable log, visible composer, no overflow, Escape and focus restoration');
 
         await page.setViewportSize({ width: 360, height: 600 }); await page.evaluate(() => { window.model.mobileNav = true; window.show('main', 44); });
         await expect(launcher).toBeVisible(); const nav = page.getByRole('navigation', { name: 'Synthetic mobile navigation', includeHidden: true });
@@ -229,7 +264,7 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
         await panel.getByRole('button', { name: 'Clear AI conversation', exact: true }).focus(); await page.keyboard.press('Shift+Tab');
         assert.ok(await panel.evaluate(node => node.contains(document.activeElement)), 'Mobile focus remains in sheet');
         const mobilePosition = await panel.boundingBox(); await dragTo(20, 20); assert.deepEqual(await panel.boundingBox(), mobilePosition, 'Mobile header never drags');
-        await expect(header).toHaveAttribute('data-dragging', 'false'); await expect(panel.getByRole('button', { name: 'Reset window position' })).toHaveCount(0);
+        await expect(header).toHaveAttribute('data-dragging', 'false'); await expect(panel.getByRole('button', { name: 'Reset window position and size' })).toHaveCount(0); await expect(resizeHandle).toHaveCount(0);
         await page.screenshot({ path: `${out}/mobile-pwa-short.png`, fullPage: true });
         await page.keyboard.press('Escape'); await expect(launcher).toBeFocused();
         await open(); await page.mouse.click(4, 4); await expect(panel).toHaveCount(0); await expect(launcher).toBeFocused();

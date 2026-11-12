@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { analyzeResearchDemoAction, getResearchDemoAvailabilityAction } from "@/lib/actions/adviser-research-assistant.action";
 import { RESEARCH_DEMO_EXCERPT, RESEARCH_DEMO_FOLLOWUPS, RESEARCH_DEMO_LABEL, RESEARCH_DEMO_QUESTIONS, RESEARCH_DEMO_TASKS, type ResearchDemoTask } from "@/lib/ai/adviser-research-demo";
@@ -14,49 +14,65 @@ const mobileQuery = "(max-width: 767px)";
 const subscribe = (notify: () => void) => { const media = window.matchMedia(mobileQuery); media.addEventListener("change", notify); return () => media.removeEventListener("change", notify); };
 const isMobile = () => window.matchMedia(mobileQuery).matches;
 type Position = { x: number; y: number };
+type WindowBounds = Position & { width: number; height: number };
 
 function useFloatingWindow(mobile: boolean, open: boolean) {
     const panel = useRef<HTMLDivElement>(null);
-    const drag = useRef<{ pointerId: number; start: Position; origin: Position } | null>(null);
-    const [position, setPosition] = useState<Position | null>(null), [dragging, setDragging] = useState(false);
-    function clamp(point: Position): Position {
+    const drag = useRef<{ pointerId: number; start: Position; origin: WindowBounds; kind: "drag" | "resize" } | null>(null);
+    const [bounds, setBounds] = useState<WindowBounds | null>(null), [gesture, setGesture] = useState<"drag" | "resize" | null>(null);
+    function measure(): WindowBounds | null {
         const bounds = panel.current?.getBoundingClientRect();
-        if (!bounds) return point;
-        return { x: Math.max(12, Math.min(point.x, window.innerWidth - bounds.width - 12)),
-            y: Math.max(12, Math.min(point.y, window.innerHeight - bounds.height - 12)) };
+        return bounds ? { x: bounds.left, y: bounds.top, width: bounds.width, height: bounds.height } : null;
+    }
+    function clamp(next: WindowBounds): WindowBounds {
+        const maxWidth = Math.max(0, Math.min(680, window.innerWidth - 24));
+        const maxHeight = Math.max(0, Math.min(window.innerHeight * .85, window.innerHeight - 24));
+        const width = Math.max(Math.min(340, maxWidth), Math.min(next.width, maxWidth));
+        const height = Math.max(Math.min(380, maxHeight), Math.min(next.height, maxHeight));
+        return { width, height, x: Math.max(12, Math.min(next.x, window.innerWidth - width - 12)),
+            y: Math.max(12, Math.min(next.y, window.innerHeight - height - 12)) };
+    }
+    function start(event: PointerEvent<HTMLElement>, kind: "drag" | "resize") {
+        if (mobile || !event.isPrimary || event.button !== 0 ||
+            (kind === "drag" && event.target instanceof Element && event.target.closest('button, a, input, textarea, select, summary, [role="button"]'))) return;
+        const origin = measure(); if (!origin) return;
+        event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId);
+        drag.current = { pointerId: event.pointerId, start: { x: event.clientX, y: event.clientY }, origin, kind };
+        setGesture(kind);
     }
     function endDrag(event: PointerEvent<HTMLElement>) {
         if (drag.current?.pointerId !== event.pointerId) return;
-        drag.current = null; setDragging(false);
+        drag.current = null; setGesture(null);
         if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     }
     useEffect(() => {
         function resize() {
-            drag.current = null; setDragging(false);
-            setPosition(previous => {
-                if (!previous || mobile) return previous;
-                const next = clamp(previous);
-                return next.x === previous.x && next.y === previous.y ? previous : next;
-            });
+            drag.current = null; setGesture(null);
+            if (mobile || isMobile()) return;
+            setBounds(previous => previous ? clamp(previous) : null);
         }
         window.addEventListener("resize", resize);
         return () => { window.removeEventListener("resize", resize); drag.current = null; };
     }, [mobile, open]);
-    return { panel, dragging, style: !mobile && position ? { left: position.x, top: position.y, right: "auto", bottom: "auto" } : undefined,
-        resetPosition: () => { setPosition(null); },
-        onOpen: () => { if (!mobile) setPosition(previous => previous ? clamp(previous) : null); },
-        onPointerDown: (event: PointerEvent<HTMLElement>) => {
-            if (mobile || !event.isPrimary || event.button !== 0 || !panel.current ||
-                (event.target instanceof Element && event.target.closest('button, a, input, textarea, select, summary, [role="button"]'))) return;
-            const bounds = panel.current.getBoundingClientRect();
-            event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId);
-            drag.current = { pointerId: event.pointerId, start: { x: event.clientX, y: event.clientY }, origin: { x: bounds.left, y: bounds.top } };
-            setDragging(true);
+    return { panel, dragging: gesture === "drag", resizing: gesture === "resize",
+        style: !mobile && bounds ? { left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height, right: "auto", bottom: "auto" } : undefined,
+        resetPosition: () => { setBounds(null); },
+        onOpen: () => { if (!mobile) setBounds(previous => previous ? clamp(previous) : null); },
+        onPointerDown: (event: PointerEvent<HTMLElement>) => start(event, "drag"),
+        onResizeStart: (event: PointerEvent<HTMLElement>) => start(event, "resize"),
+        onResizeKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+            const current = measure();
+            if (mobile || !current || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+            event.preventDefault();
+            setBounds(clamp({ ...current, width: current.width + (event.key === "ArrowLeft" ? -20 : event.key === "ArrowRight" ? 20 : 0),
+                height: current.height + (event.key === "ArrowUp" ? -20 : event.key === "ArrowDown" ? 20 : 0) }));
         },
         onPointerMove: (event: PointerEvent<HTMLElement>) => {
             const active = drag.current;
             if (!active || active.pointerId !== event.pointerId || mobile) return;
-            setPosition(clamp({ x: active.origin.x + event.clientX - active.start.x, y: active.origin.y + event.clientY - active.start.y }));
+            const dx = event.clientX - active.start.x, dy = event.clientY - active.start.y;
+            setBounds(clamp(active.kind === "resize" ? { ...active.origin, width: active.origin.width + dx, height: active.origin.height + dy }
+                : { ...active.origin, x: active.origin.x + dx, y: active.origin.y + dy }));
         }, onPointerUp: endDrag, onPointerCancel: endDrag, onLostPointerCapture: endDrag };
 }
 
@@ -72,7 +88,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     const [authorized, setAuthorized] = useState(false), [checking, setChecking] = useState(true);
     const [pending, setPending] = useState(false), [message, setMessage] = useState("");
     const request = useRef(0), check = useRef(0), busy = useRef(false), blocked = useRef(false);
-    const { panel: windowPanel, dragging, style: windowStyle, resetPosition, onOpen, onPointerDown, onPointerMove,
+    const { panel: windowPanel, dragging, resizing, style: windowStyle, resetPosition, onOpen, onPointerDown, onResizeStart, onResizeKeyDown, onPointerMove,
         onPointerUp, onPointerCancel, onLostPointerCapture } = useFloatingWindow(mobile, open);
 
     function reset() {
@@ -165,7 +181,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                             <p>Live research AI is disabled. Use the bundled fictional example and reviewed questions only. No real manuscripts, names, feedback or PDF contents are retrieved or analyzed.</p>
                             <p>Prepared examples may be incomplete. Verify suggestions yourself; no sources, grades, decisions or official feedback are produced. Existing aggregate-only consent grants no manuscript-processing permission.</p>
                             <p>Up to four exchanges stay in memory. Close/reopen and review tabs retain them; reset, submission changes, reload or detected access loss clear them. Nothing is saved.</p>
-                            {!mobile && <button type="button" onClick={resetPosition}>Reset window position</button>}
+                            {!mobile && <button type="button" onClick={resetPosition}>Reset window position and size</button>}
                         </details>
                         <details className={styles.info}><summary>View fictional excerpt</summary><p className={styles.excerpt}>{RESEARCH_DEMO_EXCERPT}</p></details>
                         {!exchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
@@ -192,6 +208,11 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                         <div><textarea id={`${id}-question`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Ask a reviewed follow-up…" onChange={event => setQuestion(event.target.value)} />
                             <button type="submit" disabled={disabled || !question.trim()}>Send</button></div>
                     </form>
+                    {!mobile && <button type="button" className={styles.resizeHandle} aria-label="Resize AI chat window" title="Drag or use arrow keys to resize" data-resizing={resizing}
+                        onPointerDown={onResizeStart} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
+                        onLostPointerCapture={onLostPointerCapture} onKeyDown={onResizeKeyDown}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true" focusable="false"><path d="m6 18 12-12 M12 18l6-6" /></svg>
+                    </button>}
                 </Dialog.Content>
             </Dialog.Portal>
         </Dialog.Root>

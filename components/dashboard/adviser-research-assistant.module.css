@@ -41,6 +41,9 @@
 .composer label span { font-size: .6875rem; font-weight: 400; color: var(--muted); }
 .composer > div { display: flex; align-items: flex-end; gap: .4rem; }
 .composer textarea { flex: 1; min-width: 0; width: 100%; margin: 0; resize: vertical; max-height: 8rem; font-size: .875rem; }
+.panel[data-mobile="false"] .composer { padding-right: calc(.75rem + 44px); }
+.panel .resizeHandle { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 0 0 .85rem 0; background: transparent; color: var(--foreground); cursor: nwse-resize; touch-action: none; }
+.panel .resizeHandle:hover:not(:disabled), .panel .resizeHandle[data-resizing="true"] { background: var(--surface-hover); }
 .panel :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .accessStatus { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .overlay { position: fixed; inset: 0; z-index: 100; background: #0f172a80; }
