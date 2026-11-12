@@ -22,22 +22,28 @@ function load(file, mocks) {
         } }, { filename: file });
     return exports;
 }
-function reset() { state = { account: { userId: 20, roleId: 2, isActive: true }, main: 20, submissions: [11], fail: false }; scopeReads = 0; onScope = null; }
+function reset() { state = { account: { userId: 20, roleId: 2, isActive: true }, main: 20, submissions: [11], fail: false,
+    assignments: [{ id: 41, userId: 30, submissionId: 11, groupId: 7, state: 'open', status: 'Under Review' }, { id: 42, userId: 30, submissionId: 22, groupId: 8, state: 'open', status: 'Submitted' }] }; scopeReads = 0; onScope = null; }
+const account = { getCurrentAccount: async () => state.account?.isActive ? { ...state.account } : null };
 const main = load('lib/auth/main-adviser.ts', {
-    '@/lib/auth/current-account': { getCurrentAccount: async () => state.account?.isActive ? state.account : null },
+    '@/lib/auth/current-account': account,
     '@/lib/repositories/research-supervision.repository': { findCurrentMainAdviserId: async () => state.main },
 });
 const repo = { canAccessResearchDemoSubmission: async (id, actor) => {
     scopeReads++; if (state.fail) throw Error('PRIVATE_DATABASE_ERROR');
     onScope?.(); return actor === state.main && state.submissions.includes(id);
 } };
-const serviceMocks = { '@/lib/auth/main-adviser': main, '@/lib/repositories/adviser-submission.repository': repo };
+const coRepo = { canAccessResearchDemoAssignment: async (actor, assignment, submission) => {
+    scopeReads++; if (state.fail) throw Error('PRIVATE_DATABASE_ERROR'); onScope?.();
+    return !!state.main && actor !== state.main && state.assignments.some(row => row.id === assignment && row.userId === actor && row.submissionId === submission && row.state === 'open' && ['Submitted', 'Under Review'].includes(row.status));
+} };
+const serviceMocks = { '@/lib/auth/main-adviser': main, '@/lib/auth/current-account': account, '@/lib/repositories/adviser-submission.repository': repo, '@/lib/repositories/co-adviser.repository': coRepo };
 const service = load('lib/services/adviser-research-assistant.service.ts', serviceMocks);
 const actions = load('lib/actions/adviser-research-assistant.action.ts', { '@/lib/services/adviser-research-assistant.service': service });
 const request = (task = 'writing') => ({ submissionId: 11, task, excerpt: demo.RESEARCH_DEMO_EXCERPT, question: demo.RESEARCH_DEMO_QUESTIONS[task], history: [] });
 const history = task => [{ role: 'user', content: demo.RESEARCH_DEMO_QUESTIONS[task] }, { role: 'assistant', content: JSON.stringify(demo.getResearchDemoAnswer(task, demo.RESEARCH_DEMO_QUESTIONS[task])) }];
 
-test('Main-only availability and actual action return useful, validated, labelled fictional examples for all three tasks', async () => {
+test('Main availability and actual action return useful, validated, labelled fictional examples for all three tasks', async () => {
     reset(); const available = await actions.getResearchDemoAvailabilityAction({ submissionId: 11 });
     assert.equal(available.success, true); assert.equal(available.liveResearchEnabled, false);
     for (const task of demo.RESEARCH_DEMO_TASKS) {
@@ -50,7 +56,7 @@ test('Main-only availability and actual action return useful, validated, labelle
     assert.match(demo.getResearchDemoAnswer('consistency', request('consistency').question).explanation, /never collected/);
     assert.match(demo.getResearchDemoAnswer('methodology', request('methodology').question).limitation, /not verified institutional requirements/);
 });
-test('anonymous, all wrong roles, inactive, former Main and Co-only actors are denied before submission reads', async () => {
+test('anonymous, wrong roles, inactive and non-Main actors without exact assignment scope are denied before submission reads', async () => {
     for (const account of [null, ...[1, 3, 4, 99].map(roleId => ({ userId: 20, roleId, isActive: true })), { userId: 20, roleId: 2, isActive: false }, { userId: 30, roleId: 2, isActive: true }]) {
         reset(); state.account = account;
         assert.equal((await actions.analyzeResearchDemoAction(request())).mode, 'denied');
@@ -66,10 +72,34 @@ test('unknown/forged submission scope and authority changes before delivery deny
     reset(); onScope = () => { state.account.isActive = false; };
     assert.equal((await service.analyzeResearchDemo(request())).mode, 'denied');
 });
+test('active exact-version Co assignment permits the synthetic demo only; unrelated assignment/group, terminal state and inactive accounts deny', async () => {
+    reset(); state.account.userId = 30;
+    const input = { ...request(), assignmentId: 41 };
+    assert.equal((await service.getResearchDemoAvailability({ submissionId: 11, assignmentId: 41 })).success, true);
+    assert.equal((await actions.analyzeResearchDemoAction(input)).mode, 'mock');
+    for (const patch of [{ assignmentId: 42 }, { assignmentId: 99 }, { submissionId: 22 }, { assignmentId: undefined }])
+        assert.equal((await actions.analyzeResearchDemoAction({ ...input, ...patch })).mode, 'denied');
+    for (const terminal of ['cancelled', 'completed', 'closed']) { state.assignments[0].state = terminal; assert.equal((await service.analyzeResearchDemo(input)).mode, 'denied'); }
+    state.assignments[0].state = 'open';
+    for (const status of ['Approved', 'Revision Required']) { state.assignments[0].status = status; assert.equal((await service.analyzeResearchDemo(input)).mode, 'denied'); }
+    state.assignments[0].status = 'Submitted'; state.account.isActive = false; assert.equal((await service.analyzeResearchDemo(input)).mode, 'denied');
+});
+test('former Main needs an independent current Co assignment; current Main cannot inject Co scope', async () => {
+    reset(); assert.equal((await service.analyzeResearchDemo({ ...request(), assignmentId: 41 })).mode, 'denied');
+    state.main = 40; assert.equal((await service.analyzeResearchDemo(request())).mode, 'denied');
+    state.assignments[0].userId = 20;
+    assert.equal((await service.analyzeResearchDemo({ ...request(), assignmentId: 41 })).mode, 'mock');
+});
+test('Co cancellation, missing Main, reassignment, role loss and account replacement during a request discard its response', async () => {
+    for (const revoke of [() => { state.assignments[0].state = 'cancelled'; }, () => { state.assignments[0].userId = 99; }, () => { state.main = null; }, () => { state.account.roleId = 3; }, () => { state.account.userId = 99; }]) {
+        reset(); state.account.userId = 30; onScope = () => { if (scopeReads === 2) revoke(); };
+        assert.equal((await service.analyzeResearchDemo({ ...request(), assignmentId: 41 })).mode, 'denied');
+    }
+});
 test('strict request rejects identity/system/tool fields, malformed IDs, tasks, text and controls', async () => {
     const invalid = [null, [], {}, 'text', ...['userId', 'adviserId', 'system', 'systemPrompt', 'tools', 'model', 'url', 'eligible'].map(key => ({ ...request(), [key]: 'INJECTION' })),
         ...[0, -1, 1.5, '11', 2147483648, NaN].map(submissionId => ({ ...request(), submissionId })),
-        { ...request(), task: 'approve' }, { ...request(), excerpt: '' }, { ...request(), question: '  ' }, { ...request(), question: '\u0000' },
+        { ...request(), task: 'approve' }, { ...request(), groupId: 7 }, { ...request(), assignmentId: 0 }, { ...request(), assignmentId: '41' }, { ...request(), excerpt: '' }, { ...request(), question: '  ' }, { ...request(), question: '\u0000' },
         { ...request(), excerpt: 'x'.repeat(6001) }, { ...request(), question: 'x'.repeat(1001) }];
     reset(); for (const input of invalid) assert.equal((await actions.analyzeResearchDemoAction(input)).mode, 'invalid');
     assert.equal(scopeReads, 0);
@@ -124,6 +154,27 @@ test('actual repository projects only submission ID and scopes it using current 
     assert.deepEqual(Object.keys(projection), ['id']); assert.equal(projection.id, schema.submissions.id);
     assert.match(query.sql, /main_adviser_designation/); assert.match(query.sql, /is_active/); assert.match(query.sql, /"submissions"\."id"/);
     assert.ok(query.params.includes(11) && query.params.includes(20)); assert.doesNotMatch(query.sql, /"research_groups"\."adviser_id"|storage_path|title|feedback/);
+});
+test('actual Co demo SQL projects only assignment ID and requires owner, exact version, open state and active institutional authority', async () => {
+    let query, projection; const dialect = new PgDialect();
+    const fakeDb = { select(fields) { projection = fields; const chain = { from() { return chain; }, innerJoin() { return chain; }, where(condition) { query = dialect.sqlToQuery(condition); return chain; }, async limit(count) { assert.equal(count, 1); return [{ id: 41 }]; } }; return chain; } };
+    const actual = load('lib/repositories/co-adviser.repository.ts', { '@/lib/db': { db: fakeDb }, './research-supervision.repository': {} });
+    assert.equal(await actual.canAccessResearchDemoAssignment(30, 41, 11), true);
+    assert.deepEqual(Object.keys(projection), ['id']);
+    for (const field of ['co_adviser_id', 'submission_id', 'state', 'status', 'is_active', 'main_adviser_designation']) assert.ok(query.sql.includes(field));
+    for (const value of [30, 41, 11, 'open', 'Submitted', 'Under Review']) assert.ok(query.params.includes(value));
+    assert.doesNotMatch(query.sql, /recommendation|file_url|feedback|title|group_members/);
+});
+test('launcher appears only in Main/Co detail hosts, outside official forms; UI has no transcript storage or provider access', () => {
+    const main = fs.readFileSync('app/dashboard/adviser/submissions/[submissionId]/page.tsx', 'utf8');
+    const co = fs.readFileSync('components/dashboard/co-adviser-review.tsx', 'utf8');
+    assert.match(main, /<AdviserResearchAssistant submissionId=\{submission.id\}><main/);
+    assert.match(co, /assignmentId=\{initial.id\} enabled=\{available && !uncertain\}/);
+    for (const file of ['app/dashboard/adviser/page.tsx', 'app/dashboard/adviser/submissions/page.tsx', 'app/dashboard/adviser/submissions/ReviewTabs.tsx', 'app/dashboard/layout.tsx'])
+        assert.ok(!fs.readFileSync(file, 'utf8').includes('AdviserResearchAssistant'));
+    const ui = fs.readFileSync('components/dashboard/adviser-research-assistant.tsx', 'utf8');
+    assert.doesNotMatch(ui, /localStorage|sessionStorage|indexedDB|fetch\s*\(|console\.|process\.env|useOfficialFeedbackDraft/);
+    assert.match(ui, /@radix-ui\/react-dialog/);
 });
 test('feature has zero outbound calls/secret reads and no legacy provider, consent, quota or academic-write dependency', async () => {
     reset(); await actions.analyzeResearchDemoAction(request());

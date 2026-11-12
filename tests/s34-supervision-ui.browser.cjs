@@ -24,6 +24,8 @@ async function main(){
    b.onResolve({filter:/^@\/lib\/actions\//},()=>({path:'actions',namespace:'mock'}));
    b.onLoad({filter:/.*/,namespace:'mock'},a=>({loader:'js',resolveDir:process.cwd(),contents:a.path==='next/link'?`import React from'react';export default function Link({children,...props}){return React.createElement("a",props,children)}`:a.path==='next/navigation'?`export const useRouter=()=>({refresh(){window.model.refreshes++}});export const usePathname=()=>'/dashboard/adviser/submissions/1';`:`
     window.model={calls:[],panel:null,assignment:null,refreshes:0,denied:false,importDelay:0,signDenied:false};
+    export async function getResearchDemoAvailabilityAction(){return {success:false,mode:'denied',message:'AI lifecycle is tested in its dedicated fixture.'};}
+    export async function analyzeResearchDemoAction(){throw Error('AI calls outside this regression scope');}
     export async function getNotificationPreviewAction(){return {success:true,data:{unreadCount:0,items:[]}};}
     export async function markNotificationAsReadAction(){throw Error('Not exercised');}export async function markAllNotificationsAsReadAction(){throw Error('Not exercised');}
     export async function getMainDelegationPanelAction(){return {success:true,message:'Assignments loaded.',data:window.model.panel};}

@@ -11,6 +11,7 @@ import { getCoAdviserAssignmentAction, submitCoAdviserRecommendationAction } fro
 import { recommendationSchema } from "@/lib/validations/co-adviser";
 import type { CoAssignment } from "@/types/co-adviser";
 import styles from "@/app/dashboard/adviser/submissions/review-workspace.module.css";
+import AdviserResearchAssistant from "./adviser-research-assistant";
 
 export default function CoAdviserReview({ initial, email }: { initial: CoAssignment; email: string }) {
     return <ReviewDraftBoundary draftLabel="recommendation"><CoReviewContent initial={initial} email={email} /></ReviewDraftBoundary>;
@@ -37,7 +38,7 @@ function CoReviewContent({ initial, email }: { initial: CoAssignment; email: str
         } catch { setAssignment(null);setMessage("Assignment could not be loaded. Reload to try again."); }
         finally { setLoading(false); }
     }
-    return <main className={`dashboard-page research-workspace ${styles.page}`}>
+    return <AdviserResearchAssistant submissionId={initial.submissionId} assignmentId={initial.id} enabled={available && !uncertain}><main className={`dashboard-page research-workspace ${styles.page}`}>
         <p><Link href="/dashboard/adviser/submissions" className="research-back context-back">← Back to Assignments</Link></p>
         <DashboardHeader title={initial.title} email={email} />
         <p className="dashboard-context">Group {initial.groupId} · {initial.version} · Private Co-Adviser review</p>
@@ -80,5 +81,5 @@ function CoReviewContent({ initial, email }: { initial: CoAssignment; email: str
             <p>{initial.title} · {initial.version}</p><p style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{text}</p>
             <p className="form-help">Submit this private recommendation? It cannot be changed after submission.</p>
         </ResearchDialog>}
-    </main>;
+    </main></AdviserResearchAssistant>;
 }

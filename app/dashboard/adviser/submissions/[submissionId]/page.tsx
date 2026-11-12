@@ -19,6 +19,7 @@ import OfficialFeedbackDraft from "../OfficialFeedbackDraft";
 import ReviewWorkspace from "../ReviewWorkspace";
 import ReviewTabs from "../ReviewTabs";
 import RevisionDraftProvider from "../RevisionDraft";
+import AdviserResearchAssistant from "@/components/dashboard/adviser-research-assistant";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -38,7 +39,7 @@ export default async function AdviserSubmissionDetailsPage({ params, searchParam
     const completed = submission.status === STATUS.APPROVED || submission.status === STATUS.REVISION_REQUIRED;
     const versions = details.versions.some(version => version.id === submission.id) ? details.versions :
         [{ id: submission.id, version: submission.version, status: submission.status }, ...details.versions];
-    return <ReviewDraftBoundary key={submission.id}><OfficialFeedbackDraft><RevisionDraftProvider><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
+    return <ReviewDraftBoundary key={submission.id}><OfficialFeedbackDraft><RevisionDraftProvider><AdviserResearchAssistant submissionId={submission.id}><main className={`dashboard-page research-workspace ${styles.page} ${styles.detailPage} ${workspace.page}`}>
         <p><Link href="/dashboard/adviser/submissions" className="research-back context-back"><span aria-hidden="true">←</span>Back to Submissions</Link></p>
         <DashboardHeader title={submission.researchTitle} email={details.email} />
         <div className={workspace.summary}><p className="dashboard-context">{submission.groupName} · {submission.version}</p><SubmissionStatus status={submission.status} /></div>
@@ -71,5 +72,5 @@ export default async function AdviserSubmissionDetailsPage({ params, searchParam
             </div>
             </ReviewTabs>
         </ReviewWorkspace>
-    </main></RevisionDraftProvider></OfficialFeedbackDraft></ReviewDraftBoundary>;
+    </main></AdviserResearchAssistant></RevisionDraftProvider></OfficialFeedbackDraft></ReviewDraftBoundary>;
 }

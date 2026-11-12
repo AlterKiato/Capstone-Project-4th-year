@@ -143,3 +143,13 @@ export async function readDelegatedDocument(actorId: number, assignmentId: numbe
             eq(assignments.state, "open"), inArray(submissions.status, ["Submitted", "Under Review"]), coAuthority(actorId)));
     return row ?? null;
 }
+
+/** Synthetic research demo only. Same exact-version eligibility as delegated review; no content projection. */
+export async function canAccessResearchDemoAssignment(actorId: number, assignmentId: number, submissionId: number) {
+    const [row] = await db.select({ id: assignments.id }).from(assignments)
+        .innerJoin(submissions, eq(submissions.id, assignments.submissionId))
+        .innerJoin(researchPapers, eq(researchPapers.id, submissions.paperId))
+        .where(and(eq(assignments.id, assignmentId), eq(assignments.coAdviserId, actorId), eq(assignments.submissionId, submissionId),
+            eq(assignments.state, "open"), inArray(submissions.status, ["Submitted", "Under Review"]), coAuthority(actorId))).limit(1);
+    return row?.id === assignmentId;
+}
