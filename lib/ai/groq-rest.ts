@@ -11,23 +11,23 @@ export const groqOutputSchema = z.strictObject({
     version: z.literal(1), overview: plain(800),
     explanations: z.array(z.strictObject({ metricId: z.string().min(1).max(40), text: plain(300) })).min(1).max(4),
 });
-const wireSchema = z.object({ choices: z.array(z.object({
+export const wireSchema = z.object({ choices: z.array(z.object({
     finish_reason: z.literal("stop"),
     message: z.object({ role: z.literal("assistant"), content: z.string().min(1).max(8192),
         tool_calls: z.never().optional(), function_call: z.never().optional(), refusal: z.null().optional() }),
 })).length(1) });
-const configurationSchema = z.strictObject({ token: z.string().regex(/^[A-Za-z0-9_-]{1,256}$/) });
+export const configurationSchema = z.strictObject({ token: z.string().regex(/^[A-Za-z0-9_-]{1,256}$/) });
 type Configuration = z.infer<typeof configurationSchema>;
 export const groqFallback = { mode: "static", message: "AI interpretation unavailable. Use verified static guidance." } as const;
 type Category = "ok" | "invalid" | "timeout" | "rate-limited" | "provider-error";
 type Schedule = (delay: number, callback: () => void) => () => void;
-const scheduleTimer: Schedule = (delay, callback) => { const id = setTimeout(callback, delay); return () => clearTimeout(id); };
+export const scheduleTimer: Schedule = (delay, callback) => { const id = setTimeout(callback, delay); return () => clearTimeout(id); };
 const instructions = "Explain only supplied aggregate bands for ThesiSHS AI. Bands are not exact counts; submission metrics count recorded versions, not latest-paper backlog. Do not infer missing metrics, trends, people, research quality or priorities. Do not grade, decide approvals or generate official Adviser feedback. Return a short neutral overview and explanations referencing supplied metric IDs only. No URLs, HTML, tools, browsing, function calls or reasoning text.";
 const outputJSONSchema = {
     type: "object", additionalProperties: false, required: ["version", "overview", "explanations"],
     properties: { version: {type:"integer",enum:[1]}, overview:{type:"string"}, explanations:{type:"array",items:{type:"object",additionalProperties:false,required:["metricId","text"],properties:{metricId:{type:"string"},text:{type:"string"}}}} },
 };
-async function readBounded(response: Response, signal: AbortSignal) {
+export async function readBounded(response: Response, signal: AbortSignal) {
     if (!response.body) throw new Error("invalid");
     const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
     const abort = () => { void reader.cancel().catch(() => {}); };

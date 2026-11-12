@@ -153,3 +153,13 @@ export async function canAccessResearchDemoAssignment(actorId: number, assignmen
             eq(assignments.state, "open"), inArray(submissions.status, ["Submitted", "Under Review"]), coAuthority(actorId))).limit(1);
     return row?.id === assignmentId;
 }
+
+/** Exact open assignment/version metadata for synthetic session recovery only. */
+export async function findResearchDemoAssignmentVersion(actorId: number, assignmentId: number, submissionId: number) {
+    const [row] = await db.select({ version: submissions.version }).from(assignments)
+        .innerJoin(submissions, eq(submissions.id, assignments.submissionId))
+        .innerJoin(researchPapers, eq(researchPapers.id, submissions.paperId))
+        .where(and(eq(assignments.id, assignmentId), eq(assignments.coAdviserId, actorId), eq(assignments.submissionId, submissionId),
+            eq(assignments.state, "open"), inArray(submissions.status, ["Submitted", "Under Review"]), coAuthority(actorId))).limit(1);
+    return row?.version ?? null;
+}

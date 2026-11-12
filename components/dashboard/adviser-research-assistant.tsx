@@ -3,11 +3,13 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEven
 import * as Dialog from "@radix-ui/react-dialog";
 import { analyzeResearchDemoAction, getResearchDemoAvailabilityAction } from "@/lib/actions/adviser-research-assistant.action";
 import { RESEARCH_DEMO_EXCERPT, RESEARCH_DEMO_FOLLOWUPS, RESEARCH_DEMO_LABEL, RESEARCH_DEMO_QUESTIONS, RESEARCH_DEMO_TASKS, type ResearchDemoTask } from "@/lib/ai/adviser-research-demo";
-import type { ResearchDemoAnswer } from "@/lib/validations/adviser-research-assistant";
+import { activateResearchDemoDraftAccount, readResearchDemoDraft, saveResearchDemoDraft, removeResearchDemoDraft, researchDemoDraftKey,
+    clearResearchDemoDrafts, RESEARCH_DEMO_DRAFT_CLEAR_EVENT, type SyntheticExchange } from "@/lib/ai/research-demo-draft";
+import { researchDemoRecoveryContextSchema, type ResearchDemoRecoveryContext } from "@/lib/validations/research-demo-draft";
 import NavigationIcon from "./navigation-icon";
 import styles from "./adviser-research-assistant.module.css";
 
-type Exchange = { question: string; answer: ResearchDemoAnswer };
+type Exchange = SyntheticExchange;
 type Props = { submissionId: number; assignmentId?: number; enabled?: boolean; children?: ReactNode };
 const starters = ["Review academic writing", "Check research consistency", "Suggest methodology improvements"];
 const mobileQuery = "(max-width: 767px)";
@@ -87,20 +89,27 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     const [question, setQuestion] = useState(""), [exchanges, setExchanges] = useState<Exchange[]>([]);
     const [authorized, setAuthorized] = useState(false), [checking, setChecking] = useState(true);
     const [pending, setPending] = useState(false), [message, setMessage] = useState("");
+    const [finishing, setFinishing] = useState(false);
+    const recovery = useRef<ResearchDemoRecoveryContext | null>(null);
+    const memoryOnly = useRef(false);
+    const finishButton = useRef<HTMLButtonElement>(null), cancelFinish = useRef<HTMLButtonElement>(null);
     const request = useRef(0), check = useRef(0), busy = useRef(false), blocked = useRef(false);
     const { panel: windowPanel, dragging, resizing, style: windowStyle, resetPosition, onOpen, onPointerDown, onResizeStart, onResizeKeyDown, onPointerMove,
         onPointerUp, onPointerCancel, onLostPointerCapture } = useFloatingWindow(mobile, open);
 
     function reset() {
+        memoryOnly.current = false;
+        removeResearchDemoDraft(recovery.current);
         request.current++; busy.current = false;
         setPending(false); setQuestion(""); setExchanges([]); setTask("writing"); setMessage("");
     }
     useEffect(() => {
         let mounted = true;
         function deny() {
+            removeResearchDemoDraft(recovery.current); recovery.current = null;
             blocked.current = true;
             request.current++; busy.current = false;
-            setPending(false); setQuestion(""); setExchanges([]); setOpen(false); setAuthorized(false); setChecking(false);
+            setPending(false); setQuestion(""); setExchanges([]); setOpen(false); setFinishing(false); setAuthorized(false); setChecking(false);
             setMessage("Adviser review access is unavailable. Temporary AI content has been cleared. Reload to verify access.");
         }
         if (!enabled) { deny(); return; }
@@ -110,14 +119,38 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
             try {
                 const result = await getResearchDemoAvailabilityAction({ submissionId, ...(assignmentId === undefined ? {} : { assignmentId }) });
                 if (!mounted || sequence !== check.current) return;
-                if (result.success) { setAuthorized(true); setChecking(false); return; }
+                if (result.success) {
+                    const context = researchDemoRecoveryContextSchema.parse(result.recoveryContext);
+                    if (context.submissionId !== submissionId || (assignmentId === undefined ? context.authority !== "main"
+                        : context.authority !== "co" || context.assignmentId !== assignmentId)) { deny(); return; }
+                    const previous = recovery.current;
+                    const changed = !previous || researchDemoDraftKey(previous) !== researchDemoDraftKey(context);
+                    if (previous && changed) {
+                        removeResearchDemoDraft(previous); request.current++; setQuestion(""); setFinishing(false);
+                    }
+                    recovery.current = context;
+                    const ownerChanged = activateResearchDemoDraftAccount(context.accountId);
+                    if (changed || ownerChanged) memoryOnly.current = false;
+                    const draft = readResearchDemoDraft(context);
+                    if (changed || ownerChanged || (draft !== undefined && !memoryOnly.current)) {
+                        setExchanges(draft?.exchanges ?? []); setTask(draft?.task ?? "writing");
+                    }
+                    setAuthorized(true); setChecking(false); return;
+                }
             } catch { /* Uncertain access never grants permission. */ }
             if (mounted && sequence === check.current) deny();
         }
         void verify();
         const onVisible = () => { if (document.visibilityState === "visible") void verify(); };
+        const onDraftsCleared = (event: Event) => {
+            const nextAccount = (event as CustomEvent<unknown>).detail;
+            if (nextAccount !== undefined && (!recovery.current || recovery.current.accountId === nextAccount)) return;
+            check.current++; deny();
+        };
         window.addEventListener("focus", onVisible); document.addEventListener("visibilitychange", onVisible);
-        return () => { mounted = false; window.removeEventListener("focus", onVisible); document.removeEventListener("visibilitychange", onVisible); };
+        window.addEventListener(RESEARCH_DEMO_DRAFT_CLEAR_EVENT, onDraftsCleared);
+        return () => { mounted = false; window.removeEventListener("focus", onVisible); document.removeEventListener("visibilitychange", onVisible);
+            window.removeEventListener(RESEARCH_DEMO_DRAFT_CLEAR_EVENT, onDraftsCleared); };
     }, [submissionId, assignmentId, enabled, open]);
     useEffect(() => () => { request.current++; check.current++; }, []);
     useEffect(() => { if (open) end.current?.scrollIntoView({ block: "nearest" }); }, [open, exchanges, pending, message]);
@@ -133,12 +166,19 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                 excerpt: RESEARCH_DEMO_EXCERPT, question: value,
                 history: previous.flatMap(exchange => [{ role: "user" as const, content: exchange.question }, { role: "assistant" as const, content: JSON.stringify(exchange.answer) }]) });
             if (sequence !== request.current) return;
-            if (result.success) { setExchanges([...previous, { question: value.trim(), answer: result.answer }].slice(-4)); setQuestion(""); }
+            if (result.success) {
+                if (!recovery.current || result.recoveryAccountId !== recovery.current.accountId) { clearResearchDemoDrafts(); return; }
+                const next = [...previous, { question: value.trim(), answer: result.answer }].slice(-4);
+                setExchanges(next); setQuestion("");
+                if (result.mode === "mock" && recovery.current) memoryOnly.current = !saveResearchDemoDraft(recovery.current, nextTask, next);
+            }
             else if (result.mode === "denied" || result.mode === "unavailable") {
+                removeResearchDemoDraft(recovery.current); recovery.current = null;
                 blocked.current = true; check.current++; setAuthorized(false); setOpen(false); setQuestion(""); setExchanges([]); setMessage(result.message);
             } else setMessage(result.message);
         } catch {
             if (sequence !== request.current) return;
+            removeResearchDemoDraft(recovery.current); recovery.current = null;
             blocked.current = true; check.current++; setAuthorized(false); setOpen(false); setQuestion(""); setExchanges([]);
             setMessage("The request could not be confirmed. Temporary AI content has been cleared. Reload to verify access.");
         } finally { if (sequence === request.current) { busy.current = false; setPending(false); } }
@@ -180,18 +220,18 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                         <details className={styles.info}><summary>About this demonstration</summary>
                             <p>Live research AI is disabled. Use the bundled fictional example and reviewed questions only. No real manuscripts, names, feedback or PDF contents are retrieved or analyzed.</p>
                             <p>Prepared examples may be incomplete. Verify suggestions yourself; no sources, grades, decisions or official feedback are produced. Existing aggregate-only consent grants no manuscript-processing permission.</p>
-                            <p>Up to four exchanges stay in memory. Close/reopen and review tabs retain them; reset, submission changes, reload or detected access loss clear them. Nothing is saved.</p>
+                            <p>Up to four fictional exchanges can recover in this browser tab for two hours. Only reviewed question identifiers are saved temporarily. Reset, Finish Chat, logout or detected access loss clear this draft.</p>
                             {!mobile && <button type="button" onClick={resetPosition}>Reset window position and size</button>}
                         </details>
                         <details className={styles.info}><summary>View fictional excerpt</summary><p className={styles.excerpt}>{RESEARCH_DEMO_EXCERPT}</p></details>
-                        {!exchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
+                        {!checking && !exchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
                             <h3 id={`${id}-welcome`}>How can I help with your research review?</h3>
                             <p>Try a prepared example using fictional research.</p>
                             <div className={styles.starters}>{RESEARCH_DEMO_TASKS.map((value, index) => <button key={value} type="button" disabled={disabled}
                                 onClick={() => void send(RESEARCH_DEMO_QUESTIONS[value], value, true)}>{starters[index]}</button>)}</div>
                         </section>}
                         <div role="log" aria-label="Synthetic conversation" aria-live="polite" aria-relevant="additions" className={styles.conversation}>
-                            {exchanges.map((exchange, index) => <article key={index} className={styles.exchange}>
+                            {!checking && exchanges.map((exchange, index) => <article key={index} className={styles.exchange}>
                                 <div className={styles.user}><h3>You</h3><p>{exchange.question}</p></div>
                                 <div className={styles.answer}><h3>Assistant</h3><p className={styles.notice}>{RESEARCH_DEMO_LABEL}</p>
                                     <dl>{([["Observation", exchange.answer.observation], ["Explanation", exchange.answer.explanation], ["Suggested improvement", exchange.answer.suggestion], ["Limitation / verification note", exchange.answer.limitation]] as const)
@@ -199,13 +239,26 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                             </article>)}
                         </div>
                         <div role="status" aria-live="polite" className={styles.status}>{checking ? "Checking Adviser review access…" : pending ? "Preparing synthetic response…" : message}</div>
-                        {!!exchanges.length && <div className={styles.followups} aria-label="Reviewed follow-up questions">{RESEARCH_DEMO_FOLLOWUPS.map((value, index) =>
+                        {!checking && !!exchanges.length && <div className={styles.followups} aria-label="Reviewed follow-up questions">{RESEARCH_DEMO_FOLLOWUPS.map((value, index) =>
                             <button key={value} type="button" disabled={disabled} onClick={() => void send(value)}>{index === 0 ? "Explain suggestion" : "What to verify"}</button>)}</div>}
                         <div ref={end} />
                     </div>
                     <form className={styles.composer} onSubmit={submit} autoComplete="off" aria-busy={pending}>
-                        <label htmlFor={`${id}-question`}>Question <span>Reviewed questions only</span></label>
-                        <div><textarea id={`${id}-question`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Ask a reviewed follow-up…" onChange={event => setQuestion(event.target.value)} />
+                        <div className={styles.composerHeading}><label htmlFor={`${id}-question`}>Question <span>Reviewed questions only</span></label>
+                            <Dialog.Root open={finishing && available} onOpenChange={setFinishing} modal>
+                                <Dialog.Trigger asChild><button ref={finishButton} type="button" className={styles.finishButton} disabled={disabled}>Finish Chat</button></Dialog.Trigger>
+                                <Dialog.Portal><Dialog.Overlay className={styles.finishOverlay} />
+                                    <Dialog.Content className={styles.finishDialog} onOpenAutoFocus={event => { event.preventDefault(); cancelFinish.current?.focus(); }}
+                                        onCloseAutoFocus={event => { event.preventDefault(); finishButton.current?.focus(); }}>
+                                        <Dialog.Title>Finish this chat?</Dialog.Title>
+                                        <Dialog.Description>This will clear this conversation from the current browser session.</Dialog.Description>
+                                        <div><Dialog.Close asChild><button ref={cancelFinish} type="button">Cancel</button></Dialog.Close>
+                                            <button type="button" onClick={() => { reset(); setFinishing(false); }}>Finish Chat</button></div>
+                                    </Dialog.Content>
+                                </Dialog.Portal>
+                            </Dialog.Root>
+                        </div>
+                        <div className={styles.composerInput}><textarea id={`${id}-question`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Ask a reviewed follow-up…" onChange={event => setQuestion(event.target.value)} />
                             <button type="submit" disabled={disabled || !question.trim()}>Send</button></div>
                     </form>
                     {!mobile && <button type="button" className={styles.resizeHandle} aria-label="Resize AI chat window" title="Drag or use arrow keys to resize" data-resizing={resizing}

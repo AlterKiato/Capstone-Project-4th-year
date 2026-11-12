@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { logoutAction } from "@/lib/actions/auth.action";
 import { logoutWithResearchPushCleanup } from "@/lib/pwa/research-push-client";
+import { clearResearchDemoDrafts } from "@/lib/ai/research-demo-draft";
 
 /**
  * Displays a button that logs out the current user.
@@ -21,6 +22,7 @@ export default function LogoutButton({ icon, labelClassName, className }: { icon
     function handleLogout() {
         startTransition(async () => {
             // Document capture draft protection has already accepted this click before onClick runs.
+            clearResearchDemoDrafts();
             await logoutWithResearchPushCleanup(logoutAction);
 
             router.push("/login");

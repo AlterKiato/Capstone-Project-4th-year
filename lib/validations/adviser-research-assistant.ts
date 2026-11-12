@@ -18,5 +18,5 @@ export const researchDemoAnswerSchema = z.strictObject({
 export type ResearchDemoRequest = z.infer<typeof researchDemoRequestSchema>;
 export type ResearchDemoScope = z.infer<typeof researchDemoScopeSchema>;
 export type ResearchDemoAnswer = z.infer<typeof researchDemoAnswerSchema>;
-export type ResearchDemoResult = { success: true; mode: "mock"; answer: ResearchDemoAnswer } |
+export type ResearchDemoResult = { success: true; mode: "mock"; answer: ResearchDemoAnswer; recoveryAccountId: number } |
     { success: false; mode: "denied" | "invalid" | "unsupported" | "unavailable"; message: string };

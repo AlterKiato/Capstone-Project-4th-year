@@ -10,6 +10,7 @@ import React from'react';import{createRoot}from'react-dom/client';import Page fr
 import Assistant from'./components/dashboard/adviser-research-assistant';import shell from'./components/dashboard/dashboard-shell.module.css';
 import{ThemeProvider}from'./components/theme-provider';
 import NotificationProvider from'./components/dashboard/notification-provider';
+import{clearResearchDemoDrafts}from'./lib/ai/research-demo-draft';window.clearDemoDrafts=clearResearchDemoDrafts;
 const root=createRoot(document.getElementById('root'));
 window.show=async(kind='main',id=11,assignmentId=41)=>{window.model.kind=kind;window.model.id=id;window.model.assignmentId=assignmentId;
 const node=kind==='standalone'?<Assistant submissionId={id} assignmentId={assignmentId}/>:kind==='listing'?<main className='dashboard-page'>Synthetic listing without a review context</main>:await Page({params:Promise.resolve({submissionId:String(id)}),searchParams:Promise.resolve({assignment:String(assignmentId)})});
@@ -20,14 +21,14 @@ root.render(<ThemeProvider><NotificationProvider historyHref={null}><div classNa
             b.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ loader: 'tsx', resolveDir: process.cwd(), contents: args.path === 'next/link' ? `export default function Link({children,prefetch,...props}){return <a {...props}>{children}</a>;}`
                 : args.path === 'next/navigation' ? `export const useRouter=()=>({refresh(){}}),usePathname=()=>'/dashboard/adviser/submissions/11';export function notFound(){throw Error('Fixture denied route');}`
                 : `import{getResearchDemoAnswer,RESEARCH_DEMO_EXCERPT}from'./lib/ai/adviser-research-demo';
-window.model={calls:[],access:true,delay:0,hold:false,replies:0,error:false,denied:false,mobileNav:false,kind:'main',id:11,assignmentId:41};
+window.model={calls:[],access:window.__initialAccess??true,delay:window.__initialDelay??0,hold:false,replies:0,error:false,denied:false,mobileNav:false,kind:'main',id:11,assignmentId:41,version:'v1',accountId:null};
 const wait=()=>new Promise(resolve=>setTimeout(resolve,window.model.delay));
 const assignment=()=>({id:window.model.assignmentId,submissionId:window.model.id,groupId:7,title:'PRIVATE_SYNTHETIC_TITLE',version:'v1',state:'open',reviewAvailable:true,recommendation:null,createdAt:'2026-11-12T00:00:00Z',completedAt:null,closedAt:null});
 export async function getAdviserReviewDetails(id){return window.model.kind==='co'?null:{email:'main@example.invalid',submission:{id,paperId:7,researchTitle:'PRIVATE_SYNTHETIC_TITLE',groupName:'Synthetic group',version:'v1',status:'Under Review',studentFirstName:'Fictional',studentLastName:'Student',remarks:'PRIVATE_REMARKS',submittedAt:new Date('2026-11-12T00:00:00Z')},feedback:[],versions:[{id,version:'v1',status:'Under Review'}]};}
 export async function getCoAdviserAssignment(){return{success:true,data:{email:'co@example.invalid',assignment:assignment()}};}
 export async function getCoAdviserAssignmentAction(){return getCoAdviserAssignment();}
-export async function getResearchDemoAvailabilityAction(input){window.model.calls.push(['availability',input]);await wait();return window.model.access?{success:true,mode:'synthetic-only',liveResearchEnabled:false}:{success:false,mode:'denied',message:'Review authority unavailable'};}
-export async function analyzeResearchDemoAction(input){window.model.calls.push(['analyze',input]);const result=window.model.denied?{success:false,mode:'denied',message:'Current review access changed'}:input.excerpt!==RESEARCH_DEMO_EXCERPT||!getResearchDemoAnswer(input.task,input.question)?{success:false,mode:'unsupported',message:'Only the bundled fictional excerpt and suggested questions are supported. This question has not been analyzed.'}:{success:true,mode:'mock',answer:getResearchDemoAnswer(input.task,input.question)};const fail=window.model.error;if(window.model.hold)await new Promise(resolve=>window.model.release=resolve);else await wait();window.model.replies++;if(fail)throw Error('Synthetic action failure');return result;}
+export async function getResearchDemoAvailabilityAction(input){window.model.calls.push(['availability',input]);await wait();return window.model.access?{success:true,mode:'synthetic-only',liveResearchEnabled:false,recoveryContext:{accountId:window.model.accountId??(input.assignmentId===undefined?20:30),submissionId:input.submissionId,version:window.model.version,mode:'synthetic',...(input.assignmentId===undefined?{authority:'main'}:{authority:'co',assignmentId:input.assignmentId})}}:{success:false,mode:'denied',message:'Review authority unavailable'};}
+export async function analyzeResearchDemoAction(input){window.model.calls.push(['analyze',input]);const result=window.model.denied?{success:false,mode:'denied',message:'Current review access changed'}:input.excerpt!==RESEARCH_DEMO_EXCERPT||!getResearchDemoAnswer(input.task,input.question)?{success:false,mode:'unsupported',message:'Only the bundled fictional excerpt and suggested questions are supported. This question has not been analyzed.'}:{success:true,mode:'mock',answer:getResearchDemoAnswer(input.task,input.question),recoveryAccountId:window.model.responseAccountId??window.model.accountId??(input.assignmentId===undefined?20:30)};const fail=window.model.error;if(window.model.hold)await new Promise(resolve=>window.model.release=resolve);else await wait();window.model.replies++;if(fail)throw Error('Synthetic action failure');return result;}
 export async function getMainDelegationPanelAction(id){return{success:true,message:'Loaded.',data:{eligible:true,advisers:[{id:30,name:'Fictional Co',email:'co@example.invalid'}],assignments:[]}};}
 export async function getNotificationPreviewAction(){return{success:true,data:{unreadCount:0,recent:[]}};}
 export async function readRevisionsAction(){return{success:true,data:{canManage:true,cycles:[]}};}
@@ -43,10 +44,14 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
     try {
         const page = await browser.newPage({ viewport: { width: 1440, height: 950 } }); page.setDefaultTimeout(10000);
         page.on('pageerror', e => { errors.push(e.message); console.error('Synthetic browser error:', e.message); }); page.on('console', m => { if (m.type() === 'error') { errors.push(m.text()); console.error('Synthetic console error:', m.text()); } });
-        await page.route('**/*', route => route.request().url() === 'http://ai-chat.invalid/viewer'
-            ? route.fulfill({ contentType: 'text/html', body: 'Synthetic PDF boundary' }) : (blocked.push(route.request().url()), route.abort()));
-        await page.setContent('<html data-theme="light"><head><base href="http://ai-chat.invalid/"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div></body></html>');
-        await page.addStyleTag({ content: css }); await page.addScriptTag({ content: bundle.outputFiles.find(file => file.path.endsWith('.js')).text });
+        await page.route('**/*', route => route.request().url() === 'http://ai-chat.invalid/'
+            ? route.fulfill({ contentType: 'text/html', body: '<html data-theme="light"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div></body></html>' })
+            : route.request().url() === 'http://ai-chat.invalid/viewer' ? route.fulfill({ contentType: 'text/html', body: 'Synthetic PDF boundary' }) : (blocked.push(route.request().url()), route.abort()));
+        const boot = async (delay = 0, access = true) => {
+            await page.evaluate(({delay,access})=>{window.__initialDelay=delay;window.__initialAccess=access;},{delay,access});
+            await page.addStyleTag({ content: css }); await page.addScriptTag({ content: bundle.outputFiles.find(file => file.path.endsWith('.js')).text });
+        };
+        await page.goto('http://ai-chat.invalid/'); await boot();
         const launcher = page.getByRole('button', { name: 'Open AI Research Assistant', exact: true });
         const panel = page.getByRole('dialog', { name: 'AI Research Assistant', exact: true });
         const starter = name => panel.getByRole('button', { name, exact: true });
@@ -202,6 +207,7 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
         }
         await reset(); const replies = await page.evaluate(() => { window.model.hold = true; return window.model.replies; }); await starter('Review academic writing').click(); await reset();
         await page.evaluate(() => { window.model.hold = false; window.model.release(); }); await expect.poll(() => page.evaluate(() => window.model.replies)).toBe(replies + 1);
+        assert.equal(await page.evaluate(() => Object.keys(sessionStorage).filter(key=>key.startsWith('thesishs:research-demo:v1:')).length), 0, 'A late reset response cannot recreate a recoverable draft');
         await expect(log.locator('article')).toHaveCount(0); await expect(composer).toHaveValue('');
         await page.evaluate(() => { window.model.delay = 0; window.show('main', 22); }); await open(); await expect(log.locator('article')).toHaveCount(0);
         await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
@@ -313,6 +319,106 @@ export const createAdviserFeedbackAction=forbidden,respondToRevisionAction=forbi
         assert.equal(await page.evaluate(() => window.model.calls.filter(c => c[0] === 'UNEXPECTED WRITE').length), 0);
         assert.deepEqual(errors, []); assert.deepEqual(blocked, []);
         passed.push('official feedback/revision/Co drafts and inline confirmation remain interactive with open chat; native Help/notifications/modal dialog take priority; unchanged PDF/leave guard, keyboard icon actions and reduced motion; zero academic writes/external requests/errors');
+
+        // P1.2B: a real same-origin sessionStorage boundary; all service/auth/account values remain synthetic.
+        await page.evaluate(async () => { window.clearDemoDrafts(); await window.show('listing'); });
+        await page.reload(); await boot(); await open(); await starter('Review academic writing').click();
+        await expect(log.locator('article')).toHaveCount(1);
+        const draftEntries = () => page.evaluate(() => Object.entries(sessionStorage).filter(([key]) => key.startsWith('thesishs:research-demo:v1:')));
+        let saved = await draftEntries(); assert.equal(saved.length, 1);
+        const mainKey = saved[0][0]; assert.ok(mainKey.includes(':20:main:main:11:v1'));
+        assert.deepEqual(JSON.parse(saved[0][1]).questions, ['primary']);
+        assert.ok(!/PRIVATE_|subject–verb|FICTIONAL EXAMPLE|observation|explanation|answer/.test(saved[0][1]));
+        await page.keyboard.press('Escape'); await open(); await expect(log.locator('article')).toHaveCount(1);
+        await page.evaluate(() => window.show('listing')); await expect(launcher).toHaveCount(0);
+        await page.evaluate(() => window.show('main', 11)); await open(); await expect(log.locator('article')).toHaveCount(1);
+        await page.reload(); await boot(250);
+        await expect(panel).toHaveCount(0); await expect(launcher).toHaveCount(0);
+        await open(); await expect(log.locator('article')).toHaveCount(1);
+        await page.evaluate(() => { window.model.delay = 0; });
+        passed.push('P1.2B close/reopen, navigation and real page refresh restore canonical selectors only after authorization; no recovered panel during pending authorization');
+
+        await page.evaluate(() => window.show('main', 22)); await open(); await expect(log.locator('article')).toHaveCount(0);
+        await starter('Check research consistency').click(); await expect(log.locator('article')).toHaveCount(1);
+        assert.equal((await draftEntries()).length, 2);
+        await page.evaluate(() => window.show('main', 11)); await open(); await expect(log.locator('article')).toHaveCount(1);
+        const finish = panel.getByRole('button', { name: 'Finish Chat', exact: true });
+        const confirmation = page.getByRole('dialog', { name: 'Finish this chat?', exact: true });
+        await composer.fill('PRIVATE_UNSENT_COMPOSER');
+        await finish.focus(); await page.keyboard.press('Enter'); await expect(confirmation).toBeVisible();
+        await expect(confirmation.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+        await expect(confirmation).toContainText('This will clear this conversation from the current browser session.');
+        await page.screenshot({ path: `${out}/p12b-finish-desktop-light.png`, fullPage: true });
+        await page.keyboard.press('Escape'); await expect(confirmation).toHaveCount(0); await expect(finish).toBeFocused();
+        await expect(log.locator('article')).toHaveCount(1); await expect(composer).toHaveValue('PRIVATE_UNSENT_COMPOSER');
+        await finish.click(); await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click();
+        await expect(finish).toBeFocused(); await expect(log.locator('article')).toHaveCount(1);
+        await finish.click(); await confirmation.getByRole('button', { name: 'Finish Chat', exact: true }).click();
+        await expect(confirmation).toHaveCount(0); await expect(finish).toBeFocused(); await expect(panel).toBeVisible();
+        await expect(log.locator('article')).toHaveCount(0); await expect(composer).toHaveValue('');
+        assert.equal((await draftEntries()).length, 1); assert.ok(!(await draftEntries()).some(([key]) => key === mainKey));
+        await page.evaluate(() => window.show('main', 22)); await open(); await expect(log.locator('article')).toHaveCount(1);
+        await reset(); assert.equal((await draftEntries()).length, 0);
+        passed.push('P1.2B keyboard Finish Chat, Cancel/Escape preserve text and focus; confirm and Reset clear selected storage only while other submissions recover');
+
+        await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
+        await page.evaluate(() => { window.model.version = 'v2'; window.dispatchEvent(new Event('focus')); });
+        await expect(log.locator('article')).toHaveCount(0); assert.equal((await draftEntries()).length, 0);
+        await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
+        assert.ok((await draftEntries())[0][0].endsWith(':22:v2'));
+        await page.evaluate(() => { window.model.accountId = 40; window.dispatchEvent(new Event('focus')); });
+        await expect(log.locator('article')).toHaveCount(0); assert.equal((await draftEntries()).length, 0);
+        await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
+        await page.evaluate(() => window.show('co', 22, 42)); await open(); await expect(log.locator('article')).toHaveCount(0);
+        await starter('Suggest methodology improvements').click(); await expect(log.locator('article')).toHaveCount(1);
+        saved = await draftEntries(); assert.equal(saved.length, 2);
+        assert.ok(saved.some(([key]) => key.includes(':40:main:main:'))); assert.ok(saved.some(([key]) => key.includes(':40:co:42:')));
+        await page.evaluate(() => { window.model.access = false; window.dispatchEvent(new Event('focus')); });
+        await expect(panel).toHaveCount(0); await expect(launcher).toHaveCount(0);
+        saved = await draftEntries(); assert.equal(saved.length, 1); assert.ok(saved[0][0].includes(':40:main:main:'));
+        passed.push('P1.2B exact version and account changes invalidate old content; same-account Main/Co entries remain distinct; revoked Co scope clears only its selected draft');
+
+        await page.evaluate(async () => { window.model.access = true; await window.show('main', 22); }); await open();
+        await expect(log.locator('article')).toHaveCount(1);
+        for (const corruption of ['malformed', 'schema', 'stale']) {
+            await page.evaluate(kind => {
+                const key=Object.keys(sessionStorage).find(key=>key.includes(':40:main:main:22:v2'));
+                const good=JSON.parse(sessionStorage.getItem(key));
+                sessionStorage.setItem(key,kind==='malformed'?'{broken':JSON.stringify(kind==='schema'?{...good,schemaVersion:0}:{...good,updatedAt:Date.now()-7200000}));
+                window.dispatchEvent(new Event('focus'));
+            }, corruption);
+            await expect(log.locator('article')).toHaveCount(0); await expect(composer).toBeEnabled();
+            assert.equal((await draftEntries()).length, 0);
+            await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
+        }
+        passed.push('P1.2B malformed, stale-schema and expired browser entries are removed rather than displayed, while authorized chat remains usable');
+        await page.setViewportSize({ width: 360, height: 700 });
+        await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+        await expect(panel).toHaveAttribute('data-mobile', 'true'); await finish.click();
+        await expect(confirmation.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+        await page.keyboard.press('Shift+Tab'); await expect(confirmation.getByRole('button', { name: 'Finish Chat', exact: true })).toBeFocused();
+        await page.keyboard.press('Tab'); await expect(confirmation.getByRole('button', { name: 'Cancel', exact: true })).toBeFocused();
+        const bounds = await confirmation.boundingBox(); assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 360);
+        await page.screenshot({ path: `${out}/p12b-finish-mobile-dark.png`, fullPage: true });
+        await page.keyboard.press('Escape'); await expect(panel).toBeVisible(); await expect(finish).toBeFocused();
+        await expect(log.locator('article')).toHaveCount(1);
+        await finish.click(); await confirmation.getByRole('button', { name: 'Finish Chat', exact: true }).click();
+        await expect(log.locator('article')).toHaveCount(0);
+        await page.setViewportSize({ width: 1440, height: 950 }); await expect(resizeHandle).toBeVisible();
+        await starter('Review academic writing').click(); await expect(log.locator('article')).toHaveCount(1);
+        await composer.fill('PRIVATE_UNSENT');
+        await page.evaluate(() => { sessionStorage.setItem('unrelated:session', 'preserved'); window.clearDemoDrafts(); });
+        await expect(launcher).toHaveCount(0); assert.equal((await draftEntries()).length, 0);
+        assert.equal(await page.evaluate(() => sessionStorage.getItem('unrelated:session')), 'preserved');
+        passed.push('P1.2B mobile Dark sheet and nested confirmation preserve focus trap/Escape; explicit namespace logout cleanup clears mounted memory and drafts, leaving unrelated session data');
+
+        await page.evaluate(async () => { await window.show('main', 33); window.model.responseAccountId=99; }); await open();
+        await starter('Review academic writing').click(); await expect(launcher).toHaveCount(0); await expect(panel).toHaveCount(0);
+        assert.equal((await draftEntries()).length, 0);
+        passed.push('P1.2B response-account mismatch discards late content and clears feature drafts before rendering or storage');
+
+        assert.equal(await page.evaluate(() => window.model.calls.filter(c => c[0] === 'UNEXPECTED WRITE').length), 0);
+        assert.deepEqual(errors, []); assert.deepEqual(blocked, []);
         fs.writeFileSync(`${out}/browser-results.json`, JSON.stringify({ PASS: passed.length, FAIL: 0, passed, boundary: 'Synthetic Main/Co route/component boundaries; no authenticated Next transport, PostgreSQL, Storage, provider, hosted or physical-device evidence' }, null, 2));
         console.log(JSON.stringify({ PASS: passed.length, FAIL: 0, passed }));
     } finally { await browser.close(); }

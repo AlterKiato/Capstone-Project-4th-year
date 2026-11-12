@@ -5,6 +5,7 @@ import { isInstitutionallyEligible } from "@/lib/auth/adult-eligibility";
 import { AI_TERMS_VERSION, AI_TERMS_DIGEST } from "@/lib/ai/consent-terms";
 import { getGroqAvailability } from "@/lib/ai/groq-provider";
 import type { AuthTokenPayload } from "@/types/auth";
+import { researchPilotTermsSchema } from "@/lib/validations/groq-research-pilot";
 
 // Internal authorization only. Never return revisions/identity to the provider/client.
 export async function getAIEntitlement(expectedRole: 1 | 2) {
@@ -22,7 +23,16 @@ export async function getCLIAIEntitlement(expectedRole: 1 | 2) {
     } catch { return null; }
 }
 
-async function entitlementForSession(session: AuthTokenPayload | null, expectedRole: 1 | 2) {
+// Read-only pilot check. Existing consent UI still records aggregate preparation terms only.
+export async function getResearchPilotEntitlement(terms: unknown) {
+    try {
+        const required = researchPilotTermsSchema.safeParse(terms);
+        return required.success ? await entitlementForSession(await getSession(), 2, required.data) : null;
+    } catch { return null; }
+}
+
+async function entitlementForSession(session: AuthTokenPayload | null, expectedRole: 1 | 2,
+    terms = { version: AI_TERMS_VERSION, digest: AI_TERMS_DIGEST }) {
     try {
         if (!session || session.roleId !== expectedRole || !Number.isSafeInteger(session.userId) || session.userId <= 0) return null;
         return await withAIAccountLocks([session.userId], async store => {
@@ -31,10 +41,10 @@ async function entitlementForSession(session: AuthTokenPayload | null, expectedR
             const eligibility = await store.latestEligibility(account.id);
             if (!isInstitutionallyEligible(account, eligibility)) return null;
             const consent = await store.latestConsent(account.id);
-            if (!consent || consent.eventKind !== "accepted" || consent.termsVersion !== AI_TERMS_VERSION ||
-                consent.termsDigest !== AI_TERMS_DIGEST || consent.eligibilityEventId !== eligibility!.id) return null;
+            if (!consent || consent.eventKind !== "accepted" || consent.termsVersion !== terms.version ||
+                consent.termsDigest !== terms.digest || consent.eligibilityEventId !== eligibility!.id) return null;
             return { accountId: account.id, roleId: expectedRole, eligibilityRevision: eligibility!.id,
-                consentRevision: consent.id, termsVersion: AI_TERMS_VERSION };
+                consentRevision: consent.id, termsVersion: terms.version };
         });
     } catch { return null; }
 }

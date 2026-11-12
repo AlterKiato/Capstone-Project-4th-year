@@ -26,6 +26,15 @@ export async function canAccessResearchDemoSubmission(submissionId: number, advi
     return row?.id === submissionId;
 }
 
+/** Authorized recovery metadata only; no research text or document path. */
+export async function findResearchDemoSubmissionVersion(submissionId: number, adviserId: number) {
+    const [row] = await db.select({ version: submissions.version }).from(submissions)
+        .innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
+        .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id))
+        .where(and(eq(submissions.id, submissionId), currentMainAdviserPredicate(adviserId))).limit(1);
+    return row?.version ?? null;
+}
+
 /** Minimal version metadata, constrained to one currently supervised research project. */
 export async function findSubmissionVersionsForAdviser(paperId: number, adviserId: number) {
     return db.select({ id: submissions.id, version: submissions.version, status: submissions.status })

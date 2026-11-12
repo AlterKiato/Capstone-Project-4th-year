@@ -32,11 +32,11 @@ const main = load('lib/auth/main-adviser.ts', {
 const repo = { canAccessResearchDemoSubmission: async (id, actor) => {
     scopeReads++; if (state.fail) throw Error('PRIVATE_DATABASE_ERROR');
     onScope?.(); return actor === state.main && state.submissions.includes(id);
-} };
+}, findResearchDemoSubmissionVersion: async (id, actor) => actor === state.main && state.submissions.includes(id) ? state.version === undefined ? 'v1' : state.version : null };
 const coRepo = { canAccessResearchDemoAssignment: async (actor, assignment, submission) => {
     scopeReads++; if (state.fail) throw Error('PRIVATE_DATABASE_ERROR'); onScope?.();
     return !!state.main && actor !== state.main && state.assignments.some(row => row.id === assignment && row.userId === actor && row.submissionId === submission && row.state === 'open' && ['Submitted', 'Under Review'].includes(row.status));
-} };
+}, findResearchDemoAssignmentVersion: async (actor, assignment, submission) => state.assignments.some(row => row.id === assignment && row.userId === actor && row.submissionId === submission && row.state === 'open') ? state.version === undefined ? 'v1' : state.version : null };
 const serviceMocks = { '@/lib/auth/main-adviser': main, '@/lib/auth/current-account': account, '@/lib/repositories/adviser-submission.repository': repo, '@/lib/repositories/co-adviser.repository': coRepo };
 const service = load('lib/services/adviser-research-assistant.service.ts', serviceMocks);
 const actions = load('lib/actions/adviser-research-assistant.action.ts', { '@/lib/services/adviser-research-assistant.service': service });
@@ -49,12 +49,23 @@ test('Main availability and actual action return useful, validated, labelled fic
     for (const task of demo.RESEARCH_DEMO_TASKS) {
         const result = await actions.analyzeResearchDemoAction(request(task));
         assert.equal(result.mode, 'mock'); assert.ok(schemas.researchDemoAnswerSchema.safeParse(result.answer).success);
+        assert.equal(result.recoveryAccountId, 20);
         assert.equal(result.answer.label, demo.RESEARCH_DEMO_LABEL);
         assert.ok(result.answer.limitation.includes('not') || result.answer.limitation.includes('No other'));
     }
     assert.match(demo.getResearchDemoAnswer('writing', request().question).suggestion, /aims to compare/);
     assert.match(demo.getResearchDemoAnswer('consistency', request('consistency').question).explanation, /never collected/);
     assert.match(demo.getResearchDemoAnswer('methodology', request('methodology').question).limitation, /not verified institutional requirements/);
+});
+test('recovery context derives account, exact version and Main/Co authority from current server authorization', async () => {
+    reset(); state.version = 'v2';
+    assert.deepEqual(JSON.parse(JSON.stringify((await service.getResearchDemoAvailability({ submissionId: 11 })).recoveryContext)),
+        { accountId: 20, submissionId: 11, version: 'v2', mode: 'synthetic', authority: 'main' });
+    state.account.userId = 30;
+    assert.deepEqual(JSON.parse(JSON.stringify((await service.getResearchDemoAvailability({ submissionId: 11, assignmentId: 41 })).recoveryContext)),
+        { accountId: 30, submissionId: 11, version: 'v2', mode: 'synthetic', authority: 'co', assignmentId: 41 });
+    for (const version of [null, '', 'v0', 'arbitrary-title']) { state.version = version; assert.equal((await service.getResearchDemoAvailability({ submissionId: 11, assignmentId: 41 })).success, false); }
+    assert.equal((await service.getResearchDemoAvailability({ submissionId: 11, accountId: 30, version: 'v2' })).success, false);
 });
 test('anonymous, wrong roles, inactive and non-Main actors without exact assignment scope are denied before submission reads', async () => {
     for (const account of [null, ...[1, 3, 4, 99].map(roleId => ({ userId: 20, roleId, isActive: true })), { userId: 20, roleId: 2, isActive: false }, { userId: 30, roleId: 2, isActive: true }]) {
@@ -154,6 +165,9 @@ test('actual repository projects only submission ID and scopes it using current 
     assert.deepEqual(Object.keys(projection), ['id']); assert.equal(projection.id, schema.submissions.id);
     assert.match(query.sql, /main_adviser_designation/); assert.match(query.sql, /is_active/); assert.match(query.sql, /"submissions"\."id"/);
     assert.ok(query.params.includes(11) && query.params.includes(20)); assert.doesNotMatch(query.sql, /"research_groups"\."adviser_id"|storage_path|title|feedback/);
+    await actual.findResearchDemoSubmissionVersion(11, 20);
+    assert.deepEqual(Object.keys(projection), ['version']); assert.equal(projection.version, schema.submissions.version);
+    assert.match(query.sql, /main_adviser_designation/); assert.ok(query.params.includes(11) && query.params.includes(20));
 });
 test('actual Co demo SQL projects only assignment ID and requires owner, exact version, open state and active institutional authority', async () => {
     let query, projection; const dialect = new PgDialect();
@@ -164,8 +178,11 @@ test('actual Co demo SQL projects only assignment ID and requires owner, exact v
     for (const field of ['co_adviser_id', 'submission_id', 'state', 'status', 'is_active', 'main_adviser_designation']) assert.ok(query.sql.includes(field));
     for (const value of [30, 41, 11, 'open', 'Submitted', 'Under Review']) assert.ok(query.params.includes(value));
     assert.doesNotMatch(query.sql, /recommendation|file_url|feedback|title|group_members/);
+    await actual.findResearchDemoAssignmentVersion(30, 41, 11);
+    assert.deepEqual(Object.keys(projection), ['version']);
+    for (const value of [30, 41, 11, 'open', 'Submitted', 'Under Review']) assert.ok(query.params.includes(value));
 });
-test('launcher appears only in Main/Co detail hosts, outside official forms; UI has no transcript storage or provider access', () => {
+test('launcher appears only in Main/Co detail hosts, outside official forms; UI uses canonical draft helper without provider access', () => {
     const main = fs.readFileSync('app/dashboard/adviser/submissions/[submissionId]/page.tsx', 'utf8');
     const co = fs.readFileSync('components/dashboard/co-adviser-review.tsx', 'utf8');
     assert.match(main, /<AdviserResearchAssistant submissionId=\{submission.id\}><main/);
@@ -175,6 +192,7 @@ test('launcher appears only in Main/Co detail hosts, outside official forms; UI 
     const ui = fs.readFileSync('components/dashboard/adviser-research-assistant.tsx', 'utf8');
     assert.doesNotMatch(ui, /localStorage|sessionStorage|indexedDB|fetch\s*\(|console\.|process\.env|useOfficialFeedbackDraft/);
     assert.match(ui, /@radix-ui\/react-dialog/);
+    assert.match(ui, /research-demo-draft/);
 });
 test('feature has zero outbound calls/secret reads and no legacy provider, consent, quota or academic-write dependency', async () => {
     reset(); await actions.analyzeResearchDemoAction(request());

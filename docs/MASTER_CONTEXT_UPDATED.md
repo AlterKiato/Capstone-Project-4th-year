@@ -1,5 +1,31 @@
 # ThesiSHS AI — Master Context
 
+## AI-A1 hosted acceptance closure (2026-11-12)
+
+**AI-A1.1.1 through AI-A1.1.3: PASS / CLOSED for agreed synthetic-only UI and hosted visibility scope.** Baseline verified locally: `feature/development`, HEAD and stored `origin/feature/development` both `ba95110e46840c75642559ac03915fd38e346908`, clean tree/index, 0 ahead / 0 behind. This documentation-only reconciliation records the owner's outcomes; Codex did not independently execute hosted acceptance or refresh deployment status here.
+
+**OWNER-REPORTED acceptance:**
+
+- AI-A1.1.2: **3/3 local visual PASS**.
+- AI-A1.1.3: **local resizing PASS**.
+- Vercel protected Preview: **Ready at commit `ba95110`**.
+- Hosted Main Adviser synthetic assistant visibility: **PASS**.
+- Hosted assigned Co-Adviser synthetic assistant visibility: **PASS**.
+
+AI-A1.1.1's previous implementation/local validation and all recorded automated testing/build evidence remain unchanged. The current closure supersedes earlier AI-A1.1.1–AI-A1.1.3 pending local/hosted-visibility acceptance and unpublished/next-publication wording below; those entries remain historical checkpoint evidence. Owner-reported Preview Ready is distinct from the earlier agent's unavailable Dashboard/runtime inspection. Hosted visibility does not establish question/response execution or negative authorization acceptance.
+
+**Explicitly retained NOT TESTED for this AI-A1 scope:**
+
+- Physical-device mobile/PWA behavior.
+- Physical software keyboard and safe-area behavior.
+- Screen-reader speech.
+- Hosted negative authorization.
+- Hosted synthetic question/response execution.
+- Concurrent multi-user activity.
+- Production acceptance.
+
+**Live Groq remains DISABLED. Real manuscript processing remains NOT AUTHORIZED / NOT TESTED.** Existing Main/exact assigned Co synthetic access, official review authority, AI consent/eligibility and aggregate-only governance classifications are unchanged. Preserve all prior UI-S, UI-R, R1/R2 and Phase 10 classifications, including their separate closures, PARTIAL PASS results and deferred evidence; this closure expands none of them. Only this Master Context and Source of Truth are edited, unstaged and uncommitted. No application/configuration/schema/test change, hosted research access, additional testing, commit, push, merge or deployment is part of this reconciliation.
+
 ## AI-A1.1.3 desktop resizing and Preview preparation (2026-11-12)
 
 **Local implementation complete; owner visual acceptance pending.** Verified clean `feature/development` baseline `15cbf0224cd5ee7629e3db2fc0a3fbd5b535c974`, two commits ahead of stored origin. One reviewed local commit is authorized: `feat(ai): add bounded desktop chat resizing` (resolve its SHA from Git). **AI-A1.1.2 local visual acceptance: OWNER-REPORTED 3/3 PASS, CLOSED for agreed local visual scope.** This supersedes its pending local acceptance wording below; it does not accept AI-A1.1.3 or hosted/device behavior.
@@ -6373,3 +6399,206 @@ The separately authorized S3.4B.2C execution receipt records one successful 0017
 Local supervision 7/7, UI refinement 6/6 and formatting retest 7/7 PASS are owner-reported acceptance. The retained successful production build used synthetic non-routable settings without environment files; all 66 pending application/schema files match its source snapshot byte-for-byte. Fresh checkpoint TypeScript and targeted lint (84 files) PASS. Retained focused offline/synthetic evidence remains bounded by its documented doubles; no historical PostgreSQL matrix was repeated.
 
 Supabase Data API must always remain disabled. Its accepted disabled-state evidence is the owner's November 9 Dashboard observation; independent post-refresh confirmation remains unconfirmed. Authenticated Preview supervision, real private PDF delivery and owner-led Preview acceptance remain pending. This checkpoint authorizes one local commit only: no push, deployment, database/Storage/provider operation or subsequent phase. Smallest next action: owner review of the local commit before separately authorizing Preview source publication, which may trigger deployment.
+
+
+## AI-P1.2A - Disabled fictional-text Groq research pilot (2026-11-12)
+
+**IMPLEMENTED / OFFLINE VALIDATION PASS; NOT APPROVED OR OPERATIONAL.** Entry verified `feature/development` at `ba95110e46840c75642559ac03915fd38e346908`, empty index, exactly the two existing AI-A1 closure documentation modifications and three untracked AI-P1.1 proposals. Those original document bytes and all three proposals are preserved; this handoff is appended. No staging, commit, push, deployment, environment change, database/Storage operation or provider API call.
+
+### Implemented boundary
+
+- A separate Server Action/service/adapter accepts strict fixture/task/question selectors plus internal submission/assignment scope. It resolves only the existing bundled fictional excerpt, three academic tasks and exact reviewed questions/follow-ups on the server. Requests are single-turn; no client text/history, manuscript retrieval, PDF parsing or title/abstract/feedback payload is permitted. Provider JSON contains only task, fictional excerpt and reviewed question; actor/resource identifiers remain in authorization.
+- `GROQ_RESEARCH_PILOT_ENABLED=false` and `FINALIZED_RESEARCH_PILOT_TERMS=null` block every runtime environment before account/credential/quota reads. No environment value can override these code gates. Additional fail-closed guards reject development, test, CI, Preview and missing/non-production deployment identity even in a future enabled code checkpoint. This does not approve a Production target or release. Existing aggregate/pilot disablement is unchanged.
+- The service reuses active account, current Main/exact open Co existence predicates, independent adult eligibility and the append-only consent ledger. It requires finalized pilot version/digest, accepted consent bound to current eligibility, listed participant and a current operator approval window. It rechecks configuration, identity, Main/Co scope and eligibility/consent revisions before dispatch and delivery. Both `ai-assistance-v2-draft` and `ai-p1-fictional-v1-proposal` fail pilot terms validation.
+- Existing fixed Groq model/endpoint, credential loader, wire/credential validators, bounded body reader and timeout scheduler are reused. Aggregate transport logic/payloads remain unchanged. Pilot limits are 512-byte selector requests, 4 KiB serialized provider requests, a conservative 2,048 input-token upper bound (UTF-8 bytes plus 256 framing tokens), 1,024 completion tokens, 32 KiB responses and a 10-second fetch/body deadline. This is a conservative budget, not an exact tokenizer measurement. No redirect following, retries, tools, browsing or content/error logging. Validated plain-text answers receive a distinct AI-generated advisory label and fixed limitation; no academic writes or transcript persistence.
+- Existing shared quotas retain 3/account/UTC day, 10 globally/day, 120-second cooldown, one concurrent request and at most two attempts per approved window of at most two hours. The existing reservation stays held through response authorization; delivery does not consume another attempt. Missing stores or exhausted slots deny dispatch. Counts are never refunded; failed release/crashed workers remain blocked without automatic expiry.
+- The floating/draggable/resizable synthetic assistant, deterministic answers, reviewed follow-ups, four-exchange limit, unsupported-input behavior, UI/accessibility and official workflows are unchanged. It never calls or falls through to the new action. No new chatbot UI or live mode is exposed.
+
+### Focused verification and limits
+
+**62/62 offline checks PASS**, including 12 new named pilot cases. Actual validation/transport/entitlement/service code runs with synthetic account/SQL boundaries and mocked provider transport; outbound network primitives are blocked. Coverage includes disabled zero calls/secret reads, Main/Co allow/deny and revocation, draft/proposal/stale consent, approval expiry, strict selectors, all nine task/question payload combinations, quotas, invalid credentials/output, 429/5xx, fetch/body timeouts and no academic/transcript writes. An initial timeout test exposed an abort-before-body-read race in the new adapter; the adapter now cancels that body before using the unchanged shared reader.
+
+```text
+node --import tsx --test tests/ai-p12a-research-pilot.unit.cjs tests/ai-a11-research-assistant.unit.cjs tests/phase8-groq-rest.unit.cjs tests/phase8-groq-pilot.unit.cjs tests/phase8-ai-governance.unit.cjs tests/s32-main-adviser.unit.cjs tests/s33-co-adviser.unit.cjs
+```
+
+Active-source TypeScript PASS using ignored `.next/ai-p12a/tsconfig.json` extending the normal config and excluding ignored `test-results` snapshots; targeted ESLint and whitespace/preservation checks PASS. Unfiltered `tsc --noEmit --incremental false` FAILS on two unrelated historical copied-build errors in `test-results/ai-a11/build-source/.../ReviewTabs.tsx` and `test-results/r2/build-source/.../student/page.tsx`; those snapshots and root config remain untouched. No build/browser suite was run for this server-only delta; existing UI source is unchanged. This is not real database/concurrency, authenticated hosted, live model or Production acceptance.
+
+### Remaining blockers and next action
+
+Institutional approval, finalized immutable pilot consent/contact, participant verification and provider configuration/terms/ZDR/limits remain pending or unverified. The existing consent UI/action accepts only current aggregate draft terms: this checkpoint adds a read-only final-pilot entitlement check, not a pilot acceptance path or finalized terms registration. A separately approved final-consent/acceptance integration is required before use; neither draft/proposal nor fabricated operator events may substitute for explicit acceptance. Existing ledger fields support the read check without a migration. Live execution is **NOT TESTED**; real manuscript processing is **NOT AUTHORIZED**.
+
+**AI-P1.2B temporary recovery remains PENDING / NOT IMPLEMENTED.** Smallest next action: owner reviews this offline delta, then separately defines the bounded recovery scope, including any stranded quota-slot procedure and its stop/reverification conditions. No automatic slot release, recovery operation, activation or next checkpoint starts here. Prior AI-A1 closure and all earlier phase evidence classifications remain unchanged.
+
+Exact checkpoint delta (11 paths; incoming proposal files unchanged):
+
+```text
+lib/actions/groq-research-pilot.action.ts
+lib/ai/groq-research-pilot-config.ts
+lib/ai/groq-research-pilot.ts
+lib/ai/groq-key.ts
+lib/ai/groq-rest.ts
+lib/auth/ai-entitlement.ts
+lib/services/groq-research-pilot.service.ts
+lib/validations/groq-research-pilot.ts
+tests/ai-p12a-research-pilot.unit.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+```
+
+
+## AI-P1.2B - Minimalist synthetic chat recovery (2026-11-12)
+
+**LOCAL IMPLEMENTATION / FOCUSED OFFLINE AND COMPONENT VALIDATION PASS. Owner acceptance NOT TESTED.** Entry verified `feature/development` at `ba95110e46840c75642559ac03915fd38e346908`, exactly 5 modified and 9 untracked paths with empty index. The five incoming documentation paths are this Master Context, Source of Truth and the three AI-P1.1 proposals. Their existing bytes are preserved; only the two canonical documents receive appended handoffs. All incoming AI-P1.2A source/test files and proposal documents remain byte-identical. No commit, push, deployment, environment/dependency/schema/migration change, live provider call or actual database/Storage operation.
+
+### Implemented behavior and storage boundary
+
+- The existing floating Adviser Research Assistant now recovers up to four deterministic fictional exchanges from tab-local `sessionStorage`. A versioned record contains `schemaVersion`, authorized context, `updatedAt`, canonical task and ordered canonical question IDs only. The record is limited to 1 KiB and expires after two hours from its last successful saved exchange. Answers and questions are reconstructed from the existing reviewed fixtures; arbitrary message bodies, unsent composer text, manuscripts, names, titles, PDF data, official feedback and live Groq output are never stored. There is no localStorage, IndexedDB, service-worker persistence, database transcript or cross-device synchronization.
+- Context is returned by the existing availability action after current active Adviser and Main/exact open Co authorization. New narrowly scoped repository reads project only the persisted submission version, with the existing Main or exact active/open Co predicates. Actor identity comes from the authenticated account, not component props or storage. Authorization is rechecked before context delivery. Keys bind account, submission, version, synthetic mode, Main/Co authority and exact Co assignment. Storage context/key claims never authorize access.
+- Recovery is withheld during authorization checks. Refresh, navigation away/back, review tabs and close/reopen recover only the selected authorized draft. Submission changes preserve other authorized submissions' entries. Version changes, malformed/oversized/unknown/stale entries and detected access loss remove or reject the affected draft. Confirmed account changes clear this feature's namespace. Successful synthetic responses carry the server-derived actor ID; a response-account mismatch invalidates memory/drafts before rendering or writing. Late Reset/logout replies cannot recreate drafts.
+- Storage failures degrade to memory-only chat. Session storage is per browser tab, may be unavailable or cleared by the browser, and supplies no durable or cross-tab history. No draft enables AI access, adult eligibility or consent.
+- One compact Finish Chat control uses the existing Radix Dialog primitive. The exact confirmation title/description and Cancel/Finish Chat actions are implemented; Cancel receives initial focus. Cancel/Escape preserve the conversation and composer and restore focus. Confirm removes only the selected draft and resets the current chat without closing the assistant or changing academic state. Existing Reset remains immediate and removes the matching draft too.
+- The existing shared Logout button clears only the research-demo namespace after the document-capture leave guard accepts the click, before existing push cleanup/session deletion. An invalidation event clears mounted chat state and cancels late responses. Cancelled logout preserves the draft; unrelated session-storage keys remain. No auth/session or push server logic changes.
+
+The owner's AI-P1.2B scope is temporary chat recovery. It does not implement quota-slot recovery or change any AI-P1.2A quota/activation boundary.
+
+### Focused verification and Anti-Slop review
+
+**61/61 unit/regression checks PASS**, including 11 new storage cases, the extended synthetic authorization/metadata SQL-shape checks, the unchanged 12-case AI-P1.2A suite, existing push/logout protection and settings/logout regression. These are offline account/SQL/service boundaries, not actual PostgreSQL scheduling or authenticated whole-app acceptance.
+
+```text
+node --import tsx --test tests/ai-p12b-research-draft.unit.cjs tests/ai-a11-research-assistant.unit.cjs tests/ai-p12a-research-pilot.unit.cjs tests/phaseP3-pwa.unit.cjs tests/phase974-settings.unit.cjs
+```
+
+**15 synthetic Chromium groups PASS, 0 FAIL**: `node tests/ai-a11-research-assistant.browser.cjs`. Actual components, Radix and same-origin browser sessionStorage run with synthetic authorization/Server Action/PDF boundaries and blocked external requests. Coverage includes refresh/navigation/close recovery after authorization, selected Reset/Finish cleanup, pending/late responses, malformed/stale entries, account/version/Main/Co isolation, revocation, desktop pointer/keyboard drag/resize, mobile sheet, Light/Dark, focus/Tab/Escape and unchanged academic draft guards. No academic write or external request occurred. The initial sandboxed bundle was blocked by esbuild parent-directory access; the bounded authorized unsandboxed fixture passed. New desktop Light/mobile Dark confirmation screenshots were visually inspected in ignored `test-results/ai-a113/`.
+
+Active-source TypeScript PASS using the unchanged ignored `.next/ai-p12a/tsconfig.json`; targeted ESLint, whitespace and incoming-byte preservation checks PASS. Historical ignored TypeScript build snapshots and root configuration were not changed; the previously documented unfiltered TypeScript failures remain outside this active-source check. No full build was needed/run for this bounded delta. React best-practices review retained server authorization, minimal DTOs, bounded untrusted storage, late-result protection and accessible existing primitives.
+
+| Anti-Slop review | Result |
+|---|---|
+| Existing Radix primitives, icons, theme/spacing/typography tokens | PASS |
+| Visible additions limited to Finish Chat and its confirmation; existing disclosure corrected | PASS |
+| No Recent Chats/sidebar, saved banner, cards, gradients or library | PASS |
+| Desktop/mobile and Light/Dark consistency | PASS in synthetic Chromium/screenshots |
+| Keyboard, initial Cancel focus, focus trap/restoration, Escape | PASS in synthetic Chromium |
+| Deviations from approved DESIGN/Anti-Slop direction | None identified; ENERGY 1 / RHYTHM 2 / MOTION 1 retained |
+
+### Limits and smallest next action
+
+New owner acceptance, authenticated Next/Server Action metadata readback and actual session lifecycle, real database execution, hosted/physical-device/PWA/software-keyboard and screen-reader speech remain NOT TESTED. Institutional approval, finalized pilot consent/acceptance integration and participant verification remain pending; provider organization ZDR/configuration/terms/limits are unverified. Groq remains disabled and no generated provider responses are recoverable. Live execution is NOT TESTED; real manuscript processing remains NOT AUTHORIZED. All previous AI-A1, AI-P1.2A and other phase acceptance classifications retain their original provenance and scope.
+
+Smallest next local acceptance: on an authorized local Main submission/version, run one bundled fictional starter, refresh, and verify that its synthetic conversation recovers. Record the owner's result separately; Co and Finish Chat manual acceptance can follow as separate steps. No hosted workflow, commit or release follows automatically.
+
+Exact AI-P1.2B delta (15 paths; incoming AI-P1.2A/proposal files preserved):
+
+```text
+components/auth/logout-button.tsx
+components/dashboard/adviser-research-assistant.tsx
+components/dashboard/adviser-research-assistant.module.css
+lib/ai/research-demo-draft.ts
+lib/validations/research-demo-draft.ts
+lib/validations/adviser-research-assistant.ts
+lib/services/adviser-research-assistant.service.ts
+lib/repositories/adviser-submission.repository.ts
+lib/repositories/co-adviser.repository.ts
+tests/ai-p12b-research-draft.unit.cjs
+tests/ai-a11-research-assistant.unit.cjs
+tests/ai-a11-research-assistant.browser.cjs
+tests/phaseP3-pwa.unit.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+```
+
+
+## AI-P1.2C - Consolidated review and local closure (2026-11-12)
+
+**SOURCE/INTEGRATION REVIEW PASS; STATIC CHECKS PASS; PRODUCTION BUILD BLOCKED / NOT RUN under this checkpoint's constraints.** **AI-P1.2B: PASS/CLOSED for the agreed four-step owner-led local manual scope.** This read-first review changes only this Master Context and Source of Truth, by appending to their existing content. No feature/UI/source/test/configuration change, staging, commit, push, deployment, live provider call, database/Storage operation or quota recovery is performed.
+
+### Baseline, inventory and preservation
+
+Entry verified `feature/development` at `ba95110e46840c75642559ac03915fd38e346908`, exactly **15 modified / 12 untracked paths**, empty index and no conflicts. The 27-path combined checkpoint comprises three original AI-P1.1 proposals, nine AI-P1.2A source/test paths, thirteen AI-P1.2B source/test paths and two shared canonical documents. The prior AI-A1 closure is retained in the existing canonical-document prefixes. All 25 non-canonical paths are byte-identical to this review's entry; both original canonical prefixes are preserved. No reset, stash, discard, rebase or unrelated normalization.
+
+### AI-P1.2B owner-led local acceptance
+
+| Step | Owner-reported local test | Result |
+|---|---|---|
+| 1 | Refresh recovery | PASS |
+| 2 | Finish Chat confirmation, cancel and clearing | PASS |
+| 3 | Submission isolation and return recovery | PASS |
+| 4 | Dragging, resizing, close/reopen and Reset | PASS |
+
+**4/4 PASS, OWNER-REPORTED.** Codex did not independently execute these four manual checks. This closure supersedes earlier pending owner-local-acceptance wording only for this agreed scope. Authenticated cross-account testing, physical-device acceptance and live Groq execution remain **NOT TESTED**. Existing AI-A1 hosted visibility/Preview Ready evidence remains owner-reported historical evidence for commit `ba95110`; no current deployment refresh or new hosted acceptance is claimed. All earlier phase classifications and limitations retain their provenance.
+
+### Combined implementation review
+
+- **AI-P1.2A PASS for disabled/offline scope.** The false code flag and null finalized-terms registry deny all current runtime requests before credentials/accounts/quotas. Even a future enabled code checkpoint rejects development, test, CI, Preview and missing/non-production target identity. Environment-variable changes alone cannot activate the current path. Synthetic actions remain independent; the shared aggregate transport differs from HEAD only by reusable helper exports, preserving aggregate validation/behavior.
+- Pilot requests strictly allow existing fixture/task/question identifiers plus internal scope selectors. The server resolves only the bundled fictional excerpt and canonical questions/follow-ups, strips account/resource IDs from the provider payload and bounds request bytes, conservative token budget, completion tokens, response bytes and timeout. Arbitrary text/history, PDFs, titles, abstracts and feedback cannot enter this strict contract. Existing fixed endpoint, guarded server-only key loading, redirect denial, no retries/tools/browsing, validated advisory outputs and safe fallback remain intact.
+- Current active Adviser, designated Main or exact open Co scope, independently recorded adult eligibility, accepted finalized pilot consent bound to that eligibility, approved participant list and unexpired window are required and rechecked before dispatch/delivery. Both draft consent versions fail pilot validation. Final consent registration/acceptance integration is still pending; no approval, eligibility or acceptance is fabricated.
+- **AI-P1.2B PASS for reviewed temporary fictional recovery.** Versioned 1 KiB / two-hour sessionStorage records contain at most four canonical selectors with exact authorized account/submission/version and Main/Co/assignment context. Current server authorization precedes recovery; storage is untrusted. Reconstructed responses remain synthetic, malformed/expired/mismatched entries are rejected, selected Finish/Reset and namespace-only accepted logout cleanup remain separate, and late/mismatched-account responses are discarded. Existing desktop window, mobile sheet and dialog/keyboard patterns are preserved.
+- **Combined integration PASS.** Synthetic drafts never become live conversation history: the pilot action is separate, its request schema rejects history/body fields, and the chat imports no pilot action. Temporary recovery supplies no eligibility, consent or activation authority. No provider payload logging, arbitrary/live-output transcript persistence or academic writes are introduced. Existing PostgreSQL authorization/version metadata and quota/governance infrastructure are reused; no new tables, migrations, dependencies or external database resources are added.
+
+### Validation and build feasibility
+
+Reused unchanged evidence: AI-P1.2A's **62 offline checks**, AI-P1.2B's **61 unit/regression checks** (including unchanged pilot tests) and **15 synthetic Chromium groups**, all PASS in their recorded scopes. These overlapping counts are not additive and were not rerun in this review. Actual source inspection and source-preservation checks support reuse; browser/SQL/account mocks remain distinct from authenticated runtime, real database scheduling, physical-device or hosted acceptance.
+
+Fresh checks:
+
+- **PASS:** `npx.cmd tsc --project .next/ai-p12a/tsconfig.json --noEmit --incremental false` against active source using the existing ignored config. Historical ignored build snapshots remain excluded and untouched; this does not upgrade the previously failing unrestricted TypeScript check.
+- **PASS:** targeted ESLint across all 21 changed/new TS/TSX/CJS source/test paths; Git diff/whitespace, UTF-8 append/prefix and exact-path/index preservation checks.
+- **BUILD BLOCKED / NOT RUN:** `npm run build` invokes `next build`; unchanged `app/layout.tsx` loads Manrope through `next/font/google`. The installed Next.js font guide states that Google CSS/font files are downloaded at build time, and the installed loader contains those fetches. This known external-network requirement makes the normal build infeasible within the owner's explicit stop-on-network condition. No build process was started, font substitution/cache mocking, environment override, alternate config or credential-backed build was attempted. Existing `lib/db.ts` also initializes from environment configuration; no build-time database safety or current successful production build is inferred. A current production build remains a separate validation gap before publication, not a source PASS.
+
+No broad unit/browser rerun, unsafe build attempt, environment inspection of secret values or historical snapshot repair was performed.
+
+### Shared quota reservation assessment
+
+**Classification: existing documented fail-closed limitation, safely deferred for this disabled local checkpoint.** `reservePilotAttempt` commits an attempt under the shared PostgreSQL advisory transaction lock and the one-unreleased-row unique index before provider I/O. A crash/frozen worker, interrupted process or failed release can leave `released_at` null indefinitely. Daily/window rollover does not clear that global slot. The normal release primitive is UUID-bound and idempotent, preserving counted attempts/history; its wrapper deliberately leaves an uncertain slot blocked.
+
+No bounded expiry, lease/fencing mechanism or dedicated operator recovery command exists. A guarded manual procedure already exists in the historical Phase 8 handoffs (retained above at lines 1205 and 1219): disable provider, stop every affected instance, independently confirm old workers/outbound requests ended, privately identify the exact unreleased UUID, then use a parameterized READ COMMITTED transaction with the same advisory lock and exact-row lock to change only released_at, requiring one affected row and preserving counters/history. This is retained procedural guidance, not current-target validation or execution approval. The current timeout requests client abort; it does not prove upstream work was cancelled. Elapsed age or a blind bulk reset is insufficient. No slot was inspected, reset or released here.
+
+The smallest follow-up is to reuse and target-verify that existing manual procedure under separate owner authorization, including interruption/timeout handling, worker-stop evidence and durable readback; no new recovery subsystem is required for this disabled checkpoint. Existing fields, advisory locking and the UUID release primitive support manual recovery without a migration or an additional distributed-lock service. Automatic expiry for potentially active multi-worker/provider requests would need a separate ownership/fencing/coordination design and possibly schema changes; it is not the minimal current fix. Operational recovery assurance should be reviewed before live activation, while the existing fail-closed limitation does not block this disabled source commit.
+
+### Anti-Slop, secrets and closure decision
+
+**Anti-Slop PASS on inspection; no material exception.** Existing Radix dialogs, icon/window controls and theme/spacing/typography tokens are reused. Visible additions remain compact Finish Chat plus confirmation, with the existing disclosure corrected. There is no Recent Chats panel, decorative addition, persistent saved banner or chatbot redesign. Retained Chromium/screenshots support desktop/mobile, Light/Dark and keyboard/focus behavior; this review changes no UI and makes no new device/screen-reader claim.
+
+Changed-scope credential-pattern scan and direct inspection found no accidental key/token/password/private-key literals or real manuscript payloads. Synthetic fixture markers and necessary account/resource scope metadata remain intentional. This is a bounded change review, not an assertion that every historical repository byte is secret-free. Git status contains only the exact 27 paths below, no generated evidence/build/env files; schema/migrations, package manifests/lockfile and production configuration are unchanged. The index remains empty.
+
+**Ready for a separately authorized local commit as a disabled checkpoint, with the production-build limitation explicitly retained.** This is not commit authorization, Preview publication readiness or live activation approval. Recommended **AI-P1.3 (PROPOSED ONLY)**: pre-activation governance/final-consent acceptance readiness and review/target verification of the existing manual operator recovery procedure; keep Groq disabled while reviewing participants, terms, ZDR, exact provider limits/cost controls, target/egress/observability and outstanding build/runtime validation. No automatic recovery or live implementation starts.
+
+Pending institutional approval, finalized pilot consent/acceptance, participant verification and provider configuration remain pending/unverified. Live Groq execution remains **NOT TESTED**; actual student manuscript processing remains **NOT AUTHORIZED**. No prior synthetic or hosted acceptance is expanded.
+
+### Exact combined change inventory (27 paths; all unstaged)
+
+```text
+# Original AI-P1.1 proposals (3 untracked; unchanged)
+docs/ai-pilot/INSTITUTIONAL_APPROVAL_ADDENDUM.md
+docs/ai-pilot/PILOT_CONSENT_PROPOSAL.md
+docs/ai-pilot/VERIFICATION_CHECKLIST.md
+# AI-P1.2A source/tests (3 modified, 6 untracked; unchanged in this review)
+lib/ai/groq-key.ts
+lib/ai/groq-rest.ts
+lib/auth/ai-entitlement.ts
+lib/actions/groq-research-pilot.action.ts
+lib/ai/groq-research-pilot-config.ts
+lib/ai/groq-research-pilot.ts
+lib/services/groq-research-pilot.service.ts
+lib/validations/groq-research-pilot.ts
+tests/ai-p12a-research-pilot.unit.cjs
+# AI-P1.2B source/tests (10 modified, 3 untracked; unchanged in this review)
+components/auth/logout-button.tsx
+components/dashboard/adviser-research-assistant.module.css
+components/dashboard/adviser-research-assistant.tsx
+lib/repositories/adviser-submission.repository.ts
+lib/repositories/co-adviser.repository.ts
+lib/services/adviser-research-assistant.service.ts
+lib/validations/adviser-research-assistant.ts
+tests/ai-a11-research-assistant.browser.cjs
+tests/ai-a11-research-assistant.unit.cjs
+tests/phaseP3-pwa.unit.cjs
+lib/ai/research-demo-draft.ts
+lib/validations/research-demo-draft.ts
+tests/ai-p12b-research-draft.unit.cjs
+# Shared canonical records (2 modified; prior AI-A1/AI-P1 content preserved)
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+```

@@ -258,11 +258,12 @@ function guardedPage(confirm) {
     return { windowListeners, documentListeners, Element };
 }
 test('actual draft boundary cancels logout before cleanup and guards worker navigation intents', async () => {
-    let cleanup = 0, logout = 0;
+    let cleanup = 0, logout = 0, draftCleanup = 0;
     const Button = loadTs('components/auth/logout-button.tsx', {
         react: { ...React, useTransition: () => [false, fn => fn()] }, 'next/navigation': { useRouter: () => ({ push() {}, refresh() {} }) },
         '@/lib/actions/auth.action': { logoutAction: async () => { logout++; } },
         '@/lib/pwa/research-push-client': { logoutWithResearchPushCleanup: async action => { cleanup++; await action(); } },
+        '@/lib/ai/research-demo-draft': { clearResearchDemoDrafts: () => { draftCleanup++; } },
     }).default;
     const button = Button({});
     for (const accepted of [false, true]) {
@@ -271,6 +272,7 @@ test('actual draft boundary cancels logout before cleanup and guards worker navi
         page.documentListeners.get('click')(click);
         if (!click.defaultPrevented) await button.props.onClick();
         assert.equal(cleanup, accepted ? 1 : 0); assert.equal(logout, accepted ? 1 : 0);
+        assert.equal(draftCleanup, accepted ? 1 : 0, 'Cancelled logout must preserve recoverable chat drafts');
         let navigated = 0;
         const allowed = () => { const event = { defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } }; page.windowListeners.get(PUSH_NAVIGATION_EVENT)(event); return !event.defaultPrevented; };
         assert.equal(acceptPushNavigation({ type: 'thesishs-research-push', destination: 'adviser-notifications' }, 'https://app.example.invalid/sw.js', 'https://app.example.invalid', () => navigated++, allowed), accepted);
