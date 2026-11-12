@@ -1,6 +1,18 @@
 # ThesiSHS AI --- Source of Truth
 
+## UI-S1.1 manual acceptance closure (2026-11-12)
+
+**UI-S1.1 — PASS / CLOSED FOR AGREED MANUAL SCOPE.** Five **owner-reported PASS** results cover full-width mobile project titles with readable status/Details controls and no reported horizontal overflow; compact Notes cards, disclosure/full content, accessible controls and Recently Deleted presentation; aligned semantic icons with readable labels/Help/values and accepted responsive presentation; desktop floating sidebar/navigation/modes across Student, Adviser, Admin and Panel; and floating drawer appearance/navigation/spacing/scrolling/dismissal in a **desktop browser resized to a mobile viewport**. Codex did not independently reproduce authenticated hosted acceptance. The [UI-S1.1 manual closure](MASTER_CONTEXT_UPDATED.md#ui-s11-manual-acceptance-closure-2026-11-12) owns the five results and precise evidence limits.
+
+Retained local evidence: 15/15 focused offline checks, four synthetic Chromium scenarios, Notes interaction groups, cross-role navigation, keyboard/focus/responsive checks, current-source TypeScript, targeted lint and isolated production build (27/27 page-generation tasks), all PASS. The default TypeScript command's obsolete ignored build-snapshot failure remains documented; the current-source check and isolated build passed. Published commit `1afaeed011dccd63d4ecb9d5cb2788b9f81e153b`, `feat(ui): polish responsive layouts and floating navigation`; deployment `FuwuEt8KDHCBZ8ecLUZmZ6UjpG6t`. Integration-reported completion and HTTP 302 to Vercel SSO establish bounded publication/protection evidence, not independent Dashboard Ready verification.
+
+**NOT TESTED / deferred, non-blocking for the agreed manual scope:** physical Android/iOS browser navigation; installed mobile PWA navigation; physical-device installed-PWA bottom navigation; physical-device safe areas; Adviser/Admin/Panel mobile drawer acceptance; installed desktop PWA hidden-sidebar behavior; broad device/browser compatibility. Synthetic checks do not establish device acceptance. All earlier NOT TESTED classifications remain intact.
+
+**Unchanged:** UI-S1 and UI-R1.1 PASS / CLOSED; R1, R2 and Phase 10 supervision PARTIAL PASS; all research/workspace/deleted-note, assignment, feedback, evidence, notification and audit history. No hosted records were accessed or modified. Documentation-only edits remain unstaged and uncommitted, with no application/CSS, tests, database/Storage, environment or publication operation. Next: owner review of the closure updates; any commit or further checkpoint is separately authorized. This closure supersedes historical UI-S1.1 pending direction below while preserving prior evidence.
+
 ## UI-S1.1 responsive and visual refinement (2026-11-12)
+
+**Historical implementation checkpoint:** the manual closure above owns current acceptance and next actions; original local validation and pending direction below are retained as history.
 
 **Implemented and validated locally; hosted acceptance NOT TESTED.** Parent `b7f750e8c7481babcf0e1287f4142a8197c37953`; local commit message `feat(ui): polish responsive layouts and floating navigation` (resolve SHA from Git). The approved presentation-only delta gives mobile project titles a full row, refines existing Notes disclosures into compact single-column cards, extends the existing SVG primitive with optional 18px semantic heading icons while retaining its 22px navigation default, and insets the shared desktop rail/mobile Radix Sheet for all roles. Existing desktop widths/modes, safe-area handling, bottom navigation/Panel fallback, links, guards, focus, logout, metric structure/counts and complete Notes content remain preserved. No new UI state or navigation architecture.
 

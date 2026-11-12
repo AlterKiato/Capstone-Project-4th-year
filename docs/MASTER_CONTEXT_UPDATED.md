@@ -1,6 +1,28 @@
 # ThesiSHS AI — Master Context
 
+## UI-S1.1 manual acceptance closure (2026-11-12)
+
+**UI-S1.1 — PASS / CLOSED FOR AGREED MANUAL SCOPE.** All five results below are **owner-reported**; Codex did not independently repeat authenticated hosted acceptance.
+
+1. **Mobile Research Project Details — PASS:** full-width research title, readable status and View Details controls, with no reported horizontal overflow.
+2. **Group Workspace Notes — PASS:** compact Notes cards, existing disclosure and full-content visibility, accessible existing controls and accepted Recently Deleted presentation.
+3. **Dashboard semantic icons — PASS:** visible and consistently aligned icons; existing labels, Help controls and values remain readable; responsive presentation accepted.
+4. **Floating desktop sidebar — PASS:** owner reported acceptance across Student, Adviser, Admin and Panel, including existing navigation and sidebar modes. This does not establish installed desktop PWA hidden-mode acceptance.
+5. **Mobile navigation drawer — PASS within a resized desktop browser:** floating appearance, navigation, spacing, scrolling and dismissal accepted. No physical mobile browser or installed PWA acceptance is inferred.
+
+**Separate automated evidence, retained without rerunning:** 15/15 focused offline checks; four synthetic Chromium scenarios; Notes' 12 interaction groups; local cross-role navigation, keyboard/focus and responsive checks; current-source TypeScript and targeted lint; isolated production build with 27/27 page-generation tasks, all PASS. The default TypeScript command encountered an obsolete ignored build snapshot; the current-source check and isolated build passed. That tooling limitation remains recorded in the historical implementation handoff below.
+
+**Publication evidence:** commit `1afaeed011dccd63d4ecb9d5cb2788b9f81e153b`, `feat(ui): polish responsive layouts and floating navigation`; Vercel deployment `FuwuEt8KDHCBZ8ecLUZmZ6UjpG6t`. The Vercel integration reported deployment completion. Direct Dashboard Ready verification was unavailable; the protected Preview branch URL returned HTTP 302 to Vercel SSO. Neither independently observed Dashboard Ready nor independently reproduced authenticated functional acceptance is claimed.
+
+**NOT TESTED, deferred and non-blocking for this agreed manual scope:** physical Android/iOS browser navigation; installed mobile PWA navigation; installed PWA bottom-navigation preservation on physical devices; physical-device safe-area behavior; Adviser/Admin/Panel mobile drawer acceptance; installed desktop PWA hidden-sidebar behavior; broad device/browser compatibility. Synthetic-browser coverage is local evidence only and does not close these device/PWA gaps or any earlier historical NOT TESTED scenario.
+
+**Preserved:** UI-S1 PASS / CLOSED; UI-R1.1 PASS / CLOSED; R1 PARTIAL PASS; R2 PARTIAL PASS; Phase 10 supervision PARTIAL PASS. Paper 1/v1–v5, v5 Under Review, historical adviser feedback/PDFs, R1 milestone/v4 evidence, R2 revision history, tasks/Notes/Recently Deleted records, Main/Co-Adviser assignments, notifications and audits were not accessed or modified. This checkpoint changes only the two canonical handoffs; no application/CSS, tests, database/Storage, environment, commit, push or deployment operation. Edits remain unstaged and uncommitted.
+
+**Smallest next action:** review these closure updates; any documentation commit or later checkpoint needs separate owner authorization. This closure controls current UI-S1.1 acceptance and supersedes historical pending-publication/acceptance and next-action wording below without rewriting earlier results.
+
 ## UI-S1.1 responsive and visual refinement (2026-11-12)
+
+**Historical implementation checkpoint:** the manual closure above owns current acceptance and next actions; original local validation and pending direction below are retained as history.
 
 **Status: local implementation and focused validation PASS; hosted UI-S1.1 acceptance NOT TESTED.** Approved presentation-only checkpoint on `feature/development`, parent `b7f750e8c7481babcf0e1287f4142a8197c37953`. One reviewed local commit is authorized with message `feat(ui): polish responsive layouts and floating navigation`; resolve its resulting SHA from Git. No push, deployment or hosted acceptance is included.
 
