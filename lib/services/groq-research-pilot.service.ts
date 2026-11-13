@@ -45,7 +45,18 @@ export async function runGroqResearchPilot(input: unknown) {
         // The reservation owns the quota slot through delivery; never reserve a second attempt for the response.
         if (!release || !await unchanged()) return researchPilotFallback;
         const result = await createGroqResearchPilotTransport(fetch)(parsed.data, configuration);
-        return result.success && await unchanged() ? result : researchPilotFallback;
+        return result.success && await unchanged() ? { ...result, accountId: initial.accountId } : researchPilotFallback;
     } catch { return researchPilotFallback; }
     finally { try { await release?.(); } catch { /* Keep a failed release blocked; no payload/error logging. */ } }
+}
+
+// Availability never reserves quota, loads credentials or dispatches. Dispatch rechecks every gate.
+export async function getGroqResearchPilotAvailability(input: unknown) {
+    try {
+        const approval = getResearchPilotConfiguration(), parsed = researchPilotRequestSchema.safeParse(input);
+        if (!approval || !parsed.success) return { available: false } as const;
+        const actor = await authorize(parsed.data, approval);
+        return actor && JSON.stringify(getResearchPilotConfiguration()) === JSON.stringify(approval)
+            ? { available: true, accountId: actor.accountId } as const : { available: false } as const;
+    } catch { return { available: false } as const; }
 }

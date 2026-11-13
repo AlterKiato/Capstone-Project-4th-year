@@ -2,6 +2,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { analyzeResearchDemoAction, getResearchDemoAvailabilityAction } from "@/lib/actions/adviser-research-assistant.action";
+import { getGroqResearchPilotAvailabilityAction, runGroqResearchPilotAction } from "@/lib/actions/groq-research-pilot.action";
+import { ConsentDialog } from "./ai-governance-dialogs";
 import { RESEARCH_DEMO_EXCERPT, RESEARCH_DEMO_FOLLOWUPS, RESEARCH_DEMO_LABEL, RESEARCH_DEMO_QUESTIONS, RESEARCH_DEMO_TASKS, type ResearchDemoTask } from "@/lib/ai/adviser-research-demo";
 import { activateResearchDemoDraftAccount, readResearchDemoDraft, saveResearchDemoDraft, removeResearchDemoDraft, researchDemoDraftKey,
     clearResearchDemoDrafts, RESEARCH_DEMO_DRAFT_CLEAR_EVENT, type SyntheticExchange } from "@/lib/ai/research-demo-draft";
@@ -10,6 +12,7 @@ import NavigationIcon from "./navigation-icon";
 import styles from "./adviser-research-assistant.module.css";
 
 type Exchange = SyntheticExchange;
+type LiveExchange = { question: string; answer: Omit<Exchange["answer"], "label"> & { label: string } };
 type Props = { submissionId: number; assignmentId?: number; enabled?: boolean; children?: ReactNode };
 const starters = ["Review academic writing", "Check research consistency", "Suggest methodology improvements"];
 const mobileQuery = "(max-width: 767px)";
@@ -90,6 +93,10 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     const [authorized, setAuthorized] = useState(false), [checking, setChecking] = useState(true);
     const [pending, setPending] = useState(false), [message, setMessage] = useState("");
     const [finishing, setFinishing] = useState(false);
+    const [mode, setMode] = useState<"demo" | "live">("demo"), [liveAvailable, setLiveAvailable] = useState(false);
+    const [liveExchanges, setLiveExchanges] = useState<LiveExchange[]>([]), [liveTask, setLiveTask] = useState<ResearchDemoTask>("writing");
+    const [consentRevision, setConsentRevision] = useState(0);
+    const shownExchanges = mode === "demo" ? exchanges : liveExchanges;
     const recovery = useRef<ResearchDemoRecoveryContext | null>(null);
     const memoryOnly = useRef(false);
     const finishButton = useRef<HTMLButtonElement>(null), cancelFinish = useRef<HTMLButtonElement>(null);
@@ -98,6 +105,10 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
         onPointerUp, onPointerCancel, onLostPointerCapture } = useFloatingWindow(mobile, open);
 
     function reset() {
+        if (mode === "live") {
+            request.current++; busy.current = false; setPending(false); setQuestion(""); setLiveExchanges([]); setLiveTask("writing"); setMessage("");
+            return;
+        }
         memoryOnly.current = false;
         removeResearchDemoDraft(recovery.current);
         request.current++; busy.current = false;
@@ -106,6 +117,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     useEffect(() => {
         let mounted = true;
         function deny() {
+            setLiveAvailable(false); setLiveExchanges([]);
             removeResearchDemoDraft(recovery.current); recovery.current = null;
             blocked.current = true;
             request.current++; busy.current = false;
@@ -126,6 +138,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                     const previous = recovery.current;
                     const changed = !previous || researchDemoDraftKey(previous) !== researchDemoDraftKey(context);
                     if (previous && changed) {
+                        setLiveExchanges([]);
                         removeResearchDemoDraft(previous); request.current++; setQuestion(""); setFinishing(false);
                     }
                     recovery.current = context;
@@ -135,6 +148,14 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                     if (changed || ownerChanged || (draft !== undefined && !memoryOnly.current)) {
                         setExchanges(draft?.exchanges ?? []); setTask(draft?.task ?? "writing");
                     }
+                    let live: { available: boolean; accountId?: number } = { available: false };
+                    try { live = await getGroqResearchPilotAvailabilityAction({ submissionId, ...(assignmentId === undefined ? {} : { assignmentId }),
+                        fixtureId: "bundled-fictional-v1", task: "writing", questionId: "primary" }); }
+                    catch { /* Live availability failures must not disable Demo. */ }
+                    if (!mounted || sequence !== check.current) return;
+                    const liveAllowed = live.available && live.accountId === context.accountId;
+                    setLiveAvailable(liveAllowed);
+                    if (!liveAllowed || changed || ownerChanged) setLiveExchanges([]);
                     setAuthorized(true); setChecking(false); return;
                 }
             } catch { /* Uncertain access never grants permission. */ }
@@ -151,11 +172,32 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
         window.addEventListener(RESEARCH_DEMO_DRAFT_CLEAR_EVENT, onDraftsCleared);
         return () => { mounted = false; window.removeEventListener("focus", onVisible); document.removeEventListener("visibilitychange", onVisible);
             window.removeEventListener(RESEARCH_DEMO_DRAFT_CLEAR_EVENT, onDraftsCleared); };
-    }, [submissionId, assignmentId, enabled, open]);
+    }, [submissionId, assignmentId, enabled, open, consentRevision]);
     useEffect(() => () => { request.current++; check.current++; }, []);
-    useEffect(() => { if (open) end.current?.scrollIntoView({ block: "nearest" }); }, [open, exchanges, pending, message]);
+    useEffect(() => { if (open) end.current?.scrollIntoView({ block: "nearest" }); }, [open, exchanges, liveExchanges, pending, message]);
 
-    async function send(value: string, nextTask = task, starter = false) {
+    async function send(value: string, nextTask = mode === "demo" ? task : liveTask, starter = false) {
+        if (mode === "live") {
+            if (busy.current || !authorized || checking || !enabled || !liveAvailable) return;
+            const questionId = value === RESEARCH_DEMO_QUESTIONS[nextTask] ? "primary"
+                : value === RESEARCH_DEMO_FOLLOWUPS[0] ? "explain-improvement" : value === RESEARCH_DEMO_FOLLOWUPS[1] ? "verify-next" : null;
+            if (!questionId || (!starter && liveExchanges.length >= 4)) { setMessage("Choose a reviewed question or finish this chat."); return; }
+            busy.current = true; const sequence = ++request.current;
+            setPending(true); setMessage("");
+            const previous = starter ? [] : liveExchanges;
+            if (starter) { setLiveTask(nextTask); setLiveExchanges([]); }
+            try {
+                const result = await runGroqResearchPilotAction({ submissionId, ...(assignmentId === undefined ? {} : { assignmentId }),
+                    fixtureId: "bundled-fictional-v1", task: nextTask, questionId });
+                if (sequence !== request.current) return;
+                if (result.success && recovery.current && result.accountId === recovery.current.accountId) {
+                    setLiveExchanges([...previous, { question: value, answer: result.answer }]); setQuestion("");
+                } else { setLiveExchanges([]); setLiveAvailable(false); setMessage("Live AI is unavailable. Demo remains available."); }
+            } catch {
+                if (sequence === request.current) { setLiveExchanges([]); setLiveAvailable(false); setMessage("Live AI is unavailable. Demo remains available."); }
+            } finally { if (sequence === request.current) { busy.current = false; setPending(false); } }
+            return;
+        }
         if (busy.current || !authorized || checking || !enabled || !value.trim()) return;
         busy.current = true; const sequence = ++request.current;
         setPending(true); setMessage("");
@@ -184,7 +226,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
         } finally { if (sequence === request.current) { busy.current = false; setPending(false); } }
     }
     function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); void send(question); }
-    const available = authorized && enabled, disabled = !available || checking || pending;
+    const available = authorized && enabled, disabled = !available || checking || pending || (mode === "live" && !liveAvailable);
     return <div className={styles.context} data-research-assistant-context="">
         {children}
         <Dialog.Root open={open && available} onOpenChange={setOpen} modal={mobile}>
@@ -194,7 +236,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                 <Dialog.Content ref={windowPanel} className={styles.panel} data-mobile={mobile} style={windowStyle}
                     onOpenAutoFocus={event => { event.preventDefault(); onOpen(); heading.current?.focus(); }}
                     onEscapeKeyDown={event => {
-                        const modal = !mobile && document.querySelector<HTMLDialogElement>("dialog:modal");
+                        const modal = document.querySelector<HTMLDialogElement>("dialog:modal");
                         if (modal) {
                             // Radix listens in capture; pass Escape through the native dialog's existing cancel guard.
                             event.preventDefault();
@@ -211,36 +253,45 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                         onPointerCancel={onPointerCancel} onLostPointerCapture={onLostPointerCapture}>
                         <div><Dialog.Title ref={heading} tabIndex={-1}>AI Research Assistant</Dialog.Title>
-                            <Dialog.Description>Synthetic demonstration · Adviser guidance only</Dialog.Description></div>
+                            <Dialog.Description>{mode === "demo" ? "Synthetic demonstration · Adviser guidance only" : "Live AI · Fictional material · Advisory only"}</Dialog.Description></div>
                         <div className={styles.headerActions}><button type="button" className={styles.iconButton} onClick={reset} aria-label="Clear AI conversation" title="Clear AI conversation">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 2 8 M3 4v6h6" /></svg></button>
                             <Dialog.Close asChild><button type="button" className={styles.iconButton} aria-label="Close AI Research Assistant" title="Close AI Research Assistant"><NavigationIcon name="close" size={20} /></button></Dialog.Close></div>
                     </header>
                     <div className={styles.scroll}>
+                        <div className={styles.mode}><label>Mode <select aria-label="Research assistant mode" value={mode} disabled={checking || pending} onChange={event => {
+                            request.current++; busy.current = false; setPending(false); setQuestion(""); setMessage(""); setFinishing(false);
+                            setLiveExchanges([]); setMode(event.target.value === "live" ? "live" : "demo");
+                        }}><option value="demo">Demo</option><option value="live" disabled={!liveAvailable}>Live AI</option></select></label>
+                            <span role="status">{!liveAvailable ? "Live AI unavailable" : "Fictional-text pilot"}</span>
+                            <ConsentDialog scope="research-pilot" onChange={() => {
+                                request.current++; busy.current = false; setPending(false); setLiveExchanges([]); setLiveAvailable(false); setConsentRevision(value => value + 1);
+                            }} />
+                        </div>
                         <details className={styles.info}><summary>About this demonstration</summary>
-                            <p>Live research AI is disabled. Use the bundled fictional example and reviewed questions only. No real manuscripts, names, feedback or PDF contents are retrieved or analyzed.</p>
-                            <p>Prepared examples may be incomplete. Verify suggestions yourself; no sources, grades, decisions or official feedback are produced. Existing aggregate-only consent grants no manuscript-processing permission.</p>
-                            <p>Up to four fictional exchanges can recover in this browser tab for two hours. Only reviewed question identifiers are saved temporarily. Reset, Finish Chat, logout or detected access loss clear this draft.</p>
+                            <p>Use the bundled fictional example and reviewed questions only. No real manuscripts, names, feedback or PDF contents are retrieved or analyzed.</p>
+                            <p>{mode === "demo" ? "Prepared examples may be incomplete." : "Groq responses may be inaccurate."} Verify suggestions yourself; no sources, grades, decisions or official feedback are produced. Existing aggregate-only consent grants no manuscript-processing permission.</p>
+                            <p>Demo exchanges can recover in this tab for two hours. Live AI exchanges stay in memory only and clear on mode changes. Reset and Finish Chat clear the selected mode.</p>
                             {!mobile && <button type="button" onClick={resetPosition}>Reset window position and size</button>}
                         </details>
                         <details className={styles.info}><summary>View fictional excerpt</summary><p className={styles.excerpt}>{RESEARCH_DEMO_EXCERPT}</p></details>
-                        {!checking && !exchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
+                        {!checking && !shownExchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
                             <h3 id={`${id}-welcome`}>How can I help with your research review?</h3>
                             <p>Try a prepared example using fictional research.</p>
                             <div className={styles.starters}>{RESEARCH_DEMO_TASKS.map((value, index) => <button key={value} type="button" disabled={disabled}
                                 onClick={() => void send(RESEARCH_DEMO_QUESTIONS[value], value, true)}>{starters[index]}</button>)}</div>
                         </section>}
-                        <div role="log" aria-label="Synthetic conversation" aria-live="polite" aria-relevant="additions" className={styles.conversation}>
-                            {!checking && exchanges.map((exchange, index) => <article key={index} className={styles.exchange}>
+                        <div role="log" aria-label={mode === "demo" ? "Synthetic conversation" : "Live AI conversation"} aria-live="polite" aria-relevant="additions" className={styles.conversation}>
+                            {!checking && shownExchanges.map((exchange, index) => <article key={index} className={styles.exchange}>
                                 <div className={styles.user}><h3>You</h3><p>{exchange.question}</p></div>
-                                <div className={styles.answer}><h3>Assistant</h3><p className={styles.notice}>{RESEARCH_DEMO_LABEL}</p>
+                                <div className={styles.answer}><h3>Assistant</h3><p className={styles.notice}>{mode === "demo" ? RESEARCH_DEMO_LABEL : exchange.answer.label}</p>
                                     <dl>{([["Observation", exchange.answer.observation], ["Explanation", exchange.answer.explanation], ["Suggested improvement", exchange.answer.suggestion], ["Limitation / verification note", exchange.answer.limitation]] as const)
                                         .map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div>
                             </article>)}
                         </div>
-                        <div role="status" aria-live="polite" className={styles.status}>{checking ? "Checking Adviser review access…" : pending ? "Preparing synthetic response…" : message}</div>
-                        {!checking && !!exchanges.length && <div className={styles.followups} aria-label="Reviewed follow-up questions">{RESEARCH_DEMO_FOLLOWUPS.map((value, index) =>
-                            <button key={value} type="button" disabled={disabled} onClick={() => void send(value)}>{index === 0 ? "Explain suggestion" : "What to verify"}</button>)}</div>}
+                        <div role="status" aria-label="Conversation status" aria-live="polite" className={styles.status}>{checking ? "Checking Adviser review access…" : pending ? mode === "demo" ? "Preparing synthetic response…" : "Waiting for Live AI…" : message}</div>
+                        {!checking && !!shownExchanges.length && <div className={styles.followups} aria-label="Reviewed follow-up questions">{RESEARCH_DEMO_FOLLOWUPS.map((value, index) =>
+                            <button key={value} type="button" disabled={disabled || (mode === "live" && liveExchanges.length >= 4)} onClick={() => void send(value)}>{index === 0 ? "Explain suggestion" : "What to verify"}</button>)}</div>}
                         <div ref={end} />
                     </div>
                     <form className={styles.composer} onSubmit={submit} autoComplete="off" aria-busy={pending}>
@@ -258,7 +309,10 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                                 </Dialog.Portal>
                             </Dialog.Root>
                         </div>
-                        <div className={styles.composerInput}><textarea id={`${id}-question`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Ask a reviewed follow-up…" onChange={event => setQuestion(event.target.value)} />
+                        <div className={styles.composerInput}>{mode === "demo" ? <textarea id={`${id}-question`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Ask a reviewed follow-up…" onChange={event => setQuestion(event.target.value)} />
+                            : <select id={`${id}-question`} value={question} disabled={disabled || liveExchanges.length >= 4} onChange={event => setQuestion(event.target.value)}>
+                                <option value="">Choose a reviewed question</option>{[RESEARCH_DEMO_QUESTIONS[liveTask], ...RESEARCH_DEMO_FOLLOWUPS].map(value => <option key={value}>{value}</option>)}
+                            </select>}
                             <button type="submit" disabled={disabled || !question.trim()}>Send</button></div>
                     </form>
                     {!mobile && <button type="button" className={styles.resizeHandle} aria-label="Resize AI chat window" title="Drag or use arrow keys to resize" data-resizing={resizing}

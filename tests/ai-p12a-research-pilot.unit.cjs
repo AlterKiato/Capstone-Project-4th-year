@@ -80,7 +80,7 @@ function harness() {
         assert.deepEqual(Object.keys(payload).sort(), ['excerpt', 'question', 'task']);
         state.afterDispatch?.(); return wire(); } });
     const action = load('lib/actions/groq-research-pilot.action.ts', { '@/lib/services/groq-research-pilot.service': service });
-    return { state, entitlement, run: action.runGroqResearchPilotAction };
+    return { state, entitlement, run: action.runGroqResearchPilotAction, availability: action.getGroqResearchPilotAvailabilityAction };
 }
 
 test('runtime is hard-disabled in every environment without reading approval, credentials, accounts or quotas', async () => {
@@ -96,7 +96,8 @@ test('runtime is hard-disabled in every environment without reading approval, cr
     assert.equal(approvedKeyModule.createGroqKeyLoader(() => key.token)('research-pilot').token, key.token);
     for (const value of [undefined, '', 'bad\r\nheader', 42]) assert.equal(approvedKeyModule.createGroqKeyLoader(() => value)('research-pilot'), null);
     assert.equal(approvedKeyModule.createGroqKeyLoader(() => { throw Error('SECRET'); })('research-pilot'), null);
-    const { state, run } = harness(); state.enabled = false;
+    const { state, run, availability } = harness(); state.enabled = false;
+    assert.equal((await availability(request())).available, false);
     assert.equal((await run(request())).success, false);
     assert.deepEqual([state.authReads, state.keyReads, state.reservations, state.dispatches], [0, 0, 0, 0]);
 });
@@ -119,6 +120,33 @@ test('even a synthetic enabled code gate rejects development, test, CI and Previ
         assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env } }, transform).getResearchPilotConfiguration(), null);
     }
     assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: { NODE_ENV: 'production', VERCEL_ENV: 'production', GROQ_RESEARCH_PILOT_APPROVAL_JSON: '{invalid' } } }, transform).getResearchPilotConfiguration(), null);
+});
+
+test('Preview requires exact trusted target identity; runtime Production, CI, missing and forged targets deny', () => {
+    const target = { projectId: 'prj_SYNTHETIC', deploymentId: 'dpl_SYNTHETIC', commitSha: 'a'.repeat(40), branch: 'feature/development', protectionEvidenceRef: 'SYNTHETIC_TEST_ONLY' };
+    const env = { NODE_ENV: 'production', VERCEL: '1', VERCEL_ENV: 'preview', VERCEL_TARGET_ENV: 'preview',
+        VERCEL_PROJECT_ID: target.projectId, VERCEL_DEPLOYMENT_ID: target.deploymentId, VERCEL_GIT_COMMIT_SHA: target.commitSha, VERCEL_GIT_COMMIT_REF: target.branch };
+    assert.equal(config.isApprovedResearchPreview(env, target), true);
+    for (const name of Object.keys(env)) {
+        assert.equal(config.isApprovedResearchPreview({ ...env, [name]: undefined }, target), false, name);
+        assert.equal(config.isApprovedResearchPreview({ ...env, [name]: 'wrong' }, target), false, name);
+    }
+    for (const patch of [{ NODE_ENV: 'development' }, { NODE_ENV: 'test' }, { CI: '1' }, { VERCEL_ENV: 'production' }, { VERCEL_TARGET_ENV: 'production' }])
+        assert.equal(config.isApprovedResearchPreview({ ...env, ...patch }, target), false);
+    for (const value of [null, {}, { ...target, protectionEvidenceRef: '' }, { ...target, host: 'client-controlled.invalid' }])
+        assert.equal(config.isApprovedResearchPreview(env, value), false);
+    const text = 'SYNTHETIC FINAL TERMS FOR OFFLINE TEST ONLY';
+    const final = { ...terms, digest: require('node:crypto').createHash('sha256').update(text).digest('hex') };
+    const transform = code => code.replace('GROQ_RESEARCH_PILOT_ENABLED = false', 'GROQ_RESEARCH_PILOT_ENABLED = true')
+        .replace('FINALIZED_RESEARCH_PILOT_TERMS: ResearchPilotTerms | null = null', 'FINALIZED_RESEARCH_PILOT_TERMS: ResearchPilotTerms | null = ' + JSON.stringify(final))
+        .replace('FINALIZED_RESEARCH_PILOT_TEXT: string | null = null', 'FINALIZED_RESEARCH_PILOT_TEXT: string | null = ' + JSON.stringify(text));
+    const manifest = { ...approval(), startsAt: new Date(Date.now() - 1000).toISOString(), endsAt: new Date(Date.now() + 60000).toISOString(), terms: final };
+    const runtime = { ...env, GROQ_RESEARCH_PILOT_TARGET_JSON: JSON.stringify(target), GROQ_RESEARCH_PILOT_APPROVAL_JSON: JSON.stringify(manifest) };
+    assert.ok(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: runtime } }, transform).getResearchPilotConfiguration());
+    for (const patch of [{ GROQ_RESEARCH_PILOT_TARGET_JSON: '{bad' }, { VERCEL_GIT_COMMIT_SHA: 'b'.repeat(40) }, { VERCEL_ENV: 'production' }])
+        assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: { ...runtime, ...patch } } }, transform).getResearchPilotConfiguration(), null);
+    assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: runtime } }, code => transform(code).replace(JSON.stringify(text), JSON.stringify(text + ' altered'))).getResearchPilotConfiguration(), null);
+    assert.equal(config.getFinalizedResearchPilotTerms(), null);
 });
 test('Main and exact assigned Co pass actual adult/consent checks and mocked transport for all three tasks', async () => {
     for (const co of [false, true]) for (const task of fixtures.RESEARCH_DEMO_TASKS) {

@@ -4,7 +4,8 @@ import { getSession } from "@/lib/auth/session";
 import { withAIAccountLocks } from "@/lib/repositories/ai-governance.repository";
 import { getVerifierAuthorizationRef } from "@/lib/auth/ai-verifier-config";
 import { isInstitutionallyEligible } from "@/lib/auth/adult-eligibility";
-import { AI_TERMS_VERSION, AI_TERMS_TEXT, AI_TERMS_DIGEST } from "@/lib/ai/consent-terms";
+import { getAIConsentTerms } from "@/lib/ai/consent-scope";
+import { consentScopeSchema } from "@/lib/validations/ai-governance";
 import type { EligibilityUI, ConsentUI } from "@/types/ai-governance-ui";
 const unavailable: EligibilityUI = { available: false, decision: "Pending Verification", revoked: false, revision: 0, canDecide: false };
 export async function getEligibilityUI(input: unknown): Promise<EligibilityUI> {
@@ -24,18 +25,23 @@ export async function getEligibilityUI(input: unknown): Promise<EligibilityUI> {
         });
     } catch { return unavailable; }
 }
-export async function getConsentUI(): Promise<ConsentUI> {
-    const fallback: ConsentUI = { available: false, eligible: false, accepted: false, consentRevision: 0, termsVersion: AI_TERMS_VERSION, termsText: AI_TERMS_TEXT };
+export async function getConsentUI(input: unknown = "aggregate"): Promise<ConsentUI> {
+    const parsed = consentScopeSchema.safeParse(input);
+    const scope = parsed.success ? parsed.data : null;
+    const terms = scope ? getAIConsentTerms(scope) : null;
+    const fallback: ConsentUI = { available: false, eligible: false, accepted: false, consentRevision: 0,
+        termsVersion: terms?.version ?? "Unavailable", termsText: terms?.text ?? "Finalized pilot consent is unavailable." };
+    if (!scope) return fallback;
     try {
         const session = await getSession();
         if (!session || ![1,2].includes(session.roleId) || !Number.isSafeInteger(session.userId) || session.userId <= 0) return fallback;
         return await withAIAccountLocks([session.userId], async store => {
             const account = store.accounts[0];
             if (!account?.isActive || account.roleId !== session.roleId) return fallback;
-            const event = await store.latestEligibility(account.id), consent = await store.latestConsent(account.id);
-            const eligible = isInstitutionallyEligible(account, event);
-            return { ...fallback, available: true, eligible, consentRevision: consent?.id ?? 0,
-                accepted: !!consent && eligible && consent.eventKind === "accepted" && consent.termsVersion === AI_TERMS_VERSION && consent.termsDigest === AI_TERMS_DIGEST && consent.eligibilityEventId === event?.id };
+            const event = await store.latestEligibility(account.id), consent = await store.latestConsent(account.id, scope);
+            const eligible = !!terms && (scope !== "research-pilot" || account.roleId === 2) && isInstitutionallyEligible(account, event);
+            return { ...fallback, available: !!terms, eligible, consentRevision: consent?.id ?? 0,
+                accepted: !!terms && !!consent && eligible && consent.eventKind === "accepted" && consent.termsVersion === terms.version && consent.termsDigest === terms.digest && consent.eligibilityEventId === event?.id };
         });
     } catch { return fallback; }
 }

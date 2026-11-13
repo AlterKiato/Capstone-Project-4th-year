@@ -40,7 +40,7 @@ async function entitlementForSession(session: AuthTokenPayload | null, expectedR
             if (!account?.isActive || account.roleId !== expectedRole) return null;
             const eligibility = await store.latestEligibility(account.id);
             if (!isInstitutionallyEligible(account, eligibility)) return null;
-            const consent = await store.latestConsent(account.id);
+            const consent = await store.latestConsent(account.id, terms.version.startsWith("ai-p1-fictional-v") ? "research-pilot" : "aggregate");
             if (!consent || consent.eventKind !== "accepted" || consent.termsVersion !== terms.version ||
                 consent.termsDigest !== terms.digest || consent.eligibilityEventId !== eligibility!.id) return null;
             return { accountId: account.id, roleId: expectedRole, eligibilityRevision: eligibility!.id,

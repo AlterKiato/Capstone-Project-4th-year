@@ -6602,3 +6602,157 @@ tests/ai-p12b-research-draft.unit.cjs
 docs/MASTER_CONTEXT_UPDATED.md
 docs/SOURCE_OF_TRUTH_UPDATED.md
 ```
+
+## AI-P1.3B - Disabled Preview research-pilot wiring (2026-11-13)
+
+**LOCAL IMPLEMENTATION / FOCUSED OFFLINE VALIDATION PASS; LIVE GROQ DISABLED.** Entry verified clean `feature/development` at `a05120a10137d96c881eae1ea6d407f87f11e851`, empty index, 1 ahead / 0 behind stored upstream. No remote refresh. Earlier AI-A1, AI-P1 and academic acceptance records are preserved; this section is appended. This supersedes AI-P1.2A's production-only target guard and unwired pilot-consent/UI status for this checkpoint only, without approving any execution target.
+
+### Implemented boundary
+
+- Existing floating assistant gains one native Demo / Live AI selector and a subdued Pilot consent link. Demo is the default, retaining all three tasks, deterministic responses, unsupported-input behavior, Main/exact Co authorization and canonical tab-local recovery. Mode changes preserve Demo drafts and discard Live exchanges. Existing desktop drag/resize and mobile sheet remain. No dashboard, instruction panel or dependency is added.
+- Live uses the existing research-pilot action/service/adapter. The composer becomes a canonical-question selector, with three tasks and nine allowed combinations; at most four displayed exchanges. Only fixture/task/question IDs plus internal submission/assignment scope reach the action. The server resolves the fictional excerpt; the fixed provider payload contains no account/resource IDs, arbitrary text, history, title, PDF or feedback. Generated advisory answers stay in React memory, never recovery storage. Finish Chat and Reset clear only the selected mode. Reset, consent changes and access loss invalidate pending replies. Provider/quota failures show a safe unavailable status and leave Demo usable; Live availability errors cannot deny Demo.
+- Existing consent dialog, action, service and append-only ledger now support an explicit `research-pilot` scope, defaulting existing callers to `aggregate`. SQL reads separate the reserved fictional-pilot version namespace from aggregate history, including withdrawn/obsolete pilot versions so an older acceptance cannot reappear. No schema change. Aggregate draft text/version/digest remain unchanged. Pilot final version/digest and exact text remain null; the future registry verifies the SHA-256 of the exact text and rejects draft/proposal versions. Fresh initially unchecked acceptance is recorded only by the existing authenticated service for an eligible active Adviser and current terms/revision. Withdrawal remains available even when final terms are unavailable. Eligibility recertification/reset/revocation withdraws both scopes atomically; history is preserved.
+- Pilot entitlement reads only the pilot scope and checks current account/role, institutional eligibility, version/digest and eligibility-event binding. The provider service preserves individual participant allowlisting, current Main/exact open Co authority and expiring approved window before dispatch and delivery. Availability is advisory only, reads no credentials, consumes no quota and never dispatches. Responses carry only the internal actor binding needed for client account-mismatch rejection; it is not sent to Groq.
+- `GROQ_RESEARCH_PILOT_ENABLED=false`, `FINALIZED_RESEARCH_PILOT_TERMS=null` and `FINALIZED_RESEARCH_PILOT_TEXT=null` keep all dispatch impossible with the current source. Environment values alone cannot enable it. Future conditional execution requires production-mode Node on Vercel **Preview**, both environment labels equal to preview, no CI, exact `feature/development`, and matching server-provided project ID, deployment ID and Git SHA against strict server-only `GROQ_RESEARCH_PILOT_TARGET_JSON`. A protection-evidence reference is mandatory. Existing expiring `GROQ_RESEARCH_PILOT_APPROVAL_JSON` must also match finalized terms and authorized participants. Development/test/CI and Vercel Production deny; no Production fallback.
+- Target matching uses only platform/server configuration, never Host/forwarded/client claims. Public [Vercel system-variable documentation](https://vercel.com/docs/environment-variables/system-environment-variables) supports these identity fields; actual runtime availability and configuration integrity remain unverified. The operator manifest is an authorization record, not automatic proof that Deployment Protection remains enabled. Independently verify protection and the exact immutable deployment at activation; leave disabled if trustworthy identity/protection cannot be established. No bypass is added. No environment or hosted setting was changed.
+- Groq model/endpoint, 10-second deadline, request/token/output bounds, shared daily/window quotas, cooldown, single global slot, no retries/redirects, no payload logging, no academic writes and guarded manual stranded-slot recovery remain unchanged. No actual quota reservation/release or governance mutation occurred.
+
+### Focused validation and evidence limits
+
+**42/42 Node test results PASS** across the following four files (the governance script is reported as one Node test file; its individual assertions are not additional tests):
+
+```text
+node --import tsx --test tests/ai-p12a-research-pilot.unit.cjs tests/phase8-ai-governance.unit.cjs tests/ai-a11-research-assistant.unit.cjs tests/ai-p12b-research-draft.unit.cjs
+```
+
+Actual validators/configuration, consent service/repository SQL contracts, entitlement and provider orchestration execute against synthetic account/transaction/transport boundaries with network traps. Coverage includes every trusted target field/missing identity, denied environments, null/tampered final terms, invalid versions, separate aggregate/pilot histories, explicit acceptance, stale revision/digest, withdrawal, revocation of both scopes, Main/Co denial, nine fictional payloads, quota denial, timeout/error fallback and disabled zero-dispatch/zero-key-read availability. Synthetic test terms are not registered in application configuration.
+
+**16/16 synthetic Chromium groups PASS** using the existing `tests/ai-a11-research-assistant.browser.cjs`, actual components/Radix/native consent dialog and same-origin sessionStorage, with mocked actions and blocked external requests. New coverage includes default-disabled Live and zero dispatch, canonical mocked Live requests, four-exchange limit, generated label/no browser persistence, pending-reset cancellation, mode/Finish preservation of Demo drafts, unavailable consent, failure fallback and desktop/mobile consent dismissal. Existing Light/Dark, drag/resize, mobile sheet, keyboard/focus, Main/Co, logout/storage and official-form preservation checks pass. A new mobile native-consent Escape check exposed simultaneous sheet dismissal; the assistant now routes Escape to the active native modal on mobile as well as desktop. Test-fixture missing imports/old selectors/native-option assertions were corrected. Screenshots are ignored local evidence under `test-results/ai-a113/`; no generated files are part of the change inventory.
+
+Active-source TypeScript PASS using the established ignored `.next/ai-p12a/tsconfig.json` (root extension excluding historical ignored `test-results` copies); targeted ESLint PASS; whitespace and historical-document preservation checks PASS. The initial sandboxed esbuild run hit the known parent-directory access restriction; the approved local execution fallback ran the offline harness. No broad suite, production build, authenticated Next/Server Action integration, actual PostgreSQL/Storage workflow, hosted/physical-device acceptance or live Groq execution was performed. Existing Manrope/network build limitation and old ignored-snapshot TypeScript limitations remain; no font/config workaround or build success is claimed.
+
+The affected existing aggregate-consent regression, `node tests/phase8-governance-ui.browser.cjs`, also PASS: default first-use unchecked consent, explicit accept/withdraw/decline, eligibility dialogs and Escape/close, with synthetic actions and zero external requests. Final targeted ESLint covers 15 TS/TSX/CJS files. Canonical historical content matches HEAD after accounting for inherited Git/worktree line endings; append-only writes leave those existing worktree prefixes untouched.
+
+### Anti-Slop delivery gate and React review
+
+- **Hard-gate delta PASS (R-02/03/17/18/23-28/32-38):** no new em-dash copy, assets, statistics, navigation or unsupported claims; native keyboard controls, 44px targets, focus styling, Light/Dark contrast >=4.5:1 and no overflow in synthetic Chromium. Existing immutable fixture labels/contracts are retained under project precedence. Screenshots inspected; no physical-device or screen-reader-speech claim.
+- **Purpose-gate PASS:** additions serve mode choice and explicit consent; no gradients, glow, badges, decorative icons, new cards or animation. Pilot consent uses a subdued text control rather than a new primary CTA.
+- **Liveliness PASS:** existing academic slate/navy identity, Manrope/inherited controls, one restrained accent and ENERGY 1 / RHYTHM 2 / MOTION 1 retained; no layout redesign.
+- **Craftsmanship/quality locks PASS (C-1..C-5 and existing consistency rules):** functional empty/loading/disabled/error/confirmation states; real canonical fixture labels, descriptive controls and existing theme/spacing/layout tokens. Browser click-through covers the changed controls and existing relevant interactions.
+- **React review PASS:** server checks stay in services; server-only configuration does not ship to the browser (scope imports are type-only); no render-time mutations; bounded memory and explicit cancellation; existing listener cleanup and authorization refresh retained. No new component framework or client provider dependency.
+
+### Remaining gates and smallest next action
+
+The proposal remains **UNAPPROVED**, personnel/participant adulthood and operational eligibility **UNVERIFIED**, final consent/acceptance **NOT RECORDED**, Preview target **NOT ACTIVATED**, Groq organization ZDR/terms/model access/rate/spend controls and deployment egress/observability **UNVERIFIED**. Current Preview does not have verified publication of this local delta. Live provider execution **NOT TESTED**; actual manuscript processing **NOT AUTHORIZED**. No consent, eligibility, configuration, database/Storage or provider operation, staging, commit, push, merge or deployment occurred. All changes remain unstaged/uncommitted.
+
+**AI-P1.3C: approval/configuration readiness only.** Finalize the institutional addendum, approver/verifier/privacy contact and adult roster; approve immutable pilot terms/contact/withdrawal policy; verify Groq and protected Preview identity/controls, exact manifest fields, quotas/grants and manual recovery procedure. Separately authorize registration/configuration, actual participant acceptance, focused runtime/build validation, publication and a bounded live window. Do not infer activation permission from this implementation or reuse fictional approval for real manuscripts.
+
+Exact local change inventory (18 paths; 17 modified, 1 new):
+
+```text
+components/dashboard/adviser-research-assistant.module.css
+components/dashboard/adviser-research-assistant.tsx
+components/dashboard/ai-governance-dialogs.tsx
+lib/actions/ai-governance.action.ts
+lib/actions/groq-research-pilot.action.ts
+lib/ai/consent-scope.ts
+lib/ai/groq-research-pilot-config.ts
+lib/auth/ai-entitlement.ts
+lib/repositories/ai-governance.repository.ts
+lib/services/ai-governance-ui.service.ts
+lib/services/ai-governance.service.ts
+lib/services/groq-research-pilot.service.ts
+lib/validations/ai-governance.ts
+tests/ai-a11-research-assistant.browser.cjs
+tests/ai-p12a-research-pilot.unit.cjs
+tests/phase8-ai-governance.unit.cjs
+docs/MASTER_CONTEXT_UPDATED.md
+docs/SOURCE_OF_TRUTH_UPDATED.md
+```
+
+## AI-P1.3C - Local acceptance and Preview preparation (2026-11-13)
+
+**DISABLED CHECKPOINT READY FOR OWNER LOCAL ACCEPTANCE AND A SEPARATELY AUTHORIZED LOCAL COMMIT; NOT LIVE-ACTIVATION OR DEPLOYMENT APPROVAL.** Codex verified entry `feature/development`, HEAD `a05120a10137d96c881eae1ea6d407f87f11e851`, exactly AI-P1.3B's 18-path inventory (17 modified, 1 untracked), empty index, 1 ahead / 0 behind stored upstream; no remote refresh. All incoming application/test bytes are preserved. Only this Master Context and Source of Truth receive appended documentation; no application implementation or new testing phase.
+
+### Codex-verified integration and reused evidence
+
+Source inspection confirms Demo default, deterministic fictional assistance and scoped sessionStorage recovery; separate Live action with server-resolved fixture/task/question selectors and no history/arbitrary manuscript payload; memory-only generated answers; independently scoped pilot consent and unchanged aggregate draft text/version/digest; active Main/exact open Co and adult-entitlement checks before dispatch/delivery. The flag remains false, final pilot terms and text remain null. The Preview guard requires exact trusted project/deployment/Git SHA/branch and approval manifest, denies development/test/CI/Production, and is not enabled by a Preview label or client headers. The protection evidence reference still requires actual operator verification, not an inferred runtime protection guarantee. No academic write path, new storage or automatic eligibility/consent decision was added.
+
+Reused AI-P1.3B evidence: 42/42 Node results, 16/16 synthetic Chromium groups, existing aggregate-consent Chromium regression, active-source TypeScript and targeted ESLint PASS. The ignored browser receipt `test-results/ai-a113/browser-results.json` confirms the recorded 16 PASS / 0 FAIL and synthetic boundary. The retained checks cover unavailable Live/zero dispatch, unchecked unavailable consent, Demo recovery, four-exchange Live memory-only behavior, mode/Finish/Reset isolation, Light/Dark/keyboard/mobile geometry, drag/resize and official-form preservation. These were not rerun because the implementation is unchanged; mocks are not authenticated Next/Server Action, database, hosted or physical-device evidence. This checkpoint runs only inventory/source/preservation and documentation whitespace checks. Local owner acceptance is still PENDING; live Groq is NOT TESTED.
+
+### Owner local acceptance procedure (disabled state only)
+
+Use an already authorized local synthetic Main Adviser review session; do not create accounts/data, change eligibility/consent, send official feedback or enable a provider. Reuse an existing exact Co assignment only if already available. No setup or server launch is implied. Execute one step at a time, recording PASS / FAIL / BLOCKED; stop on failure or absent authorized local fixture.
+
+1. Open AI Research Assistant on the existing synthetic review page. Expect Demo selected, Live AI disabled and the concise Live AI unavailable status. No live-processing claim appears.
+2. Choose a prepared task, then one reviewed follow-up. Expect labelled synthetic answers; the review form/PDF and ordinary page controls remain usable. Do not submit academic actions.
+3. Open Pilot consent. Expect finalized terms unavailable, no accepted-current-version status, unchecked confirmation and disabled Accept terms. Close or Escape; expect the assistant and Demo conversation preserved. Do not attempt acceptance, decline or withdrawal.
+4. Close/reopen and refresh the same authorized submission in the same tab. Expect only that Demo draft recovered after authorization. If another already authorized synthetic submission is available, verify its conversation is separate. No arbitrary text or generated transcript should be restored.
+5. Check desktop dragging/resizing, a narrow viewport, Light/Dark and keyboard focus/Escape. Cancel Finish Chat to preserve Demo; confirm Finish Chat or Reset to clear only the selected Demo draft. Academic drafts/records and other authorized Demo drafts remain unaffected. No Live request is part of acceptance.
+
+**Smallest next owner action:** step 1 only, then report PASS / FAIL / BLOCKED. Codex has not performed this owner acceptance or started a server.
+
+### Build readiness: BLOCKED / NOT RUN
+
+Historical isolated build receipts/snapshots exist at `test-results/ai-a112/` and `test-results/ui-s1.1/`, recording Node 24, webpack, one worker, no environment files and synthetic non-routable settings. They are old source snapshots, not builds of the current AI-P1.3B changes. Current `app/layout.tsx` still imports Manrope from `next/font/google`; the installed Next.js font guide confirms Google CSS/font downloads at build time. No verified offline font arrangement is available. `lib/db.ts` also imports dotenv and initializes from process configuration, so an ordinary root build cannot be assumed isolated from configured services. Reusing historical synthetic child-process settings would require separately approved build preparation/configuration, outside this checkpoint's no-environment-change condition. No build was started, font/cache workaround introduced, environment read/exported or network exception requested.
+
+Smallest later build invocation, **after separate authorization and preparation of a fresh current-source isolated snapshot** with the previously reviewed one-worker config, no environment files and synthetic non-routable service settings:
+
+```powershell
+node .\node_modules\next\dist\bin\next build "<fresh-current-source-isolated-snapshot>" --webpack
+```
+
+Run from the repository root with a dedicated synthetic-only child-process environment; permit only the required font-download network access and keep real database/Storage/provider destinations unavailable. This is a later command template, not an executable approved snapshot or authorization now. Do not build an old snapshot and label it current. One such build is the smallest remaining build verification before Preview publication; it would not establish runtime/provider readiness. Do not change fonts or hosted configuration to bypass this gap.
+
+### Owner-reported provider observations (screenshot-supported; not independently inspected)
+
+The owner reports the following observations from screenshots. Original screenshots, console/account identifiers and credential values were not accessed or copied by Codex in this checkpoint:
+
+| Observation | Evidence classification |
+|---|---|
+| Groq Free plan | OWNER-REPORTED, screenshot-supported |
+| Organization allowance for `openai/gpt-oss-20b` | OWNER-REPORTED, screenshot-supported |
+| Organization limits: 30 RPM, 1,000 RPD, 8,000 TPM, 200,000 TPD | OWNER-REPORTED, screenshot-supported; distinct from smaller application quotas |
+| Inference API Zero Data Retention enabled | OWNER-REPORTED, screenshot-supported; not independently rechecked |
+| Dedicated ThesiSHS AI - Development Preview API key created November 13, 2026; expires February 11, 2027 | OWNER-REPORTED, screenshot-supported; friendly purpose/dates only, no key value or private identifier recorded |
+| No API usage at screenshot time | OWNER-REPORTED point-in-time observation, not proof of subsequent activity or API success |
+
+These update AI-P1.3B's unknown-setting status only to the stated owner-reported evidence level. They do not prove key validity, key-to-target configuration, successful inference, accepted legal/model/data terms, final spend/billing controls, effective egress/observability or completed deployment configuration. No provider account or inference/API endpoint was contacted. No configuration or activation follows from the observations.
+
+### Institutional scope and minimum finalization requirements
+
+**OWNER-REPORTED:** the School Director signed an earlier physical AI approval document whose text covers synthetic aggregate statistics, not fictional research excerpts. A short supplemental authorization letter is prepared but remains unsigned. Codex has not inspected the physical document, signature or supplemental text. Fictional research processing therefore remains **NOT APPROVED**; do not infer coverage from the earlier signature or Adviser manuscript access. Admin aggregates, synthetic Demo, external fictional processing and real manuscript processing retain separate scopes.
+
+After actual institutional confirmation, the minimum controlled record must identify the approver's authority/signature/date and expressly cover the bundled fictional excerpt, three tasks/nine reviewed combinations, Groq, protected `feature/development` Preview, adult individually authorized Main/Co participants, no manuscripts/PDFs/real feedback, no transcripts/academic decisions, approved limits, bounded window/timezone, stop/revocation authority, verifier/bootstrap officer where needed, and institutional privacy/withdrawal contact. Keep signed records, participant identities and age evidence under institutional custody outside Git.
+
+Finalize the existing pilot consent proposal's exact immutable text, provider/retention disclosure, optional participation, limitations, withdrawal/retention/contact details and approved limits/duration. Assign an institution-approved final version satisfying `ai-p1-fictional-vN` plus SHA-256 of the exact text; no final version is assigned or registered here. Preserve `ai-assistance-v2-draft` and reject `ai-p1-fictional-v1-proposal`. Separately authorize registry/configuration and obtain each verified participant's fresh explicit pilot acceptance through the existing scoped service/dialog. Current version, digest, eligibility binding, scope and revocation must match. No schema or new consent UI is needed. Target identity/protection, operator manifests, server-only key configuration, provider legal/data settings and recovery readiness remain future checks; real manuscripts remain NOT AUTHORIZED.
+
+### Anti-Slop and closure
+
+**Anti-Slop PASS for the unchanged delta, reusing recorded During-mode review:** hard gates supported by prior synthetic contrast/44px/no-overflow/focus checks and honest disabled labels; purpose gate supported by one native mode selector/subdued consent link with no new decoration; existing academic identity and ENERGY 1 / RHYTHM 2 / MOTION 1 retained; functional empty/loading/error/confirmation states and theme/spacing preserved. No new UI, assets, claims, redesign or physical-device/screen-reader acceptance is introduced here.
+
+No new source/static suite is required for this documentation-only delta. All 16 incoming noncanonical paths remain byte-identical, and both canonical incoming prefixes are preserved. Final path inventory remains 17 modified / 1 untracked with empty index and unchanged HEAD. Ready for a **separately authorized local commit as a disabled checkpoint**, retaining pending owner acceptance and the build limitation; **not yet ready for Preview publication or live activation**. Commit authorization alone would not authorize configuration, publication or execution.
+
+Only `docs/MASTER_CONTEXT_UPDATED.md` and `docs/SOURCE_OF_TRUTH_UPDATED.md` changed in AI-P1.3C. No application/test change, dependency/schema/migration, environment change, secret disclosure, consent/eligibility/quota operation, real database/Storage operation, live Groq request, staging/commit/push/merge or deployment. Stop after this readiness preparation.
+
+## AI-P1.3D - Owner local acceptance closure and commit readiness (2026-11-13)
+
+**AI-P1.3C: PASS / CLOSED for the agreed three-step owner-led LOCAL acceptance scope.** The owner personally reports all three checks completed November 13, 2026. These are **OWNER-REPORTED PASS**, not independently executed by Codex:
+
+| Agreed local check | Owner-reported result |
+|---|---|
+| Step 1 | PASS: Demo selected by default; Live AI unavailable; assistant opened without visible errors. |
+| Step 2 | PASS: prepared Academic Writing Review and follow-up returned labelled synthetic responses; pilot terms unavailable; confirmation unchecked and acceptance unavailable; no consent acceptance performed. |
+| Step 3 | PASS: Demo survived closing/reopening and refresh; drag/resize worked; Finish Chat cancellation preserved the conversation; confirmation cleared the draft, including after refresh. |
+
+This supersedes AI-P1.3C's pending owner-acceptance/next-step wording only for the agreed three checks. The earlier five-item preparation checklist does not imply five separately completed acceptance steps. Physical-device testing, cross-account acceptance, protected Preview validation, live Groq inference and Production readiness are NOT established. Prior phase/AI acceptance classifications remain unchanged. Reuse the recorded Codex-reported 42 Node PASS results, 16 Chromium PASS groups, aggregate-consent regression PASS and Anti-Slop PASS; no suite/build/browser acceptance was rerun.
+
+**Codex read-only review:** branch `feature/development`, HEAD `a05120a10137d96c881eae1ea6d407f87f11e851`, expected 18 paths (17 modified tracked, 1 untracked), empty index, 1 ahead / 0 behind stored upstream; no remote refresh. Source inspection confirms false pilot flag, null final terms/version/digest and text, Demo default, memory-only Live output and canonical fictional-only provider payload. No manuscript/pasted text/history/PDF input is accepted by the live contract. Active Adviser, Main/exact Co, independent eligibility, current scoped consent, participant/window and fail-closed Preview identity checks remain intact. The target manifest still requires independently verified protection evidence; it is not proof of configured protection. No active/unsafe provider state was found.
+
+Provider plan/model/limits/ZDR/key-purpose/dates/no-usage evidence remains **owner-reported and screenshot-supported, not independently verified**; it proves neither key validity, accepted legal terms nor live inference. Per the owner, the original signed physical institutional authorization covers synthetic aggregate statistics only. The supplemental fictional-pilot authorization letter is prepared but remains **UNSIGNED**. Preparing or uploading a letter is not institutional approval. Fictional external processing remains NOT APPROVED; pilot consent terms are NOT FINALIZED, participant verification/acceptance remain unverified or unrecorded, and no eligibility/consent event is fabricated. Protected Preview and live inference remain NOT TESTED; real manuscript processing remains NOT AUTHORIZED.
+
+**Commit-readiness PASS for the exact reviewed disabled checkpoint, not publication/activation readiness.** Rechecked the AI-P1.3B/C 18-path inventory above: 12 modified tracked application/style files, 3 modified test files, 2 modified canonical documents, plus new `lib/ai/consent-scope.ts`. No unexpected/unrelated paths, environment/credential files or generated artifacts are present. Changed-scope credential-pattern/direct source review found no accidental credential literals; synthetic test markers are intentional. `git diff --check` PASS. All 16 incoming noncanonical files remain byte-identical, and both incoming canonical prefixes are preserved. Only the two canonical documents receive this appended closure, unstaged; index and HEAD remain unchanged. These checks are bounded to the pending changes, not a claim about every historical repository byte.
+
+Recommended exact future local commit message: `feat(ai-p13): prepare disabled preview live pilot and close local acceptance`.
+
+Smallest next owner authorization: explicitly authorize staging only these 18 reviewed paths and creating exactly one local commit with that message. No staging/commit occurs here. The existing network-dependent current-build gap remains before Preview publication. Signed fictional-scope institutional approval, finalized immutable pilot text/version/digest, verified adult participants/verifier and fresh acceptance, provider legal/data/billing controls, trusted protected target/configuration and bounded live execution remain separate external gates. No new implementation, dependencies/schema/environment changes, database/Storage/provider operations, eligibility/consent/quota mutations, push/merge/rebase or deployment. Stop after this documentation/readiness checkpoint.

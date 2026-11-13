@@ -10,9 +10,11 @@ global.fetch=block;
 for(const name of ['node:http','node:https']){const api=require(name);api.request=block;api.get=block;}
 require('node:net').Socket.prototype.connect=block;
 let session, accounts, events, consents, queue=Promise.resolve(), failRead=false, failConsent=false;
+let pilotTerms = null;
 const {getTableName}=require('drizzle-orm');
 const stamp=new Date('2026-01-01T00:00:00Z');
 const params=node=>{
+    if(typeof node==='string')return[node];
     if(Array.isArray(node))return node.flatMap(params);
     if(!node||typeof node!=='object')return[];
     if(node.constructor?.name==='Param')return[node.value];
@@ -24,7 +26,12 @@ function select(fields){
         if(failRead)throw new Error('PRIVATE_DATABASE_ERROR');
         const name=getTableName(table), ids=params(condition);
         const data=name==='users'?accounts:name==='ai_eligibility_events'?events:consents;
-        const rows=data.filter(row=>ids.includes(name==='users'?row.id:row.userId));
+        const sqlText=node=>!node||typeof node!=='object'?'':node.constructor?.name==='StringChunk'?node.value.join(''):(node.queryChunks??[]).map(sqlText).join('');
+        const rows=data.filter(row=>ids.includes(name==='users'?row.id:row.userId)).filter(row=>{
+            if(name!=='ai_consent_events'||!ids.includes('ai-p1-fictional-v%'))return true;
+            const pilot=row.termsVersion.startsWith('ai-p1-fictional-v');
+            return sqlText(condition).includes('not like')?!pilot:pilot;
+        });
         rows.sort((a,b)=>name==='users'?a.id-b.id:b.id-a.id);
         return rows.map(row=>fields?Object.fromEntries(Object.keys(fields).map(key=>[key,row[key]])):{...row});
     };
@@ -51,13 +58,14 @@ Module._load=function(id,...args){
     if(id==='server-only')return{};
     if(id==='@/lib/db')return{db:syntheticDB};
     if(id==='@/lib/auth/session')return{getSession:async()=>session};
+    if(id==='@/lib/ai/consent-scope')return{getAIConsentTerms:scope=>scope==='research-pilot'?pilotTerms:{version:AI_TERMS_VERSION,digest:AI_TERMS_DIGEST,text:'Synthetic aggregate text'}};
     assert.ok(!/dotenv|^postgres$|supabase|storage/.test(id),'No actual DB/config/storage access');
     return original.call(this,id,...args);
 };
 const services=require('../lib/services/ai-governance.service.ts');
 const actions=require('../lib/actions/ai-governance.action.ts');
 const repo=require('../lib/repositories/ai-governance.repository.ts');
-const {getAIEntitlement,getAIProviderAccount}=require('../lib/auth/ai-entitlement.ts');
+const {getAIEntitlement,getAIProviderAccount,getResearchPilotEntitlement}=require('../lib/auth/ai-entitlement.ts');
 const {getAIInterpretationAuthorization}=require('../lib/auth/ai-authorization.ts');
 const {getVerifierAuthorizationRef}=require('../lib/auth/ai-verifier-config.ts');
 const {AI_TERMS_VERSION,AI_TERMS_DIGEST}=require('../lib/ai/consent-terms.ts');
@@ -142,5 +150,42 @@ async function main(){
     assert.match(sql,/coalesce/);assert.match(sql,/CHECK/);assert.match(sql,/ON DELETE restrict/);
     assert.ok(!/bootstrap/.test(fs.readFileSync('lib/actions/ai-governance.action.ts','utf8')),'No web bootstrap endpoint');
     console.log('PASS revocation/reset, atomic rollback, stale account/role/missing-registry denial, additive SQL review and zero provider calls');
+    reset();await approveAndAccept();
+    const aggregate = await repo.findLatestAIConsent(20);
+    const pilotRequest = (action='accept', version=pilotTerms?.version??'ai-p1-fictional-v1', revision=0)=>({action,scope:'research-pilot',expectedRevision:revision,
+        ...(action==='withdraw'?{}:{termsVersion:version,...(action==='accept'?{acceptance:true}:{})})});
+    assert.equal((await services.recordAIConsent(pilotRequest())).success,false,'Null final registry denies acceptance');
+    assert.equal((await actions.getConsentUIAction('research-pilot')).available,false);
+    pilotTerms={finalized:true,version:'ai-p1-fictional-v1',digest:'a'.repeat(64),text:'SYNTHETIC OFFLINE FINAL TERMS ONLY'};
+    for(const version of ['ai-assistance-v2-draft','ai-p1-fictional-v1-proposal','ai-p1-fictional-v2'])
+        assert.equal((await services.recordAIConsent(pilotRequest('accept',version))).success,false);
+    assert.equal((await services.recordAIConsent({...pilotRequest(),acceptance:false})).success,false);
+    assert.equal((await services.recordAIConsent(pilotRequest())).success,true);
+    const pilot=await repo.findLatestAIConsent(20,'research-pilot');
+    assert.equal(pilot.termsVersion,pilotTerms.version);assert.equal(pilot.termsDigest,pilotTerms.digest);
+    assert.equal((await repo.findLatestAIConsent(20)).id,aggregate.id,'Pilot never shadows aggregate');
+    assert.ok(await getAIEntitlement(2));assert.ok(await getResearchPilotEntitlement({finalized:true,version:pilotTerms.version,digest:pilotTerms.digest}));
+    assert.equal((await actions.getConsentUIAction('research-pilot')).accepted,true);
+    assert.equal(await getResearchPilotEntitlement({finalized:true,version:pilotTerms.version,digest:'b'.repeat(64)}),null,'Mismatched digest denies entitlement');
+    assert.equal((await services.recordAIConsent(pilotRequest('withdraw',null,pilot.id-1))).success,false,'Stale revision denies withdrawal');
+    assert.equal((await services.recordAIConsent(pilotRequest('withdraw',null,pilot.id))).success,true);
+    assert.equal(await getResearchPilotEntitlement({finalized:true,version:pilotTerms.version,digest:pilotTerms.digest}),null,'Withdrawn pilot denied');
+    assert.ok(await getAIEntitlement(2),'Pilot withdrawal preserves aggregate');
+    const withdrawn=await repo.findLatestAIConsent(20,'research-pilot');
+    assert.equal((await services.recordAIConsent(pilotRequest('accept',pilotTerms.version,withdrawn.id))).success,true);
+    pilotTerms={...pilotTerms,version:'ai-p1-fictional-v2',digest:'b'.repeat(64)};
+    assert.equal((await actions.getConsentUIAction('research-pilot')).accepted,false,'Changed final version requires fresh acceptance');
+    const current=await repo.findLatestAIConsent(20,'research-pilot');
+    pilotTerms=null;
+    assert.equal((await services.recordAIConsent(pilotRequest('withdraw',null,current.id))).success,true,'Withdrawal survives missing finalized registry');
+    assert.equal(consents.filter(row=>row.termsVersion===AI_TERMS_VERSION).length,1,'Aggregate history preserved');
+    reset();await approveAndAccept();
+    pilotTerms={finalized:true,version:'ai-p1-fictional-v1',digest:'a'.repeat(64),text:'SYNTHETIC OFFLINE FINAL TERMS ONLY'};
+    assert.equal((await services.recordAIConsent(pilotRequest())).success,true);
+    actor();assert.equal((await services.recordAIEligibility(decision(20,'Not Eligible',true))).success,true);
+    assert.equal((await repo.findLatestAIConsent(20)).eventKind,'withdrawn');
+    assert.equal((await repo.findLatestAIConsent(20,'research-pilot')).eventKind,'withdrawn','Revocation invalidates both scopes atomically');
+    assert.equal(outbound,0);
+    console.log('PASS pilot/aggregate SQL scope isolation, null/unapproved/stale terms denial, explicit acceptance, scoped withdrawal and preserved history');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

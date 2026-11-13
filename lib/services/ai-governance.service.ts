@@ -4,9 +4,9 @@ import { getVerifierAuthorizationRef } from "@/lib/auth/ai-verifier-config";
 import { isInstitutionallyEligible } from "@/lib/auth/adult-eligibility";
 import { withAIAccountLocks } from "@/lib/repositories/ai-governance.repository";
 import { eligibilityDecisionSchema, consentRequestSchema } from "@/lib/validations/ai-governance";
-import { AI_TERMS_VERSION, AI_TERMS_DIGEST } from "@/lib/ai/consent-terms";
+import { getAIConsentTerms } from "@/lib/ai/consent-scope";
 const denied = { success: false, message: "AI authorization update unavailable." } as const;
-const saved = { success: true, message: "AI authorization preference recorded. Provider remains disabled." } as const;
+const saved = { success: true, message: "AI authorization preference recorded. This does not activate AI." } as const;
 
 export async function recordAIEligibility(input: unknown) {
     try {
@@ -33,11 +33,13 @@ export async function recordAIEligibility(input: unknown) {
                 verifierAuthorizationRef: authorizationRef, revoked: request.revoke,
             });
             // Recertification/reset/revocation invalidates old consent atomically, preserving history.
-            const consent = await store.latestConsent(target.id);
-            if (consent?.eventKind === "accepted") await store.appendConsent({
-                userId: target.id, eligibilityEventId: consent.eligibilityEventId,
-                termsVersion: consent.termsVersion, termsDigest: consent.termsDigest, eventKind: "withdrawn",
-            });
+            for (const scope of ["aggregate", "research-pilot"] as const) {
+                const consent = await store.latestConsent(target.id, scope);
+                if (consent?.eventKind === "accepted") await store.appendConsent({
+                    userId: target.id, eligibilityEventId: consent.eligibilityEventId,
+                    termsVersion: consent.termsVersion, termsDigest: consent.termsDigest, eventKind: "withdrawn",
+                });
+            }
             return saved;
         });
     } catch { return denied; }
@@ -51,7 +53,7 @@ export async function recordAIConsent(input: unknown) {
         return await withAIAccountLocks([session.userId], async store => {
             const account = store.accounts.find(item => item.id === session.userId);
             if (!account?.isActive || account.roleId !== session.roleId) return denied;
-            const previous = await store.latestConsent(account.id);
+            const previous = await store.latestConsent(account.id, request.scope);
             if ((previous?.id ?? 0) !== request.expectedRevision) return denied;
             if (request.action === "withdraw") {
                 // Withdrawal is allowed after role/eligibility loss and never requires provider entitlement.
@@ -60,11 +62,13 @@ export async function recordAIConsent(input: unknown) {
                     termsVersion: previous.termsVersion, termsDigest: previous.termsDigest, eventKind: "withdrawn" });
                 return saved;
             }
-            if (![1,2].includes(account.roleId) || request.termsVersion !== AI_TERMS_VERSION) return denied;
+            const terms = getAIConsentTerms(request.scope);
+            if (!terms || ![1,2].includes(account.roleId) || (request.scope === "research-pilot" && account.roleId !== 2) ||
+                request.termsVersion !== terms.version) return denied;
             const eligibility = await store.latestEligibility(account.id);
             if (request.action === "accept" && !isInstitutionallyEligible(account, eligibility)) return denied;
             await store.appendConsent({ userId: account.id, eligibilityEventId: request.action === "accept" ? eligibility!.id : null,
-                termsVersion: AI_TERMS_VERSION, termsDigest: AI_TERMS_DIGEST,
+                termsVersion: terms.version, termsDigest: terms.digest,
                 eventKind: request.action === "accept" ? "accepted" : "declined" });
             return saved;
         });

@@ -7,7 +7,7 @@ export async function getEligibilityUIAction(input: unknown) {
     const { getEligibilityUI } = await import("@/lib/services/ai-governance-ui.service");
     return getEligibilityUI(input);
 }
-export async function getConsentUIAction() {
+export async function getConsentUIAction(scope: unknown = "aggregate") {
     const { getConsentUI } = await import("@/lib/services/ai-governance-ui.service");
-    return getConsentUI();
+    return getConsentUI(scope);
 }
