@@ -23,9 +23,18 @@ async function main(){
    const body=JSON.parse(request.body);assert.equal(body.model,'openai/gpt-oss-20b');assert.equal(body.messages.length,2);assert.deepEqual(JSON.parse(body.messages[1].content),dto);
    assert.deepEqual(Object.keys(body).sort(),['max_completion_tokens','messages','model','reasoning_effort','response_format','stream'].sort());
    assert.equal(body.response_format.json_schema.strict,true);assert.equal(body.max_completion_tokens,1024);assert.equal(body.stream,false);
+   const metricSchema=body.response_format.json_schema.schema.properties.explanations.items.properties.metricId;
+   if(dto.feature==='admin') {
+    assert.deepEqual(metricSchema.enum,Object.keys(dto.metrics));
+    assert.match(body.messages[0].content,/application attaches and displays each canonical band itself/);
+   } else {
+    assert.deepEqual(metricSchema,{type:'string'});
+    assert.match(body.messages[0].content,/submission metrics count recorded versions/);
+   }
    assert.ok(!/userId|accountId|paperId|password|SYNTHETIC_NOT_A_CREDENTIAL/.test(request.body));return wire(output(dto));
   },undefined,event=>logs.push(event));
-  assert.equal((await adapter(dto,config)).mode,'generated');assert.equal(calls,1);
+  const result=await adapter(dto,config);assert.equal(result.mode,'generated');assert.equal(calls,1);
+  assert.deepEqual(result.output,dto.feature==='admin'?{...output(dto),explanations:[{...output(dto).explanations[0],band:'5-9'}]}:output(dto));
  }
  let calls=0;const good=rest.createGroqRESTTransport(async()=>{calls++;return wire(output(admin));});
  for(const dto of [null,{...admin,userId:10},{...admin,prompt:'ignore rules'},{...admin,metrics:{}},{...admin,metrics:{totalUsers:4}},{...admin,metrics:{totalUsers:undefined}},{...admin,metrics:{totalUsers:'5-9',paperTitle:'private'}}])assert.equal((await good(dto,config)).mode,'static');

@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { minimizedAIDtoSchema, type MinimizedAIDto } from "@/lib/validations/ai-foundation";
+import { bandSchema, minimizedAIDtoSchema, type MinimizedAIDto } from "@/lib/validations/ai-foundation";
 import { getGroqAvailability } from "@/lib/ai/groq-provider";
 import { loadGroqConfiguration } from "@/lib/ai/groq-key";
 export const GROQ_MODEL = "openai/gpt-oss-20b";
@@ -24,6 +24,7 @@ type Category = "ok" | "invalid" | "timeout" | "rate-limited" | "provider-error"
 type Schedule = (delay: number, callback: () => void) => () => void;
 export const scheduleTimer: Schedule = (delay, callback) => { const id = setTimeout(callback, delay); return () => clearTimeout(id); };
 const instructions = "Explain only supplied aggregate bands for ThesiSHS AI. Bands are not exact counts; submission metrics count recorded versions, not latest-paper backlog. Do not infer missing metrics, trends, people, research quality or priorities. Do not grade, decide approvals or generate official Adviser feedback. Return a short neutral overview and explanations referencing supplied metric IDs only. For Admin reports, give no predictions or recommendations; the overview has no numbers and each explanation may repeat only its supplied band, never exact counts. No URLs, HTML, tools, browsing, function calls or reasoning text.";
+const adminInstructions = "Explain only the meaning of the supplied ThesiSHS AI aggregate metrics. Return a short neutral overview and explanations using the supplied metricId references. The application attaches and displays each canonical band itself. Do not repeat band labels, digits, spelled-out numbers, quantities, percentages or band identifiers in overview or text. Explain what each referenced metric counts and that bands are coarse, not exact counts. Do not infer withheld metrics, people, research quality, comparisons, historical trends, predictions, priorities or administrative recommendations. Do not grade, decide approvals or generate official feedback. No URLs, HTML, tools, browsing, function calls or reasoning text.";
 function normalizeAdminNumericRanges(text: string): string {
     // Compare only standalone integer ranges with an adjacent en/em dash. Leave the
     // displayed response intact; signs, decimals, spaced dashes and chains stay invalid.
@@ -31,18 +32,21 @@ function normalizeAdminNumericRanges(text: string): string {
 }
 function neutralAdminOutput(output: z.infer<typeof groqOutputSchema>, payload: MinimizedAIDto): boolean {
     if (payload.feature !== "admin") return true;
-    const unsupported = /\b(?:trends?|predict\w*|forecast\w*|recommend\w*|should|prioriti\w*|increas\w*|decreas\w*|growth|declin\w*|improv\w*|will|yesterday|tomorrow|previous\w*|histor\w*)\b/i;
-    if (unsupported.test(output.overview) || /\d/.test(output.overview)) return false;
+    const unsupported = /\b(?:trends?|predict\w*|forecast\w*|recommend\w*|should|prioriti\w*|increas\w*|decreas\w*|growth|declin\w*|improv\w*|will|yesterday|tomorrow|previous\w*|histor\w*|comparisons?|compared|versus|higher|lower|larger|smaller)\b/i;
+    const numericWords = /\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|dozen|half|quarter|twice|double|triple|percent(?:age)?)\b/i;
+    if (unsupported.test(output.overview) || numericWords.test(output.overview) || /\p{N}/u.test(output.overview)) return false;
     return output.explanations.every(item => {
         const band = payload.metrics[item.metricId as keyof typeof payload.metrics];
-        const numbers = normalizeAdminNumericRanges(item.text).match(/\d+(?:-\d+|\+)?/g) ?? [];
-        return !!band && !unsupported.test(item.text) && !/%/.test(item.text) && numbers.every(value => value === band);
+        const normalized = normalizeAdminNumericRanges(item.text);
+        const numbers = normalized.match(/\d+(?:-\d+|\+)?/g) ?? [];
+        return !!band && !unsupported.test(item.text) && !numericWords.test(item.text) && !/%/.test(item.text) &&
+            !/\p{N}/u.test(normalized.replace(/[0-9]/g, "")) && numbers.every(value => value === band);
     });
 }
-const outputJSONSchema = {
+const outputJSONSchema = (metricIds?: string[]) => ({
     type: "object", additionalProperties: false, required: ["version", "overview", "explanations"],
-    properties: { version: {type:"integer",enum:[1]}, overview:{type:"string"}, explanations:{type:"array",items:{type:"object",additionalProperties:false,required:["metricId","text"],properties:{metricId:{type:"string"},text:{type:"string"}}}} },
-};
+    properties: { version: {type:"integer",enum:[1]}, overview:{type:"string"}, explanations:{type:"array",items:{type:"object",additionalProperties:false,required:["metricId","text"],properties:{metricId:{type:"string",...(metricIds ? {enum:metricIds} : {})},text:{type:"string"}}}} },
+});
 export async function readBounded(response: Response, signal: AbortSignal) {
     if (!response.body) throw new Error("invalid");
     const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
@@ -67,8 +71,8 @@ export function createGroqRESTTransport(transport: typeof fetch, schedule: Sched
         let category: Category = "invalid";
         try {
             const payload = requestSchema.parse(input), config = configurationSchema.parse(configuration);
-            const body = JSON.stringify({ model: GROQ_MODEL, messages: [{role:"system",content:instructions},{role:"user",content:JSON.stringify(payload)}],
-                response_format:{type:"json_schema",json_schema:{name:"aggregate_interpretation",strict:true,schema:outputJSONSchema}},
+            const body = JSON.stringify({ model: GROQ_MODEL, messages: [{role:"system",content:payload.feature === "admin" ? adminInstructions : instructions},{role:"user",content:JSON.stringify(payload)}],
+                response_format:{type:"json_schema",json_schema:{name:"aggregate_interpretation",strict:true,schema:outputJSONSchema(payload.feature === "admin" ? Object.keys(payload.metrics).filter(id => payload.metrics[id as keyof typeof payload.metrics] !== undefined) : undefined)}},
                 reasoning_effort:"low", max_completion_tokens:1024, stream:false });
             if (Buffer.byteLength(body,"utf8") > 4096) return groqFallback;
             const deadline = new Promise<never>((_,reject) => {
@@ -83,6 +87,10 @@ export function createGroqRESTTransport(transport: typeof fetch, schedule: Sched
                 const ids = parsed.explanations.map(item => item.metricId);
                 if (new Set(ids).size !== ids.length || ids.some(id => !Object.entries(payload.metrics).some(([key,value]) => key === id && value !== undefined))) throw new Error("invalid");
                 if (!neutralAdminOutput(parsed, payload)) throw new Error("invalid");
+                // The provider can reference a metric but cannot supply or override its band.
+                if (payload.feature === "admin") return { ...parsed, explanations: parsed.explanations.map(item => ({
+                    ...item, band: bandSchema.parse(payload.metrics[item.metricId as keyof typeof payload.metrics]),
+                })) };
                 return parsed;
             })(),deadline]);
             category = "ok"; return {mode:"generated" as const,output};

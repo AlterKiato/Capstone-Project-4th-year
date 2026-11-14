@@ -7,7 +7,7 @@ import { getAIEntitlement } from "@/lib/auth/ai-entitlement";
 import { reserveAIPilotAttempt } from "@/lib/auth/ai-pilot-limits";
 import { prepareLocalAdminAggregate, prepareLocalAdviserAggregate } from "@/lib/services/ai-aggregation.service";
 import { getLocalAdminAssistance, getLocalAdviserAssistance } from "@/lib/services/ai-foundation.service";
-import { adminAIRequestSchema, adviserAIRequestSchema } from "@/lib/validations/ai-foundation";
+import { adminAIRequestSchema, adviserAIRequestSchema, bandSchema } from "@/lib/validations/ai-foundation";
 import type { AdminAIResult, LocalAIResult } from "@/types/ai-foundation";
 
 const adminUnavailable: LocalAIResult = { success: false, mode: "unavailable", message: "Live AI is unavailable. Verified static guidance remains available." };
@@ -15,7 +15,11 @@ const adminDenied = { success: false, mode: "denied", message: "Live AI access i
 // No client aggregate/actor input. Only the Admin path has an independently gated action.
 export async function getAdminInterpretation(input: unknown): Promise<AdminAIResult> {
     const result = await interpret(1,input);
-    return result.mode === "generated" ? { ...result, success: true, message: "AI-generated count-band interpretation. Human review required." } : result;
+    if (result.mode !== "generated") return result;
+    try {
+        const explanations = result.output.explanations.map(item => ({ ...item, band: bandSchema.parse("band" in item ? item.band : undefined) }));
+        return { ...result, output: { ...result.output, explanations }, success: true, message: "AI-generated count-band interpretation. Human review required." };
+    } catch { return adminUnavailable; }
 }
 export async function getAdviserInterpretation(input: unknown) { return interpret(2,input); }
 // Availability loads no credential, aggregate or quota. Dispatch rechecks all gates.

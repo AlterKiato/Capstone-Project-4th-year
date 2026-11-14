@@ -49,7 +49,8 @@ const policy = load('lib/ai/aggregate-policy.ts');
 const request = { reportId: 'admin-overview-v1' };
 const totals = () => ({ totalUsers: 55, totalGroups: 6, totalResearchPapers: 25, totalPublishedPapers: 7, approvedPapers: 15 });
 const goodOutput = () => ({ version: 1, overview: 'These coarse bands describe recorded volumes, not exact counts.',
-    explanations: [{ metricId: 'totalUsers', text: 'The recorded account total is in the 50-99 band.' }] });
+    explanations: [{ metricId: 'totalUsers', text: 'This metric counts registered accounts; its band is coarse rather than an exact count.' }] });
+const groundedOutput = value => ({ ...value, explanations: value.explanations.map(item => ({ ...item, band: '50-99' })) });
 const wire = value => new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: {
     role: 'assistant', content: typeof value === 'string' ? value : JSON.stringify(value), tool_calls: null,
 } }] }), { headers: { 'content-type': 'application/json' } });
@@ -95,6 +96,10 @@ function harness() {
         state.dispatches++; assert.equal(state.held, true); assert.equal(url, rest.GROQ_ENDPOINT);
         const body = JSON.parse(init.body); assert.equal(body.model, 'openai/gpt-oss-20b');
         assert.deepEqual(JSON.parse(body.messages[1].content), clone(policy.minimizeAdminAggregate(state.totals)));
+        assert.deepEqual(body.response_format.json_schema.schema.properties.explanations.items.properties.metricId.enum,
+            Object.keys(policy.minimizeAdminAggregate(state.totals).metrics));
+        assert.match(body.messages[0].content, /application attaches and displays each canonical band itself/);
+        assert.match(body.messages[0].content, /Do not repeat band labels, digits/);
         assert.ok(!/accountId|participantIds|authorityRef|eligibility|approvedPapers|email|password/.test(init.body));
         state.afterDispatch?.(); return wire(state.output);
     } });
@@ -159,7 +164,7 @@ test('only minimized four-band DTO reaches shared REST; generated response is ty
     const h = harness(); assert.equal((await h.actions.getAdminInterpretationAvailabilityAction()).available, true);
     assert.deepEqual([h.state.aggregates, h.state.keyReads, h.state.reservations], [0, 0, 0]);
     const result = await h.actions.getAdminInterpretationAction(request);
-    assert.equal(result.mode, 'generated'); assert.equal(result.success, true); assert.deepEqual(clone(result.output), goodOutput());
+    assert.equal(result.mode, 'generated'); assert.equal(result.success, true); assert.deepEqual(clone(result.output), groundedOutput(goodOutput()));
     assert.deepEqual(Object.keys(result).sort(), ['message', 'mode', 'output', 'success']);
     assert.equal(h.state.dispatches, 1); assert.equal(h.state.aggregates, 3); assert.equal(h.state.releases, 1);
     assert.equal(h.state.held, false); assert.equal(outbound, 0);
@@ -186,7 +191,7 @@ test('Admin range comparison accepts equivalent adjacent Unicode separators with
     for (const range of ['50-99', '50\u201399', '50\u201499']) {
         const h = harness(); h.state.output.explanations[0].text = `The account total is in the ${range} band.`;
         const result = await h.actions.getAdminInterpretationAction(request);
-        assert.equal(result.mode, 'generated'); assert.deepEqual(clone(result.output), h.state.output);
+        assert.equal(result.mode, 'generated'); assert.deepEqual(clone(result.output), groundedOutput(h.state.output));
         assert.equal(h.state.dispatches, 1); assert.equal(h.state.releases, 1);
     }
     // Sentence punctuation remains untouched; it is not a decimal fraction.
@@ -200,12 +205,54 @@ test('Admin range comparison accepts equivalent adjacent Unicode separators with
     }
     assert.equal(outbound, 0);
 });
+test('stable metric references receive server-owned canonical bands without numeric repetition', async () => {
+    const h = harness();
+    h.state.output.explanations = [
+        { metricId: 'totalUsers', text: 'Accounts recorded by the system.' },
+        { metricId: 'totalGroups', text: 'Research groups recorded by the system.' },
+        { metricId: 'totalResearchPapers', text: 'Research papers recorded by the system.' },
+        { metricId: 'totalPublishedPapers', text: 'Eligible papers published in the repository.' },
+    ];
+    const result = await h.actions.getAdminInterpretationAction(request);
+    assert.equal(result.mode, 'generated');
+    assert.deepEqual(clone(result.output.explanations), h.state.output.explanations.map((item, index) => ({
+        ...item, band: ['50-99', '5-9', '20-49', '5-9'][index],
+    })));
+    assert.ok(!/\d/.test(h.state.output.overview + h.state.output.explanations.map(item => item.text).join('')));
+    assert.equal(h.state.dispatches, 1); assert.equal(h.state.releases, 1);
+    const openEnded = harness(); openEnded.state.totals.totalUsers = 1002;
+    openEnded.state.output.explanations[0].text = 'The account band is 1000+.';
+    const upper = await openEnded.actions.getAdminInterpretationAction(request);
+    assert.equal(upper.mode, 'generated'); assert.equal(upper.output.explanations[0].band, '1000+');
+    for (const extra of [{ bandId: 'unsupported-band' }, { band: '50-99' }, { band: '500-999' }]) {
+        const bad = harness(); Object.assign(bad.state.output.explanations[0], extra);
+        assert.equal((await bad.actions.getAdminInterpretationAction(request)).mode, 'unavailable');
+        assert.equal(bad.state.dispatches, 1);
+    }
+});
+test('suppressed metric references fail; surviving references use only available bands', async () => {
+    const suppressed = harness(); suppressed.state.totals.totalUsers = 4;
+    assert.equal((await suppressed.actions.getAdminInterpretationAction(request)).mode, 'unavailable');
+    const complement = harness(); complement.state.totals.approvedPapers = 7;
+    complement.state.output.explanations[0].metricId = 'totalPublishedPapers';
+    assert.equal((await complement.actions.getAdminInterpretationAction(request)).mode, 'unavailable');
+    const available = harness(); available.state.totals.totalUsers = 4;
+    available.state.output.explanations = [{ metricId: 'totalResearchPapers', text: 'Research papers recorded by the system.' }];
+    const result = await available.actions.getAdminInterpretationAction(request);
+    assert.equal(result.mode, 'generated'); assert.equal(result.output.explanations[0].band, '20-49');
+    assert.equal(outbound, 0);
+});
 test('malformed/unsafe/invented/trend/recommendation output falls back without retry', async () => {
     for (const value of ['', '{malformed', {}, { ...goodOutput(), extra: 'unapproved' },
         { ...goodOutput(), overview: '<script>bad</script>' }, { ...goodOutput(), overview: 'x'.repeat(801) },
         { ...goodOutput(), overview: 'Counts will increase tomorrow.' },
         { ...goodOutput(), overview: 'There are 73 accounts.' },
         { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'There are 75 accounts.' }] },
+        // Synthetic alternatives, not reconstructions of the discarded provider responses.
+        { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'There are seventy-five accounts.' }] },
+        { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'There are \u0667\u0665 accounts.' }] },
+        { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'The band spans 50 to 99 accounts.' }] },
+        { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'Accounts are higher than group totals.' }] },
         { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'There are 50-9950-99 accounts.' }] },
         { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'Accounts comprise 50-99% of the total.' }] },
         { ...goodOutput(), explanations: [{ metricId: 'totalUsers', text: 'You should recruit more users.' }] },
@@ -227,6 +274,14 @@ test('Admin UI initially renders honest unavailable/static controls; Adviser has
     assert.match(admin, /human review/); assert.ok(!admin.includes('AI-generated count-band interpretation'));
     const adviser = renderToStaticMarkup(React.createElement(component, { feature: 'adviser' }));
     assert.ok(!adviser.includes('Interpret count bands with Live AI')); assert.match(adviser, /How do I start review/);
+    const generated = { success: true, mode: 'generated', message: 'AI-generated count-band interpretation. Human review required.', output: groundedOutput(goodOutput()) };
+    const populated = load('components/dashboard/local-ai-assistance.tsx', {
+        react: { ...React, useState: initial => [initial === null ? generated : initial, () => {}] },
+        '@/components/dashboard/ai-governance-dialogs': { ConsentDialog: () => null },
+        '@/lib/actions/ai-foundation.action': {}, '@/lib/actions/admin-ai-report.action': {},
+    }).default;
+    const grounded = renderToStaticMarkup(React.createElement(populated, { feature: 'admin' }));
+    assert.match(grounded, /Accounts \(50-99\)/); assert.match(grounded, /This metric counts registered accounts/);
     assert.equal(preview.GROQ_RESEARCH_PILOT_ENABLED, false); assert.equal(preview.FINALIZED_RESEARCH_PILOT_TERMS, null);
     assert.equal(outbound, 0);
 });

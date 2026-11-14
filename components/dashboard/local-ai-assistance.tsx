@@ -72,7 +72,7 @@ export default function LocalAIAssistance({ feature }: { feature: "admin" | "adv
                     <p>{result.message}</p>
                     {result.mode === "generated" ? <>
                         <p>{result.output.overview}</p>
-                        <ul>{result.output.explanations.map(item => <li key={item.metricId}><strong>{metricLabels[item.metricId]}:</strong> {item.text}</li>)}</ul>
+                        <ul>{result.output.explanations.map(item => <li key={item.metricId}><strong>{metricLabels[item.metricId]} ({item.band}):</strong> {item.text}</li>)}</ul>
                         <p>Coarse bands are not exact counts. Withheld metrics cannot be inferred.</p>
                     </> : result.mode === "static" && <p>{result.guidance}</p>}
                 </>}

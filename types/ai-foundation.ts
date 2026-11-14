@@ -1,3 +1,7 @@
+import type { MinimizedAIDto } from "@/lib/validations/ai-foundation";
+
+type AdminBand = NonNullable<Extract<MinimizedAIDto, { feature: "admin" }>["metrics"]["totalUsers"]>;
+
 export interface LocalAIResult {
     success: boolean;
     mode: "static" | "unavailable" | "unsupported";
@@ -16,6 +20,6 @@ export type AdminAIResult = LocalAIResult | {
     output: {
         version: 1;
         overview: string;
-        explanations: { metricId: string; text: string }[];
+        explanations: { metricId: string; band: AdminBand; text: string }[];
     };
 };
