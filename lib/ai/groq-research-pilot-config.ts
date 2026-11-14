@@ -9,16 +9,19 @@ export const FINALIZED_RESEARCH_PILOT_TERMS: ResearchPilotTerms | null = null;
 // Approved exact text must accompany the immutable version/digest at a future checkpoint.
 export const FINALIZED_RESEARCH_PILOT_TEXT: string | null = null;
 const targetSchema = z.strictObject({
-    projectId: z.string().regex(/^prj_[A-Za-z0-9]+$/), deploymentId: z.string().regex(/^dpl_[A-Za-z0-9]+$/),
+    projectId: z.string().regex(/^prj_[A-Za-z0-9]+$/),
     commitSha: z.string().regex(/^[a-f0-9]{40}$/), branch: z.literal("feature/development"),
     protectionEvidenceRef: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
 });
+const deploymentIdSchema = z.string().regex(/^dpl_[A-Za-z0-9]+$/);
 // Server-only operator manifest; no browser headers or Preview label can supply approval.
+// Pin the approved source release, not an ID allocated by the deployment being created.
+// Same-commit redeployments must retain every independent approval/protection gate.
 export function isApprovedResearchPreview(env: Record<string, string | undefined>, input: unknown): boolean {
     const target = targetSchema.safeParse(input);
     if (!target.success || env.NODE_ENV !== "production" || env.VERCEL !== "1" || env.VERCEL_ENV !== "preview" || env.CI ||
         env.VERCEL_TARGET_ENV !== "preview") return false;
-    return env.VERCEL_PROJECT_ID === target.data.projectId && env.VERCEL_DEPLOYMENT_ID === target.data.deploymentId &&
+    return deploymentIdSchema.safeParse(env.VERCEL_DEPLOYMENT_ID).success && env.VERCEL_PROJECT_ID === target.data.projectId &&
         env.VERCEL_GIT_COMMIT_SHA === target.data.commitSha && env.VERCEL_GIT_COMMIT_REF === target.data.branch;
 }
 export function getFinalizedResearchPilotTerms() {

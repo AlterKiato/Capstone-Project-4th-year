@@ -39,7 +39,7 @@ const output = { observation: 'The fictional survey omits a comparison measure.'
 const wire = (value = output, extra = {}, finish = 'stop') => new Response(JSON.stringify({ choices: [{ finish_reason: finish,
     message: { role: 'assistant', content: JSON.stringify(value), ...extra } }] }), { headers: { 'content-type': 'application/json' } });
 
-function harness() {
+function harness(configuration) {
     const updatedAt = new Date('2026-11-01T00:00:00Z');
     const state = { enabled: true, time: now, approval: approval(), actor: { userId: 20, roleId: 2 }, main: 20, active: true, scope: true,
         eligibility: { id: 1, userId: 20, decision: 'Eligible', eventKind: 'certification', decisionRoleId: 2, accountUpdatedAt: updatedAt,
@@ -60,7 +60,7 @@ function harness() {
         } },
     });
     const service = load('lib/services/groq-research-pilot.service.ts', {
-        '@/lib/ai/groq-research-pilot-config': { getResearchPilotConfiguration: () => state.enabled ? config.parseResearchPilotApproval(state.approval, terms, state.time) : null },
+        '@/lib/ai/groq-research-pilot-config': { getResearchPilotConfiguration: configuration ?? (() => state.enabled ? config.parseResearchPilotApproval(state.approval, terms, state.time) : null) },
         '@/lib/ai/groq-research-pilot': adapter,
         '@/lib/ai/groq-key': { loadGroqConfiguration: scope => { assert.equal(scope, 'research-pilot'); state.keyReads++; return state.credentials ? key : null; } },
         '@/lib/auth/ai-entitlement': entitlement, '@/lib/auth/current-account': account,
@@ -122,31 +122,65 @@ test('even a synthetic enabled code gate rejects development, test, CI and Previ
     assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: { NODE_ENV: 'production', VERCEL_ENV: 'production', GROQ_RESEARCH_PILOT_APPROVAL_JSON: '{invalid' } } }, transform).getResearchPilotConfiguration(), null);
 });
 
-test('Preview requires exact trusted target identity; runtime Production, CI, missing and forged targets deny', () => {
-    const target = { projectId: 'prj_SYNTHETIC', deploymentId: 'dpl_SYNTHETIC', commitSha: 'a'.repeat(40), branch: 'feature/development', protectionEvidenceRef: 'SYNTHETIC_TEST_ONLY' };
+test('Preview pins project/branch/commit and requires deployment metadata; same-release redeployment is non-circular', async () => {
+    const target = { projectId: 'prj_SYNTHETIC', commitSha: 'a'.repeat(40), branch: 'feature/development', protectionEvidenceRef: 'SYNTHETIC_TEST_ONLY' };
     const env = { NODE_ENV: 'production', VERCEL: '1', VERCEL_ENV: 'preview', VERCEL_TARGET_ENV: 'preview',
-        VERCEL_PROJECT_ID: target.projectId, VERCEL_DEPLOYMENT_ID: target.deploymentId, VERCEL_GIT_COMMIT_SHA: target.commitSha, VERCEL_GIT_COMMIT_REF: target.branch };
+        VERCEL_PROJECT_ID: target.projectId, VERCEL_DEPLOYMENT_ID: 'dpl_SYNTHETIC', VERCEL_GIT_COMMIT_SHA: target.commitSha, VERCEL_GIT_COMMIT_REF: target.branch };
     assert.equal(config.isApprovedResearchPreview(env, target), true);
+    assert.equal(config.isApprovedResearchPreview({ ...env, VERCEL_DEPLOYMENT_ID: 'dpl_SYNTHETICREBUILD' }, target), true);
     for (const name of Object.keys(env)) {
         assert.equal(config.isApprovedResearchPreview({ ...env, [name]: undefined }, target), false, name);
         assert.equal(config.isApprovedResearchPreview({ ...env, [name]: 'wrong' }, target), false, name);
     }
-    for (const patch of [{ NODE_ENV: 'development' }, { NODE_ENV: 'test' }, { CI: '1' }, { VERCEL_ENV: 'production' }, { VERCEL_TARGET_ENV: 'production' }])
+    for (const patch of [{ NODE_ENV: 'development' }, { NODE_ENV: 'test' }, { CI: '1' }, { CI: 'false' },
+        { VERCEL_ENV: 'development' }, { VERCEL_ENV: 'test' }, { VERCEL_ENV: 'production' }, { VERCEL_TARGET_ENV: 'production' },
+        { VERCEL_TARGET_ENV: 'custom-preview' }, { VERCEL_PROJECT_ID: 'prj_OTHER' }, { VERCEL_GIT_COMMIT_REF: 'main' },
+        { VERCEL_GIT_COMMIT_SHA: 'b'.repeat(40) }, { VERCEL_DEPLOYMENT_ID: '' }, { VERCEL_DEPLOYMENT_ID: 'dpl_bad/value' }])
         assert.equal(config.isApprovedResearchPreview({ ...env, ...patch }, target), false);
-    for (const value of [null, {}, { ...target, protectionEvidenceRef: '' }, { ...target, host: 'client-controlled.invalid' }])
+    for (const value of [null, {}, { ...target, projectId: 'prj_OTHER' }, { ...target, branch: 'main' },
+        { ...target, commitSha: 'b'.repeat(40) }, { ...target, protectionEvidenceRef: '' },
+        { ...target, deploymentId: 'dpl_SYNTHETIC' }, { ...target, host: 'client-controlled.invalid' },
+        { ...target, VERCEL_PROJECT_ID: env.VERCEL_PROJECT_ID }])
         assert.equal(config.isApprovedResearchPreview(env, value), false);
     const text = 'SYNTHETIC FINAL TERMS FOR OFFLINE TEST ONLY';
     const final = { ...terms, digest: require('node:crypto').createHash('sha256').update(text).digest('hex') };
     const transform = code => code.replace('GROQ_RESEARCH_PILOT_ENABLED = false', 'GROQ_RESEARCH_PILOT_ENABLED = true')
         .replace('FINALIZED_RESEARCH_PILOT_TERMS: ResearchPilotTerms | null = null', 'FINALIZED_RESEARCH_PILOT_TERMS: ResearchPilotTerms | null = ' + JSON.stringify(final))
         .replace('FINALIZED_RESEARCH_PILOT_TEXT: string | null = null', 'FINALIZED_RESEARCH_PILOT_TEXT: string | null = ' + JSON.stringify(text));
-    const manifest = { ...approval(), startsAt: new Date(Date.now() - 1000).toISOString(), endsAt: new Date(Date.now() + 60000).toISOString(), terms: final };
+    const manifest = { ...approval(), terms: final };
     const runtime = { ...env, GROQ_RESEARCH_PILOT_TARGET_JSON: JSON.stringify(target), GROQ_RESEARCH_PILOT_APPROVAL_JSON: JSON.stringify(manifest) };
-    assert.ok(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: runtime } }, transform).getResearchPilotConfiguration());
-    for (const patch of [{ GROQ_RESEARCH_PILOT_TARGET_JSON: '{bad' }, { VERCEL_GIT_COMMIT_SHA: 'b'.repeat(40) }, { VERCEL_ENV: 'production' }])
-        assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: { ...runtime, ...patch } } }, transform).getResearchPilotConfiguration(), null);
-    assert.equal(load('lib/ai/groq-research-pilot-config.ts', {}, { process: { env: runtime } }, code => transform(code).replace(JSON.stringify(text), JSON.stringify(text + ' altered'))).getResearchPilotConfiguration(), null);
+    class PilotClock extends Date { static now() { return now; } }
+    const configured = (patch = {}, change = transform) => load('lib/ai/groq-research-pilot-config.ts', {},
+        { Date: PilotClock, process: { env: { ...runtime, ...patch } } }, change);
+    assert.ok(configured().getResearchPilotConfiguration());
+    assert.ok(configured({ VERCEL_DEPLOYMENT_ID: 'dpl_SYNTHETICREBUILD' }).getResearchPilotConfiguration());
+    const permitted = harness(configured().getResearchPilotConfiguration);
+    permitted.state.consent.termsDigest = final.digest;
+    assert.equal((await permitted.run(request())).success, true);
+    assert.equal(permitted.state.dispatches, 1); // In-memory transport double only.
+    const denied = [
+        ...Object.keys(env).map(name => ({ [name]: undefined })),
+        { GROQ_RESEARCH_PILOT_TARGET_JSON: undefined }, { GROQ_RESEARCH_PILOT_TARGET_JSON: '{bad' },
+        { GROQ_RESEARCH_PILOT_TARGET_JSON: JSON.stringify({ ...target, deploymentId: 'dpl_SYNTHETIC' }) },
+        { GROQ_RESEARCH_PILOT_APPROVAL_JSON: undefined }, { GROQ_RESEARCH_PILOT_APPROVAL_JSON: '{bad' },
+        { GROQ_RESEARCH_PILOT_APPROVAL_JSON: JSON.stringify({ ...manifest, terms: { ...final, digest: 'b'.repeat(64) } }) },
+        { GROQ_RESEARCH_PILOT_APPROVAL_JSON: JSON.stringify({ ...manifest, endsAt: new Date(now).toISOString() }) },
+        { VERCEL_PROJECT_ID: 'prj_OTHER' }, { VERCEL_GIT_COMMIT_REF: 'main' }, { VERCEL_GIT_COMMIT_SHA: 'b'.repeat(40) },
+        { VERCEL_DEPLOYMENT_ID: 'dpl_bad/value' }, { NODE_ENV: 'development' }, { NODE_ENV: 'test' },
+        { VERCEL_ENV: 'development' }, { VERCEL_ENV: 'test' }, { VERCEL_ENV: 'production' },
+        { VERCEL_TARGET_ENV: 'production' }, { VERCEL_TARGET_ENV: 'custom-preview' }, { CI: '1' },
+    ];
+    for (const patch of denied) {
+        const checked = configured(patch);
+        assert.equal(checked.getResearchPilotConfiguration(), null);
+        const { state, run } = harness(checked.getResearchPilotConfiguration);
+        assert.equal((await run(request())).success, false);
+        assert.deepEqual([state.authReads, state.keyReads, state.reservations, state.dispatches], [0, 0, 0, 0]);
+    }
+    assert.equal(configured({}, code => transform(code).replace(JSON.stringify(text), JSON.stringify(text + ' altered'))).getResearchPilotConfiguration(), null);
+    assert.equal(configured({}, code => transform(code).replace('GROQ_RESEARCH_PILOT_ENABLED = true', 'GROQ_RESEARCH_PILOT_ENABLED = false')).getResearchPilotConfiguration(), null);
     assert.equal(config.getFinalizedResearchPilotTerms(), null);
+    assert.equal(outbound, 0);
 });
 test('Main and exact assigned Co pass actual adult/consent checks and mocked transport for all three tasks', async () => {
     for (const co of [false, true]) for (const task of fixtures.RESEARCH_DEMO_TASKS) {
