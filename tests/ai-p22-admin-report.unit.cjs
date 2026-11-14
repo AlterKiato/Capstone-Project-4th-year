@@ -182,6 +182,24 @@ test('quota denial, missing credential and mid-request consent/approval/count ch
         assert.equal(h.state.releases, 1);
     }
 });
+test('Admin range comparison accepts equivalent adjacent Unicode separators without rewriting output', async () => {
+    for (const range of ['50-99', '50\u201399', '50\u201499']) {
+        const h = harness(); h.state.output.explanations[0].text = `The account total is in the ${range} band.`;
+        const result = await h.actions.getAdminInterpretationAction(request);
+        assert.equal(result.mode, 'generated'); assert.deepEqual(clone(result.output), h.state.output);
+        assert.equal(h.state.dispatches, 1); assert.equal(h.state.releases, 1);
+    }
+    // Sentence punctuation remains untouched; it is not a decimal fraction.
+    const ending = harness(); ending.state.output.explanations[0].text = 'The account band is 50\u201399.';
+    assert.equal((await ending.actions.getAdminInterpretationAction(request)).mode, 'generated');
+    for (const range of ['50\u2013100', '49\u201499', '50 \u2014 99', '50\u2014\u201499',
+        '50\u201499\u201450\u201499', '\u221250\u201499', '50.50\u201499', '50\u201499.5', '50\u201499+']) {
+        const h = harness(); h.state.output.explanations[0].text = `The account band is ${range}.`;
+        assert.equal((await h.actions.getAdminInterpretationAction(request)).mode, 'unavailable');
+        assert.equal(h.state.dispatches, 1); assert.equal(h.state.releases, 1);
+    }
+    assert.equal(outbound, 0);
+});
 test('malformed/unsafe/invented/trend/recommendation output falls back without retry', async () => {
     for (const value of ['', '{malformed', {}, { ...goodOutput(), extra: 'unapproved' },
         { ...goodOutput(), overview: '<script>bad</script>' }, { ...goodOutput(), overview: 'x'.repeat(801) },

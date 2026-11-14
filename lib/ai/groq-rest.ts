@@ -24,13 +24,18 @@ type Category = "ok" | "invalid" | "timeout" | "rate-limited" | "provider-error"
 type Schedule = (delay: number, callback: () => void) => () => void;
 export const scheduleTimer: Schedule = (delay, callback) => { const id = setTimeout(callback, delay); return () => clearTimeout(id); };
 const instructions = "Explain only supplied aggregate bands for ThesiSHS AI. Bands are not exact counts; submission metrics count recorded versions, not latest-paper backlog. Do not infer missing metrics, trends, people, research quality or priorities. Do not grade, decide approvals or generate official Adviser feedback. Return a short neutral overview and explanations referencing supplied metric IDs only. For Admin reports, give no predictions or recommendations; the overview has no numbers and each explanation may repeat only its supplied band, never exact counts. No URLs, HTML, tools, browsing, function calls or reasoning text.";
+function normalizeAdminNumericRanges(text: string): string {
+    // Compare only standalone integer ranges with an adjacent en/em dash. Leave the
+    // displayed response intact; signs, decimals, spaced dashes and chains stay invalid.
+    return text.replace(/(?<![\d.+\-\u2010-\u2015\u2212])(\d+)[\u2013\u2014](\d+)(?![\d+\-\u2010-\u2015\u2212]|[.,]\d)/g, "$1-$2");
+}
 function neutralAdminOutput(output: z.infer<typeof groqOutputSchema>, payload: MinimizedAIDto): boolean {
     if (payload.feature !== "admin") return true;
     const unsupported = /\b(?:trends?|predict\w*|forecast\w*|recommend\w*|should|prioriti\w*|increas\w*|decreas\w*|growth|declin\w*|improv\w*|will|yesterday|tomorrow|previous\w*|histor\w*)\b/i;
     if (unsupported.test(output.overview) || /\d/.test(output.overview)) return false;
     return output.explanations.every(item => {
         const band = payload.metrics[item.metricId as keyof typeof payload.metrics];
-        const numbers = item.text.match(/\d+(?:-\d+|\+)?/g) ?? [];
+        const numbers = normalizeAdminNumericRanges(item.text).match(/\d+(?:-\d+|\+)?/g) ?? [];
         return !!band && !unsupported.test(item.text) && !/%/.test(item.text) && numbers.every(value => value === band);
     });
 }
