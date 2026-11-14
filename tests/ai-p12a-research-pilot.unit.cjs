@@ -249,6 +249,53 @@ test('missing credentials and quota exhaustion/in-flight slot deny dispatch; res
         assert.equal((await run(request())).success, false); assert.equal(state.dispatches, 1); assert.equal(state.releases, 1); assert.equal(state.held, false);
     }
 });
+test('absent or explicitly null call metadata preserves valid structured pilot and aggregate responses', async () => {
+    // Synthetic compatibility fixtures, not a reconstruction of the discarded live response.
+    const aggregate = { version: 1, feature: 'admin', topicId: 'admin-overview-v1', metrics: { totalUsers: '5-9' } };
+    const interpretation = { version: 1, overview: 'Synthetic aggregate bands.', explanations: [{ metricId: 'totalUsers', text: 'An approximate count band.' }] };
+    for (const extra of [{}, { tool_calls: null }, { function_call: null }, { tool_calls: null, function_call: null, refusal: null }]) {
+        const envelope = { choices: [{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(output), ...extra } }] };
+        const parsed = rest.wireSchema.safeParse(envelope);
+        assert.equal(parsed.success, true, parsed.success ? '' : JSON.stringify(parsed.error.issues.map(issue => issue.path)));
+        let calls = 0;
+        const result = await adapter.createGroqResearchPilotTransport(async () => { calls++; return wire(output, extra); })(request(), key);
+        assert.equal(result.success, true); assert.equal(result.answer.observation, output.observation); assert.equal(calls, 1);
+        const aggregateResult = await rest.createGroqRESTTransport(async () => wire(interpretation, extra))(aggregate, key);
+        assert.equal(aggregateResult.mode, 'generated');
+    }
+    assert.equal(outbound, 0);
+});
+
+test('structured content remains JSON text with bounded safe fields; unsupported shapes and active calls deny', async () => {
+    const invalid = [
+        () => wire(output, { content: undefined }), () => wire(output, { content: null }),
+        () => wire(output, { content: '' }), () => wire(output, { content: '   ' }),
+        () => wire(output, { content: output }), () => wire(output, { content: [{ type: 'text', text: JSON.stringify(output) }] }),
+        () => wire(output, { content: undefined, parsed: output }),
+        () => wire(output, { content: 'A plain answer without the required JSON object.' }),
+        () => wire(output, { content: '```json\n' + JSON.stringify(output) + '\n```' }),
+        () => wire(output, { content: '{broken' }), () => wire(output, { content: '[]' }),
+        () => wire(output, { content: JSON.stringify({ observation: output.observation }) }),
+        () => wire({ ...output, explanation: 42 }), () => wire({ ...output, observation: 'x'.repeat(801) }),
+        () => wire({ ...output, observation: 'Line one\nLine two' }),
+        () => wire({ ...output, suggestion: 'Visit https://example.invalid' }),
+        () => wire(output, { content: 'x'.repeat(8193) }),
+        () => wire(output, { tool_calls: [] }), () => wire(output, { tool_calls: [{ type: 'function', function: { name: 'unsafe' } }] }),
+        () => wire(output, { function_call: {} }), () => wire(output, { function_call: { name: 'unsafe' } }),
+        () => wire(output, { tool_calls: false }), () => wire(output, { function_call: '' }),
+        () => wire(output, { refusal: 'Cannot assist' }),
+    ];
+    for (const response of invalid) {
+        let calls = 0;
+        const result = await adapter.createGroqResearchPilotTransport(async () => { calls++; return response(); })(request(), key);
+        assert.equal(result.success, false); assert.equal(calls, 1);
+        assert.ok(!JSON.stringify(result).includes(key.token));
+    }
+    const limit = await adapter.createGroqResearchPilotTransport(async () => wire({ ...output, observation: 'x'.repeat(800) }))(request(), key);
+    assert.equal(limit.success, true);
+    assert.equal(outbound, 0);
+});
+
 test('fixed endpoint, bearer handling, no retries and controlled provider/schema failures disclose no private errors', async () => {
     let calls = 0;
     assert.equal((await adapter.createGroqResearchPilotTransport(async (url, init) => {

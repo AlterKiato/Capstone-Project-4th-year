@@ -14,7 +14,8 @@ export const groqOutputSchema = z.strictObject({
 export const wireSchema = z.object({ choices: z.array(z.object({
     finish_reason: z.literal("stop"),
     message: z.object({ role: z.literal("assistant"), content: z.string().min(1).max(8192),
-        tool_calls: z.never().optional(), function_call: z.never().optional(), refusal: z.null().optional() }),
+        // Omitted/null metadata carries no call. Every non-null call value still denies.
+        tool_calls: z.null().optional(), function_call: z.null().optional(), refusal: z.null().optional() }),
 })).length(1) });
 export const configurationSchema = z.strictObject({ token: z.string().regex(/^[A-Za-z0-9_-]{1,256}$/) });
 type Configuration = z.infer<typeof configurationSchema>;
