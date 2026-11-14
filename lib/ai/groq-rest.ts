@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { minimizedAIDtoSchema } from "@/lib/validations/ai-foundation";
+import { minimizedAIDtoSchema, type MinimizedAIDto } from "@/lib/validations/ai-foundation";
 import { getGroqAvailability } from "@/lib/ai/groq-provider";
 import { loadGroqConfiguration } from "@/lib/ai/groq-key";
 export const GROQ_MODEL = "openai/gpt-oss-20b";
@@ -23,7 +23,17 @@ export const groqFallback = { mode: "static", message: "AI interpretation unavai
 type Category = "ok" | "invalid" | "timeout" | "rate-limited" | "provider-error";
 type Schedule = (delay: number, callback: () => void) => () => void;
 export const scheduleTimer: Schedule = (delay, callback) => { const id = setTimeout(callback, delay); return () => clearTimeout(id); };
-const instructions = "Explain only supplied aggregate bands for ThesiSHS AI. Bands are not exact counts; submission metrics count recorded versions, not latest-paper backlog. Do not infer missing metrics, trends, people, research quality or priorities. Do not grade, decide approvals or generate official Adviser feedback. Return a short neutral overview and explanations referencing supplied metric IDs only. No URLs, HTML, tools, browsing, function calls or reasoning text.";
+const instructions = "Explain only supplied aggregate bands for ThesiSHS AI. Bands are not exact counts; submission metrics count recorded versions, not latest-paper backlog. Do not infer missing metrics, trends, people, research quality or priorities. Do not grade, decide approvals or generate official Adviser feedback. Return a short neutral overview and explanations referencing supplied metric IDs only. For Admin reports, give no predictions or recommendations; the overview has no numbers and each explanation may repeat only its supplied band, never exact counts. No URLs, HTML, tools, browsing, function calls or reasoning text.";
+function neutralAdminOutput(output: z.infer<typeof groqOutputSchema>, payload: MinimizedAIDto): boolean {
+    if (payload.feature !== "admin") return true;
+    const unsupported = /\b(?:trends?|predict\w*|forecast\w*|recommend\w*|should|prioriti\w*|increas\w*|decreas\w*|growth|declin\w*|improv\w*|will|yesterday|tomorrow|previous\w*|histor\w*)\b/i;
+    if (unsupported.test(output.overview) || /\d/.test(output.overview)) return false;
+    return output.explanations.every(item => {
+        const band = payload.metrics[item.metricId as keyof typeof payload.metrics];
+        const numbers = item.text.match(/\d+(?:-\d+|\+)?/g) ?? [];
+        return !!band && !unsupported.test(item.text) && !/%/.test(item.text) && numbers.every(value => value === band);
+    });
+}
 const outputJSONSchema = {
     type: "object", additionalProperties: false, required: ["version", "overview", "explanations"],
     properties: { version: {type:"integer",enum:[1]}, overview:{type:"string"}, explanations:{type:"array",items:{type:"object",additionalProperties:false,required:["metricId","text"],properties:{metricId:{type:"string"},text:{type:"string"}}}} },
@@ -67,6 +77,7 @@ export function createGroqRESTTransport(transport: typeof fetch, schedule: Sched
                 const parsed = groqOutputSchema.parse(JSON.parse(wire.choices[0].message.content));
                 const ids = parsed.explanations.map(item => item.metricId);
                 if (new Set(ids).size !== ids.length || ids.some(id => !Object.entries(payload.metrics).some(([key,value]) => key === id && value !== undefined))) throw new Error("invalid");
+                if (!neutralAdminOutput(parsed, payload)) throw new Error("invalid");
                 return parsed;
             })(),deadline]);
             category = "ok"; return {mode:"generated" as const,output};

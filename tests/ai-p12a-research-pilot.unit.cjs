@@ -87,12 +87,14 @@ test('runtime is hard-disabled in every environment without reading approval, cr
     assert.equal(config.GROQ_RESEARCH_PILOT_ENABLED, false); assert.equal(config.FINALIZED_RESEARCH_PILOT_TERMS, null);
     assert.equal(config.getResearchPilotConfiguration(), null);
     const keyModule = load('lib/ai/groq-key.ts', { './groq-provider': { getGroqAvailability: () => ({ enabled: false }) },
-        './groq-pilot-config': { getLocalPilotApproval: () => null }, './groq-research-pilot-config': config });
+        './groq-pilot-config': { getLocalPilotApproval: () => null }, './groq-research-pilot-config': config,
+        './groq-admin-report-config': { getAdminReportConfiguration: () => null } });
     let keyReads = 0;
     assert.equal(keyModule.createGroqKeyLoader(() => { keyReads++; throw Error('SECRET'); })('research-pilot'), null);
     assert.equal(keyReads, 0);
     const approvedKeyModule = load('lib/ai/groq-key.ts', { './groq-provider': { getGroqAvailability: () => ({ enabled: false }) },
-        './groq-pilot-config': { getLocalPilotApproval: () => null }, './groq-research-pilot-config': { getResearchPilotConfiguration: () => approval() } });
+        './groq-pilot-config': { getLocalPilotApproval: () => null }, './groq-research-pilot-config': { getResearchPilotConfiguration: () => approval() },
+        './groq-admin-report-config': { getAdminReportConfiguration: () => null } });
     assert.equal(approvedKeyModule.createGroqKeyLoader(() => key.token)('research-pilot').token, key.token);
     for (const value of [undefined, '', 'bad\r\nheader', 42]) assert.equal(approvedKeyModule.createGroqKeyLoader(() => value)('research-pilot'), null);
     assert.equal(approvedKeyModule.createGroqKeyLoader(() => { throw Error('SECRET'); })('research-pilot'), null);
