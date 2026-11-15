@@ -5,6 +5,7 @@ import { ConsentDialog } from "@/components/dashboard/ai-governance-dialogs";
 import { getLocalAdminAssistanceAction, getLocalAdviserAssistanceAction } from "@/lib/actions/ai-foundation.action";
 import { getAdminInterpretationAction, getAdminInterpretationAvailabilityAction } from "@/lib/actions/admin-ai-report.action";
 import type { AdminAIResult } from "@/types/ai-foundation";
+import DeveloperAIEvaluation from "@/components/dashboard/developer-ai-evaluation";
 
 const adviserQuestions = [
     ["adviser-workflow-overview-v1", "Explain submission workflow counts"],
@@ -77,6 +78,7 @@ export default function LocalAIAssistance({ feature }: { feature: "admin" | "adv
                     </> : result.mode === "static" && <p>{result.guidance}</p>}
                 </>}
             </div>
+            {feature === "admin" && <DeveloperAIEvaluation feature="admin" />}
         </section>
     );
 }

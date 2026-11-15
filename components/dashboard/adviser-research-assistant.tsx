@@ -1,4 +1,5 @@
 "use client";
+import DeveloperAIEvaluation from "@/components/dashboard/developer-ai-evaluation";
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { analyzeResearchDemoAction, getResearchDemoAvailabilityAction } from "@/lib/actions/adviser-research-assistant.action";
@@ -275,6 +276,8 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                             {!mobile && <button type="button" onClick={resetPosition}>Reset window position and size</button>}
                         </details>
                         <details className={styles.info}><summary>View fictional excerpt</summary><p className={styles.excerpt}>{RESEARCH_DEMO_EXCERPT}</p></details>
+                        <DeveloperAIEvaluation feature="adviser" submissionId={submissionId} assignmentId={assignmentId}
+                            disabled={checking || !authorized || pending || !enabled} />
                         {!checking && !shownExchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
                             <h3 id={`${id}-welcome`}>How can I help with your research review?</h3>
                             <p>Try a prepared example using fictional research.</p>

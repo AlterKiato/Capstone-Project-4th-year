@@ -44,3 +44,21 @@ export async function releasePilotAttempt(id: string): Promise<void> {
             where id = ${id}::uuid and released_at is null`);
     });
 }
+
+// Read-only status for the SAME shared durable window; no identities/payloads returned.
+export async function getPilotWindowUsage(window: PilotWindow) {
+    const rows = await db.execute(sql`
+        select (select count(*)::int from ai_pilot_attempts
+            where attempted_at >= ${window.startsAt.toISOString()}::timestamptz
+              and attempted_at < ${window.endsAt.toISOString()}::timestamptz) as attempts,
+            exists(select 1 from ai_pilot_attempts where released_at is null) as busy,
+            (select greatest(0, ceil(extract(epoch from
+                (max(attempted_at) + interval '120 seconds' - clock_timestamp()))))::int
+             from ai_pilot_attempts where attempted_at >= ${window.startsAt.toISOString()}::timestamptz
+               and attempted_at < ${window.endsAt.toISOString()}::timestamptz) as wait_seconds`);
+    const row = rows[0];
+    if (!row || !Number.isInteger(row.attempts) || Number(row.attempts) < 0 ||
+        typeof row.busy !== "boolean" || !Number.isInteger(row.wait_seconds) || Number(row.wait_seconds) < 0)
+        throw new Error("Quota unavailable");
+    return { remaining: Math.max(0, 2 - Number(row.attempts)), busy: row.busy, waitSeconds: Number(row.wait_seconds) };
+}
