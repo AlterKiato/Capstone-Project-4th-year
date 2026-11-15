@@ -3,24 +3,27 @@
 // Real services/crypto/delivery and transactional in-memory double; NO DB/network.
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { createHash } = require('node:crypto');
+const crypto = require('node:crypto');
+const { createHmac } = crypto;
+let forcedRandom, admission = true;
+process.env.THESISHS_EMAIL_OTP_SECRET = 'isolated-otp-test-key-'.repeat(3);
 const Module = require('node:module');
-let session, account, request, now, messages, failSend, failSave, failConsume, failCommit, writes, lookups, gate;
+let session, account, request, now, messages, failSend, failSave, failConsume, failCommit, writes, gate;
 const originalEnvironment = process.env.NODE_ENV;
 const initialTime = Date.parse('2026-10-21T00:00:00Z');
 function reset() {
+    forcedRandom = undefined; admission = true;
     process.env.NODE_ENV = 'test';
-    session = { userId: 21, roleId: 3, email: 'stale@example.invalid' };
+    session = { userId: 21, roleId: 3, email: 'student@example.invalid' };
     account = { id: 21, roleId: 3, email: 'student@example.invalid', isActive: true, emailVerifiedAt: null };
     request = undefined; now = new Date(initialTime); messages = [];
-    failSend = failSave = failConsume = failCommit = false; writes = lookups = 0;
+    failSend = failSave = failConsume = failCommit = false; writes = 0;
     gate = Promise.resolve();
 }
 function advance(milliseconds) { now = new Date(now.getTime() + milliseconds); }
-const digest = token => createHash('sha256').update(token).digest('hex');
-const tokenFrom = message => new URLSearchParams(new URL(message.text.split('\n').at(-1)).hash.slice(1)).get('token');
+const digest = token => createHmac('sha256', require('../lib/auth/email-otp-config.ts').emailOtpKey('code')).update(JSON.stringify(['student-email-otp-v1', account.id, account.email, request.lastRequestedAt.toISOString(), token])).digest('hex');
+const tokenFrom = message => message.text.match(/code is ([0-9]{6})/)[1];
 const persistence = {
-    findVerificationUserId: async value => { lookups++; return request?.tokenDigest === value ? request.userId : undefined; },
     withVerificationAccount: async (userId, work) => {
         const waiting = gate; let release;
         gate = new Promise(resolve => { release = resolve; });
@@ -35,6 +38,7 @@ const persistence = {
                     if (failSave) throw Error('PRIVATE_SAVE');
                     writes++; request = structuredClone(value);
                 },
+                recordFailure: async () => { request.failedAttempts++; },
                 consume: async (value, email) => {
                     assert.equal(request.tokenDigest, value); assert.equal(account.email, email);
                     assert.equal(request.consumedAt, null);
@@ -53,6 +57,13 @@ const persistence = {
 let authUser, authInserts, sessionsCreated, findEmail;
 const mocks = {
     'server-only': {},
+    'node:crypto': { ...crypto, randomInt: (...args) => forcedRandom ?? crypto.randomInt(...args) },
+    'dotenv/config': {},
+    '@/lib/db': { db: {} },
+    './auth-rate-limit.service': { allowAuthAttempt: async () => admission },
+    '@/lib/services/auth-rate-limit.service': { allowAuthAttempt: async () => true, checkAuthAttempt: async () => ({ status: 'allowed' }) },
+    '@/lib/auth/pending-verification': { getPendingVerification: async () => null, createPendingVerification: async value => { session = { ...value, roleId: 3 }; }, deletePendingVerification: async () => {} },
+    './email-verification.action': { requestVerificationAction: async () => ({ success: true }) },
     '@/lib/auth/session': {
         getSession: async () => session,
         createSession: async () => { sessionsCreated++; },
@@ -82,36 +93,45 @@ async function issueToken() {
 async function denied(token) { assert.equal((await confirm(token)).success, false); assert.equal(account?.emailVerifiedAt ?? null, null); }
 
 test('Student verification core (isolated mocks)', async t => {
-    await t.test('32 random bytes, digest-only persistence, exact expiry, safe public results and current email', async () => {
+    await t.test('leading zeros and an immediate random collision preserve distinct resend codes', async () => {
+        reset(); forcedRandom = 7; const first = await issueToken(); assert.equal(first, '000007');
+        advance(60000); const second = await issueToken(); assert.equal(second, '000008');
+        await denied(first); assert.equal((await confirm(second)).success, true);
+    });
+    await t.test('durable limiter denial stops both issuance and confirmation before persistence', async () => {
+        reset(); const code = await issueToken(); const before = structuredClone(request); admission = false;
+        assert.equal((await issue(delivery())).success, false); await denied(code);
+        assert.deepEqual(request, before); assert.equal(messages.length, 1);
+    });
+    await t.test('six digits, HMAC-only persistence, exact expiry, safe public results and current email', async () => {
         reset(); const result = await issue(delivery()); const token = tokenFrom(messages[0]);
-        assert.equal(result.success, true); assert.match(token, /^[a-f0-9]{64}$/);
-        assert.equal(messages[0].to, account.email); assert.notEqual(messages[0].to, session.email);
-        assert.equal(request.tokenDigest, digest(token)); assert.ok(!JSON.stringify(request).includes(token));
-        assert.equal(request.expiresAt.getTime() - request.lastRequestedAt.getTime(), 3600000);
+        assert.equal(result.success, true); assert.match(token, /^[0-9]{6}$/);
+        assert.equal(messages[0].to, account.email); assert.equal(messages[0].to, session.email);
+        assert.equal(request.tokenDigest, digest(token)); assert.notEqual(request.tokenDigest, token);
+        assert.equal(request.expiresAt.getTime() - request.lastRequestedAt.getTime(), 300000);
         assert.equal(request.requestTimes.length, 1); assert.equal(request.consumedAt, null);
         assert.ok(!JSON.stringify(result).includes(token)); assert.ok(!JSON.stringify(result).includes(request.tokenDigest));
         advance(60000); const another = await issueToken(); assert.notEqual(another, token);
     });
     await t.test('valid explicit confirmation consumes once without a session or account mutations beyond timestamp', async () => {
         reset(); const token = await issueToken(); const original = structuredClone(account);
-        session = null; const result = await confirm(token);
+        const result = await confirm(token);
         assert.equal(result.success, true); assert.deepEqual(account, { ...original, emailVerifiedAt: now });
         assert.deepEqual(request.consumedAt, now); assert.equal((await confirm(token)).success, false);
     });
-    await t.test('opening/delivering a link does not consume it', async () => {
+    await t.test('delivering a code does not consume it', async () => {
         reset(); await issueToken(); assert.equal(account.emailVerifiedAt, null); assert.equal(request.consumedAt, null);
     });
-    await t.test('malformed inputs fail before persistence; invalid and tampered digests are rejected', async () => {
-        reset(); const token = await issueToken(); const before = lookups;
-        for (const input of [null, undefined, {}, [], 21, '', 'a'.repeat(63), 'g'.repeat(64), 'a'.repeat(65), ' ' + token, token + '\n', token.toUpperCase()])
-            await denied(input);
-        assert.equal(lookups, before);
-        await denied('0'.repeat(64));
-        await denied((token[0] === 'a' ? 'b' : 'a') + token.slice(1));
+    await t.test('five wrong submissions invalidate the challenge, including malformed codes', async () => {
+        reset(); const token = await issueToken();
+        for (let i = 0; i < 5; i++) await denied('bad');
+        assert.equal(request.failedAttempts, 5); await denied(token);
+        advance(60000); const next = await issueToken();
+        assert.equal(request.failedAttempts, 0); assert.equal((await confirm(next)).success, true);
     });
     await t.test('expiry boundary is exclusive; just-before expiry works', async () => {
-        reset(); const expired = await issueToken(); advance(3600000); await denied(expired);
-        reset(); const valid = await issueToken(); advance(3599999); assert.equal((await confirm(valid)).success, true);
+        reset(); const expired = await issueToken(); advance(300000); await denied(expired);
+        reset(); const valid = await issueToken(); advance(299999); assert.equal((await confirm(valid)).success, true);
     });
     await t.test('resend cooldown, exact 60-second boundary and previous-token invalidation', async () => {
         reset(); const previous = await issueToken(); advance(59999);
@@ -165,8 +185,8 @@ test('Student verification core (isolated mocks)', async t => {
         reset(); await issueToken(); account.emailVerifiedAt = new Date(now);
         assert.equal((await issue(delivery())).success, false);
     });
-    await t.test('changed email invalidates old link; quota persists and resend uses the new email', async () => {
-        reset(); const old = await issueToken(); account.email = 'changed@example.invalid'; await denied(old);
+    await t.test('changed email invalidates old code; revalidated identity can request the new email', async () => {
+        reset(); const old = await issueToken(); account.email = 'changed@example.invalid'; await denied(old); session.email = account.email;
         advance(60000); const fresh = await issueToken(); assert.equal(request.requestTimes.length, 2);
         assert.equal(messages.at(-1).to, account.email); assert.equal((await confirm(fresh)).success, true);
     });
@@ -196,26 +216,28 @@ test('Student verification core (isolated mocks)', async t => {
     await t.test('development delivery refuses production, missing environments and non-loopback links', async () => {
         reset(); const adapter = delivery(); process.env.NODE_ENV = 'production';
         assert.throws(delivery); assert.equal((await issue(adapter)).success, false); assert.equal(writes, 0);
-        await assert.rejects(adapter.sendVerificationLink(account.email, 'synthetic')); assert.equal(messages.length, 0);
+        await assert.rejects(adapter.sendVerificationCode(account.email, 'synthetic')); assert.equal(messages.length, 0);
         delete process.env.NODE_ENV; assert.throws(delivery); process.env.NODE_ENV = 'test';
         for (const url of ['https://example.invalid/verify', 'http://example.invalid/verify', 'file:///verify',
             'http://user:secret@localhost/verify', 'http://localhost/verify?x=1', 'http://localhost/verify#token'])
             assert.throws(() => createDelivery(url, async () => {}));
     });
-    await t.test('Stage 1 registration and real bcrypt password login remain non-blocking and send no verification', async () => {
+    await t.test('registration and password recovery stay pending; existing Students and staff retain login', async () => {
         reset(); const { registerAction, loginAction } = require('../lib/actions/auth.action.ts');
         authInserts = sessionsCreated = 0; findEmail = false;
         const form = new FormData();
         for (const [key, value] of Object.entries({ firstName: 'Synthetic', lastName: 'Student', email: 'NEW@example.invalid',
             password: 'synthetic-test-only-password', confirmPassword: 'synthetic-test-only-password' })) form.set(key, value);
-        await assert.rejects(registerAction({}, form), /REDIRECT \/dashboard/);
+        await assert.rejects(registerAction({}, form), /REDIRECT \/verify-email/);
         assert.equal(authUser.roleId, 3); assert.equal(authUser.emailVerifiedAt, null); assert.equal(authInserts, 1);
-        assert.notEqual(authUser.password, form.get('password')); assert.equal(sessionsCreated, 1);
+        assert.notEqual(authUser.password, form.get('password')); assert.equal(sessionsCreated, 0); assert.equal(authUser.emailVerificationRequired, true);
         findEmail = true;
+        await assert.rejects(loginAction({}, form), /REDIRECT \/verify-email/);
+        authUser.emailVerificationRequired = false;
         for (const roleId of [3, 1, 2]) {
             authUser.roleId = roleId; await assert.rejects(loginAction({}, form), /REDIRECT \/dashboard/);
         }
-        assert.equal(sessionsCreated, 4); assert.equal(messages.length, 0); assert.equal(writes, 0);
+        assert.equal(sessionsCreated, 3); assert.equal(messages.length, 0); assert.equal(writes, 0);
         authUser.isActive = false; assert.equal((await loginAction({}, form)).success, false);
     });
 }).finally(() => {

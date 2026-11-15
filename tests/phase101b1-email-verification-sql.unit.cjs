@@ -17,11 +17,11 @@ const db = drizzle(async (query, params, method) => {
     if (query.includes('from "email_verification_requests"')) {
         if (!query.includes('"requested_email"')) return { rows: [[21]] };
         return { rows: [[21, 'student@example.invalid', 'a'.repeat(64), new Date(time.getTime() + 3600000).toISOString(),
-            null, time.toISOString(), [time.toISOString()]]] };
+            null, time.toISOString(), [time.toISOString()], 0]] };
     }
     if (query.includes('from "users"')) {
         if (verificationMode) return { rows: [[21, 'student@example.invalid', 3, true, null]] };
-        assert.ok(!query.includes('email_verified_at'), 'Legacy SQL must work before migration');
+
         if (!query.includes('first_name')) return { rows: [[1, true]] };
         return { rows: [[21, 'Synthetic', 'Student', 'student@example.invalid', 'synthetic-hash', 3,
             null, true, null, time.toISOString(), time.toISOString()]] };
@@ -46,7 +46,7 @@ const publication = require('../lib/repositories/repository-publication.reposito
 const verification = require('../lib/repositories/email-verification.repository.ts');
 
 test('Verification and Stage 1 SQL contracts (driver double)', async t => {
-    await t.test('existing reads/inserts and managed creation omit the pending user column', async () => {
+    await t.test('credential reads include eligibility; inserts preserve managed defaults', async () => {
         const input = { firstName: 'Synthetic', lastName: 'Student', email: 'student@example.invalid',
             password: 'synthetic-hash', roleId: 3 };
         await users.findUserByEmail(input.email); await users.findUserById(21); await users.findUsersByRoleId(3);
@@ -55,7 +55,8 @@ test('Verification and Stage 1 SQL contracts (driver double)', async t => {
         await publication.withPublicationContext(21, 10, async () => {});
         const inserts = queries.filter(item => item.query.startsWith('insert into "users"'));
         assert.equal(inserts.length, 2);
-        for (const item of queries) assert.ok(!item.query.includes('email_verified_at'));
+        assert.ok(queries.some(item => item.query.includes('email_verified_at')));
+        assert.ok(inserts.every(item => item.query.includes('email_verification_required')));
         assert.ok(inserts.every(item => item.params.includes('synthetic-hash') && !item.query.includes('synthetic-hash')));
         assert.ok(inserts.every(item => item.query.includes('default')));
         queries.length = 0;
@@ -75,12 +76,12 @@ test('Verification and Stage 1 SQL contracts (driver double)', async t => {
         assert.ok(upsert.params.some(value => Array.isArray(value) || typeof value === 'string' && value.includes('2026')));
         assert.equal(transactions.at(-1), 'commit'); queries.length = 0;
     });
-    await t.test('digest lookup is parameterized and consumption updates both rows in the same transaction', async () => {
-        assert.equal(await verification.findVerificationUserId('a'.repeat(64)), 21);
-        assert.ok(!queries[0].query.includes('a'.repeat(64))); queries.length = 0;
+    await t.test('consumption is parameterized and updates both rows in the same transaction', async () => {
+
         await verification.withVerificationAccount(21, store => store.consume('a'.repeat(64), 'student@example.invalid'));
         const mutations = queries.filter(item => item.query.startsWith('update '));
         assert.equal(mutations.length, 2);
+        assert.match(mutations[0].query, /"failed_attempts" < \$/);
         assert.match(mutations[0].query, /"consumed_at" is null/);
         assert.match(mutations[0].query, /"expires_at" > \$/);
         assert.match(mutations[1].query, /"email_verified_at" is null/);
@@ -89,6 +90,12 @@ test('Verification and Stage 1 SQL contracts (driver double)', async t => {
         assert.match(mutations[1].query, /"role_id" = \$/);
         assert.ok(mutations[1].params.includes(3));
         assert.equal(transactions.at(-1), 'commit'); queries.length = 0;
+    });
+    await t.test('wrong attempts increment atomically and stop at five', async () => {
+        await verification.withVerificationAccount(21, store => store.recordFailure('b'.repeat(64)));
+        const mutation = queries.find(item => item.query.startsWith('update \"email_verification_requests\"'));
+        assert.match(mutation.query, /failed_attempts.*\+ 1/); assert.match(mutation.query, /failed_attempts.*< \$/);
+        assert.ok(!mutation.query.includes('b'.repeat(64))); queries.length = 0;
     });
     await t.test('failed account update throws out of the transaction callback for rollback', async () => {
         missingAccountUpdate = true;

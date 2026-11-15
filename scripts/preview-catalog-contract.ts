@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 
 const checks: Record<string, string> = {
+    email_verification_attempts_check: "CHECK (((failed_attempts >= 0) AND (failed_attempts <= 5)))",
     revision_items_correction_check: "CHECK ((((char_length(correction) >= 1) AND (char_length(correction) <= 2000)) AND (correction ~ '[^[:space:]]'::text)))",
     revision_items_position_check: "CHECK (((\"position\" >= 0) AND (\"position\" <= 29)))",
     revision_responses_action_check: "CHECK ((char_length(action_taken) <= 2000))",

@@ -1,50 +1,23 @@
 "use server";
 
-import { headers } from "next/headers";
-import { getSession } from "@/lib/auth/session";
-import { allowVerificationEndpoint } from "@/lib/auth/verification-endpoint-limit";
+import { emailOtpDeliveryMode } from "@/lib/auth/email-otp-config";
 import { createMailpitVerificationDelivery } from "@/lib/email/mailpit-delivery";
-import { requestStudentEmailVerification, confirmStudentEmailVerification } from "@/lib/services/email-verification.service";
-import { getCurrentStudentVerificationStatus } from "@/lib/services/email-verification-status.service";
-import { verificationUserIdSchema } from "@/lib/validations/email-verification";
-import type { ServiceResult } from "@/types/auth";
-import { allowAuthAttempt } from "@/lib/services/auth-rate-limit.service";
-import { AUTH_RETRY_MESSAGE } from "@/lib/auth/auth-rate-limit-config";
+import { createGmailVerificationDelivery } from "@/lib/email/gmail-delivery";
+import { requestStudentEmailVerification, confirmStudentEmailVerification, type VerificationResult } from "@/lib/services/email-verification.service";
 
-const unavailable = (): ServiceResult => ({ success: false, message: "Email verification is unavailable. Wait a minute and try again, or return later." });
-async function localRequest() {
-    if (process.env.NODE_ENV !== "development" || process.env.THESISHS_LOCAL_MAILPIT !== "enabled") return false;
-    try {
-        const origin = new URL(process.env.THESISHS_VERIFICATION_ORIGIN ?? "");
-        if (origin.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(origin.hostname) ||
-            origin.username || origin.password || origin.search || origin.hash || origin.pathname !== "/") return false;
-        const requestHeaders = await headers();
-        return requestHeaders.get("origin") === origin.origin && requestHeaders.get("host") === origin.host;
-    } catch { return false; }
-}
-
-export async function requestVerificationAction(_previous: ServiceResult, _formData: FormData): Promise<ServiceResult> {
+export async function requestVerificationAction(_previous: VerificationResult, _formData: FormData): Promise<VerificationResult> {
     void _previous; void _formData;
     try {
-        if (!await localRequest()) return unavailable();
-        const session = await getSession();
-        const id = verificationUserIdSchema.safeParse(session?.userId);
-        if (!allowVerificationEndpoint("request", id.success ? id.data : undefined)) return unavailable();
-        if (!await allowAuthAttempt("verificationRequest", id.success ? String(id.data) : "anonymous"))
-            return { success: false, message: AUTH_RETRY_MESSAGE };
-        const status = await getCurrentStudentVerificationStatus();
-        if (!status) return unavailable();
-        if (status.verified) return { success: true, message: "Your email is already verified." };
-        return await requestStudentEmailVerification(createMailpitVerificationDelivery());
-    } catch { return unavailable(); }
+        const mode = emailOtpDeliveryMode();
+        if (!mode) return { success: false, message: "Email delivery is currently unavailable. Your account is saved. Sign in again to resume verification later." };
+        return await requestStudentEmailVerification(mode === "mailpit" ? createMailpitVerificationDelivery() : createGmailVerificationDelivery());
+    } catch { return { success: false, message: "Email delivery is unavailable. Sign in again to resume verification later." }; }
 }
 
-export async function confirmVerificationAction(_previous: ServiceResult, formData: FormData): Promise<ServiceResult> {
+export async function confirmVerificationAction(_previous: VerificationResult, formData: FormData): Promise<VerificationResult> {
     void _previous;
-    try {
-        if (!await localRequest() || !allowVerificationEndpoint("confirm")) return unavailable();
-        if (!await allowAuthAttempt("verificationConfirm")) return { success: false, message: AUTH_RETRY_MESSAGE };
-        // The core validates length/format before database lookup; no identity comes from this form.
-        return await confirmStudentEmailVerification(formData.get("token"));
-    } catch { return unavailable(); }
+    const result = await confirmStudentEmailVerification(formData.get("code"));
+    // Keep the restricted identity until password login so refresh can show success.
+    // It grants no dashboard access, and verified/consumed challenges cannot be reused.
+    return result;
 }

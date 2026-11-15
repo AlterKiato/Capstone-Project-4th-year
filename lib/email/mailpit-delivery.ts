@@ -1,9 +1,9 @@
 import "server-only";
 import nodemailer from "nodemailer";
-import { createDevelopmentVerificationDelivery, type VerificationDelivery } from "./verification-delivery";
+import { createDevelopmentVerificationDelivery, type VerificationCodeDelivery } from "./verification-delivery";
 
 /** Opt-in local capture only. No generic SMTP URL, auth, external host or fallback. */
-export function createMailpitVerificationDelivery(): VerificationDelivery {
+export function createMailpitVerificationDelivery(): VerificationCodeDelivery {
     const assertAvailable = () => {
         if (process.env.NODE_ENV !== "development" || process.env.THESISHS_LOCAL_MAILPIT !== "enabled")
             throw new Error("Local verification delivery is unavailable.");
@@ -25,5 +25,5 @@ export function createMailpitVerificationDelivery(): VerificationDelivery {
             throw new Error("Local delivery requires a synthetic recipient.");
         await smtp.sendMail({ from: "ThesiSHS AI <verification@thesishs.invalid>", ...message });
     });
-    return { assertAvailable, sendVerificationLink: (email, token) => delivery.sendVerificationLink(email, token) };
+    return { assertAvailable, sendVerificationCode: (email, code) => delivery.sendVerificationCode(email, code) };
 }

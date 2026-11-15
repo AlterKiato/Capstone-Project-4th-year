@@ -1,33 +1,11 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
-import { getCurrentStudentVerificationStatus } from "@/lib/services/email-verification-status.service";
-import VerificationRequestForm from "@/components/auth/verification-request-form";
 
-export const metadata: Metadata = { title: "Email verification | ThesiSHS AI", referrer: "no-referrer", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
+/** Existing Students use the same OTP interface through their current session. */
 export default async function VerificationStatusPage() {
     await requireRole([ROLE_IDS.STUDENT]);
-    const status = await getCurrentStudentVerificationStatus();
-    if (!status) return <main className="dashboard-page"><h1>Email verification unavailable</h1><p role="alert">Your account access could not be verified. Sign out and sign in again.</p></main>;
-    const enabled = process.env.NODE_ENV === "development" && process.env.THESISHS_LOCAL_MAILPIT === "enabled";
-    return <main className="dashboard-page">
-        <h1>Email verification</h1>
-        <p className="dashboard-context">Verification is optional during this stage. Your research workspace remains available.</p>
-        <section className="dashboard-panel" aria-labelledby="verification-heading">
-            <h2 id="verification-heading">{status.verified ? "Email verified" : "Email not verified"}</h2>
-            <p className="verification-email">{status.email}</p>
-            {status.verified ? <p>Your email ownership has been confirmed.</p> : <>
-                <p>Links expire after 60 minutes. Wait at least 60 seconds between requests. You can request up to five emails per rolling hour.</p>
-                <p>Only the newest link works. A successful request means accepted for delivery, not confirmed receipt.</p>
-                {enabled
-                    ? <p role="status">This local test environment captures verification emails in Mailpit. No real email is sent. Open the captured message to confirm your email.</p>
-                    : <p role="status">Email delivery is currently unavailable. Delivery is supported only in local testing with Mailpit; hosted email delivery is not enabled. You can continue using your account.</p>}
-                <VerificationRequestForm enabled={enabled} />
-            </>}
-        </section>
-        <p><Link href="/dashboard/student">Return to Student dashboard</Link></p>
-    </main>;
+    redirect("/verify-email");
 }

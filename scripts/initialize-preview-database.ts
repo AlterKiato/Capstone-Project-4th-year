@@ -12,6 +12,8 @@ import { SUPERVISION_TABLES, SUPERVISION_SEQUENCE, readSupervisionBackup, grantS
 import { verifyProgressRuntime } from "./preview-progress";
 import { revisionMigrationSource, verifyRevisionLedger, recognizeRevisionLedger } from "./preview-migration-source";
 import { REVISION_TABLES, verifyRevisionRuntime } from "./preview-revisions";
+import { emailOtpMigrationSource, verifyEmailOtpLedger, recognizeEmailOtpLedger } from "./preview-migration-source";
+import { verifyEmailOtpRuntime, isOtpAddedColumn, isOtpAddedConstraint } from "./preview-email-otp";
 
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const refused = () => new Error("Preview initialization prerequisites not satisfied.");
@@ -24,16 +26,18 @@ export function verifyPreviewUpgradeTarget(config: DatabaseConfiguration) {
         pin.operatorRole !== "thesishs_preview_operator") throw refused();
 }
 
-export async function applyPreviewMigrations(tx: postgres.TransactionSql, options: postgres.Sql["options"], workspace: boolean | "0017" | "0018" | "0019" = false) {
-    if (![false, true, "0017", "0018", "0019"].includes(workspace)) throw refused();
+export async function applyPreviewMigrations(tx: postgres.TransactionSql, options: postgres.Sql["options"], workspace: boolean | "0017" | "0018" | "0019" | "0020" = false) {
+    if (![false, true, "0017", "0018", "0019", "0020"].includes(workspace)) throw refused();
     const supervision = workspace === "0017";
     const progress = workspace === "0018";
     const revision = workspace === "0019";
-    const source = revision ? revisionMigrationSource() : progress ? progressMigrationSource() : supervision ? supervisionMigrationSource() : workspace ? workspaceMigrationSource() : previewMigrationSource();
+    const otp = workspace === "0020";
+    const source = otp ? emailOtpMigrationSource() : revision ? revisionMigrationSource() : progress ? progressMigrationSource() : supervision ? supervisionMigrationSource() : workspace ? workspaceMigrationSource() : previewMigrationSource();
     if (workspace) {
         const ledger = await tx`select id,hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id`;
         const rows = ledger.map(r => ({ id: r.id, hash: r.hash, created_at: r.created_at }));
-        if (revision) verifyRevisionLedger(rows, 19);
+        if (otp) verifyEmailOtpLedger(rows, 20);
+        else if (revision) verifyRevisionLedger(rows, 19);
         else if (progress) verifyProgressLedger(rows, 18);
         else if (supervision) verifySupervisionLedger(rows, 17);
         else verifyWorkspaceLedger(rows, 16);
@@ -51,7 +55,7 @@ export async function applyPreviewMigrations(tx: postgres.TransactionSql, option
     // Installed dialect declarations use a schema-less session default. Preserve the
     // same actual postgres-js session; only adapt that generic type at this boundary.
     const session = database._.session as unknown as Parameters<PgDialect["migrate"]>[1];
-    await new PgDialect().migrate(revision ? source.migrations.slice(19) : progress ? source.migrations.slice(18) : supervision ? source.migrations.slice(17) : workspace ? source.migrations.slice(16) : source.migrations, session, { migrationsFolder: "db/migrations" });
+    await new PgDialect().migrate(otp ? source.migrations.slice(20) : revision ? source.migrations.slice(19) : progress ? source.migrations.slice(18) : supervision ? source.migrations.slice(17) : workspace ? source.migrations.slice(16) : source.migrations, session, { migrationsFolder: "db/migrations" });
 }
 
 const workspaceTables = new Set(["group_tasks", "task_notes"]);
@@ -116,14 +120,15 @@ export async function grantWorkspaceRuntime(tx: postgres.TransactionSql) {
     await verifyWorkspaceRuntime(tx as unknown as postgres.Sql, true);
 }
 
-export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseConfiguration, upgrade: boolean | "0016" | "0017" | "0018" | "0019" = false): Promise<PreviewState> {
+export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseConfiguration, upgrade: boolean | "0016" | "0017" | "0018" | "0019" | "0020" = false): Promise<PreviewState> {
     const workspace = upgrade === "0016";
     const supervision = upgrade === "0017";
     const progress = upgrade === "0018";
     const revision = upgrade === "0019";
-    const bounded = workspace || supervision || progress || revision;
-    const newTables = revision ? new Set(REVISION_TABLES) : progress ? new Set(["research_milestones"]) : supervision ? SUPERVISION_TABLES : workspaceTables;
-    const newSequences = revision ? new Set(REVISION_TABLES.map(name => `${name}_id_seq`)) : progress ? new Set(["research_milestones_id_seq"]) : supervision ? new Set([SUPERVISION_SEQUENCE]) : workspaceSequences;
+    const otp = upgrade === "0020";
+    const bounded = workspace || supervision || progress || revision || otp;
+    const newTables = otp ? new Set<string>() : revision ? new Set(REVISION_TABLES) : progress ? new Set(["research_milestones"]) : supervision ? SUPERVISION_TABLES : workspaceTables;
+    const newSequences = otp ? new Set<string>() : revision ? new Set(REVISION_TABLES.map(name => `${name}_id_seq`)) : progress ? new Set(["research_milestones_id_seq"]) : supervision ? new Set([SUPERVISION_SEQUENCE]) : workspaceSequences;
     if (upgrade) verifyPreviewUpgradeTarget(config);
     const identity = await verifyDatabaseIdentity(sql as unknown as IdentitySql, config);
     const target = digest({ environment: config.environment, approved: config.identity, identity });
@@ -131,7 +136,7 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
         has_database_privilege(current_user,current_database(),'TEMP') as temporary,
         (has_database_privilege(current_user,current_database(),'CREATE') or
             case when to_regnamespace('drizzle') is null then false else has_schema_privilege(current_user,'drizzle','CREATE') end) as create_ledger`;
-    if (!permissions.create_public || !permissions.create_ledger || !supervision && !progress && !revision && !permissions.temporary) throw refused();
+    if (!permissions.create_public || !permissions.create_ledger || !supervision && !progress && !revision && !otp && !permissions.temporary) throw refused();
     const relations = await sql`select c.relname,c.relkind,c.relowner::text,c.relacl::text from pg_class c join pg_namespace n on n.oid=c.relnamespace
         where n.nspname='public' and not exists(select 1 from pg_depend d where d.classid='pg_class'::regclass and d.objid=c.oid and d.deptype='e') order by c.relname`;
     const routines = await sql`select p.oid::regprocedure::text as name from pg_proc p join pg_namespace n on n.oid=p.pronamespace
@@ -142,13 +147,18 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
     const ledger = existing.ledger ? await sql`select id,hash,created_at::text as created_at from drizzle.__drizzle_migrations order by created_at,id` : [];
     if (bounded) {
         const rows = ledger.map(r => ({ id: r.id, hash: r.hash, created_at: r.created_at }));
-        const { entries } = revision ? recognizeRevisionLedger(rows) : progress ? recognizeProgressLedger(rows) : supervision ? recognizeSupervisionLedger(rows) : recognizeWorkspaceLedger(rows);
-        const snapshot = entries === 20 ? revisionMigrationSource().snapshot : entries === 19 ? progressMigrationSource().snapshot : entries === 18 ? supervisionMigrationSource().snapshot : entries === 17 ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot;
+        const { entries } = otp ? recognizeEmailOtpLedger(rows) : revision ? recognizeRevisionLedger(rows) : progress ? recognizeProgressLedger(rows) : supervision ? recognizeSupervisionLedger(rows) : recognizeWorkspaceLedger(rows);
+        const snapshot = entries === 21 ? emailOtpMigrationSource().snapshot : entries === 20 ? revisionMigrationSource().snapshot : entries === 19 ? progressMigrationSource().snapshot : entries === 18 ? supervisionMigrationSource().snapshot : entries === 17 ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot;
         const expected = snapshotRelations(snapshot);
         if (JSON.stringify(relations.map(r => `${r.relname}:${r.relkind}`).sort()) !== JSON.stringify(expected)) throw refused();
         await verifyWorkspaceRuntime(sql, entries >= 17);
-        if (supervision || progress || revision) await verifySupervisionRuntime(sql, entries >= 18);
-        if (progress || revision) await verifyProgressRuntime(sql, entries >= 19);
+        if (supervision || progress || revision || otp) await verifySupervisionRuntime(sql, entries >= 18);
+        if (progress || revision || otp) await verifyProgressRuntime(sql, entries >= 19);
+        if (otp) {
+            await verifyRevisionRuntime(sql, true);
+            await verifyEmailOtpRuntime(sql, entries === 21);
+            await verifyPreviewCatalog(sql, entries === 21 ? "otp-installed" : "revision-installed");
+        }
         if (revision) {
             await verifyRevisionRuntime(sql, entries === 20);
             await verifyPreviewCatalog(sql, entries === 20 ? "revision-installed" : "progress-installed");
@@ -163,6 +173,7 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
     const constraints = await sql`select c.relname,k.conname,k.contype,k.convalidated,to_jsonb(k)->>'conenforced' as enforced,pg_get_constraintdef(k.oid) as definition
         from pg_constraint k join pg_class c on c.oid=k.conrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' order by c.relname,k.conname`;
     const indexes = await sql`select tablename,indexname,indexdef from pg_indexes where schemaname='public' order by tablename,indexname`;
+    if (otp) verifySupervisionCatalogShape(ledger.length === 21 ? emailOtpMigrationSource().snapshot : revisionMigrationSource().snapshot, columns, constraints);
     if (revision) verifySupervisionCatalogShape(ledger.length === 20 ? revisionMigrationSource().snapshot : progressMigrationSource().snapshot, columns, constraints);
     if (progress) verifySupervisionCatalogShape(ledger.length === 19 ? progressMigrationSource().snapshot : supervisionMigrationSource().snapshot, columns, constraints);
     if (supervision) verifySupervisionCatalogShape(ledger.length === 18 ? supervisionMigrationSource().snapshot : workspaceMigrationSource().snapshot, columns, constraints);
@@ -182,21 +193,22 @@ export async function inspectPreviewState(sql: postgres.Sql, config: DatabaseCon
         if (upgrade && (bounded ? !newTables.has(table.relname) : table.relname !== "push_subscriptions")) {
             // Database-side row fingerprints include password hashes/status and all existing relationships.
             // Only the final digest remains in memory; no private row contents are returned or logged.
+            const omitted = otp && table.relname === "users" ? ["email_verification_required"] : otp && table.relname === "email_verification_requests" ? ["failed_attempts"] : [];
             const [fingerprint] = await sql`select encode(sha256(convert_to(coalesce(string_agg(h,'' order by h),''),'UTF8')),'hex') as hash
-                from (select encode(sha256(convert_to(to_jsonb(t)::text,'UTF8')),'hex') as h from ${sql(`public.${table.relname}`)} as t) as fingerprints`;
+                from (select encode(sha256(convert_to((to_jsonb(t) - ${omitted}::text[])::text,'UTF8')),'hex') as h from ${sql(`public.${table.relname}`)} as t) as fingerprints`;
             fingerprints[table.relname] = fingerprint.hash;
         }
     }
     // Include all old records (including Web Push), old definitions/ACLs and old sequence values.
     // New sequences are separately validated by verifyPreviewSchema; do not compare them to a nonexistent baseline.
-    const baselineRelations = bounded ? new Set(snapshotRelations(revision ? progressMigrationSource().snapshot : progress ? supervisionMigrationSource().snapshot : supervision ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot)) : undefined;
+    const baselineRelations = bounded ? new Set(snapshotRelations(otp ? revisionMigrationSource().snapshot : revision ? progressMigrationSource().snapshot : progress ? supervisionMigrationSource().snapshot : supervision ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot)) : undefined;
     const oldRelations = bounded ? relations.filter(r => baselineRelations!.has(`${r.relname}:${r.relkind}`)) : [];
     const oldRows = (rows: Record<string, unknown>[], key: string) => rows.filter(r => !newTables.has(String(r[key])));
     // 0018's sole old-table addition is this composite UNIQUE and its backing index.
     // Canonical schema verification checks both; exclude only these planned additions
     // from the preservation fingerprint, retaining every old column/constraint/ACL.
     const preservedData = bounded ? digest({ fingerprints, sequences: Object.fromEntries(Object.entries(sequences).filter(([n]) => !newSequences.has(n))),
-        relations: oldRelations, routines, types, columns: oldRows(columns, "table_name"), constraints: oldRows(constraints, "relname").filter(r => !progress || r.conname !== "submissions_id_paper_unique"), indexes: oldRows(indexes, "tablename").filter(r => !progress || r.indexname !== "submissions_id_paper_unique") }) :
+        relations: oldRelations, routines, types, columns: oldRows(columns, "table_name").filter(r => !otp || !isOtpAddedColumn(String(r.table_name), String(r.column_name))), constraints: oldRows(constraints, "relname").filter(r => (!progress || r.conname !== "submissions_id_paper_unique") && (!otp || !isOtpAddedConstraint(String(r.relname), String(r.conname)))), indexes: oldRows(indexes, "tablename").filter(r => !progress || r.indexname !== "submissions_id_paper_unique") }) :
         upgrade ? digest({ fingerprints, sequences }) : undefined;
     return { target, ledger: ledger.map(r => ({ hash: r.hash, created_at: r.created_at })),
         empty: !existing.ledger && !relations.length && !routines.length && !types.length,

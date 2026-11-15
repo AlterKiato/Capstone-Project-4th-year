@@ -13,6 +13,8 @@ import { ROLE_IDS } from "@/lib/auth/roles";
 import { loginSchema, registerSchema } from "@/lib/validations/auth";
 import { allowAuthAttempt, checkAuthAttempt } from "@/lib/services/auth-rate-limit.service";
 import { AUTH_RETRY_MESSAGE } from "@/lib/auth/auth-rate-limit-config";
+import { isStudentVerificationPending } from "@/lib/auth/student-verification";
+import { emailOtpKey } from "@/lib/auth/email-otp-config";
 
 // Public, non-account hash used only to pad missing-account password checks (bcrypt cost 12).
 const DUMMY_PASSWORD_HASH = "$2b$12$f4v6OlKeWPks5KCsTAl7fO25iz/trq.W5J0mj6LKi.ydF0Kq1orOa";
@@ -51,6 +53,9 @@ export async function registerUser(
             };
         }
 
+        // Refuse new registration when secure pending-state signing is unavailable.
+        emailOtpKey("pending-cookie");
+
         // Hash the password before storing it in the database.
         const hashedPassword = await hashPassword(data.password);
 
@@ -61,6 +66,7 @@ export async function registerUser(
             email,
             password: hashedPassword,
             roleId: ROLE_IDS.STUDENT,
+            emailVerificationRequired: true,
         };
 
         // Save the new user to the database.
@@ -88,6 +94,7 @@ export async function registerUser(
 
 export type CredentialOutcome =
     | { status: "authenticated"; user: AuthUser }
+    | { status: "verification_required"; user: AuthUser }
     | { status: "invalid_credentials" }
     | { status: "ineligible_account" }
     | { status: "rate_limited" }
@@ -113,7 +120,7 @@ export async function validateCredentials(
         if (!user.isActive || (requiredRole !== undefined && user.roleId !== requiredRole))
             return { status: "ineligible_account" };
         return {
-            status: "authenticated",
+            status: isStudentVerificationPending(user) ? "verification_required" : "authenticated",
             user: {
                 id: user.id, firstName: user.firstName, lastName: user.lastName,
                 email: user.email, roleId: user.roleId,
@@ -125,11 +132,13 @@ export async function validateCredentials(
 }
 
 /** Existing web contract: keep public messages and all-role login behavior unchanged. */
-export async function loginUser(data: LoginInput): Promise<ServiceResult<AuthUser>> {
+export async function loginUser(data: LoginInput): Promise<ServiceResult<AuthUser> & { verificationRequired?: true }> {
     const result = await validateCredentials(data);
     switch (result.status) {
         case "authenticated":
             return { success: true, message: "Login successful.", data: result.user };
+        case "verification_required":
+            return { success: false, message: "Verify your email to continue.", data: result.user, verificationRequired: true };
         case "invalid_credentials":
         case "ineligible_account":
             return { success: false, message: "Invalid email or password." };

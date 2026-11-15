@@ -141,6 +141,13 @@
       "when": 1794386703891,
       "tag": "0019_lean_revision_management",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794750895587,
+      "tag": "0020_student_email_otp",
+      "breakpoints": true
     }
   ]
 }

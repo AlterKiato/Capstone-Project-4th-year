@@ -1,0 +1,3 @@
+ALTER TABLE "email_verification_requests" ADD COLUMN "failed_attempts" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "email_verification_required" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "email_verification_requests" ADD CONSTRAINT "email_verification_attempts_check" CHECK ("email_verification_requests"."failed_attempts" between 0 and 5);

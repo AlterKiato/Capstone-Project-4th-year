@@ -19,7 +19,7 @@ const directory = [
     profileImage: null, lastLogin: null, createdAt: date, updatedAt: date, password: 'MUST_NOT_PROJECT', tokenDigest: 'MUST_NOT_PROJECT', ...row }));
 const db = {
     query: { users: { findFirst: async options => {
-        assert.equal(options.columns.emailVerifiedAt, false, 'Shared account resolution retains its legacy projection');
+        assert.equal(options.columns, undefined, 'Account resolution now reads verification eligibility');
         return account;
     } } },
     select: columns => {
@@ -36,6 +36,7 @@ const mocks = {
     'server-only': {},
     react: { ...React, useActionState: action => [actionState, action, false] },
     '@/lib/db': { db },
+    '@/lib/services/email-verification.service': { getVerificationIdentity: async () => null },
     '@/lib/auth/session': { getSession: async () => session },
     'next/navigation': { redirect: path => { throw Error(`REDIRECT ${path}`); }, useRouter: () => ({ refresh: forbidden }) },
     '@/lib/repositories/email-verification.repository': { readVerificationAccount: async id => {
@@ -66,7 +67,7 @@ const AdminPage = require('../app/dashboard/admin/users/page.tsx').default;
 const AdminUsers = require('../components/dashboard/admin-users.tsx').default;
 const RequestForm = require('../components/auth/verification-request-form.tsx').default;
 const { getUsers } = require('../lib/services/user.service.ts');
-const markup = async Page => renderToStaticMarkup(await Page());
+const markup = async Page => renderToStaticMarkup(await Page({ searchParams: Promise.resolve({}) }));
 function reset(roleId = 3) {
     process.env.NODE_ENV = 'test'; delete process.env.THESISHS_LOCAL_MAILPIT;
     session = { userId: 21, roleId, email: 'stale@example.invalid' };
@@ -88,7 +89,7 @@ test('Optional verification guidance and read-only Admin directory', async t => 
         assert.match(html, /research workspace remains available/);
         assert.match(html, /href="\/dashboard\/student\/verify-email"/);
         assert.match(html, /when delivery is available/);
-        assert.match(html, /Registration does not send one automatically/);
+        assert.match(html, /six-digit code/);
         assert.match(html, /No Research Group Assigned/);
         assert.doesNotMatch(html, /<form|disabled|verify.*before.*research/i);
     });
@@ -100,40 +101,22 @@ test('Optional verification guidance and read-only Admin directory', async t => 
         assert.match(html, /No Research Group Assigned/);
         assert.doesNotMatch(html, /Email not verified|PRIVATE_STATUS_FAILURE/);
     });
-    await t.test('status page distinguishes unavailable hosted delivery, local capture, and verified state without resend', async () => {
-        reset(); let html = await markup(StatusPage);
-        assert.match(html, /Email not verified/);
-        assert.match(html, /hosted email delivery is not enabled/);
-        assert.match(html, /accepted for delivery, not confirmed receipt/);
-        assert.match(html, /60 seconds/); assert.match(html, /five emails per rolling hour/);
-        assert.match(html, /<button[^>]*disabled=""[^>]*>Request verification email/);
-        process.env.NODE_ENV = 'development'; process.env.THESISHS_LOCAL_MAILPIT = 'enabled';
-        html = await markup(StatusPage);
-        assert.match(html, /captures verification emails in Mailpit/);
-        assert.match(html, /No real email is sent/);
-        assert.doesNotMatch(html, /disabled=""/);
-        verificationAccount.emailVerifiedAt = date;
-        html = await markup(StatusPage);
-        assert.match(html, /Email verified/); assert.match(html, /ownership has been confirmed/);
-        assert.doesNotMatch(html, /<form|Request verification email|Resend verification email/);
+    await t.test('existing Student status route reuses the single OTP interface', async () => {
+        reset(); await assert.rejects(StatusPage(), /REDIRECT \/verify-email/);
     });
     await t.test('request feedback preserves accepted-for-delivery wording and safely renders cooldown failures', () => {
         reset(); actionState = { success: true, message: 'Verification instructions were submitted for delivery. Check your email.' };
         let html = renderToStaticMarkup(React.createElement(RequestForm, { enabled: true }));
-        assert.match(html, /submitted for delivery/); assert.match(html, /Resend verification email/);
+        assert.match(html, /submitted for delivery/); assert.match(html, /Resend code/);
         assert.doesNotMatch(html, /delivered successfully|email has been sent|inbox delivery confirmed/i);
         actionState = { success: false, message: 'Email verification is unavailable. Wait a minute and try again, or return later.' };
         html = renderToStaticMarkup(React.createElement(RequestForm, { enabled: true }));
         assert.match(html, /Wait a minute/); assert.match(html, /role="status" aria-live="polite"/);
     });
-    await t.test('public confirmation retains explicit submission and generic recovery routes without enabling production', async () => {
-        reset(); process.env.NODE_ENV = 'production'; process.env.THESISHS_LOCAL_MAILPIT = 'enabled';
-        const html = await markup(ConfirmPage);
-        assert.match(html, /Opening this page does not verify it/);
-        assert.match(html, /confirmation is currently unavailable/);
-        assert.match(html, /invalid, expired or already used/);
-        assert.match(html, /href="\/login"/); assert.match(html, /href="\/dashboard\/student\/verify-email"/);
-        assert.match(html, /<button[^>]*disabled=""[^>]*>Confirm my email/);
+    await t.test('public confirmation requires a trusted identity and provides password recovery', async () => {
+        reset(); const html = await markup(ConfirmPage);
+        assert.match(html, /Sign in with your email and password to resume/);
+        assert.match(html, /href="\/login"/); assert.doesNotMatch(html, /name="code"/);
     });
     await t.test('actual repository and Admin page project only safe verification labels, separate from activation', async () => {
         reset(1); const tree = await AdminPage();

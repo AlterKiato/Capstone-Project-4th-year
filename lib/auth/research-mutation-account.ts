@@ -2,6 +2,7 @@ import "server-only";
 
 import { getSession } from "@/lib/auth/session";
 import { findUserById } from "@/lib/repositories/user.repository";
+import { isStudentVerificationPending } from "./student-verification";
 
 /** Session identity plus an uncached current account check for research mutations. */
 export async function getActiveResearchActor(expectedRole: 2 | 3, actorId: number) {
@@ -11,5 +12,5 @@ export async function getActiveResearchActor(expectedRole: 2 | 3, actorId: numbe
         session.userId !== actorId) return null;
 
     const account = await findUserById(session.userId);
-    return account?.isActive && account.roleId === expectedRole ? session.userId : null;
+    return account?.isActive && account.roleId === expectedRole && !isStudentVerificationPending(account) ? session.userId : null;
 }

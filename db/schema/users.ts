@@ -19,6 +19,7 @@ export const users = pgTable("users", {
     email: varchar("email", { length: 255 }).notNull().unique(),
 
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    emailVerificationRequired: boolean("email_verification_required").default(false).notNull(),
 
     password: varchar("password", { length: 255 }).notNull(),
 

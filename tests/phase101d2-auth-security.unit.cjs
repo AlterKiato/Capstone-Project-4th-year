@@ -8,8 +8,9 @@ const bcrypt = require('bcrypt');
 const previous = { NODE_ENV: process.env.NODE_ENV, JWT_SECRET: process.env.JWT_SECRET,
     THESISHS_LOCAL_MAILPIT: process.env.THESISHS_LOCAL_MAILPIT, THESISHS_VERIFICATION_ORIGIN: process.env.THESISHS_VERIFICATION_ORIGIN };
 process.env.NODE_ENV = 'test'; process.env.JWT_SECRET = randomBytes(64).toString('hex');
+process.env.THESISHS_EMAIL_OTP_SECRET = 'isolated-security-otp-'.repeat(3);
 let cookie, account, allowed = true, lookupFailure = false, duplicateRace = false, uniqueInsert = false;
-let reads = 0, inserts = 0, comparisons = 0, hashes = 0, protectedReads = 0, deleted = [], issued = 0, confirmed = [];
+let reads = 0, inserts = 0, comparisons = 0, hashes = 0, protectedReads = 0, deleted = [];
 const limitCalls = [], order = [];
 const users = {
     findUserById: async id => { if (lookupFailure) throw Error('private database failure'); return account?.id === id ? account : undefined; },
@@ -49,8 +50,8 @@ const mocks = {
     '@/lib/services/email-verification-status.service': { getCurrentStudentVerificationStatus: async () => ({ verified: false }) },
     '@/lib/email/mailpit-delivery': { createMailpitVerificationDelivery: () => ({}) },
     '@/lib/services/email-verification.service': {
-        requestStudentEmailVerification: async () => { issued++; return { success: true }; },
-        confirmStudentEmailVerification: async token => { confirmed.push(token); return { success: true }; },
+        requestStudentEmailVerification: async () => ({ success: true }),
+        confirmStudentEmailVerification: async () => ({ success: true }),
     },
 };
 Module._load = function(id, ...args) { return Object.hasOwn(mocks, id) ? mocks[id] : original.call(this, id, ...args); };
@@ -61,7 +62,7 @@ const { managedAccountSchema } = require('../lib/validations/user.ts');
 const { registerUser, loginUser } = require('../lib/services/auth.service.ts');
 const notifications = require('../lib/services/notification.service.ts');
 const repository = require('../lib/services/repository.service.ts');
-const verification = require('../lib/actions/email-verification.action.ts');
+
 const input = password => ({ firstName: 'Synthetic', lastName: 'Student', email: 'student@example.invalid', password, confirmPassword: password });
 async function active(roleId = 3) {
     account = { id: 21, roleId, isActive: true, email: 'student@example.invalid' };
@@ -165,22 +166,15 @@ test('Authentication security and authorization (isolated boundaries)', async t 
         assert.equal((await notifications.removeUserNotification(1, 21)).success, true); assert.equal(deleted.at(-1), 1);
         await assert.rejects(requireRole([1]), /REDIRECT \/dashboard/);
     });
-    await t.test('shared verification denial stops issuance and malformed-token lookup; production remains closed', async () => {
-        await active(); process.env.NODE_ENV = 'development'; process.env.THESISHS_LOCAL_MAILPIT = 'enabled';
-        process.env.THESISHS_VERIFICATION_ORIGIN = 'http://127.0.0.1:3031';
-        globalThis.verificationEndpointBuckets.clear(); allowed = false;
-        const form = new FormData(); form.set('token', 'synthetic-malformed');
-        assert.equal((await verification.requestVerificationAction({}, form)).success, false);
-        assert.equal((await verification.confirmVerificationAction({}, form)).success, false);
-        assert.equal(issued, 0); assert.equal(confirmed.length, 0);
-        assert.deepEqual(limitCalls.at(-1), ['verificationConfirm']);
-        allowed = true; assert.equal((await verification.requestVerificationAction({}, form)).success, true);
-        assert.equal((await verification.confirmVerificationAction({}, form)).success, true);
-        assert.deepEqual(confirmed, ['synthetic-malformed']);
-        const before = limitCalls.length; process.env.NODE_ENV = 'production';
-        assert.equal((await verification.requestVerificationAction({}, form)).success, false);
-        assert.equal((await verification.confirmVerificationAction({}, form)).success, false);
-        assert.equal(limitCalls.length, before); assert.equal(issued, 1); assert.equal(confirmed.length, 1);
+    await t.test('pending new Students cannot use valid old JWTs for protected reads or deletes', async () => {
+        await active(); account.emailVerificationRequired = true; account.emailVerifiedAt = null;
+        const before = [protectedReads, deleted.length];
+        await assert.rejects(requireAuth(), /REDIRECT \/login/);
+        for (const operation of readOperations()) await assert.rejects(operation, /REDIRECT \/login/);
+        assert.deepEqual([protectedReads, deleted.length], before);
+        account.emailVerificationRequired = false; assert.equal((await requireAuth()).userId, 21);
+        account.emailVerificationRequired = true; account.emailVerifiedAt = new Date();
+        assert.equal((await requireAuth()).userId, 21);
     });
 }).finally(() => {
     Module._load = original;

@@ -23,7 +23,7 @@ export default async function StudentPage({ searchParams }: { searchParams: Prom
         <DashboardHeader title="Student Dashboard" email={workspace.email} />
         {verification && !verification.verified && <aside className={`research-notice ${styles.verificationNotice}`} aria-label="Optional email verification">
             <p>Email verification is optional. Your research workspace remains available.</p>
-            <p><Link href="/dashboard/student/verify-email">Check email verification</Link> to request a verification email when delivery is available. Registration does not send one automatically.</p>
+            <p><Link href="/dashboard/student/verify-email">Check email verification</Link> to request a six-digit code when delivery is available.</p>
         </aside>}
         {!verification && <p className={`research-notice ${styles.verificationNotice}`} role="status">Email verification status is temporarily unavailable. Your research workspace remains available. <Link href="/dashboard/student/verify-email">Check verification status</Link>.</p>}
         {!groups.length ? <section className="dashboard-panel"><h2>No Research Group Assigned</h2><p>Research group details and adviser feedback will appear after your Adviser assigns you to a group.</p></section> :

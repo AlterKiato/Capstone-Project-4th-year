@@ -25,7 +25,7 @@ export default async function RegisterPage() {
         <main className="auth-page">
             <p className="product-name">ThesiSHS AI</p>
             <h1>Create a Student account</h1>
-            <p className="dashboard-welcome">Register to access your group’s research workspace.</p>
+            <p className="dashboard-welcome">Create your account, then verify your email before signing in to your research workspace.</p>
             <RegisterForm />
             <p className="auth-switch">Already have an account? <Link href="/login">Login</Link></p>
         </main>

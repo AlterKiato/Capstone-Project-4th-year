@@ -11,8 +11,10 @@ export const emailVerificationRequests = pgTable("email_verification_requests", 
     lastRequestedAt: timestamp("last_requested_at", { withTimezone: true }).notNull(),
     // At most five instants suffice for an exact rolling-hour limit; keep across resends.
     requestTimes: timestamp("request_times", { withTimezone: true }).array().notNull(),
+    failedAttempts: integer("failed_attempts").default(0).notNull(),
 }, table => [
     check("email_verification_digest_check", sql`${table.tokenDigest} ~ '^[a-f0-9]{64}$'`),
+    check("email_verification_attempts_check", sql`${table.failedAttempts} between 0 and 5`),
     check("email_verification_times_check", sql`cardinality(${table.requestTimes}) between 1 and 5 and array_position(${table.requestTimes}, null) is null`),
     check("email_verification_expiry_check", sql`${table.expiresAt} > ${table.lastRequestedAt}`),
     check("email_verification_consumption_check", sql`${table.consumedAt} is null or (${table.consumedAt} >= ${table.lastRequestedAt} and ${table.consumedAt} < ${table.expiresAt})`),

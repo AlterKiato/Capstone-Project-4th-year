@@ -14,6 +14,7 @@ export async function POST(request: Request) {
         switch (result.status) {
             case "invalid_credentials": return mobileError("INVALID_CREDENTIALS");
             case "ineligible_account": return mobileError("STUDENT_ACCESS_REQUIRED");
+            case "verification_required": return mobileError("STUDENT_ACCESS_REQUIRED");
             case "rate_limited": return mobileError("AUTH_RATE_LIMITED");
             case "unavailable": return mobileError("AUTH_UNAVAILABLE");
             case "authenticated": {

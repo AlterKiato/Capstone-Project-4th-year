@@ -1,35 +1,25 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState } from "react";
 import { confirmVerificationAction } from "@/lib/actions/email-verification.action";
+import VerificationRequestForm from "./verification-request-form";
+import type { VerificationResult } from "@/lib/services/email-verification.service";
 
-export default function VerificationConfirmationForm({ enabled }: { enabled: boolean }) {
-    const [link, setLink] = useState<{ token: string | null; revision: number }>({ token: null, revision: 0 });
-    const captured = useRef(false);
-    useEffect(() => {
-        const capture = () => {
-            const fragment = window.location.hash;
-            if (!fragment && captured.current) return; // Strict Mode must not erase the captured link.
-            captured.current = true;
-            const values = fragment.length <= 80 ? new URLSearchParams(fragment.slice(1)).getAll("token") : [];
-            window.history.replaceState(null, "", window.location.pathname);
-            setLink(previous => ({ token: values.length === 1 && /^[a-f0-9]{64}$/.test(values[0]) ? values[0] : "", revision: previous.revision + 1 }));
-        };
-        capture();
-        window.addEventListener("hashchange", capture);
-        return () => window.removeEventListener("hashchange", capture);
-    }, []);
-    return <ConfirmationSubmit key={link.revision} token={link.token} enabled={enabled} />;
-}
+const initial: VerificationResult = { success: false, message: "" };
 
-function ConfirmationSubmit({ token, enabled }: { token: string | null; enabled: boolean }) {
-    const [state, action, pending] = useActionState(confirmVerificationAction, { success: false, message: "" });
-    return <form action={action} className="dashboard-form auth-form" aria-busy={pending}>
-        <input type="hidden" name="token" value={state.success ? "" : token ?? ""} />
-        <noscript>Enable JavaScript in this browser to confirm this private link.</noscript>
-        {token === null && <p role="status">Reading your private link...</p>}
-        {token === "" && <p role="status">This link is missing or invalid. Sign in to request a new verification email.</p>}
-        <button type="submit" disabled={!token || !enabled || pending || state.success}>{pending ? "Confirming email..." : "Confirm my email"}</button>
-        <p role="status" aria-live="polite" className={state.message ? state.success ? "verification-message" : "form-message" : undefined}>{state.message}</p>
-    </form>;
+export default function VerificationConfirmationForm({ enabled, resendAt = 0 }: { enabled: boolean; resendAt?: number }) {
+    const [state, action, pending] = useActionState(confirmVerificationAction, initial);
+    return <>
+        <form action={action} className="dashboard-form auth-form" aria-busy={pending}>
+            <label htmlFor="verification-code">Six-digit code</label>
+            <input id="verification-code" name="code" type="text" inputMode="numeric" autoComplete="one-time-code"
+                pattern="[0-9]{6}" minLength={6} maxLength={6} required
+                aria-describedby="verification-code-help verification-code-result" disabled={pending || state.success} />
+            <p id="verification-code-help" className="form-help">Paste the complete code, including any leading zeros. Five incorrect attempts require a new code.</p>
+            <button type="submit" disabled={pending || state.success}>{pending ? "Verifying..." : "Verify email"}</button>
+            <p id="verification-code-result" role="status" aria-live="polite" aria-atomic="true"
+                className={state.message ? state.success ? "verification-message" : "form-message" : undefined}>{state.message}</p>
+        </form>
+        {!state.success && <VerificationRequestForm enabled={enabled} resendAt={resendAt} />}
+    </>;
 }

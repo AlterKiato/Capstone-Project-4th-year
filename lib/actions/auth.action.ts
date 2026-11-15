@@ -9,6 +9,8 @@ import { registerUser, loginUser,} from "@/lib/services/auth.service";
 import { registerSchema, loginSchema,} from "@/lib/validations/auth";
 
 import type { AuthUser, ServiceResult,} from "@/types/auth";
+import { createPendingVerification, deletePendingVerification } from "@/lib/auth/pending-verification";
+import { requestVerificationAction } from "./email-verification.action";
 
 /**
  * Handles registration form submissions.
@@ -17,8 +19,8 @@ import type { AuthUser, ServiceResult,} from "@/types/auth";
  * - Receive the previous form state and submitted form data.
  * - Validate the registration data using Zod.
  * - Register the user through the service layer.
- * - Create a session after successful registration.
- * - Redirect to the dashboard on success.
+ * - Establish restricted verification identity and attempt OTP delivery.
+ * - Redirect to verification without creating a normal session.
  *
  * The user's role is intentionally not received from
  * the client. The service layer securely assigns the
@@ -60,15 +62,11 @@ export async function registerAction(
         return result;
     }
 
-    // Create an authenticated session for the newly registered user.
-    await createSession({
-        userId: result.data.id,
-        email: result.data.email,
-        roleId: result.data.roleId,
-    });
-
-    // Redirect after successful registration.
-    redirect("/dashboard");
+    await deleteSession();
+    await createPendingVerification({ userId: result.data.id, email: result.data.email });
+    // A failed send retains the pending cookie/account and server-side resend quota.
+    const delivery = await requestVerificationAction({ success: false, message: "" }, new FormData());
+    redirect(delivery.success ? "/verify-email" : "/verify-email?delivery=unconfirmed");
 }
 
 /**
@@ -107,6 +105,14 @@ export async function loginAction(
     // Authenticate the user through the authentication service.
     const result = await loginUser(parsed.data);
 
+    if (result.verificationRequired && result.data) {
+        try {
+            await deleteSession();
+            await createPendingVerification({ userId: result.data.id, email: result.data.email });
+        } catch { return { success: false, message: "Unable to resume verification. Please try again later." }; }
+        redirect("/verify-email");
+    }
+
     // Return the error state if authentication fails.
     if (!result.success || !result.data) {
         return result;
@@ -118,6 +124,7 @@ export async function loginAction(
         email: result.data.email,
         roleId: result.data.roleId,
     });
+    await deletePendingVerification();
 
     // Redirect after successful login.
     redirect("/dashboard");
@@ -131,4 +138,5 @@ export async function loginAction(
  */
 export async function logoutAction() {
     await deleteSession();
+    await deletePendingVerification();
 }
