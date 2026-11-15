@@ -6,7 +6,7 @@ import { getCurrentMainAdviser } from "@/lib/auth/main-adviser";
 import { canAccessResearchDemoSubmission } from "@/lib/repositories/adviser-submission.repository";
 import { canAccessResearchDemoAssignment } from "@/lib/repositories/co-adviser.repository";
 import { reserveAIPilotAttempt } from "@/lib/auth/ai-pilot-limits";
-import { getPilotWindowUsage } from "@/lib/repositories/ai-pilot-quota.repository";
+import { getPilotDailyUsage } from "@/lib/repositories/ai-pilot-quota.repository";
 import { createGroqResearchPilotTransport } from "@/lib/ai/groq-research-pilot";
 import { configurationSchema, createGroqRESTTransport } from "@/lib/ai/groq-rest";
 import { getSyntheticPilotPayload } from "@/lib/ai/pilot-fixtures";
@@ -14,10 +14,9 @@ import { bandSchema } from "@/lib/validations/ai-foundation";
 import { developerEvaluationRequestSchema, type DeveloperEvaluationRequest } from "@/lib/validations/developer-ai-evaluation";
 
 const unavailable: { mode: "unavailable"; message: string } = {
-    mode: "unavailable", message: "Developer evaluation unavailable. No generated answer is shown. Demo/static guidance remains separate.",
+    mode: "unavailable", message: "AI evaluation unavailable or request limit reached. No generated answer is shown. No automatic retry; Demo/static guidance remains separate.",
 };
 type Configuration = NonNullable<ReturnType<typeof getDeveloperEvaluationConfiguration>>;
-const windowFor = (config: Configuration) => ({ startsAt: new Date(config.startsAt), endsAt: new Date(config.endsAt) });
 
 async function authorize(request: DeveloperEvaluationRequest, config: Configuration) {
     // Next also enforces same-origin Server Actions. Missing Origin is explicitly denied here.
@@ -26,8 +25,7 @@ async function authorize(request: DeveloperEvaluationRequest, config: Configurat
         (incoming.get("sec-fetch-site") && incoming.get("sec-fetch-site") !== "same-origin")) return null;
     const actor = await getCurrentAccount();
     const expectedRole = request.feature === "admin" ? 1 : 2;
-    const expectedId = request.feature === "admin" ? config.adminUserId : config.adviserUserId;
-    if (!actor || actor.roleId !== expectedRole || actor.userId !== expectedId) return null;
+    if (!actor || actor.roleId !== expectedRole || !config.allowedUserIds.includes(actor.userId)) return null;
     let main = false;
     if (request.feature === "adviser") {
         main = !!await getCurrentMainAdviser(actor.userId);
@@ -43,12 +41,19 @@ export async function getDeveloperEvaluationAvailability(input: unknown) {
         const config = getDeveloperEvaluationConfiguration(), parsed = developerEvaluationRequestSchema.safeParse(input);
         if (!config || !parsed.success) return { available: false } as const;
         const actor = await authorize(parsed.data, config);
-        if (!actor || !configurationSchema.safeParse({ token: process.env.GROQ_API_KEY }).success) return { available: false } as const;
-        const budget = await getPilotWindowUsage(windowFor(config));
+        if (!actor) return { available: false } as const;
+        let budget: Awaited<ReturnType<typeof getPilotDailyUsage>> | null = null;
+        let message: string | null = null;
+        if (!configurationSchema.safeParse({ token: process.env.GROQ_API_KEY }).success)
+            message = "Groq configuration is unavailable. Generate is disabled.";
+        else {
+            try { budget = await getPilotDailyUsage(actor.userId); }
+            catch { message = "Request budget is unavailable. Generate is disabled."; }
+        }
         if (JSON.stringify(config) !== JSON.stringify(getDeveloperEvaluationConfiguration()) ||
             JSON.stringify(actor) !== JSON.stringify(await authorize(parsed.data, config))) return { available: false } as const;
         const syntheticBands = parsed.data.feature === "admin" ? getSyntheticPilotPayload("admin-overview-v1")?.metrics : undefined;
-        return { available: true, budget, syntheticBands } as const;
+        return { available: true, budget, message, syntheticBands } as const;
     } catch { return { available: false } as const; }
 }
 
@@ -65,7 +70,7 @@ export async function runDeveloperEvaluation(input: unknown) {
         const key = configurationSchema.safeParse({ token: process.env.GROQ_API_KEY });
         if (!key.success) return unavailable;
         // Existing PostgreSQL reservation owns the global slot through response delivery.
-        release = await reserveAIPilotAttempt(actor.userId, windowFor(config));
+        release = await reserveAIPilotAttempt(actor.userId);
         if (!release || !await unchanged()) return unavailable;
         const result = request.feature === "adviser"
             ? await createGroqResearchPilotTransport(fetch)({ submissionId: request.submissionId,

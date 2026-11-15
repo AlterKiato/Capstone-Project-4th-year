@@ -43,7 +43,7 @@ export default function DeveloperAIEvaluation(props: Props) {
     }, [feature, submissionId, assignmentId, disabled, refreshRevision]);
 
     async function generate() {
-        if (busy.current || disabled || !availability.available || availability.budget.remaining === 0 ||
+        if (busy.current || disabled || !availability.available || !availability.budget || availability.budget.remaining === 0 ||
             availability.budget.busy || availability.budget.waitSeconds > 0) return;
         const input: DeveloperEvaluationRequest = props.feature === "admin" ? { feature: "admin" } : {
             feature: "adviser", submissionId: props.submissionId,
@@ -57,16 +57,18 @@ export default function DeveloperAIEvaluation(props: Props) {
             if (current !== sequence.current) return;
             setAvailability(next); setResult(next.available ? generated : null);
         } catch {
-            if (current === sequence.current) setResult({ mode: "unavailable", message: "Developer evaluation failed. No generated answer is shown. No automatic retry." });
+            if (current === sequence.current) setResult({ mode: "unavailable", message: "AI evaluation failed. No generated answer is shown. No automatic retry." });
         } finally { busy.current = false; setPending(false); }
     }
 
     if (disabled || !availability.available) return null;
-    const budget = availability.budget, blocked = pending || budget.remaining === 0 || budget.busy || budget.waitSeconds > 0;
+    const budget = availability.budget, blocked = pending || !budget || budget.remaining === 0 || budget.busy || budget.waitSeconds > 0;
     return <details>
-        <summary>Developer Evaluation — Synthetic Data</summary>
-        <p>Real Groq responses using fixed synthetic material only. Separate from Demo/static guidance and the institutional Live pilot. Human review required.</p>
-        <p>{budget.remaining} of 2 shared attempts remain. Cooldown: {budget.waitSeconds} seconds.{budget.busy ? " A request is already in progress." : ""}</p>
+        <summary>AI Evaluation — Synthetic Data</summary>
+        <p>Synthetic data only, sent to external provider Groq. AI explanations may be inaccurate. Do not base academic or administrative decisions solely on this output. Separate from Demo/static guidance and the institutional Live pilot.</p>
+        {budget ? <p>Today (UTC): {budget.accountRemaining}/3 account attempts and {budget.globalRemaining}/10 shared attempts remain.
+            {" "}Cooldown: {budget.waitSeconds} seconds.{budget.busy ? " A request is already in progress." : ""}
+            {budget.remaining === 0 ? " Daily request limit reached." : ""}</p> : <p role="status">{availability.message}</p>}
         {feature === "adviser" ? <>
             <details><summary>Fixed fictional writing input</summary><p style={{ whiteSpace: "pre-wrap" }}>{RESEARCH_DEMO_EXCERPT}</p></details>
             <label>Academic Writing Review question <select value={questionId} disabled={pending}
@@ -78,11 +80,11 @@ export default function DeveloperAIEvaluation(props: Props) {
             </select></label>
         </> : <ul aria-label="Fixed synthetic count bands">{Object.entries(availability.syntheticBands ?? {}).map(([metric, band]) =>
             <li key={metric}>{labels[metric]}: {band}</li>)}</ul>}
-        <div className="surface-actions"><button type="button" disabled={blocked} onClick={() => void generate()}>Generate developer evaluation</button>
+        <div className="surface-actions"><button type="button" disabled={blocked} onClick={() => void generate()}>Generate AI evaluation</button>
             <button type="button" disabled={pending} onClick={() => setRefreshRevision(value => value + 1)}>Refresh availability</button></div>
         <div role="status" aria-live="polite" aria-busy={pending}>
             {pending ? <p>Waiting for Groq…</p> : result?.mode === "generated" ? <>
-                <p>Groq-generated developer evaluation — synthetic data. This is not Demo output.</p>
+                <p>Groq-generated AI evaluation — synthetic data. This is not Demo output.</p>
                 {result.feature === "adviser" ? <dl>{[["Observation", result.answer.observation], ["Explanation", result.answer.explanation],
                     ["Suggested improvement", result.answer.suggestion], ["Limitation", result.answer.limitation]].map(([label, text]) =>
                     <div key={label}><dt>{label}</dt><dd>{text}</dd></div>)}</dl> : <>

@@ -45,20 +45,27 @@ export async function releasePilotAttempt(id: string): Promise<void> {
     });
 }
 
-// Read-only status for the SAME shared durable window; no identities/payloads returned.
-export async function getPilotWindowUsage(window: PilotWindow) {
+// Read-only status for the existing daily reservation policy. No new counters or persistence.
+export async function getPilotDailyUsage(accountId: number) {
+    if (!Number.isSafeInteger(accountId) || accountId <= 0) throw new Error("Quota unavailable");
     const rows = await db.execute(sql`
-        select (select count(*)::int from ai_pilot_attempts
-            where attempted_at >= ${window.startsAt.toISOString()}::timestamptz
-              and attempted_at < ${window.endsAt.toISOString()}::timestamptz) as attempts,
+        with bounds as (select date_trunc('day', clock_timestamp() at time zone 'UTC') at time zone 'UTC' as day_start)
+        select (select count(*)::int from ai_pilot_attempts, bounds
+            where user_id = ${accountId} and attempted_at >= bounds.day_start
+              and attempted_at < bounds.day_start + interval '24 hours') as account_attempts,
+            (select count(*)::int from ai_pilot_attempts, bounds
+            where attempted_at >= bounds.day_start
+              and attempted_at < bounds.day_start + interval '24 hours') as global_attempts,
             exists(select 1 from ai_pilot_attempts where released_at is null) as busy,
             (select greatest(0, ceil(extract(epoch from
                 (max(attempted_at) + interval '120 seconds' - clock_timestamp()))))::int
-             from ai_pilot_attempts where attempted_at >= ${window.startsAt.toISOString()}::timestamptz
-               and attempted_at < ${window.endsAt.toISOString()}::timestamptz) as wait_seconds`);
+             from ai_pilot_attempts where user_id = ${accountId}) as wait_seconds`);
     const row = rows[0];
-    if (!row || !Number.isInteger(row.attempts) || Number(row.attempts) < 0 ||
+    if (!row || !Number.isInteger(row.account_attempts) || Number(row.account_attempts) < 0 ||
+        !Number.isInteger(row.global_attempts) || Number(row.global_attempts) < 0 ||
         typeof row.busy !== "boolean" || !Number.isInteger(row.wait_seconds) || Number(row.wait_seconds) < 0)
         throw new Error("Quota unavailable");
-    return { remaining: Math.max(0, 2 - Number(row.attempts)), busy: row.busy, waitSeconds: Number(row.wait_seconds) };
+    const accountRemaining = Math.max(0, 3 - Number(row.account_attempts)), globalRemaining = Math.max(0, 10 - Number(row.global_attempts));
+    return { remaining: Math.min(accountRemaining, globalRemaining), accountRemaining, globalRemaining,
+        busy: row.busy, waitSeconds: Number(row.wait_seconds) };
 }

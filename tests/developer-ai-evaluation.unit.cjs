@@ -24,15 +24,13 @@ function load(file, mocks = {}, globals = {}) {
     return exports;
 }
 const clone = value => JSON.parse(JSON.stringify(value));
-const target = { projectId: 'prj_SYNTHETIC', commitSha: 'b'.repeat(40), branch: 'feature/development', protectionEvidenceRef: 'SYNTHETIC_ONLY' };
+const origin = 'https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app';
 const instant = Date.parse('2026-11-15T04:00:00Z');
-const manifest = () => ({ target: { ...target }, origin: 'https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app', adminUserId: 10, adviserUserId: 20,
-    startsAt: new Date(instant - 1000).toISOString(), endsAt: new Date(instant + 3600000).toISOString() });
 const environment = () => ({ NODE_ENV: 'production', VERCEL: '1', VERCEL_ENV: 'preview', VERCEL_TARGET_ENV: 'preview',
-    VERCEL_DEPLOYMENT_ID: 'dpl_SYNTHETIC', VERCEL_PROJECT_ID: target.projectId, VERCEL_GIT_COMMIT_REF: target.branch,
-    VERCEL_GIT_COMMIT_SHA: target.commitSha, GROQ_DEVELOPER_EVALUATION_ENABLED: '1',
-    GROQ_DEVELOPER_EVALUATION_JSON: JSON.stringify(manifest()), GROQ_API_KEY: 'SYNTHETIC_NOT_A_CREDENTIAL' });
-const identity = load('lib/ai/groq-research-pilot-config.ts');
+    VERCEL_DEPLOYMENT_ID: 'dpl_SYNTHETIC', VERCEL_PROJECT_ID: 'prj_SYNTHETIC', VERCEL_GIT_COMMIT_REF: 'feature/development',
+    VERCEL_GIT_PROVIDER: 'github', VERCEL_GIT_REPO_OWNER: 'AlterKiato', VERCEL_GIT_REPO_SLUG: 'Capstone-Project-4th-year',
+    VERCEL_BRANCH_URL: origin.slice('https://'.length), VERCEL_GIT_COMMIT_SHA: 'b'.repeat(40),
+    GROQ_DEMO_ENABLED: '1', GROQ_DEMO_ALLOWED_USER_IDS: '10,20', GROQ_API_KEY: 'SYNTHETIC_NOT_A_CREDENTIAL' });
 const rest = load('lib/ai/groq-rest.ts', { '@/lib/ai/groq-key': { loadGroqConfiguration: forbidden },
     '@/lib/ai/groq-provider': { getGroqAvailability: () => ({ enabled: false }) } });
 const research = load('lib/ai/groq-research-pilot.ts', { '@/lib/ai/groq-rest': rest });
@@ -51,11 +49,10 @@ const wire = value => new Response(JSON.stringify({ choices: [{ finish_reason: '
 } }] }), { headers: { 'content-type': 'application/json' } });
 function harness() {
     const state = { env: environment(), now: instant, actor: { userId: 20, roleId: 2 }, active: true, currentRole: 2,
-        main: 20, scope: true, origin: manifest().origin, site: 'same-origin', rows: [], quotaFail: false, releaseFail: false,
+        main: 20, scope: true, origin, site: 'same-origin', rows: [], quotaFail: false, releaseFail: false,
         calls: 0, reserved: 0, usageReads: 0, response: null, afterReserve: null, afterFetch: null };
     class Clock extends Date { static now() { return state.now; } }
-    const config = load('lib/ai/developer-evaluation-config.ts', { '@/lib/ai/groq-research-pilot-config': identity },
-        { process: { env: state.env }, Date: Clock });
+    const config = load('lib/ai/developer-evaluation-config.ts', {}, { process: { env: state.env }, Date: Clock });
     const principal = load('lib/auth/account-principal.ts', { '@/lib/repositories/user.repository': { findUserById: async () =>
         ({ id: state.actor?.userId, roleId: state.currentRole, isActive: state.active }) } });
     const current = load('lib/auth/current-account.ts', { '@/lib/auth/session': { getSession: async () => state.actor },
@@ -65,25 +62,33 @@ function harness() {
     const repository = {
         async reservePilotAttempt(userId, window) {
             state.reserved++;
-            assert.equal(window.startsAt.toISOString(), manifest().startsAt); assert.equal(window.endsAt.toISOString(), manifest().endsAt);
-            if (state.quotaFail || state.rows.some(row => !row.released) || state.rows.length >= 2 ||
-                state.rows.some(row => state.now - row.at < 120000)) return null;
+            assert.equal(window, undefined, 'Reusable daily policy, no two-attempt approval window');
+            const dayStart = Math.floor(state.now / 86400000) * 86400000;
+            const today = state.rows.filter(row => row.at >= dayStart && row.at < dayStart + 86400000);
+            if (state.quotaFail || state.rows.some(row => !row.released) || today.length >= 10 ||
+                today.filter(row => row.userId === userId).length >= 3 ||
+                state.rows.some(row => row.userId === userId && state.now - row.at < 120000)) return null;
             const id = String(state.rows.length + 1); state.rows.push({ id, userId, at: state.now, released: false });
             state.afterReserve?.(); return id;
         },
         async releasePilotAttempt(id) { if (state.releaseFail) throw Error('RELEASE_FAIL'); state.rows.find(row => row.id === id).released = true; },
-        async getPilotWindowUsage() {
+        async getPilotDailyUsage(userId) {
             state.usageReads++; if (state.quotaFail) throw Error('QUOTA_UNAVAILABLE');
-            return { remaining: Math.max(0, 2 - state.rows.length), busy: state.rows.some(row => !row.released),
-                waitSeconds: state.rows.length ? Math.max(0, Math.ceil((120000 - (state.now - state.rows.at(-1).at)) / 1000)) : 0 };
+            const dayStart = Math.floor(state.now / 86400000) * 86400000;
+            const today = state.rows.filter(row => row.at >= dayStart && row.at < dayStart + 86400000);
+            const accountRemaining = Math.max(0, 3 - today.filter(row => row.userId === userId).length);
+            const globalRemaining = Math.max(0, 10 - today.length);
+            const last = state.rows.filter(row => row.userId === userId).at(-1)?.at ?? -Infinity;
+            return { remaining: Math.min(accountRemaining, globalRemaining), accountRemaining, globalRemaining,
+                busy: state.rows.some(row => !row.released), waitSeconds: Math.max(0, Math.ceil((120000 - (state.now - last)) / 1000)) };
         },
     };
     const quota = load('lib/auth/ai-pilot-limits.ts', { '@/lib/repositories/ai-pilot-quota.repository': repository });
     const service = load('lib/services/developer-ai-evaluation.service.ts', {
         'next/headers': { headers: async () => ({ get: key => key === 'origin' ? state.origin : key === 'sec-fetch-site' ? state.site : null }) },
         '@/lib/ai/developer-evaluation-config': config, '@/lib/auth/current-account': current, '@/lib/auth/main-adviser': main,
-        '@/lib/repositories/adviser-submission.repository': { canAccessResearchDemoSubmission: async (id, actor) => state.scope && id === 11 && actor === 20 },
-        '@/lib/repositories/co-adviser.repository': { canAccessResearchDemoAssignment: async (actor, assignment, submission) => state.scope && actor === 20 && assignment === 41 && submission === 11 },
+        '@/lib/repositories/adviser-submission.repository': { canAccessResearchDemoSubmission: async (id, actor) => state.scope && id === 11 && actor === state.main },
+        '@/lib/repositories/co-adviser.repository': { canAccessResearchDemoAssignment: async (actor, assignment, submission) => state.scope && actor === state.actor?.userId && actor !== state.main && assignment === 41 && submission === 11 },
         '@/lib/auth/ai-pilot-limits': quota, '@/lib/repositories/ai-pilot-quota.repository': repository,
         '@/lib/ai/groq-research-pilot': research, '@/lib/ai/groq-rest': rest, '@/lib/ai/pilot-fixtures': fixtures,
     }, { process: { env: state.env }, fetch: async (url, init) => {
@@ -102,26 +107,41 @@ function harness() {
         availability: action.getDeveloperEvaluationAvailabilityAction };
 }
 
-test('only enabled exact protected Preview identity and active bounded window qualify', () => {
+test('only enabled trusted project/repository/branch Preview metadata qualify; no manifest or SHA entry', () => {
     assert.ok(harness().config());
     const changes = [ ['NODE_ENV','development'], ['NODE_ENV','test'], ['VERCEL','0'], ['VERCEL_ENV','production'],
-        ['VERCEL_ENV','development'], ['VERCEL_TARGET_ENV','production'], ['CI','1'], ['VERCEL_PROJECT_ID','prj_OTHER'],
-        ['VERCEL_GIT_COMMIT_REF','main'], ['VERCEL_GIT_COMMIT_SHA','c'.repeat(40)], ['VERCEL_DEPLOYMENT_ID',undefined],
-        ['VERCEL_DEPLOYMENT_ID','spoofed'], ['GROQ_DEVELOPER_EVALUATION_ENABLED','0'], ['GROQ_DEVELOPER_EVALUATION_JSON','{}'] ];
+        ['VERCEL_ENV','development'], ['VERCEL_TARGET_ENV','production'], ['CI','1'], ['VERCEL_PROJECT_ID','spoofed'],
+        ['VERCEL_GIT_COMMIT_REF','main'], ['VERCEL_GIT_COMMIT_SHA','spoofed'], ['VERCEL_DEPLOYMENT_ID',undefined],
+        ['VERCEL_DEPLOYMENT_ID','spoofed'], ['GROQ_DEMO_ENABLED','0'], ['GROQ_DEMO_ENABLED',undefined],
+        ['VERCEL_GIT_PROVIDER','other'], ['VERCEL_GIT_REPO_OWNER','other'], ['VERCEL_GIT_REPO_SLUG','other'],
+        ['VERCEL_BRANCH_URL','other-project-git-feature-development.vercel.app'], ['VERCEL_BRANCH_URL',undefined] ];
     for (const [key,value] of changes) { const h = harness(); h.state.env[key] = value; assert.equal(h.config(), null, key); }
-    for (const field of ['projectId','commitSha','branch','protectionEvidenceRef']) {
-        const h = harness(), config = manifest(); delete config.target[field];
-        h.state.env.GROQ_DEVELOPER_EVALUATION_JSON = JSON.stringify(config); assert.equal(h.config(), null, field);
+    for (const field of ['VERCEL_PROJECT_ID','VERCEL_GIT_COMMIT_SHA','VERCEL_GIT_COMMIT_REF','VERCEL_GIT_PROVIDER','VERCEL_GIT_REPO_OWNER','VERCEL_GIT_REPO_SLUG']) {
+        const h = harness(); delete h.state.env[field]; assert.equal(h.config(), null, field);
     }
-    for (const config of [{ ...manifest(), endsAt: new Date(instant - 1).toISOString() },
-        { ...manifest(), endsAt: new Date(instant + 3 * 3600000).toISOString() }, { ...manifest(), origin: 'http://evaluation.example' },
-        { ...manifest(), adminUserId: 20 }, { ...manifest(), extra: true }]) {
-        const h = harness(); h.state.env.GROQ_DEVELOPER_EVALUATION_JSON = JSON.stringify(config); assert.equal(h.config(), null);
+    const redeployed = harness(); redeployed.state.env.VERCEL_GIT_COMMIT_SHA = 'c'.repeat(40);
+    redeployed.state.env.VERCEL_DEPLOYMENT_ID = 'dpl_NEXT'; assert.ok(redeployed.config());
+    const legacy = harness(); delete legacy.state.env.GROQ_DEMO_ENABLED;
+    legacy.state.env.GROQ_DEVELOPER_EVALUATION_ENABLED = '1'; legacy.state.env.GROQ_DEVELOPER_EVALUATION_JSON = '{}';
+    assert.equal(legacy.config(), null);
+});
+
+test('small CSV allowlist is strict, supports adding evaluators and grants no roles', async () => {
+    for (const value of [undefined,'','0','-1','01','1,','10,10','2147483648','1;prompt','1.2',Array.from({length:17},(_,i)=>i+1).join(',')]) {
+        const h = harness(); h.state.env.GROQ_DEMO_ALLOWED_USER_IDS = value; assert.equal(h.config(), null);
+    }
+    const h = harness(); h.state.env.GROQ_DEMO_ALLOWED_USER_IDS = '10, 20, 21';
+    h.state.actor.userId = 21; h.state.main = 21;
+    assert.equal((await h.run(request)).mode, 'generated');
+    for (const roleId of [3,4]) {
+        const denied = harness(); denied.state.actor.roleId = roleId; denied.state.currentRole = roleId;
+        assert.equal((await denied.run(request)).mode, 'unavailable'); assert.equal((await denied.run(adminRequest)).mode, 'unavailable');
+        assert.equal(denied.state.calls, 0);
     }
 });
 
 test('disabled configuration does not read quota or dispatch; unauthenticated/unlisted/inactive/wrong-role deny', async () => {
-    const changes = [ state => { state.env.GROQ_DEVELOPER_EVALUATION_ENABLED = '0'; }, state => { state.actor = null; },
+    const changes = [ state => { state.env.GROQ_DEMO_ENABLED = '0'; }, state => { state.actor = null; },
         state => { state.actor.userId = 99; }, state => { state.active = false; }, state => { state.currentRole = 3; },
         state => { state.actor.roleId = 1; state.currentRole = 1; } ];
     for (const change of changes) {
@@ -183,10 +203,10 @@ test('invalid generated claims/metrics/bands, malformed content, provider error 
     assert.equal((await error.run(request)).mode, 'unavailable'); assert.equal(error.state.calls, 1);
 });
 
-test('configuration/role/assignment revocation or expiry before dispatch/delivery fails closed and consumes reserved attempt', async () => {
+test('disable/allowlist/role/assignment/identity changes before dispatch/delivery fail closed; reservation counts', async () => {
     for (const stage of ['afterReserve','afterFetch']) {
-        for (const change of [state => { state.env.GROQ_DEVELOPER_EVALUATION_ENABLED = '0'; },
-            state => { state.currentRole = 3; }, state => { state.scope = false; }, state => { state.now += 7200000; }]) {
+        for (const change of [state => { state.env.GROQ_DEMO_ENABLED = '0'; }, state => { state.env.GROQ_DEMO_ALLOWED_USER_IDS = '10'; },
+            state => { state.currentRole = 3; }, state => { state.scope = false; }, state => { state.env.VERCEL_DEPLOYMENT_ID = 'dpl_CHANGED'; }]) {
             const h = harness(); h.state[stage] = () => change(h.state);
             assert.equal((await h.run(request)).mode, 'unavailable'); assert.equal(h.state.rows.length, 1);
             assert.equal(h.state.calls, stage === 'afterFetch' ? 1 : 0); assert.equal(h.state.rows[0].released, true);
@@ -194,43 +214,58 @@ test('configuration/role/assignment revocation or expiry before dispatch/deliver
     }
 });
 
-test('service preserves shared window/cooldown/slot, failures count and no credential/quota outage can dispatch', async () => {
+test('reusable daily budget allows more than two attempts, counts failures and preserves account cooldown', async () => {
     const h = harness(); h.state.response = () => new Response('', { status: 503 });
     await h.run(request); assert.equal(h.state.rows.length, 1);
+    assert.equal((await h.run(request)).mode, 'unavailable'); assert.equal(h.state.calls, 1);
     h.state.actor = { userId: 10, roleId: 1 }; h.state.currentRole = 1;
-    assert.equal((await h.run(adminRequest)).mode, 'unavailable'); assert.equal(h.state.calls, 1);
-    h.state.now += 120000; await h.run(adminRequest); assert.equal(h.state.rows.length, 2);
-    h.state.now += 120000; await h.run(adminRequest); assert.equal(h.state.calls, 2);
+    await h.run(adminRequest); assert.equal(h.state.calls, 2, 'A different account has its own cooldown');
+    h.state.now += 120000; await h.run(adminRequest); assert.equal(h.state.calls, 3);
+    h.state.now += 120000; await h.run(adminRequest); assert.equal(h.state.calls, 4);
+    h.state.now += 120000; await h.run(adminRequest); assert.equal(h.state.calls, 4, 'Account daily ceiling is three');
     assert.equal((await h.availability(adminRequest)).budget.remaining, 0);
+    h.state.now += 86400000; await h.run(adminRequest); assert.equal(h.state.calls, 5, 'UTC daily reset; ledger history retained');
+});
+
+test('global daily cap, quota outages, missing key, and global concurrent slot fail closed', async () => {
+    const full = harness(); full.state.rows = Array.from({length:9},(_,i)=>({ id:String(i), userId:99, at:instant-1000, released:true }));
+    await full.run(request); full.state.now += 120000; await full.run(request);
+    assert.equal(full.state.calls, 1); assert.equal((await full.availability(request)).budget.globalRemaining, 0);
     const failed = harness(); failed.state.quotaFail = true;
-    assert.equal((await failed.availability(request)).available, false); await failed.run(request); assert.equal(failed.state.calls, 0);
-    const key = harness(); key.state.env.GROQ_API_KEY = undefined; await key.run(request); assert.equal(key.state.reserved, 0);
+    const availability = await failed.availability(request);
+    assert.equal(availability.available, true); assert.equal(availability.budget, null); assert.match(availability.message, /budget is unavailable/);
+    await failed.run(request); assert.equal(failed.state.calls, 0);
+    const key = harness(); key.state.env.GROQ_API_KEY = undefined;
+    const missing = await key.availability(request); assert.equal(missing.available, true); assert.equal(missing.budget, null);
+    await key.run(request); assert.equal(key.state.reserved, 0);
     const held = harness(); let resolve;
     held.state.response = () => new Promise(done => { resolve = () => done(wire(writing)); });
     const first = held.run(request);
     while (!resolve) await new Promise(done => setTimeout(done, 0));
-    held.state.now += 120000; assert.equal((await held.run(request)).mode, 'unavailable'); assert.equal(held.state.calls, 1);
+    held.state.actor = {userId:10,roleId:1}; held.state.currentRole=1;
+    assert.equal((await held.run(adminRequest)).mode, 'unavailable'); assert.equal(held.state.calls, 1);
+    held.state.actor = {userId:20,roleId:2}; held.state.currentRole=2;
     resolve(); await first;
 });
 
 test('durable quota status uses bounded parameterized SQL, exposes only counters, and rejects invalid rows', async () => {
     const { PgDialect } = require('drizzle-orm/pg-core'); const dialect = new PgDialect();
-    let row = { attempts: 1, busy: false, wait_seconds: 34 };
+    let row = { account_attempts: 1, global_attempts: 5, busy: false, wait_seconds: 34 };
     const repo = load('lib/repositories/ai-pilot-quota.repository.ts', { '@/lib/db': { db: { execute: async query => {
         const compiled = dialect.sqlToQuery(query); assert.ok(!/insert|update|delete/i.test(compiled.sql));
         assert.match(compiled.sql, /released_at is null/); assert.match(compiled.sql, /120 seconds/);
-        assert.deepEqual(compiled.params, [manifest().startsAt, manifest().endsAt, manifest().startsAt, manifest().endsAt]); return [row];
+        assert.match(compiled.sql, /day_start/); assert.match(compiled.sql, /24 hours/); assert.match(compiled.sql, /UTC/);
+        assert.deepEqual(compiled.params, [20,20]); return [row];
     } } } });
-    const window = { startsAt: new Date(manifest().startsAt), endsAt: new Date(manifest().endsAt) };
-    assert.deepEqual(clone(await repo.getPilotWindowUsage(window)), { remaining: 1, busy: false, waitSeconds: 34 });
-    for (const bad of [{ ...row, attempts: '1' }, { ...row, busy: 'false' }, { ...row, wait_seconds: -1 }]) {
-        row = bad; await assert.rejects(repo.getPilotWindowUsage(window));
+    assert.deepEqual(clone(await repo.getPilotDailyUsage(20)), { remaining: 2, accountRemaining: 2, globalRemaining: 5, busy: false, waitSeconds: 34 });
+    for (const bad of [{ ...row, account_attempts: '1' }, { ...row, global_attempts: -1 }, { ...row, busy: 'false' }, { ...row, wait_seconds: -1 }]) {
+        row = bad; await assert.rejects(repo.getPilotDailyUsage(20));
     }
 });
 
 test('minimal UI distinguishes generated output, fixed bands, unavailable and disabled states without persistence', () => {
     const React = require('react'), { renderToStaticMarkup } = require('react-dom/server');
-    function render(result, feature, availability = { available: true, budget: { remaining: 1, busy: false, waitSeconds: 0 },
+    function render(result, feature, availability = { available: true, budget: { remaining: 1, accountRemaining: 1, globalRemaining: 8, busy: false, waitSeconds: 0 },
         syntheticBands: fixtures.getSyntheticPilotPayload('admin-overview-v1').metrics }) {
         const states = [availability, 0, 'primary', result, false]; let index = 0;
         const component = load('components/dashboard/developer-ai-evaluation.tsx', {
@@ -241,9 +276,13 @@ test('minimal UI distinguishes generated output, fixed bands, unavailable and di
     }
     const generated = { mode: 'generated', feature: 'admin', output: { ...admin, explanations: admin.explanations.map(item => ({ ...item,
         band: fixtures.getSyntheticPilotPayload('admin-overview-v1').metrics[item.metricId] })) } };
-    const html = render(generated, 'admin'); assert.match(html, /Developer Evaluation — Synthetic Data/);
+    const html = render(generated, 'admin'); assert.match(html, /AI Evaluation — Synthetic Data/);
     assert.match(html, /Groq-generated/); assert.match(html, /Accounts \(5-9\)/); assert.match(html, /Fixed synthetic count bands/);
     assert.equal(render(null, 'admin', { available: false }), '');
+    const noBudget = render(null, 'admin', {available:true,budget:null,message:'Request budget is unavailable.'});
+    assert.match(noBudget,/AI Evaluation — Synthetic Data/); assert.match(noBudget,/Request budget is unavailable/);
+    assert.match(noBudget,/<button[^>]*disabled=""[^>]*>Generate AI evaluation/);
+    assert.match(html,/sent to external provider Groq/); assert.match(html,/1\/3 account attempts and 8\/10 shared attempts/);
     assert.match(render({ mode: 'unavailable', message: 'Evaluation unavailable.' }, 'adviser'), /Evaluation unavailable/);
     assert.ok(!html.includes('SYNTHETIC_NOT_A_CREDENTIAL'));
 });
