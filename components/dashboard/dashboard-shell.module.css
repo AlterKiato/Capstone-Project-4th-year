@@ -1,5 +1,5 @@
 .shell { --sidebar-width: 0px; --sidebar-gap: 0px; --navigation-safe-left: 0px; --navigation-safe-top: 0px; --navigation-safe-bottom: 0px; --dashboard-layout-profile: browser; --dashboard-content-max-width: 1100px; --bottom-navigation-height: 72px; min-height: 100dvh; padding-left: calc(var(--sidebar-width) + 2 * var(--sidebar-gap)); }
-.sidebar { position: fixed; inset: calc(var(--sidebar-gap) + var(--navigation-safe-top)) auto calc(var(--sidebar-gap) + var(--navigation-safe-bottom)) calc(var(--sidebar-gap) + var(--navigation-safe-left)); z-index: 20; display: none; flex-direction: column; width: var(--sidebar-width); padding: 16px 8px; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); }
+.sidebar { --surface: var(--sidebar-background); --brand: var(--sidebar-accent); --heading: var(--sidebar-text); --focus: var(--sidebar-focus); --border: var(--sidebar-border); --border-strong: var(--sidebar-border); position: fixed; inset: calc(var(--sidebar-gap) + var(--navigation-safe-top)) auto calc(var(--sidebar-gap) + var(--navigation-safe-bottom)) calc(var(--sidebar-gap) + var(--navigation-safe-left)); z-index: 20; display: none; flex-direction: column; width: var(--sidebar-width); padding: 16px 8px; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); color: var(--sidebar-text); }
 .sidebarHeader { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 12px; }
 .brand { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 44px; font-weight: 700; color: var(--brand); }
 .sidebar svg, .navigation svg, .logout svg, .desktopToggle svg { flex: 0 0 22px; }
@@ -16,12 +16,13 @@
 .content > main { width: 100%; max-width: var(--dashboard-content-max-width); margin: auto; padding: 1.25rem 0.75rem; overflow-wrap: anywhere; }
 .content:focus { outline: none; }
 .menuRow { position: sticky; top: 0; z-index: 25; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 6px 12px; border-bottom: 1px solid var(--border); background: var(--surface); }
-.mobileToggle { flex: 0 0 48px; justify-content: center; width: 48px; height: 48px; padding: 12px; border: 0; }
+.mobileToggle { flex: 0 0 48px; justify-content: center; width: 48px; height: 48px; padding: 12px; border: 0; color: var(--brand); }
+.mobileToggle:hover:not(:disabled) { background: var(--surface-hover); color: var(--heading); }
 .menuBrand { color: var(--brand); font-weight: 700; }
 .bottomNavigation { position: fixed; inset: auto var(--removed-body-scroll-bar-size, 0px) 0 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); height: calc(var(--bottom-navigation-height) + env(safe-area-inset-bottom, 0px)); padding: 4px max(4px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border); background: var(--surface); }
-.bottomNavigation a, .bottomNavigation button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; min-height: 48px; padding: 4px 2px; border: 1px solid transparent; border-radius: 6px; color: var(--sidebar-text); background: var(--surface); text-align: center; text-decoration: none; font-size: 0.75rem; line-height: 1.4; font-weight: 600; }
-.bottomNavigation a:hover, .bottomNavigation button:hover { background: var(--sidebar-hover); }
-.bottomNavigation a[aria-current="page"], .bottomNavigation button[data-active] { background: var(--sidebar-active); color: var(--heading); border-top: 3px solid var(--brand); padding-top: 2px; }
+.bottomNavigation a, .bottomNavigation button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 0; min-height: 48px; padding: 4px 2px; border: 1px solid transparent; border-radius: 6px; color: var(--foreground); background: var(--surface); text-align: center; text-decoration: none; font-size: 0.75rem; line-height: 1.4; font-weight: 600; }
+.bottomNavigation a:hover, .bottomNavigation button:hover { background: var(--surface-hover); }
+.bottomNavigation a[aria-current="page"], .bottomNavigation button[data-active] { background: var(--notice); color: var(--heading); border-top: 3px solid var(--brand); padding-top: 2px; }
 .bottomNavigation a:focus-visible, .bottomNavigation button:focus-visible { outline-offset: -3px; }
 .shell[data-navigation-profile="mobile"] { --dashboard-layout-profile: standalone-mobile; padding-bottom: calc(var(--bottom-navigation-height) + env(safe-area-inset-bottom, 0px)); }
 .shell[data-navigation-profile="desktop"] { --dashboard-layout-profile: standalone-desktop; }
