@@ -1,94 +1,138 @@
 .page {
   width: 100%;
   min-height: 100svh;
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  padding: 0 clamp(1rem, 3vw, 3.5rem);
-  font-size: clamp(1rem, 1.05vw, 1.2rem);
+  padding: 0 clamp(1rem, 4vw, 4rem);
   overflow-wrap: anywhere;
 }
 
-.page > main { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; display: flex; flex-direction: column; }
-
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1.5rem;
-  padding: clamp(0.875rem, 1.5vh, 1.25rem) 0;
-  border-bottom: 1px solid var(--border-strong);
-  background: var(--background);
-}
-
-.brand { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--brand); }
-.brand svg { width: 1.625em; height: 1.625em; flex-shrink: 0; }
-.headerActions { display: flex; align-items: center; gap: 1rem; }
-.navigation { display: flex; gap: 0.5rem; }
-.navigation a, .actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0.55rem 1rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; }
-
-.hero { flex: 1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 5rem); align-items: center; padding: clamp(1.5rem, 3.5vh, 3rem) 0; }
-.heroCopy { min-width: 0; }
-.eyebrow { margin-bottom: 1rem; font-size: clamp(0.75rem, 0.85vw, 1rem); font-weight: 650; text-transform: uppercase; color: var(--muted); }
-.hero h1 { max-width: 23ch; font-size: clamp(2rem, 3.7vw, 4.5rem); line-height: 1.15; color: var(--heading); text-wrap: balance; }
-.description { max-width: 52ch; margin-top: 1.25rem; font-size: clamp(1.0625rem, 1.3vw, 1.375rem); color: var(--muted); }
-.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+/* Content flows with the document; neither main nor the footer owns a scroll area. */
+.page > main { width: 100%; }
+.page section[id], .page main[id] { scroll-margin-top: 1.5rem; }
+.skipLink { position: absolute; top: .75rem; left: 1rem; z-index: 40; padding: .6rem 1rem; background: var(--surface); border: 1px solid var(--input-border); border-radius: .5rem; transform: translateY(-160%); }
+.skipLink:focus { transform: none; }
+.header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 1rem 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid var(--border); }
+.brand { display: inline-flex; align-items: center; gap: .65rem; min-width: 0; color: var(--heading); text-decoration: none; }
+.brand:hover { color: var(--heading); }
+/* The supplied SVG is already transparent; let the colored book/check sit directly on the header. */
+.brandSymbol { width: 64px; height: 64px; flex-shrink: 0; padding: 3px; }
+.wordmark { display: block; font-size: clamp(1.25rem, 1.7vw, 1.6rem); font-weight: 750; line-height: 1.25; white-space: nowrap; }
+/* A slightly deeper live-text gold clears large-text contrast on the accepted cream. */
+.wordmark > span { color: #a87d20; }
+:global(:root[data-theme="dark"]) .wordmark > span { color: #d2bf6a; }
+.brandDescription { display: block; margin-top: .2rem; font-size: .75rem; color: var(--muted); }
+.sectionNavigation, .headerActions, .navigation { display: flex; align-items: center; gap: 1.25rem; }
+.sectionNavigation { justify-content: center; flex-wrap: wrap; gap: .25rem 1.25rem; }
+.sectionNavigation a { display: inline-flex; align-items: center; min-height: 44px; font-size: .875rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+.sectionNavigation a:hover { color: var(--action); text-decoration: underline; }
+.headerActions { justify-self: end; gap: .75rem; }
+.navigation a, .actions > a, .closing > a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1rem; border-radius: .5rem; font-weight: 650; text-decoration: none; }
 .primaryAction { background: var(--brand); color: var(--on-action); border: 1px solid var(--brand); }
 .primaryAction:hover { background: var(--heading); color: var(--on-action); }
 .secondaryAction { background: var(--surface); color: var(--brand); border: 1px solid var(--input-border); }
 .secondaryAction:hover { background: var(--surface-hover); color: var(--heading); }
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 6rem); align-items: center; padding: clamp(3rem, 7vw, 7rem) 0; }
+.heroCopy { min-width: 0; }
+.eyebrow { display: flex; align-items: center; gap: .65rem; margin-bottom: .85rem; font-size: .8125rem; font-weight: 700; color: var(--brand); }
+.eyebrow::before { content: ""; width: 1.75rem; height: 2px; flex-shrink: 0; background: var(--brand-gold); }
+.hero h1 { max-width: 17ch; font-size: clamp(2.25rem, 4.1vw, 4.75rem); line-height: 1.12; color: var(--heading); text-wrap: balance; }
+.description { max-width: 49ch; margin-top: 1.5rem; font-size: clamp(1.0625rem, 1.3vw, 1.3rem); color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; margin-top: 1.75rem; }
+.actions .textAction { justify-content: flex-start; padding-left: 0; padding-right: 0; color: var(--action); text-decoration: underline; }
+.accountNote { max-width: 55ch; margin-top: 1rem; font-size: .8125rem; color: var(--muted); }
 
-/* A static figure illustrates the workflow without imitating live controls. */
-.preview { min-width: 0; border: 1px solid var(--border); border-radius: 0.75rem; background: var(--surface); }
-.previewHeader { padding: 1rem clamp(1rem, 1.6vw, 2rem); border-bottom: 1px solid var(--border); color: var(--preview-heading); font-weight: 650; font-size: clamp(0.875rem, 1.1vw, 1.25rem); }
+/* The original static research preview remains illustrative, with no live controls or records. */
+.preview { min-width: 0; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); box-shadow: 0 8px 24px #0f172a08; }
+/* Reuse the licensed library photo behind the preview; only this clipped decorative layer blurs. */
+.preview { --preview-media-veil: rgba(251, 250, 245, .88); position: relative; isolation: isolate; overflow: hidden; }
+.preview::before { content: ""; position: absolute; inset: -12px; z-index: -1; pointer-events: none; background: linear-gradient(var(--preview-media-veil), var(--preview-media-veil)), url("/images/landing/library-study.jpg") center 48% / cover; filter: blur(5px); }
+:global(:root[data-theme="dark"]) .preview { --preview-media-veil: rgba(17, 26, 34, .86); }
+.previewHeader, .preview figcaption { background: var(--surface); }
+.previewHeader { padding: 1rem clamp(1rem, 1.6vw, 2rem); border-bottom: 1px solid var(--border); color: var(--preview-heading); font-weight: 650; font-size: clamp(.875rem, 1.1vw, 1.25rem); }
 .previewBody { display: flex; }
 .previewRail { display: flex; flex: 0 0 clamp(44px, 3.5vw, 64px); flex-direction: column; align-items: center; gap: 1.5rem; padding: 1.5rem 0; border-right: 1px solid var(--border); color: var(--preview-icon); }
 .previewRail svg { width: clamp(18px, 1.3vw, 24px); height: clamp(18px, 1.3vw, 24px); }
 .previewContent { min-width: 0; flex: 1; padding: clamp(1rem, 1.6vw, 2rem); }
 .previewContent h2 { font-size: clamp(1rem, 1.2vw, 1.375rem); font-weight: 650; color: var(--heading); margin-bottom: 1rem; }
-.previewEntry { padding: clamp(0.875rem, 1.2vw, 1.5rem); border: 1px solid var(--border); border-radius: 0.5rem; background: var(--background); font-size: clamp(0.8125rem, 1vw, 1.125rem); color: var(--muted); }
-.previewEntry + .previewEntry { margin-top: 0.75rem; }
-.entryTitle { color: var(--preview-heading); font-weight: 650; margin-bottom: 0.25rem; }
+.previewEntry { padding: clamp(.875rem, 1.2vw, 1.5rem); border: 1px solid var(--border); border-radius: .5rem; background: var(--background); font-size: clamp(.8125rem, 1vw, 1.125rem); color: var(--muted); }
+.previewEntry + .previewEntry { margin-top: .75rem; }
+.entryTitle { color: var(--preview-heading); font-weight: 650; margin-bottom: .25rem; }
 .revisionStatus { color: var(--revision); }
 .feedbackTitle { color: var(--feedback); }
-.preview figcaption { padding: 0.75rem clamp(1rem, 1.6vw, 2rem); border-top: 1px solid var(--border); color: var(--muted); font-size: clamp(0.75rem, 0.85vw, 0.9375rem); }
+.preview figcaption { padding: .75rem clamp(1rem, 1.6vw, 2rem); border-top: 1px solid var(--border); color: var(--muted); font-size: .8125rem; }
 
-/* Separators group the three workflow terms without adding promotional cards. */
-.features { border-top: 1px solid var(--border-strong); padding: 1.25rem 0 1.5rem; }
-.features h2 { margin-bottom: 1rem; font-size: clamp(1.25rem, 1.4vw, 1.625rem); }
-.features dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
-.features dl > div + div { border-left: 1px solid var(--border); padding-left: 1.5rem; }
-.features dt { display: flex; align-items: center; gap: 0.625rem; font-weight: 650; color: var(--brand); }
-.features dt svg { width: 1.375em; height: 1.375em; flex-shrink: 0; }
-.features dd { color: var(--muted); margin-top: 0.5rem; }
-.footer { position: relative; z-index: 10; flex-shrink: 0; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.5rem 1.5rem; border-top: 1px solid var(--border-strong); padding: 0.5rem 0 max(0.5rem, env(safe-area-inset-bottom)); background: var(--background); color: var(--muted); font-size: 0.875rem; }
-.footer h2 { font-size: 1rem; color: var(--brand); margin-bottom: 0.75rem; }
-.footer p + p { margin-top: 0.5rem; }
-.footer nav { justify-self: center; }
-.footer ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1rem; list-style: none; }
-.footer a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 0.25rem; color: var(--brand); }
-.footer a:hover { color: var(--heading); }
-.footerNote { font-size: 0.8125rem; }
-.footerDetails { position: relative; min-width: 0; }
-.footerDetails summary { align-content: center; min-height: 44px; color: var(--brand); font-weight: 600; cursor: pointer; }
-.footerPanel { position: absolute; bottom: calc(100% + 0.75rem); left: 0; width: min(30rem, calc(100vw - 2 * clamp(1rem, 3vw, 3.5rem))); max-height: min(24rem, 50dvh); overflow-y: auto; padding: 1rem; border: 1px solid var(--input-border); border-radius: 0.5rem; background: var(--surface); }
-.footerDetails:last-child .footerPanel { left: auto; right: 0; }
-
-@media (max-width: 900px) {
-  .hero { grid-template-columns: 1fr; gap: 1.5rem; padding: 1.5rem 0; }
-  .features dl { grid-template-columns: 1fr; gap: 1rem; }
-  .features dl > div + div { border-left: 0; border-top: 1px solid var(--border); padding: 1rem 0 0; }
+.sectionIntro { max-width: 44rem; }
+.sectionIntro h2 { font-size: clamp(1.75rem, 2.6vw, 2.75rem); font-weight: 700; line-height: 1.2; text-wrap: balance; }
+.sectionIntro > p:last-child { margin-top: 1rem; color: var(--muted); }
+.features { padding: clamp(2.5rem, 5vw, 5rem) 0; border-top: 1px solid var(--border); }
+.workflowLead { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; min-height: 29rem; padding: 2rem; border-radius: .75rem; overflow: hidden; background: var(--surface); }
+.workflowPhoto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 65%; }
+/* Solid first: browsers without backdrop filtering retain a fully readable editorial panel. */
+.glassPane { position: relative; grid-column: 2; max-width: none; padding: clamp(1.25rem, 2.5vw, 2.5rem); border: 1px solid var(--border-strong); border-radius: .75rem; background: var(--surface); box-shadow: 0 10px 30px #0b11171a; }
+.glassPane > p:last-child { color: var(--foreground); }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glassPane { background: rgba(251, 250, 245, .92); border-color: rgba(255, 255, 255, .75); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+  :global(:root[data-theme="dark"]) .glassPane { background: rgba(17, 26, 34, .9); border-color: rgba(184, 195, 204, .45); }
 }
+.photoCredit { margin-top: .75rem; font-size: .8125rem; color: var(--muted); }
+.photoCredit a { display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 3px; }
+.features dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; margin-top: 2.5rem; }
+.features dl > div + div { padding-left: 2rem; border-left: 1px solid var(--border); }
+.features dt { display: flex; align-items: center; gap: .625rem; font-size: 1.0625rem; font-weight: 700; color: var(--heading); }
+.features dt svg { width: 1.375em; height: 1.375em; flex-shrink: 0; color: var(--brand); }
+.features dd { margin-top: .75rem; color: var(--muted); }
+.roles { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 7rem); padding: clamp(2.5rem, 5vw, 5rem) 0; border-top: 1px solid var(--border); }
+.roleContext { min-width: 0; }
+.rolePhoto { margin-top: 1.75rem; }
+.rolePhoto img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: center 48%; border-radius: .75rem; }
+.roleList > div { padding: 1.5rem 0; border-bottom: 1px solid var(--border); }
+.roleList > div:first-child { padding-top: 0; }
+.roleList dt { font-size: 1.25rem; font-weight: 700; color: var(--heading); }
+.roleList dd { margin-top: .5rem; color: var(--muted); }
+.affiliation { margin: 1rem 0 clamp(3rem, 6vw, 6rem); padding: clamp(1.25rem, 3vw, 3rem); border: 1px solid var(--border); border-radius: .75rem; background: var(--notice); }
+.institution { display: flex; align-items: center; gap: clamp(1.25rem, 3vw, 3rem); }
+.institution > div:last-child { min-width: 0; max-width: 45rem; }
+.institution h2 { font-size: clamp(1.5rem, 2.2vw, 2.25rem); font-weight: 700; line-height: 1.25; }
+.institution p:last-child { color: var(--muted); }
+/* The official transparent seal is unchanged; a neutral backing keeps its original colors readable. */
+.institutionSeal { display: grid; place-items: center; width: 116px; padding: .65rem; flex-shrink: 0; border-radius: .5rem; background: #ffffff; }
+.institutionSeal img { display: block; width: 100%; height: auto; }
+.closing { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem 2rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-strong); }
+.closing h3 { font-size: 1.25rem; font-weight: 700; color: var(--heading); }
+.closing p { margin-top: .5rem; max-width: 59ch; color: var(--muted); }
+.closing > a { flex-shrink: 0; }
+.footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding: 1.5rem 0 max(1.5rem, env(safe-area-inset-bottom)); border-top: 1px solid var(--border); color: var(--muted); font-size: .875rem; }
+.footer strong { color: var(--heading); }
+.footer p span { display: block; }
+.footer ul { display: flex; flex-wrap: wrap; gap: .25rem 1.5rem; list-style: none; }
+.footer a { display: inline-flex; align-items: center; min-height: 44px; }
 
+@media (max-width: 1100px) {
+  .header { grid-template-columns: minmax(0, 1fr) auto; }
+  .sectionNavigation { grid-column: 1 / -1; grid-row: 2; }
+  .headerActions { grid-column: 2; grid-row: 1; }
+}
+@media (max-width: 900px) {
+  .hero, .roles { grid-template-columns: 1fr; }
+  .hero { gap: 2rem; padding: 3rem 0; }
+  .hero h1 { max-width: 21ch; }
+  .preview { max-width: 42rem; width: 100%; }
+  .features dl { grid-template-columns: 1fr; gap: 1.5rem; }
+  .features dl > div + div { padding: 1.5rem 0 0; border-left: 0; border-top: 1px solid var(--border); }
+  .closing { flex-direction: column; align-items: flex-start; }
+  .workflowLead { grid-template-columns: minmax(0, 1fr); align-items: end; min-height: 34rem; padding: 1.5rem; padding-top: 15rem; }
+  .glassPane { grid-column: 1; max-width: 38rem; }
+}
 @media (max-width: 600px) {
-  .header { gap: 0.75rem; padding: 1rem 0; }
-  .headerActions { width: 100%; justify-content: space-between; gap: 0.5rem; }
-  .navigation a { padding: 0.55rem 0.75rem; }
-  .footer { grid-template-columns: 1fr 1fr; gap: 0 0.75rem; font-size: 0.8125rem; }
-  .footer nav { grid-column: 1 / -1; grid-row: 2; }
-  .footerDetails:last-child { justify-self: end; }
+  .header { gap: .5rem 1rem; padding: 1rem 0; }
+  .brandSymbol { width: 52px; height: 52px; }
+  .brandDescription { font-size: .6875rem; }
+  .header { grid-template-columns: minmax(0, 1fr); }
+  .headerActions { grid-column: 1; grid-row: 3; justify-self: stretch; justify-content: space-between; }
+  .sectionNavigation { column-gap: 1rem; }
+  .sectionNavigation a { font-size: .8125rem; }
+  .hero h1 { font-size: clamp(2.25rem, 9vw, 3rem); }
+  .institution { align-items: flex-start; flex-direction: column; }
+  .institutionSeal { width: 88px; }
+  .workflowLead { padding: 1rem; padding-top: 12rem; min-height: 0; }
+  .glassPane { padding: 1.25rem; }
 }

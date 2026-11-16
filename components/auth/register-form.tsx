@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { registerAction } from "@/lib/actions/auth.action";
 
@@ -19,6 +19,8 @@ const initialState: ServiceResult<AuthUser> = {
  * through the registerAction Server Action.
  */
 export default function RegisterForm() {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmationPassword, setShowConfirmationPassword] = useState(false);
     const [state, formAction, isPending] = useActionState(
         registerAction,
         initialState
@@ -78,16 +80,32 @@ export default function RegisterForm() {
                     Password
                 </label>
 
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    minLength={8}
-                    maxLength={100}
-                    aria-describedby="password-help"
-                    required
-                />
+                <div className="auth-password-field">
+                    <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        minLength={8}
+                        maxLength={100}
+                        aria-describedby="password-help"
+                        required
+                    />
+                    <button
+                        type="button"
+                        className="auth-password-toggle"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-controls="password"
+                        title={showPassword ? "Hide password" : "Show password"}
+                        onClick={() => setShowPassword((visible) => !visible)}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                            <circle cx="12" cy="12" r="3" />
+                            {showPassword && <path d="m3 3 18 18" />}
+                        </svg>
+                    </button>
+                </div>
                 <p id="password-help" className="form-help">Use 8–100 characters.</p>
             </div>
 
@@ -96,14 +114,30 @@ export default function RegisterForm() {
                     Confirm Password
                 </label>
 
-                <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    aria-describedby="confirm-help"
-                    required
-                />
+                <div className="auth-password-field">
+                    <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmationPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        aria-describedby="confirm-help"
+                        required
+                    />
+                    <button
+                        type="button"
+                        className="auth-password-toggle"
+                        aria-label={showConfirmationPassword ? "Hide confirmation password" : "Show confirmation password"}
+                        aria-controls="confirmPassword"
+                        title={showConfirmationPassword ? "Hide confirmation password" : "Show confirmation password"}
+                        onClick={() => setShowConfirmationPassword((visible) => !visible)}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+                            <circle cx="12" cy="12" r="3" />
+                            {showConfirmationPassword && <path d="m3 3 18 18" />}
+                        </svg>
+                    </button>
+                </div>
                 <p id="confirm-help" className="form-help">Enter the same password again.</p>
             </div>
 

@@ -11,7 +11,6 @@ export default async function ConfirmEmailPage({ searchParams }: { searchParams:
     const [status, query] = await Promise.all([getStudentOtpStatus(), searchParams]);
     const enabled = emailOtpDeliveryMode() !== null;
     return <main className="auth-page">
-        <p className="product-name">ThesiSHS AI</p>
         <h1>Verify your email</h1>
         {!status ? <p role="status">Sign in with your email and password to resume verification. No new account is needed.</p>
             : status.verified ? <p role="status">Email verified. Continue to login with your password.</p> : <>

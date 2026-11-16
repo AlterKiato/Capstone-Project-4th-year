@@ -1,0 +1,72 @@
+.shell {
+    position: relative;
+    isolation: isolate;
+    min-height: 100svh;
+    padding: 0 clamp(1rem, 4vw, 3rem) 1.5rem;
+    background: var(--background);
+    overflow-wrap: anywhere;
+}
+
+/* Stationary blue/gold planes connect the form to the approved academic identity. */
+.shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(128deg, transparent 58%, color-mix(in srgb, var(--brand) 6%, transparent) 58%, color-mix(in srgb, var(--brand) 6%, transparent) 82%, transparent 82%),
+        linear-gradient(25deg, color-mix(in srgb, var(--brand-gold) 7%, transparent), transparent 48%);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.brand { display: inline-flex; align-items: center; gap: .65rem; min-width: 0; color: var(--heading); text-decoration: none; }
+.brand:hover { color: var(--heading); }
+.brand img { flex-shrink: 0; }
+.wordmark { display: block; font-size: 1.4rem; font-weight: 750; line-height: 1.25; }
+.wordmark > span { color: #946d1b; }
+:global(:root[data-theme="dark"]) .wordmark > span { color: var(--brand-gold); }
+.description { display: block; margin-top: .15rem; font-size: .75rem; color: var(--muted); }
+
+/* Route scope prevents these refinements from reaching dashboards or the landing page. */
+.shell :global(.auth-page) {
+    width: 100%;
+    max-width: 31.5rem;
+    margin: clamp(1.5rem, 5vw, 3rem) auto 1.5rem;
+    padding: clamp(1.25rem, 4vw, 2.25rem);
+    background: var(--surface);
+    box-shadow: 0 8px 28px #0f172a08;
+}
+
+.shell :global(.auth-page) h1 { color: var(--heading); font-weight: 750; font-size: clamp(1.65rem, 4vw, 2rem); }
+.shell :global(.auth-page) > p:not(:global(.auth-switch)) { margin-top: .85rem; }
+.shell :global(.auth-page) > p[role="status"] { padding: .85rem; border: 1px solid var(--border); border-radius: .5rem; background: var(--notice); }
+.shell :global(.auth-form) { margin-top: 1.5rem; }
+.shell :global(.auth-form) > label { margin-bottom: -.65rem; }
+.shell :global(.auth-form) input { min-height: 48px; }
+.shell :global(.auth-form) button[type="submit"] { min-height: 48px; font-weight: 700; }
+.shell :global(.auth-form) button:disabled { opacity: 1; background: var(--surface-hover); border-color: var(--border); color: var(--muted); }
+.shell :global(.auth-form) + :global(.auth-form) { padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); }
+.shell :global(.auth-form) + :global(.auth-form) button[type="submit"] { background: var(--surface); border-color: var(--input-border); color: var(--action); }
+.shell :global(.auth-form) + :global(.auth-form) button[type="submit"]:hover:not(:disabled) { background: var(--surface-hover); color: var(--action-hover); }
+.shell :global(.auth-form) + :global(.auth-form) button:disabled { background: var(--surface-hover); border-color: var(--border); color: var(--muted); }
+.shell :global(.auth-switch) a { display: inline-flex; align-items: center; min-height: 44px; }
+.affiliation { text-align: center; color: var(--muted); font-size: .8125rem; }
+
+@media (max-width: 420px) {
+    .header { gap: .5rem; padding: 1rem 0; }
+    .brand { gap: .4rem; }
+    .brand img { width: 40px; height: 40px; }
+    .wordmark { font-size: 1.2rem; }
+    .description { font-size: .6875rem; }
+}
