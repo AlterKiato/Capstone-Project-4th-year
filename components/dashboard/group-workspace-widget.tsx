@@ -26,7 +26,6 @@ export default function GroupWorkspaceWidget({ project }: { project?: { id: numb
         <div className={common.heading}><h2 id="group-workspace-widget-heading" className="dashboard-label"><NavigationIcon name="workspace" size={18} />Group Workspace</h2>
             <ContextHelp label="About group workspace">Tasks track your group&apos;s work. Done does not mean a research milestone is verified or a manuscript is Approved.</ContextHelp></div>
         {!project ? <p>No active research project.</p> : <div aria-busy={!state}>
-            <h3>{project.title}</h3>
             {!state ? <p role="status">Loading workspace...</p> : state.error ? <><p role="alert">{state.error}</p><button type="button" onClick={() => { setState(null); setAttempt(value => value + 1); }}>Retry workspace</button></> : <>
                 <dl className={styles.taskCounts}>{TASK_STATUSES.map(status => <div key={status}><dt>{status}</dt><dd>{state.counts?.[status]}</dd></div>)}</dl>
                 {state.counts && Object.values(state.counts).every(count => count === 0) && <p className="form-help">No tasks yet.</p>}

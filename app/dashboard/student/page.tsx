@@ -19,6 +19,10 @@ export default async function StudentPage({ searchParams }: { searchParams: Prom
     const selectedProject = resolveResearchTarget(workspace, { project: query.project, submission: undefined, feedback: undefined }).project;
     const latestFeedback = submissions.flatMap(submission => submission.feedback.map(feedback => ({ submission, feedback })))
         .sort((a, b) => Date.parse(b.feedback.createdAt) - Date.parse(a.feedback.createdAt) || b.feedback.id - a.feedback.id)[0];
+    const projectSummaries = projects.map(project => {
+        const history = resolveResearchTarget(workspace, { project: String(project.id), submission: undefined, feedback: undefined }).submissions;
+        return { id: project.id, title: project.title, status: project.status, submissionCount: history.length, latestVersion: history[0]?.version ?? null };
+    });
     return <main className="dashboard-page student-overview">
         <DashboardHeader title="Student Dashboard" email={workspace.email} />
         {verification && !verification.verified && <aside className={`research-notice ${styles.verificationNotice}`} aria-label="Optional email verification">
@@ -27,23 +31,21 @@ export default async function StudentPage({ searchParams }: { searchParams: Prom
         </aside>}
         {!verification && <p className={`research-notice ${styles.verificationNotice}`} role="status">Email verification status is temporarily unavailable. Your research workspace remains available. <Link href="/dashboard/student/verify-email">Check verification status</Link>.</p>}
         {!groups.length ? <section className="dashboard-panel"><h2>No Research Group Assigned</h2><p>Research group details and adviser feedback will appear after your Adviser assigns you to a group.</p></section> :
-            <div className={styles.overview}>
-                <section className="dashboard-panel"><h2 className="dashboard-label"><NavigationIcon name="group" size={18} />Research Group</h2>{groups.map(group => {
-                    const groupProjects = projects.filter(project => project.groupId === group.id);
-                    const latest = submissions.find(submission => groupProjects.some(project => project.id === submission.paperId));
-                    return <div key={group.id}>
-                        <h3>{group.groupName}</h3><p className="dashboard-context">{[group.strand, group.section, group.schoolYear].filter(Boolean).join(" · ")}</p>
-                        <GroupMembers members={group.members} />
-                        <p className="form-help">Latest submission</p><span className={`${styles.badge} academic-status`} data-status={latest?.status}>{latest?.status ?? (groupProjects.length ? "Not yet submitted" : "No research project yet")}</span>
-                        {latest && <p className="form-help">{projects.find(project => project.id === latest.paperId)?.title} · {latest.version}</p>}
-                    </div>;
-                })}</section>
-                <section className="dashboard-panel"><h2 className="dashboard-label"><NavigationIcon name="feedback" size={18} />Latest Feedback</h2>{latestFeedback ? <>
+            <section className={styles.dashboardGroup} aria-label="Research group">{groups.map(group => <div className={styles.dashboardGroupRow} key={group.id}>
+                <div><h2 className="dashboard-label"><NavigationIcon name="group" size={18} />{group.groupName}</h2><p className="form-help">{[group.strand, group.section, group.schoolYear].filter(Boolean).join(" \u00b7 ")}</p></div>
+                <GroupMembers members={group.members} />
+            </div>)}</section>}
+        <StudentProgressWidgets projects={projectSummaries} initialProjectId={selectedProject?.id}>
+            <section className={`dashboard-panel ${styles.dashboardFeedback}`} aria-labelledby="dashboard-feedback-heading">
+                <h2 id="dashboard-feedback-heading" className="dashboard-label"><NavigationIcon name="feedback" size={18} />Latest Feedback</h2>
+                <p className="form-help">Across your submissions</p>
+                {latestFeedback ? <>
                     <div className={styles.excerpt}><FeedbackContent value={latestFeedback.feedback.comments} /></div>
-                    <p className="form-help">{latestFeedback.submission.version} · Reviewed <time dateTime={latestFeedback.feedback.createdAt}>{new Date(latestFeedback.feedback.createdAt).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
+                    <p className={styles.dashboardFeedbackSource}>{projects.find(project => project.id === latestFeedback.submission.paperId)?.title}{" \u00b7 "}{latestFeedback.submission.version}</p>
+                    <p className="form-help">Reviewed <time dateTime={latestFeedback.feedback.createdAt}>{new Date(latestFeedback.feedback.createdAt).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
                     <Link className="context-detail" href={`/dashboard/student/submissions?project=${latestFeedback.submission.paperId}&submission=${latestFeedback.submission.id}&feedback=${latestFeedback.feedback.id}#feedback-${latestFeedback.feedback.id}`}>View Full Feedback</Link>
-                </> : <p>{submissions.some(item => item.feedbackUnavailable) ? "Feedback could not be retrieved. Reload to try again." : "No adviser feedback yet."}</p>}</section>
-            </div>}
-        <StudentProgressWidgets projects={projects} initialProjectId={selectedProject?.id} />
+                </> : <p>{submissions.some(item => item.feedbackUnavailable) ? "Feedback could not be retrieved. Reload to try again." : "No adviser feedback yet."}</p>}
+            </section>
+        </StudentProgressWidgets>
     </main>;
 }

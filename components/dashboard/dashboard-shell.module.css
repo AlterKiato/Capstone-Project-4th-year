@@ -1,4 +1,27 @@
 .shell { --sidebar-width: 0px; --sidebar-gap: 0px; --navigation-safe-left: 0px; --navigation-safe-top: 0px; --navigation-safe-bottom: 0px; --dashboard-layout-profile: browser; --dashboard-content-max-width: 1100px; --bottom-navigation-height: 72px; min-height: 100dvh; padding-left: calc(var(--sidebar-width) + 2 * var(--sidebar-gap)); }
+/* Stationary dashboard-only backdrop: background paint creates no overlay or stacking context. */
+.shell {
+    /* Pale companion pigments allow visible washes without darkening unboxed text. */
+    --dashboard-ambient-blue: rgba(218, 230, 232, .85);
+    --dashboard-ambient-gold: rgba(236, 225, 191, .7);
+    --dashboard-grid: rgba(214, 224, 218, .95);
+    background-color: var(--background);
+    background-image:
+        radial-gradient(circle at 1.5px 1.5px, var(--dashboard-grid) 1px, transparent 1.4px),
+        radial-gradient(ellipse 70% 38rem at 100% 0, var(--dashboard-ambient-blue), transparent 85%),
+        radial-gradient(ellipse 65% 34rem at 0 32rem, var(--dashboard-ambient-gold), transparent 85%);
+    background-size: 28px 28px, 100% 100%, 100% 100%;
+    background-repeat: repeat, no-repeat, no-repeat;
+}
+:global(:root[data-theme="dark"]) .shell {
+    --dashboard-ambient-blue: rgba(36, 70, 83, .6);
+    --dashboard-ambient-gold: rgba(29, 48, 60, .45);
+    --dashboard-grid: rgba(127, 175, 189, .16);
+}
+@media (max-width: 640px) {
+    .shell { --dashboard-ambient-blue: rgba(218, 230, 232, .6); --dashboard-ambient-gold: rgba(236, 225, 191, .45); --dashboard-grid: rgba(214, 224, 218, .7); background-size: 32px 32px, 100% 100%, 100% 100%; }
+    :global(:root[data-theme="dark"]) .shell { --dashboard-ambient-blue: rgba(36, 70, 83, .4); --dashboard-ambient-gold: rgba(29, 48, 60, .3); --dashboard-grid: rgba(127, 175, 189, .12); }
+}
 .sidebar { --surface: var(--sidebar-background); --brand: var(--sidebar-accent); --heading: var(--sidebar-text); --focus: var(--sidebar-focus); --border: var(--sidebar-border); --border-strong: var(--sidebar-border); position: fixed; inset: calc(var(--sidebar-gap) + var(--navigation-safe-top)) auto calc(var(--sidebar-gap) + var(--navigation-safe-bottom)) calc(var(--sidebar-gap) + var(--navigation-safe-left)); z-index: 20; display: none; flex-direction: column; width: var(--sidebar-width); padding: 16px 8px; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); color: var(--sidebar-text); }
 .sidebarHeader { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 12px; }
 .brand { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 44px; font-weight: 700; color: var(--brand); }

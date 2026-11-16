@@ -29,12 +29,11 @@ export default function ResearchProgressWidget({ project }: { project?: { id: nu
             <ContextHelp label="About research progress">Completion requires Main Adviser verification. Submitting or linking a PDF alone does not complete a milestone. Deadlines use Manila dates.</ContextHelp>
         </div>
         {!project ? <p>No active research project.</p> : <div aria-busy={!state}>
-            <h3>{project.title}</h3>
             {!state ? <p role="status">Loading research progress...</p> : state.error ? <>
                 <p role="alert">{state.error}</p>
                 <button type="button" onClick={() => { setState(null); setAttempt(value => value + 1); }}>Retry progress</button>
             </> : summary && (summary.total ? <>
-                <p className={styles.count}><strong>{summary.completed} / {summary.total} completed</strong></p>
+                <p className={styles.count}><strong>{summary.completed} / {summary.total} completed</strong><span className="form-help">Verified milestones</span></p>
                 <progress className={common.progress} max={summary.total} value={summary.completed} aria-label="Verified milestones completed" />
                 <dl className={styles.deadlines}>
                     <div><dt>Next deadline</dt><dd>{summary.next ? <>

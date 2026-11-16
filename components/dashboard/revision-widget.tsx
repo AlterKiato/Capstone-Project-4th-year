@@ -19,7 +19,6 @@ function ProjectWidget({ project }: { project: { id: number; title: string } }) 
     const cycle = state?.data?.cycles[0];
     const counts = revisionCounts(cycle);
     return <div aria-busy={!state}>
-        <h3>{project.title}</h3>
         {!state ? <p role="status">Loading revisions...</p> : state.error ? <><p role="alert">{state.error}</p><button type="button" onClick={() => { setState(null); setAttempt(value => value + 1); }}>Retry revisions</button></> : counts.total ? <>
             <p><strong>{counts.addressed} / {counts.total} Addressed</strong> · {counts.pending} Pending</p>
             <progress className={styles.progress} max={counts.total} value={counts.addressed} aria-label="Revision items addressed" />
