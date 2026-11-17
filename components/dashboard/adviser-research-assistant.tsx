@@ -1,6 +1,6 @@
 "use client";
 import DeveloperAIEvaluation from "@/components/dashboard/developer-ai-evaluation";
-import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { analyzeResearchDemoAction, getResearchDemoAvailabilityAction } from "@/lib/actions/adviser-research-assistant.action";
 import { getGroqResearchPilotAvailabilityAction, runGroqResearchPilotAction } from "@/lib/actions/groq-research-pilot.action";
@@ -89,11 +89,15 @@ export default function AdviserResearchAssistant(props: Props) {
 function ResearchChat({ submissionId, assignmentId, enabled = true, children }: Props) {
     const mobile = useSyncExternalStore(subscribe, isMobile, () => false);
     const id = useId(), heading = useRef<HTMLHeadingElement>(null), end = useRef<HTMLDivElement>(null);
+    const launcher = useRef<HTMLButtonElement>(null), accessStatus = useRef<HTMLParagraphElement>(null);
+    const questionInput = useRef<HTMLTextAreaElement>(null), restoreAccessFocus = useRef(false);
     const [open, setOpen] = useState(false), [task, setTask] = useState<ResearchDemoTask>("writing");
     const [question, setQuestion] = useState(""), [exchanges, setExchanges] = useState<Exchange[]>([]);
     const [authorized, setAuthorized] = useState(false), [checking, setChecking] = useState(true);
     const [pending, setPending] = useState(false), [message, setMessage] = useState("");
     const [finishing, setFinishing] = useState(false);
+    const [guideOpen, setGuideOpen] = useState(false);
+    const guide = useRef<HTMLDivElement>(null), guideButton = useRef<HTMLButtonElement>(null), guidePinned = useRef(false);
     const [mode, setMode] = useState<"demo" | "live">("demo"), [liveAvailable, setLiveAvailable] = useState(false);
     const [liveExchanges, setLiveExchanges] = useState<LiveExchange[]>([]), [liveTask, setLiveTask] = useState<ResearchDemoTask>("writing");
     const [consentRevision, setConsentRevision] = useState(0);
@@ -105,6 +109,24 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     const { panel: windowPanel, dragging, resizing, style: windowStyle, resetPosition, onOpen, onPointerDown, onResizeStart, onResizeKeyDown, onPointerMove,
         onPointerUp, onPointerCancel, onLostPointerCapture } = useFloatingWindow(mobile, open);
 
+    const rememberAccessFocus = useCallback(() => {
+        const active = document.activeElement;
+        restoreAccessFocus.current = !!active && (windowPanel.current?.contains(active) === true || launcher.current === active);
+    }, [windowPanel]);
+    const closeGuide = useCallback((restoreFocus = false) => {
+        guidePinned.current = false;
+        setGuideOpen(false);
+        if (restoreFocus) guideButton.current?.focus();
+    }, []);
+    useEffect(() => {
+        if (!guideOpen) return;
+        const outside = (event: globalThis.PointerEvent) => {
+            if (document.querySelector("dialog:modal")) return;
+            if (event.target instanceof Node && !guide.current?.contains(event.target)) closeGuide();
+        };
+        document.addEventListener("pointerdown", outside, true);
+        return () => document.removeEventListener("pointerdown", outside, true);
+    }, [guideOpen, closeGuide]);
     function reset() {
         if (mode === "live") {
             request.current++; busy.current = false; setPending(false); setQuestion(""); setLiveExchanges([]); setLiveTask("writing"); setMessage("");
@@ -118,6 +140,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     useEffect(() => {
         let mounted = true;
         function deny() {
+            rememberAccessFocus();
             setLiveAvailable(false); setLiveExchanges([]);
             removeResearchDemoDraft(recovery.current); recovery.current = null;
             blocked.current = true;
@@ -173,7 +196,7 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
         window.addEventListener(RESEARCH_DEMO_DRAFT_CLEAR_EVENT, onDraftsCleared);
         return () => { mounted = false; window.removeEventListener("focus", onVisible); document.removeEventListener("visibilitychange", onVisible);
             window.removeEventListener(RESEARCH_DEMO_DRAFT_CLEAR_EVENT, onDraftsCleared); };
-    }, [submissionId, assignmentId, enabled, open, consentRevision]);
+    }, [submissionId, assignmentId, enabled, open, consentRevision, rememberAccessFocus]);
     useEffect(() => () => { request.current++; check.current++; }, []);
     useEffect(() => { if (open) end.current?.scrollIntoView({ block: "nearest" }); }, [open, exchanges, liveExchanges, pending, message]);
 
@@ -216,11 +239,13 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                 if (result.mode === "mock" && recovery.current) memoryOnly.current = !saveResearchDemoDraft(recovery.current, nextTask, next);
             }
             else if (result.mode === "denied" || result.mode === "unavailable") {
+                rememberAccessFocus();
                 removeResearchDemoDraft(recovery.current); recovery.current = null;
                 blocked.current = true; check.current++; setAuthorized(false); setOpen(false); setQuestion(""); setExchanges([]); setMessage(result.message);
             } else setMessage(result.message);
         } catch {
             if (sequence !== request.current) return;
+            rememberAccessFocus();
             removeResearchDemoDraft(recovery.current); recovery.current = null;
             blocked.current = true; check.current++; setAuthorized(false); setOpen(false); setQuestion(""); setExchanges([]);
             setMessage("The request could not be confirmed. Temporary AI content has been cleared. Reload to verify access.");
@@ -228,14 +253,29 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
     }
     function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); void send(question); }
     const available = authorized && enabled, disabled = !available || checking || pending || (mode === "live" && !liveAvailable);
+    useEffect(() => {
+        if (!available && message && restoreAccessFocus.current) {
+            accessStatus.current?.focus(); restoreAccessFocus.current = false;
+        }
+    }, [available, message]);
     return <div className={styles.context} data-research-assistant-context="">
+        {!available && message && <p ref={accessStatus} role="status" aria-live="polite" aria-atomic="true" tabIndex={-1} className={styles.accessStatus}>{message}</p>}
         {children}
-        <Dialog.Root open={open && available} onOpenChange={setOpen} modal={mobile}>
-            {available && <Dialog.Trigger asChild><button type="button" className={styles.launcher} aria-label="Open AI Research Assistant" title="Open AI Research Assistant"><NavigationIcon name="feedback" /></button></Dialog.Trigger>}
+        <Dialog.Root open={open && available} onOpenChange={value => { setOpen(value); if (!value) closeGuide(); }} modal={mobile}>
+            {available && <Dialog.Trigger asChild><button ref={launcher} type="button" className={styles.launcher} aria-label="Open AI Research Assistant" title="Open AI Research Assistant"><NavigationIcon name="feedback" /></button></Dialog.Trigger>}
             <Dialog.Portal>
                 {mobile && <Dialog.Overlay className={styles.overlay} />}
                 <Dialog.Content ref={windowPanel} className={styles.panel} data-mobile={mobile} style={windowStyle}
                     onOpenAutoFocus={event => { event.preventDefault(); onOpen(); heading.current?.focus(); }}
+                    onCloseAutoFocus={event => {
+                        if (blocked.current) {
+                            event.preventDefault();
+                            if (restoreAccessFocus.current) { accessStatus.current?.focus(); restoreAccessFocus.current = false; }
+                        } else if (document.activeElement === document.body) {
+                            event.preventDefault();
+                            launcher.current?.focus({ preventScroll: true });
+                        }
+                    }}
                     onEscapeKeyDown={event => {
                         const modal = document.querySelector<HTMLDialogElement>("dialog:modal");
                         if (modal) {
@@ -243,6 +283,12 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                             event.preventDefault();
                             if (typeof modal.requestClose === "function") modal.requestClose();
                             else if (modal.dispatchEvent(new Event("cancel", { cancelable: true }))) modal.close();
+                        } else if (finishing) {
+                            event.preventDefault();
+                            setFinishing(false);
+                        } else if (guideOpen) {
+                            event.preventDefault();
+                            closeGuide(true);
                         }
                     }}
                     onInteractOutside={event => {
@@ -254,35 +300,58 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
                         onPointerCancel={onPointerCancel} onLostPointerCapture={onLostPointerCapture}>
                         <div><Dialog.Title ref={heading} tabIndex={-1}>AI Research Assistant</Dialog.Title>
-                            <Dialog.Description>{mode === "demo" ? "Synthetic demonstration · Adviser guidance only" : "Live AI · Fictional material · Advisory only"}</Dialog.Description></div>
-                        <div className={styles.headerActions}><button type="button" className={styles.iconButton} onClick={reset} aria-label="Clear AI conversation" title="Clear AI conversation">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 2 8 M3 4v6h6" /></svg></button>
-                            <Dialog.Close asChild><button type="button" className={styles.iconButton} aria-label="Close AI Research Assistant" title="Close AI Research Assistant"><NavigationIcon name="close" size={20} /></button></Dialog.Close></div>
+                            <Dialog.Description>{mode === "demo" ? "Demo · Prepared fictional examples" : "Live AI · Fictional material · Advisory only"}</Dialog.Description></div>
+                        <div className={styles.headerActions}><button type="button" className={styles.iconButton} onClick={reset} aria-label={mode === "demo" ? "Clear Demo conversation" : "Clear Live AI conversation"} title={mode === "demo" ? "Clear Demo conversation" : "Clear Live AI conversation"}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M3 10a9 9 0 1 1 2 8 M3 4v6h6" /></svg></button>
+                            <Dialog.Close asChild><button type="button" className={styles.iconButton} aria-label="Close AI Research Assistant" title="Close AI Research Assistant"><NavigationIcon name="close" size={18} /></button></Dialog.Close></div>
                     </header>
                     <div className={styles.scroll}>
+                        <div ref={guide} className={styles.guide} onPointerLeave={event => {
+                            if (event.pointerType === "mouse" && !guidePinned.current && !event.currentTarget.contains(document.activeElement)) closeGuide();
+                        }} onBlur={event => {
+                            if (!guidePinned.current && !event.currentTarget.contains(event.relatedTarget)) closeGuide();
+                        }}>
                         <div className={styles.mode}><label>Mode <select aria-label="Research assistant mode" value={mode} disabled={checking || pending} onChange={event => {
                             request.current++; busy.current = false; setPending(false); setQuestion(""); setMessage(""); setFinishing(false);
                             setLiveExchanges([]); setMode(event.target.value === "live" ? "live" : "demo");
                         }}><option value="demo">Demo</option><option value="live" disabled={!liveAvailable}>Live AI</option></select></label>
                             <span role="status">{!liveAvailable ? "Live AI unavailable" : "Fictional-text pilot"}</span>
-                            <ConsentDialog scope="research-pilot" onChange={() => {
-                                request.current++; busy.current = false; setPending(false); setLiveExchanges([]); setLiveAvailable(false); setConsentRevision(value => value + 1);
-                            }} />
+                            <button ref={guideButton} type="button" className={styles.guideButton} aria-expanded={guideOpen} aria-controls={`${id}-guide`}
+                                onPointerEnter={event => { if (event.pointerType === "mouse" && window.matchMedia("(hover: hover) and (pointer: fine)").matches) setGuideOpen(true); }}
+                                onClick={() => { if (guidePinned.current) closeGuide(); else { guidePinned.current = true; setGuideOpen(true); } }}>Demo guide</button>
                         </div>
-                        <details className={styles.info}><summary>About this demonstration</summary>
+                        <section id={`${id}-guide`} className={styles.guideContent} hidden={!guideOpen} aria-labelledby={`${id}-guide-title`} onPointerDown={() => { guidePinned.current = true; }}>
+                            <div className={styles.guideHeading}><h3 id={`${id}-guide-title`}>Demo guide</h3><button type="button" className={styles.iconButton} aria-label="Close Demo guide" onClick={() => closeGuide(true)}><NavigationIcon name="close" size={18} /></button></div>
+                            {mode === "demo" && !checking && <div className={styles.questions}>
+                                <h4>Supported Demo questions</h4>
+                                <p>Select a question to fill the composer, then choose Send.</p>
+                                <div>{[RESEARCH_DEMO_QUESTIONS[task], ...RESEARCH_DEMO_FOLLOWUPS].map(value =>
+                                    <button key={value} type="button" disabled={disabled} onClick={() => { setQuestion(value); closeGuide(); questionInput.current?.focus(); }}>{value}</button>)}</div>
+                            </div>}
+                            {!checking && !shownExchanges.length && <details className={styles.info}><summary>Other reviewed tasks</summary>
+                                <div className={styles.starters} aria-label="Reviewed tasks">{RESEARCH_DEMO_TASKS.map((value, index) => <button key={value} type="button" disabled={disabled}
+                                    onClick={() => { void send(RESEARCH_DEMO_QUESTIONS[value], value, true); closeGuide(); questionInput.current?.focus(); }}>{starters[index]}</button>)}</div>
+                            </details>}
+                            <details className={styles.info}><summary>Demo scope and limitations</summary>
                             <p>Use the bundled fictional example and reviewed questions only. No real manuscripts, names, feedback or PDF contents are retrieved or analyzed.</p>
                             <p>{mode === "demo" ? "Prepared examples may be incomplete." : "Groq responses may be inaccurate."} Verify suggestions yourself; no sources, grades, decisions or official feedback are produced. Existing aggregate-only consent grants no manuscript-processing permission.</p>
                             <p>Demo exchanges can recover in this tab for two hours. Live AI exchanges stay in memory only and clear on mode changes. Reset and Finish Chat clear the selected mode.</p>
+                            <p>Institutional Live is disabled in this release. Restricted synthetic evaluation is separate from Demo.</p>
+                            <p>Separate from this conversation. Clear and Finish Chat do not reset evaluation results.</p>
+                            <ConsentDialog scope="research-pilot" onChange={() => {
+                                request.current++; busy.current = false; setPending(false); setLiveExchanges([]); setLiveAvailable(false); setConsentRevision(value => value + 1);
+                            }} />
                             {!mobile && <button type="button" onClick={resetPosition}>Reset window position and size</button>}
-                        </details>
-                        <details className={styles.info}><summary>View fictional excerpt</summary><p className={styles.excerpt}>{RESEARCH_DEMO_EXCERPT}</p></details>
-                        <DeveloperAIEvaluation feature="adviser" submissionId={submissionId} assignmentId={assignmentId}
-                            disabled={checking || !authorized || pending || !enabled} />
+                            <details className={styles.info}><summary>View fictional excerpt</summary><p className={styles.excerpt}>{RESEARCH_DEMO_EXCERPT}</p></details>
+                            </details>
+                        </section>
+                        </div>
+                        <div className={styles.evaluation}>
+                            <DeveloperAIEvaluation feature="adviser" submissionId={submissionId} assignmentId={assignmentId}
+                                disabled={checking || !authorized || pending || !enabled} />
+                        </div>
                         {!checking && !shownExchanges.length && <section className={styles.welcome} aria-labelledby={`${id}-welcome`}>
-                            <h3 id={`${id}-welcome`}>How can I help with your research review?</h3>
-                            <p>Try a prepared example using fictional research.</p>
-                            <div className={styles.starters}>{RESEARCH_DEMO_TASKS.map((value, index) => <button key={value} type="button" disabled={disabled}
-                                onClick={() => void send(RESEARCH_DEMO_QUESTIONS[value], value, true)}>{starters[index]}</button>)}</div>
+                            <p id={`${id}-welcome`}>Choose a reviewed question in Demo guide to begin.</p>
                         </section>}
                         <div role="log" aria-label={mode === "demo" ? "Synthetic conversation" : "Live AI conversation"} aria-live="polite" aria-relevant="additions" className={styles.conversation}>
                             {!checking && shownExchanges.map((exchange, index) => <article key={index} className={styles.exchange}>
@@ -298,21 +367,21 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                         <div ref={end} />
                     </div>
                     <form className={styles.composer} onSubmit={submit} autoComplete="off" aria-busy={pending}>
-                        <div className={styles.composerHeading}><label htmlFor={`${id}-question`}>Question <span>Reviewed questions only</span></label>
+                        <div className={styles.composerHeading}><label htmlFor={`${id}-question`}>Question <span id={`${id}-question-help`}>Reviewed questions only</span></label>
                             <Dialog.Root open={finishing && available} onOpenChange={setFinishing} modal>
                                 <Dialog.Trigger asChild><button ref={finishButton} type="button" className={styles.finishButton} disabled={disabled}>Finish Chat</button></Dialog.Trigger>
                                 <Dialog.Portal><Dialog.Overlay className={styles.finishOverlay} />
                                     <Dialog.Content className={styles.finishDialog} onOpenAutoFocus={event => { event.preventDefault(); cancelFinish.current?.focus(); }}
                                         onCloseAutoFocus={event => { event.preventDefault(); finishButton.current?.focus(); }}>
                                         <Dialog.Title>Finish this chat?</Dialog.Title>
-                                        <Dialog.Description>This will clear this conversation from the current browser session.</Dialog.Description>
+                                        <Dialog.Description>{mode === "demo" ? "This clears the Demo conversation and its recovery in this tab." : "This clears the Live AI conversation from memory."} Separate evaluation results are unaffected.</Dialog.Description>
                                         <div><Dialog.Close asChild><button ref={cancelFinish} type="button">Cancel</button></Dialog.Close>
                                             <button type="button" onClick={() => { reset(); setFinishing(false); }}>Finish Chat</button></div>
                                     </Dialog.Content>
                                 </Dialog.Portal>
                             </Dialog.Root>
                         </div>
-                        <div className={styles.composerInput}>{mode === "demo" ? <textarea id={`${id}-question`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Ask a reviewed follow-up…" onChange={event => setQuestion(event.target.value)} />
+                        <div className={styles.composerInput}>{mode === "demo" ? <textarea ref={questionInput} id={`${id}-question`} aria-describedby={`${id}-question-help`} rows={2} maxLength={1000} value={question} disabled={disabled} placeholder="Use a supported Demo question…" onChange={event => setQuestion(event.target.value)} />
                             : <select id={`${id}-question`} value={question} disabled={disabled || liveExchanges.length >= 4} onChange={event => setQuestion(event.target.value)}>
                                 <option value="">Choose a reviewed question</option>{[RESEARCH_DEMO_QUESTIONS[liveTask], ...RESEARCH_DEMO_FOLLOWUPS].map(value => <option key={value}>{value}</option>)}
                             </select>}
@@ -326,6 +395,5 @@ function ResearchChat({ submissionId, assignmentId, enabled = true, children }: 
                 </Dialog.Content>
             </Dialog.Portal>
         </Dialog.Root>
-        {!available && message && <p role="status" className={styles.accessStatus}>{message}</p>}
     </div>;
 }

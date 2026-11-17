@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
+import Image from "next/image";
 import { mobileNavigation, type DashboardLink } from "@/lib/constants/dashboard-navigation";
 import DashboardNavigation from "./dashboard-navigation";
 import DashboardBottomNavigation from "./dashboard-bottom-navigation";
@@ -51,7 +52,7 @@ export default function DashboardShell({ links, children }: { links: DashboardLi
     return <div className={styles.shell} data-display-mode={displayMode} data-navigation-profile={profile} data-sidebar-mode={mode}>
         <aside className={styles.sidebar} aria-label="Workspace sidebar">
             <div className={styles.sidebarHeader}>
-                <span className={styles.brand} aria-label="ThesiSHS AI"><NavigationIcon name="book" /><span className={styles.label}>ThesiSHS AI</span></span>
+                <span className={styles.brand} aria-label="ThesiSHS AI"><Image className={styles.brandSymbol} src="/branding/thesishs-mark.svg" width={22} height={22} alt="" /><span className={styles.label}>ThesiSHS AI</span></span>
                 <button className={styles.desktopToggle} type="button" aria-label={mode === "compact" ? "Expand sidebar" : "Collapse sidebar"} title={mode === "compact" ? "Expand sidebar" : "Collapse sidebar"}
                     aria-expanded={mode !== "compact"} aria-controls="desktop-navigation" onClick={() => selectSidebarMode(preferenceProfile, mode === "compact" ? "expanded" : "compact")}>
                     <NavigationIcon name={mode === "compact" ? "menu" : "collapse"} />

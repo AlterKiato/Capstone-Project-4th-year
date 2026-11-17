@@ -53,9 +53,11 @@ function harness() {
         calls: 0, reserved: 0, usageReads: 0, response: null, afterReserve: null, afterFetch: null };
     class Clock extends Date { static now() { return state.now; } }
     const config = load('lib/ai/developer-evaluation-config.ts', {}, { process: { env: state.env }, Date: Clock });
-    const principal = load('lib/auth/account-principal.ts', { '@/lib/repositories/user.repository': { findUserById: async () =>
+    const verification = load('lib/auth/student-verification.ts', { './roles': require('../lib/auth/roles.ts') });
+    const principal = load('lib/auth/account-principal.ts', { './student-verification': verification, '@/lib/repositories/user.repository': { findUserById: async () =>
         ({ id: state.actor?.userId, roleId: state.currentRole, isActive: state.active }) } });
-    const current = load('lib/auth/current-account.ts', { '@/lib/auth/session': { getSession: async () => state.actor },
+    const current = load('lib/auth/current-account.ts', { '@/lib/auth/session': { getSession: async () =>
+        state.actor && (await principal.resolveCurrentAccount(state.actor)).status === 'active' ? state.actor : null },
         '@/lib/auth/account-principal': principal });
     const main = load('lib/auth/main-adviser.ts', { '@/lib/auth/current-account': current,
         '@/lib/repositories/research-supervision.repository': { findCurrentMainAdviserId: async () => state.main } });

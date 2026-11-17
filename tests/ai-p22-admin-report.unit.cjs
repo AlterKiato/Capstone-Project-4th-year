@@ -266,10 +266,13 @@ test('Admin UI initially renders honest unavailable/static controls; Adviser has
     const React = require('react'), { renderToStaticMarkup } = require('react-dom/server');
     const component = load('components/dashboard/local-ai-assistance.tsx', {
         '@/components/dashboard/ai-governance-dialogs': { ConsentDialog: () => React.createElement('button', null, 'AI consent') },
+        '@/components/dashboard/developer-ai-evaluation': { default: () => null },
+        './admin-ai-assistance.module.css': { default: {} },
         '@/lib/actions/ai-foundation.action': {}, '@/lib/actions/admin-ai-report.action': {},
     }).default;
     const admin = renderToStaticMarkup(React.createElement(component, { feature: 'admin' }));
-    assert.match(admin, /Live AI is unavailable/); assert.match(admin, /Explain report metrics/);
+    assert.match(admin, /Institutional AI interpretation/); assert.match(admin, />Unavailable</); assert.match(admin, /Explain report metrics/);
+    assert.match(admin, /id="admin-report-assistance"/); assert.match(admin, /No AI provider is used/);
     assert.match(admin, /disabled=""[^>]*>Interpret count bands with Live AI/);
     assert.match(admin, /human review/); assert.ok(!admin.includes('AI-generated count-band interpretation'));
     const adviser = renderToStaticMarkup(React.createElement(component, { feature: 'adviser' }));
@@ -278,6 +281,8 @@ test('Admin UI initially renders honest unavailable/static controls; Adviser has
     const populated = load('components/dashboard/local-ai-assistance.tsx', {
         react: { ...React, useState: initial => [initial === null ? generated : initial, () => {}] },
         '@/components/dashboard/ai-governance-dialogs': { ConsentDialog: () => null },
+        '@/components/dashboard/developer-ai-evaluation': { default: () => null },
+        './admin-ai-assistance.module.css': { default: {} },
         '@/lib/actions/ai-foundation.action': {}, '@/lib/actions/admin-ai-report.action': {},
     }).default;
     const grounded = renderToStaticMarkup(React.createElement(populated, { feature: 'admin' }));

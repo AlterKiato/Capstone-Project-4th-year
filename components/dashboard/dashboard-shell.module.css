@@ -25,6 +25,7 @@
 .sidebar { --surface: var(--sidebar-background); --brand: var(--sidebar-accent); --heading: var(--sidebar-text); --focus: var(--sidebar-focus); --border: var(--sidebar-border); --border-strong: var(--sidebar-border); position: fixed; inset: calc(var(--sidebar-gap) + var(--navigation-safe-top)) auto calc(var(--sidebar-gap) + var(--navigation-safe-bottom)) calc(var(--sidebar-gap) + var(--navigation-safe-left)); z-index: 20; display: none; flex-direction: column; width: var(--sidebar-width); padding: 16px 8px; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); color: var(--sidebar-text); }
 .sidebarHeader { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 12px; }
 .brand { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 44px; font-weight: 700; color: var(--brand); }
+.brandSymbol { flex: 0 0 22px; width: 22px; height: 22px; }
 .sidebar svg, .navigation svg, .logout svg, .desktopToggle svg { flex: 0 0 22px; }
 .navigation { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 6px 0; scrollbar-width: thin; }
 .navigation nav { display: grid; gap: 6px; }

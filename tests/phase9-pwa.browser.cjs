@@ -58,8 +58,8 @@ async function main(lifecycle) {
         assert.equal(manifest.start_url, '/dashboard');
         assert.equal(manifest.scope, '/');
         assert.equal(manifest.display, 'standalone');
-        assert.equal(manifest.theme_color, '#f6f8fb');
-        assert.equal(manifest.background_color, '#f6f8fb');
+        assert.equal(manifest.theme_color, '#f5f3ea');
+        assert.equal(manifest.background_color, '#f5f3ea');
         assert.equal(manifest.icons.length, 2);
         for (const [index, size] of [192, 512].entries()) {
             const icon = manifest.icons[index];

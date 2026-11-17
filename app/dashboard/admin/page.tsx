@@ -6,6 +6,7 @@ import styles from "@/components/dashboard/admin-overview.module.css";
 import { getAdminDashboardStats, getAdminRecentActivities } from "@/lib/services/dashboard.service";
 import { Suspense } from "react";
 import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
+import Link from "next/link";
 
 export default async function AdminPage() {
     const session = await requireRole([ROLE_IDS.ADMIN]);
@@ -27,6 +28,13 @@ async function AdminOverview({ email }: { email: string }) {
                 <div><dt>Total Advisers</dt><dd>{statistics.totalAdvisers}</dd></div>
             </dl>
         </> : <p className="form-message" role="alert">{statisticsResult.message}</p>}
+        <section className={`dashboard-panel ${styles.assistanceEntry}`} aria-labelledby="admin-assistance-entry">
+            <div>
+                <h2 id="admin-assistance-entry">Admin Report Assistance</h2>
+                <p>Reviewed guidance to help you understand report metrics.</p>
+            </div>
+            <Link className="context-detail" href="/dashboard/admin/reports#admin-report-assistance" prefetch={false}>Open report assistance</Link>
+        </section>
         <AdminActivity title="Recent Activity" result={activitiesResult} />
     </main>;
 }

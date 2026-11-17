@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import { getDashboardAccount } from "@/lib/services/dashboard-account.service";
 import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
+import assistantStyles from "@/components/dashboard/adviser-research-assistant.module.css";
 
 /**
  * Adviser dashboard entry page.
@@ -70,6 +71,11 @@ async function AdviserOverview() {
                 </li>)}</ul> : <p className={styles.empty}>You have no research groups yet. Your groups will appear here once created.</p>}
             </section>
 
+            <section className={`dashboard-panel ${assistantStyles.entry}`} aria-labelledby="adviser-ai-entry-title">
+                <div><h2 id="adviser-ai-entry-title">AI Research Assistant</h2>
+                    <p className="form-help">Prepared research writing guidance within an authorized submission review.</p></div>
+                <Link href="/dashboard/adviser/submissions" className="context-row">Choose a submission</Link>
+            </section>
         </main>
     );
 }

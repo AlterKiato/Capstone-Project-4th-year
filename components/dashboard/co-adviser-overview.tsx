@@ -4,6 +4,7 @@ import NavigationIcon from "./navigation-icon";
 import { coAssignmentSummary, coReviewHref } from "@/lib/utils/co-adviser-workspace";
 import type { CoWorkspace } from "@/types/co-adviser";
 import styles from "./adviser-overview.module.css";
+import assistantStyles from "./adviser-research-assistant.module.css";
 
 export default function CoAdviserOverview({ workspace, error }: { workspace: CoWorkspace | null; error?: string }) {
     const summary = coAssignmentSummary(workspace?.assignments ?? []);
@@ -23,6 +24,11 @@ export default function CoAdviserOverview({ workspace, error }: { workspace: CoW
                         <p className="form-help">Assigned <time dateTime={row.createdAt}>{new Date(row.createdAt).toLocaleDateString("en-PH",{timeZone:"Asia/Manila"})}</time></p></div>
                     <Link href={coReviewHref(row)} className={styles.action} aria-label={`View assignment: ${row.title}, ${row.version}`}>View assignment</Link>
                 </li>)}</ul> : <p className={styles.empty}>You have no delegated assignments.</p>}
+            </section>
+            <section className={`dashboard-panel ${assistantStyles.entry}`} aria-labelledby="adviser-ai-entry-title">
+                <div><h2 id="adviser-ai-entry-title">AI Research Assistant</h2>
+                    <p className="form-help">Prepared research writing guidance within an authorized assigned submission review.</p></div>
+                <Link href="/dashboard/adviser/submissions" className="context-row">Choose a submission</Link>
             </section>
         </>}
     </main>;

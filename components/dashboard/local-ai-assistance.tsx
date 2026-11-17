@@ -6,6 +6,7 @@ import { getLocalAdminAssistanceAction, getLocalAdviserAssistanceAction } from "
 import { getAdminInterpretationAction, getAdminInterpretationAvailabilityAction } from "@/lib/actions/admin-ai-report.action";
 import type { AdminAIResult } from "@/types/ai-foundation";
 import DeveloperAIEvaluation from "@/components/dashboard/developer-ai-evaluation";
+import styles from "./admin-ai-assistance.module.css";
 
 const adviserQuestions = [
     ["adviser-workflow-overview-v1", "Explain submission workflow counts"],
@@ -57,7 +58,53 @@ export default function LocalAIAssistance({ feature }: { feature: "admin" | "adv
             }
         });
     }
-    return (
+    const adminView = feature === "admin" ? (
+        <section id="admin-report-assistance" aria-label="Admin report assistance" tabIndex={-1} className={`dashboard-panel ${styles.panel}`}>
+            <header>
+                <h2>Report Assistance</h2>
+                <p>Understand the definitions and limits of your report metrics.</p>
+            </header>
+            <div className={styles.primary}>
+                <button type="button" disabled={pending} onClick={() => select("admin-overview-v1")} aria-describedby="admin-static-description">Explain report metrics</button>
+                <p id="admin-static-description">Reviewed explanations. No AI provider is used.</p>
+            </div>
+            <div className={styles.result} role="status" aria-live="polite" aria-busy={pending}>
+                {pending ? <p>{loadingLive ? "Interpreting count bands..." : "Loading static guidance..."}</p> : result && <>
+                    <h3>{result.mode === "generated" ? "AI-generated interpretation" : result.mode === "static" ? "Report metric explanations" : "Assistance unavailable"}</h3>
+                    <p>{result.message}</p>
+                    {result.mode === "generated" ? <>
+                        <p>{result.output.overview}</p>
+                        <ul>{result.output.explanations.map(item => <li key={item.metricId}>
+                            <h4>{metricLabels[item.metricId]} ({item.band})</h4>
+                            <p>{item.text}</p>
+                        </li>)}</ul>
+                        <p>Coarse bands are not exact counts. Withheld metrics cannot be inferred.</p>
+                    </> : result.mode === "static" && <p>{result.guidance}</p>}
+                </>}
+            </div>
+            <section className={styles.institutional} aria-labelledby="admin-institutional-title">
+                <div className={styles.modeHeader}>
+                    <h3 id="admin-institutional-title">Institutional AI interpretation</h3>
+                    <span className={styles.availability}>{liveAvailable ? "Available for approved use" : "Unavailable"}</span>
+                </div>
+                <p>Coarse report counts only. AI output may be inaccurate and requires human review; it makes no administrative or academic decisions.</p>
+                <div className={styles.secondaryActions}>
+                    <button type="button" disabled={pending || !liveAvailable} onClick={interpretLive}>Interpret count bands with Live AI</button>
+                    <ConsentDialog onChange={consentChanged} />
+                </div>
+            </section>
+            <details className={styles.help}>
+                <summary>About report assistance</summary>
+                <p>Static explanations remain available without AI consent. Institutional interpretation requires separate approval, eligibility and current consent. Accepting terms does not enable it. Synthetic evaluation uses a separate restricted testing path.</p>
+            </details>
+            <div className={styles.evaluation}>
+                <h3>Synthetic AI Evaluation</h3>
+                <p>Fictional aggregate data for restricted testing, separate from current institutional reports.</p>
+                <DeveloperAIEvaluation feature="admin" />
+            </div>
+        </section>
+    ) : null;
+    return adminView ?? (
         <section aria-label={feature === "admin" ? "Admin report assistance" : "Adviser workflow assistance"} className="dashboard-panel assistance-panel">
             <h2>{feature === "admin" ? "Admin report assistance" : "Adviser workflow assistance"}</h2>
             <ConsentDialog onChange={feature === "admin" ? consentChanged : undefined} />
