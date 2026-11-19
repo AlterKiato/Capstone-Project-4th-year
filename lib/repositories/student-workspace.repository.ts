@@ -1,7 +1,8 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { feedbacks, groupMembers, researchGroups, researchPapers, submissions, users } from "@/db/schema";
+import { feedbacks, groupMembers, researchGroups, researchPapers, submissions, users,
+    submissionEvaluations, submissionEvaluationAssignments } from "@/db/schema";
 
 /** Read-only batches. The service supplies the authenticated Student, never a client actor ID. */
 export function createStudentWorkspaceRepository(database: Pick<typeof db, "select">) {
@@ -45,6 +46,13 @@ export function createStudentWorkspaceRepository(database: Pick<typeof db, "sele
             // Missing/reassigned submissions can retain the unavailable-feedback state.
             return database.select({ submissionId: submissions.id, id: feedbacks.id, comments: feedbacks.comments,
                 decision: feedbacks.decision, createdAt: feedbacks.createdAt,
+                evaluationState: sql<"available" | "none" | null>`case when ${submissions.status} in ('Approved', 'Revision Required')
+                    and ${feedbacks.decision} = ${submissions.status} then case when exists (
+                        select 1 from ${submissionEvaluations} inner join ${submissionEvaluationAssignments}
+                        on ${submissionEvaluationAssignments.id} = ${submissionEvaluations.assignmentId}
+                        where ${submissionEvaluations.feedbackId} = ${feedbacks.id}
+                        and ${submissionEvaluationAssignments.submissionId} = ${submissions.id}
+                    ) then 'available' else 'none' end else null end`,
             }).from(submissions).innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
                 .leftJoin(feedbacks, eq(feedbacks.submissionId, submissions.id))
                 .where(and(inArray(submissions.id, submissionIds), eq(submissions.submittedBy, studentId),

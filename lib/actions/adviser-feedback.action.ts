@@ -2,6 +2,7 @@
 
 import { requestResearchPush } from "@/lib/push/request";
 import { revisionDraftsFromForm } from "@/lib/validations/revision";
+import { evaluationFromForm } from "@/lib/submission-evaluation";
 
 import {
     revalidatePath,
@@ -69,15 +70,19 @@ export async function createAdviserFeedbackAction(
         };
     }
 
-    const result =
-        await createAdviserFeedback(
+    let evaluation: unknown;
+    try { evaluation = evaluationFromForm(formData.get("evaluation")); }
+    catch { return { success: false, message: "Check the evaluation draft before finalizing." }; }
+    let result;
+    try { result = await createAdviserFeedback(
             parsed.data.submissionId,
             session.userId,
             parsed.data.comments,
             parsed.data.decision,
             recipientId => push({ recipientId, event: parsed.data.decision === "Revision Required" ? "revision-required" : "approved" }),
-            parsed.data.revisionItems
-        );
+            parsed.data.revisionItems,
+            evaluation
+        ); } catch { return { success: false, message: "The decision could not be confirmed. Keep your draft and reload the submission and assignment before trying again." }; }
 
     if (!result.success) {
         return {

@@ -51,7 +51,8 @@ export async function createAdviserFeedback(
     comments: string,
     decision: string,
     onCommitted?: (studentId: number) => void,
-    revisionItems: RevisionDraft[] = []
+    revisionItems: RevisionDraft[] = [],
+    evaluation?: unknown
 ): Promise<
     ServiceResult<{
         id: number;
@@ -167,6 +168,7 @@ export async function createAdviserFeedback(
         comments: trimmedComments,
         decision: trimmedDecision,
         revisionItems: isRevisionRequired ? corrections.data : [],
+        evaluation,
         expectedSubmissionStatus: SUBMISSION_STATUS.UNDER_REVIEW,
         researchStatus,
         activityAction,

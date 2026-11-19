@@ -30,11 +30,11 @@ export async function getStudentWorkspace() {
         membersByGroup.set(member.groupId, list);
     }
     const groups = ownedGroups.map(group => ({ ...group, members: membersByGroup.get(group.id) ?? [] }));
-    const feedbackBySubmission = new Map<number, { id: number; comments: string; decision: string; createdAt: string }[]>();
+    const feedbackBySubmission = new Map<number, { id: number; comments: string; decision: string; createdAt: string; evaluationState?: "available" | "none" | null }[]>();
     for (const item of research.feedback) {
         const list = feedbackBySubmission.get(item.submissionId) ?? [];
         if (item.id !== null && item.comments !== null && item.decision !== null && item.createdAt !== null)
-            list.push({ id: item.id, comments: item.comments, decision: item.decision, createdAt: item.createdAt.toISOString() });
+            list.push({ id: item.id, comments: item.comments, decision: item.decision, createdAt: item.createdAt.toISOString(), evaluationState: item.evaluationState });
         feedbackBySubmission.set(item.submissionId, list);
     }
     const projects = research.projects;

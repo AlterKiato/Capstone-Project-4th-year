@@ -11,6 +11,10 @@ export const SUPERVISION_SOURCE_DIGEST = "2e914ebc46baa807051618a2dc6542ec3f859b
 export const PROGRESS_SOURCE_DIGEST = "9cc94f061162696564eada77af9f67f1887f57b21c3df26ec595b60eafd07001";
 export const REVISION_SOURCE_DIGEST = "cb722c3a6e278f30255ae2ba6eed528cf47da9cb73692d24eec287a459480a0c";
 export const EMAIL_OTP_SOURCE_DIGEST = "a23b05a91f7941d7b319bb34d8662d282116132ce9ae97c62e68c1b65f223f30";
+export const EVALUATION_TEMPLATE_SOURCE_DIGEST = "d560ec745f5fdd4786f43c94f0bce456a4e7e7728f7aff206fd7b2642c7c780c";
+
+export const SUBMISSION_EVALUATION_SOURCE_DIGEST = "43ee2f88850c7b5f360bd9f49565f5107da5fd1ab55734abd92e4718f9706c52";
+export const CO_EVALUATION_SOURCE_DIGEST = "f0140057433afdfb912e6da5d785086d16872eb2197de084b7e5e6ed49379f16";
 
 function reviewedSources() {
     const migrations = readMigrationFiles({ migrationsFolder: "db/migrations" });
@@ -19,6 +23,9 @@ function reviewedSources() {
     const progressSnapshot = readFileSync("db/migrations/meta/0018_snapshot.json");
     const revisionSnapshot = readFileSync("db/migrations/meta/0019_snapshot.json");
     const otpSnapshot = readFileSync("db/migrations/meta/0020_snapshot.json");
+    const evaluationSnapshot = readFileSync("db/migrations/meta/0022_snapshot.json");
+    const coEvaluationSnapshot = readFileSync("db/migrations/meta/0023_snapshot.json");
+    const templateSnapshot = readFileSync("db/migrations/meta/0021_snapshot.json");
     const supervisionSnapshot = readFileSync("db/migrations/meta/0017_snapshot.json");
     const journalBytes = readFileSync("db/migrations/meta/_journal.json");
     const journal = JSON.parse(journalBytes.toString("utf8"));
@@ -29,21 +36,30 @@ function reviewedSources() {
     const supervisionJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 18) }, null, 2));
     const progressJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 19) }, null, 2));
     const revisionJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 20) }, null, 2));
+    const otpJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 21) }, null, 2));
+    const templateJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 22) }, null, 2));
+    const evaluationJournal = Buffer.from(JSON.stringify({ ...journal, entries: journal.entries.slice(0, 23) }, null, 2));
     const sourceHash = (count: number, snapshot: Buffer, bytes: Buffer) => createHash("sha256")
         .update(JSON.stringify(migrations.slice(0, count).map(m => ({ hash: m.hash, when: m.folderMillis }))))
         .update(snapshot).update(bytes).digest("hex");
-    if (migrations.length !== 21 || journal.entries.length !== 21 || sourceHash(16, baselineSnapshot, baselineJournal) !== PREVIEW_SOURCE_DIGEST ||
+    if (migrations.length !== 24 || journal.entries.length !== 24 || sourceHash(16, baselineSnapshot, baselineJournal) !== PREVIEW_SOURCE_DIGEST ||
         sourceHash(17, workspaceSnapshot, workspaceJournal) !== WORKSPACE_SOURCE_DIGEST ||
         sourceHash(18, supervisionSnapshot, supervisionJournal) !== SUPERVISION_SOURCE_DIGEST ||
         sourceHash(19, progressSnapshot, progressJournal) !== PROGRESS_SOURCE_DIGEST || sourceHash(20, revisionSnapshot, revisionJournal) !== REVISION_SOURCE_DIGEST ||
-        sourceHash(21, otpSnapshot, journalBytes) !== EMAIL_OTP_SOURCE_DIGEST)
+        sourceHash(21, otpSnapshot, otpJournal) !== EMAIL_OTP_SOURCE_DIGEST ||
+        sourceHash(22, templateSnapshot, templateJournal) !== EVALUATION_TEMPLATE_SOURCE_DIGEST ||
+        sourceHash(23, evaluationSnapshot, evaluationJournal) !== SUBMISSION_EVALUATION_SOURCE_DIGEST ||
+        sourceHash(24, coEvaluationSnapshot, journalBytes) !== CO_EVALUATION_SOURCE_DIGEST)
         throw new Error("Reviewed Preview migration source mismatch.");
     return {
         baseline: { migrations: migrations.slice(0, 16), snapshot: JSON.parse(baselineSnapshot.toString("utf8")), hash: PREVIEW_SOURCE_DIGEST },
         workspace: { migrations: migrations.slice(0, 17), snapshot: JSON.parse(workspaceSnapshot.toString("utf8")), hash: WORKSPACE_SOURCE_DIGEST },
         progress: { migrations: migrations.slice(0, 19), snapshot: JSON.parse(progressSnapshot.toString("utf8")), hash: PROGRESS_SOURCE_DIGEST },
         revision: { migrations: migrations.slice(0, 20), snapshot: JSON.parse(revisionSnapshot.toString("utf8")), hash: REVISION_SOURCE_DIGEST },
-        otp: { migrations, snapshot: JSON.parse(otpSnapshot.toString("utf8")), hash: EMAIL_OTP_SOURCE_DIGEST },
+        otp: { migrations: migrations.slice(0, 21), snapshot: JSON.parse(otpSnapshot.toString("utf8")), hash: EMAIL_OTP_SOURCE_DIGEST },
+        evaluations: { migrations: migrations.slice(0, 23), snapshot: JSON.parse(evaluationSnapshot.toString("utf8")), hash: SUBMISSION_EVALUATION_SOURCE_DIGEST },
+        coEvaluations: { migrations, snapshot: JSON.parse(coEvaluationSnapshot.toString("utf8")), hash: CO_EVALUATION_SOURCE_DIGEST },
+        templates: { migrations: migrations.slice(0, 22), snapshot: JSON.parse(templateSnapshot.toString("utf8")), hash: EVALUATION_TEMPLATE_SOURCE_DIGEST },
         supervision: { migrations: migrations.slice(0, 18), snapshot: JSON.parse(supervisionSnapshot.toString("utf8")), hash: SUPERVISION_SOURCE_DIGEST },
     };
 }
@@ -123,6 +139,8 @@ export function recognizeRevisionLedger(ledger: Ledger) {
 }
 
 export function emailOtpMigrationSource() { return reviewedSources().otp; }
+/** Source preparation only. No E1B migration executor or target-readiness claim. */
+export function evaluationTemplateMigrationSource() { return reviewedSources().templates; }
 export function verifyEmailOtpLedger(ledger: Ledger, entries: 20 | 21 = 21) {
     if (entries !== 20 && entries !== 21) throw new Error("Email OTP ledger version refused.");
     verifyLedger(ledger, emailOtpMigrationSource().migrations, entries);
@@ -132,3 +150,8 @@ export function recognizeEmailOtpLedger(ledger: Ledger) {
     verifyEmailOtpLedger(ledger, entries);
     return { entries } as const;
 }
+
+/** Offline source identity only; applying 0022 requires separate target authorization. */
+export function submissionEvaluationMigrationSource() { return reviewedSources().evaluations; }
+/** Offline source identity only; 0023 is not authorized for an existing database here. */
+export function coEvaluationMigrationSource() { return reviewedSources().coEvaluations; }

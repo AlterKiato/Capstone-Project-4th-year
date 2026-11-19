@@ -7,6 +7,7 @@ import type { MainDelegationPanel as Panel } from "@/types/co-adviser";
 import ResearchDialog from "./research-dialog";
 import styles from "./co-adviser.module.css";
 import ContextHelp from "./context-help";
+import { CoAssessmentDetails } from "./co-adviser-evaluation";
 
 export default function MainDelegationPanel({ submissionId }: { submissionId: number }) {
     const [panel, setPanel] = useState<Panel | null>(null);
@@ -58,6 +59,7 @@ export default function MainDelegationPanel({ submissionId }: { submissionId: nu
             {panel.assignments.length ? <ul className={styles.list}>{panel.assignments.map(row => <li key={row.id}>
                 <div className={styles.heading}><h3>{row.name}</h3><span>{row.state === "closed" && row.closureReason === "main-cancelled" ? "Cancelled" : row.state === "closed" ? "Closed" : row.state === "completed" ? "Completed" : "Open"}</span></div>
                 {row.state === "completed" && <><p className="form-help">Private recommendation</p><p className={styles.recommendation}>{row.recommendation}</p>
+                    {row.assessment && <><CoAssessmentDetails value={row.assessment} /><p className="form-help">Use in Official Feedback imports narrative only. Your official criterion ratings remain separate.</p></>}
                     <button type="button" disabled={!draft.available || importing !== null || imported.includes(row.id)} onClick={()=>void importRecommendation(row.id)}>
                         {importing === row.id ? "Loading recommendation..." : imported.includes(row.id) ? "Added to Official Feedback" : "Use in Official Feedback"}
                     </button>{!draft.available && <p className="form-help">Import is available while editing official feedback under review.</p>}

@@ -1,7 +1,8 @@
 import { ROLE_IDS } from "@/lib/auth/roles";
 
-export type NavigationIcon = "home" | "document" | "group" | "book" | "bell" | "users" | "report" | "guide" | "menu" | "close" | "collapse" | "logout" | "settings";
+export type NavigationIcon = "home" | "document" | "group" | "book" | "bell" | "users" | "report" | "guide" | "menu" | "close" | "collapse" | "logout" | "settings" | "checklist";
 export type DashboardLink = { href: string; label: string; icon: NavigationIcon; exact?: boolean; bottomLabel?: string; bottomOrder?: number };
+export const EVALUATION_CRITERIA_HREF = "/dashboard/adviser/evaluation-criteria";
 
 // Presentation metadata only. The server still supplies the authorized role's links.
 export function mobileNavigation(links: DashboardLink[]) {
@@ -37,6 +38,7 @@ export function dashboardLinks(roleId: number): DashboardLink[] {
         case ROLE_IDS.ADVISER: return [home,
             { href: "/dashboard/adviser/groups", label: "Research Groups", icon: "group", bottomLabel: "Groups", bottomOrder: 2 },
             { href: "/dashboard/adviser/submissions", label: "Review Submissions", icon: "document", bottomLabel: "Submissions", bottomOrder: 1 },
+            { href: EVALUATION_CRITERIA_HREF, label: "Evaluation Criteria", icon: "checklist", exact: true },
             repository, guide, settings];
         case ROLE_IDS.ADMIN: return [home,
             { href: "/dashboard/admin/users", label: "Manage Users", icon: "users", bottomLabel: "Users", bottomOrder: 1 },

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { evaluationDraftSchema } from "@/lib/submission-evaluation";
 
 export const supervisionId = z.number().int().positive().max(2147483647);
 export const delegateReviewSchema = z.object({
@@ -9,6 +10,7 @@ export const cancelDelegationSchema = z.object({ assignmentId: supervisionId, su
 export const recommendationSchema = z.object({
     assignmentId: supervisionId, submissionId: supervisionId,
     recommendation: z.string().trim().min(1).max(20000).refine(text => !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text)),
+    evaluation: evaluationDraftSchema.nullable().optional(),
 }).strict();
 export const delegatedDocumentSchema = z.object({ assignmentId: supervisionId, submissionId: supervisionId }).strict();
 

@@ -19,3 +19,5 @@ export * from "./task-note";
 export * from "./research-supervision";
 export * from "./research-milestone";
 export * from "./revision";
+export * from "./evaluation-template";
+export * from "./submission-evaluation";

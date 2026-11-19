@@ -5,6 +5,8 @@ import { readCoAssignment, readCoAssignments, readMainDelegationPanel, readRecom
 import { sendNotification } from "@/lib/services/notification.service";
 import { cancelDelegationSchema, delegatedDocumentSchema, delegateReviewSchema, isDelegatedReviewEligible, recommendationSchema, supervisionId } from "@/lib/validations/co-adviser";
 import type { CoAssignment, CoWorkspace, DelegationResult, MainDelegationPanel, RecommendationImport } from "@/types/co-adviser";
+import { assessEvaluation, type EvaluationAssignment } from "@/lib/submission-evaluation";
+import { coAssessmentView, type CoAssessmentView } from "@/lib/co-evaluation";
 
 const denied = { success: false, message: "Current review authority could not be verified. Reload or contact your Admin." } as const;
 const changed = { success: false, message: "This assignment or submission changed. Reload the assignments before continuing." } as const;
@@ -27,7 +29,7 @@ export async function getMainDelegationPanel(submissionId: unknown): Promise<Del
             assignments: data.assignments.map(row => ({ id: row.id, coAdviserId: row.coAdviserId, name: name(row), state: row.state,
                 recommendation: row.state === "completed" ? row.recommendation : null,
                 createdAt: row.createdAt.toISOString(), completedAt: row.completedAt?.toISOString() ?? null,
-                closedAt: row.closedAt?.toISOString() ?? null, closureReason: row.closureReason })),
+                closedAt: row.closedAt?.toISOString() ?? null, closureReason: row.closureReason, assessment: row.assessment ?? null })),
         } };
     } catch { return unavailable; }
 }
@@ -67,15 +69,24 @@ export async function cancelCoAdviserAssignment(input: unknown): Promise<Delegat
     } catch { return unavailable; }
 }
 
-export async function submitCoAdviserRecommendation(input: unknown): Promise<DelegationResult> {
+export async function submitCoAdviserRecommendation(input: unknown): Promise<DelegationResult<{ assessment: CoAssessmentView | null }>> {
     const parsed = recommendationSchema.safeParse(input), actor = await getCurrentAccount();
     if (!parsed.success) return { success: false, message: "Enter a plain-text recommendation of 1 to 20,000 characters, without control characters." };
     if (!actor || actor.roleId !== 2) return denied;
     try {
         const result = await withCoRecommendationScope(actor.userId, parsed.data.submissionId, parsed.data.assignmentId, async scope => {
             if (!isDelegatedReviewEligible(scope.submission.status) || scope.assignment.state !== "open") return changed;
-            await scope.complete(parsed.data.recommendation);
-            return { success: true, message: "Private recommendation submitted. This assignment is complete and cannot be edited." };
+            let assessment;
+            let view: CoAssessmentView | null = null;
+            if (parsed.data.evaluation) {
+                const current = await scope.currentEvaluation();
+                if (!current.rowId || !current.assignment.snapshot) return { success: false, message: "The assigned criteria changed or were cleared. Keep your draft and reload before assessing again." };
+                const points = assessEvaluation(current.assignment, parsed.data.evaluation);
+                assessment = { assignmentId: current.rowId, result: { version: 1 as const, earned: points.earned, possible: points.possible, items: points.items } };
+                view = coAssessmentView(current.assignment, assessment.result, current.assignment.revision);
+            }
+            await scope.complete(parsed.data.recommendation, assessment);
+            return { success: true, message: "Private recommendation submitted. This assignment is complete and cannot be edited.", data: { assessment: view } };
         });
         if (!result) return denied;
         if (result.success) await notify(await getMainAdviserNotificationRecipient(), "Co-Adviser Recommendation Completed", "A private recommendation is available in the Main Adviser submission review workspace.");
@@ -108,7 +119,23 @@ export async function getCoAdviserAssignment(input: unknown): Promise<Delegation
         const row = await readCoAssignment(actor.userId, parsed.data.assignmentId, parsed.data.submissionId);
         const current = await getCurrentAccount();
         if (!row || !current || current.userId !== actor.userId || current.roleId !== 2 || await getCurrentMainAdviser(actor.userId)) return denied;
-        return { success: true, message: "Assignment loaded.", data: { email: current.email, assignment: coAssignment(row) } };
+        const assessment = row.state !== "open" && row.recommendation ? await withCoRecommendationScope(actor.userId, parsed.data.submissionId, parsed.data.assignmentId,
+            scope => scope.historicalEvaluation()) : null;
+        const latest = await getCurrentAccount();
+        if (!latest || latest.userId !== actor.userId || latest.roleId !== 2 || await getCurrentMainAdviser(actor.userId)) return denied;
+        return { success: true, message: "Assignment loaded.", data: { email: current.email, assignment: { ...coAssignment(row), assessment } } };
+    } catch { return unavailable; }
+}
+
+/** Only an open exact delegation grants access to the current frozen definition, never the private library. */
+export async function getCoAdviserEvaluation(input: unknown): Promise<DelegationResult<EvaluationAssignment>> {
+    const parsed = delegatedDocumentSchema.safeParse(input), actor = await getCurrentAccount();
+    if (!parsed.success || !actor || actor.roleId !== 2) return denied;
+    try {
+        return await withCoRecommendationScope(actor.userId, parsed.data.submissionId, parsed.data.assignmentId, async scope => {
+            if (scope.assignment.state !== "open" || !isDelegatedReviewEligible(scope.submission.status)) return changed;
+            return { success: true, message: "Assigned criteria loaded.", data: (await scope.currentEvaluation()).assignment };
+        }) ?? denied;
     } catch { return unavailable; }
 }
 

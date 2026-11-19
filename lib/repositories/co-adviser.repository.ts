@@ -1,10 +1,22 @@
 import "server-only";
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { activityLogs, coAdviserReviewAssignments as assignments, mainAdviserDesignation, researchPapers, submissions, users } from "@/db/schema";
+import { activityLogs, coAdviserReviewAssignments as assignments, mainAdviserDesignation, researchPapers, submissions, users, submissionEvaluationAssignments } from "@/db/schema";
 import { lockCurrentMainAdviser } from "./research-supervision.repository";
+import { readLockedEvaluationAssignment } from "./submission-evaluation.repository";
+import { coAssessmentView, type CoAssessment } from "@/lib/co-evaluation";
+import type { EvaluationAssignment } from "@/lib/submission-evaluation";
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function historicalAssessment(tx: Transaction, submissionId: number, row: { evaluationAssignmentId: number | null; evaluation: CoAssessment | null }) {
+    if (!row.evaluationAssignmentId || !row.evaluation) return null;
+    const [frozen] = await tx.select().from(submissionEvaluationAssignments).where(and(eq(submissionEvaluationAssignments.id, row.evaluationAssignmentId),
+        eq(submissionEvaluationAssignments.submissionId, submissionId)));
+    if (!frozen?.snapshot) throw Error("Recommendation snapshot unavailable.");
+    const current = await readLockedEvaluationAssignment(tx, submissionId);
+    return coAssessmentView({ revision: frozen.revision, snapshot: frozen.snapshot }, row.evaluation, current.assignment.revision);
+}
 
 // Like S3.2: accounts ascending -> singleton -> submission -> assignments.
 // Co mutations never acquire the Main account after locking a submission.
@@ -32,11 +44,14 @@ export async function readMainDelegationPanel(actorId: number, submissionId: num
         if (!submission) return null;
         const rows = await tx.select({ id: assignments.id, coAdviserId: assignments.coAdviserId, firstName: users.firstName, lastName: users.lastName,
             state: assignments.state, recommendation: assignments.recommendation, createdAt: assignments.createdAt,
-            completedAt: assignments.completedAt, closedAt: assignments.closedAt, closureReason: assignments.closureReason })
+            completedAt: assignments.completedAt, closedAt: assignments.closedAt, closureReason: assignments.closureReason,
+            evaluationAssignmentId: assignments.evaluationAssignmentId, evaluation: assignments.evaluation })
             .from(assignments).innerJoin(users, eq(users.id, assignments.coAdviserId)).where(eq(assignments.submissionId, submissionId)).orderBy(asc(assignments.id));
         const advisers = await tx.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, email: users.email }).from(users)
             .where(and(eq(users.roleId, 2), eq(users.isActive, true), ne(users.id, actorId))).orderBy(asc(users.lastName), asc(users.id));
-        return { submission, assignments: rows, advisers };
+        const recommendations = await Promise.all(rows.map(async row => ({ ...row,
+            assessment: row.state === "completed" ? await historicalAssessment(tx, submissionId, row) : null })));
+        return { submission, assignments: recommendations, advisers };
     });
 }
 
@@ -73,7 +88,9 @@ export async function withMainDelegationScope<T>(actorId: number, submissionId: 
 export async function withCoRecommendationScope<T>(actorId: number, submissionId: number, assignmentId: number, operation: (scope: {
     submission: typeof submissions.$inferSelect;
     assignment: typeof assignments.$inferSelect;
-    complete(text: string): Promise<void>;
+    currentEvaluation(): Promise<{ rowId: number | null; assignment: EvaluationAssignment }>;
+    historicalEvaluation(): Promise<ReturnType<typeof coAssessmentView> | null>;
+    complete(text: string, assessment?: { assignmentId: number; result: CoAssessment }): Promise<void>;
 }) => Promise<T>) {
     return db.transaction(async tx => {
         if (!await lockCoAdviser(tx, actorId)) return null;
@@ -83,8 +100,14 @@ export async function withCoRecommendationScope<T>(actorId: number, submissionId
             eq(assignments.submissionId, submissionId), eq(assignments.coAdviserId, actorId))).for("update");
         if (!assignment) return null;
         return operation({ submission, assignment,
-            async complete(text) {
+            async currentEvaluation() {
+                const current = await readLockedEvaluationAssignment(tx, submissionId);
+                return { rowId: current.row?.id ?? null, assignment: current.assignment };
+            },
+            async historicalEvaluation() { return historicalAssessment(tx, submissionId, assignment); },
+            async complete(text, assessment) {
                 const [saved] = await tx.update(assignments).set({ state: "completed", recommendation: text,
+                    ...(assessment ? { evaluationAssignmentId: assessment.assignmentId, evaluation: assessment.result } : {}),
                     completedAt: sql`greatest(clock_timestamp(), ${assignments.createdAt})` })
                     .where(and(eq(assignments.id, assignmentId), eq(assignments.coAdviserId, actorId), eq(assignments.submissionId, submissionId), eq(assignments.state, "open")))
                     .returning({ id: assignments.id });

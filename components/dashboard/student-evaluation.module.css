@@ -1,0 +1,11 @@
+.dialog { width: min(38rem, calc(100% - 2rem)); overflow-wrap: anywhere; }
+.dialog > div:first-child { flex-shrink: 0; }
+.dialog h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+.dialog p { white-space: pre-wrap; }
+.dialog summary { cursor: pointer; color: var(--action); padding: .5rem 0; }
+.dialog ul { padding-left: 1.25rem; }
+.criteria { list-style: decimal; padding-left: 1.5rem; margin-top: 1rem; }
+.criteria > li { padding: .75rem 0; border-top: 1px solid var(--border); }
+.criteria h4 { font-size: 1rem; margin: 0; }
+.criteria p { margin: .5rem 0 0; }
+@media (max-width: 640px) { .dialog { width: calc(100% - 1rem); } }

@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
-import { check, index, integer, pgTable, serial, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
+import { check, foreignKey, index, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { submissions } from "./submission";
+import { submissionEvaluationAssignments } from "./submission-evaluation";
+import type { CoAssessment } from "@/lib/co-evaluation";
 
 export const mainAdviserDesignation = pgTable("main_adviser_designation", {
     id: integer("id").primaryKey().default(1),
@@ -30,7 +32,18 @@ export const coAdviserReviewAssignments = pgTable("co_adviser_review_assignments
     closedAt: timestamp("closed_at", { withTimezone: true }),
     closedBy: integer("closed_by").references(() => users.id, { onDelete: "restrict" }),
     closureReason: varchar("closure_reason", { length: 100 }),
+    evaluationAssignmentId: integer("evaluation_assignment_id"),
+    evaluation: jsonb("evaluation").$type<CoAssessment>(),
 }, table => [
+    foreignKey({ name: "co_recommendation_exact_evaluation_fk", columns: [table.evaluationAssignmentId, table.submissionId],
+        foreignColumns: [submissionEvaluationAssignments.id, submissionEvaluationAssignments.submissionId] }).onDelete("restrict"),
+    check("co_recommendation_evaluation_check", sql`(${table.evaluationAssignmentId} is null and ${table.evaluation} is null) or
+        (${table.evaluationAssignmentId} is not null and ${table.evaluation} is not null and ${table.state} in ('completed','closed')
+        and coalesce(jsonb_typeof(${table.evaluation}) = 'object' and ${table.evaluation}->'version' = '1'::jsonb
+        and jsonb_typeof(${table.evaluation}->'items') = 'array' and jsonb_array_length(${table.evaluation}->'items') between 1 and 30
+        and (${table.evaluation}->>'earned')::integer between 1 and 150
+        and (${table.evaluation}->>'possible')::integer between (${table.evaluation}->>'earned')::integer and 150
+        and octet_length(${table.evaluation}::text) <= 1048576, false))`),
     uniqueIndex("co_adviser_open_assignment_unique").on(table.submissionId, table.coAdviserId).where(sql`${table.state} = 'open'`),
     index("co_adviser_assignment_inbox_idx").on(table.coAdviserId, table.state, table.submissionId),
     check("co_adviser_distinct_actor_check", sql`${table.coAdviserId} <> ${table.assignedBy}`),

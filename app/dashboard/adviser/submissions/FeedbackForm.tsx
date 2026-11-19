@@ -15,8 +15,14 @@ import { appendRecommendation } from "@/lib/utils/recommendation-import";
 import { useRevisionDraft } from "./RevisionDraft";
 import { revisionDraftsSchema } from "@/lib/validations/revision";
 import ContextHelp from "@/components/dashboard/context-help";
+import SubmissionEvaluation, { EvaluationConfirmation, useSubmissionEvaluation } from "@/components/dashboard/submission-evaluation";
+import { assessEvaluation } from "@/lib/submission-evaluation";
 
 export default function FeedbackForm({ submissionId }: { submissionId: number }) {
+    return <VersionFeedbackForm key={submissionId} submissionId={submissionId} />;
+}
+
+function VersionFeedbackForm({ submissionId }: { submissionId: number }) {
     const router = useRouter();
     const [phase, setPhase] = useState<"editing" | "confirming" | "submitting" | "submitted" | "unknown">("editing");
     const [confirmation, setConfirmation] = useState<ReviewConfirmation | null>(null);
@@ -30,6 +36,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     const setRevisionLocked = revisions?.setLocked;
     const draft = useReviewDraft();
     const draftStatus = useReviewDraftStatus();
+    const evaluation = useSubmissionEvaluation(submissionId);
     const submitting = useRef(false);
     const active = useRef(false);
     const generation = useRef(0);
@@ -40,7 +47,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     const focusSubmit = useRef(false);
     const isSubmitting = phase === "submitting";
     const locked = isSubmitting || phase === "submitted" || phase === "unknown";
-    const dirty = comments !== "" || decision !== "Revision Required" || !!revisionItems?.length;
+    const dirty = comments !== "" || decision !== "Revision Required" || !!revisionItems?.length || !!evaluation.assessments.length;
     const { register } = useOfficialFeedbackDraft();
     const imported = useRef(new Set<number>());
     useEffect(() => { setRevisionLocked?.(phase !== "editing"); }, [setRevisionLocked, phase]);
@@ -61,6 +68,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     useEffect(() => {
         draft?.setDirty(dirty);
     }, [draft, dirty]);
+    useEffect(() => { draft?.setPending(isSubmitting || evaluation.busy); }, [draft, isSubmitting, evaluation.busy]);
 
     useEffect(() => {
         active.current = true;
@@ -99,18 +107,21 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
         closeConfirmation(false);
         setComments(nextComments);
         setDecision(nextDecision);
-        draft?.setDirty(nextComments !== "" || nextDecision !== "Revision Required" || !!revisionItems?.length);
+        draft?.setDirty(nextComments !== "" || nextDecision !== "Revision Required" || !!revisionItems?.length || !!evaluation.assessments.length);
     }
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (phase !== "editing" || submitting.current || confirmed.current || !event.currentTarget.reportValidity()) return;
+        if (evaluation.busy || evaluation.error || !evaluation.assignment) { setFailed(true); setMessage("Load the current evaluation assignment before confirming."); return; }
+        try { assessEvaluation(evaluation.assignment, evaluation.draft); }
+        catch (error) { setFailed(true); setMessage(error instanceof Error ? error.message : "Complete the evaluation."); return; }
         const validation = editorError || validateFeedback(comments);
         if (validation) { setFailed(true); setMessage(validation); return; }
         if (decision === "Revision Required" && !revisionDraftsSchema.safeParse(revisionItems ?? []).success) {
             setFailed(true); setMessage("Check each correction in Revisions. Correction text is required (up to 2,000 characters); page or section is optional (up to 120). Maximum 30 items."); return;
         }
-        const payload = createReviewConfirmation({ submissionId, comments, decision, revisionItems: revisionItems ?? [] });
+        const payload = createReviewConfirmation({ submissionId, comments, decision, revisionItems: revisionItems ?? [], evaluation: { assignment: evaluation.assignment, draft: evaluation.draft } });
         generation.current++;
         confirmed.current = payload;
         setConfirmation(payload); setPhase("confirming");
@@ -121,7 +132,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
     function confirmAndSubmit() {
         const payload = confirmed.current;
         if (!active.current || phase !== "confirming" || submitting.current || !payload) return;
-        if (!matchesReviewConfirmation(payload, { submissionId, comments, decision, revisionItems: revisionItems ?? [] })) { closeConfirmation(); return; }
+        if (!evaluation.assignment || !matchesReviewConfirmation(payload, { submissionId, comments, decision, revisionItems: revisionItems ?? [], evaluation: { assignment: evaluation.assignment, draft: evaluation.draft } })) { closeConfirmation(); return; }
         submitting.current = true;
         confirmed.current = null; setConfirmation(null);
         const attempt = ++generation.current;
@@ -138,11 +149,13 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
             formData.set("comments", payload.comments);
             formData.set("decision", payload.decision);
             formData.set("revisionItems", JSON.stringify(payload.decision === "Revision Required" ? payload.revisionItems ?? [] : []));
+            if (payload.evaluation) formData.set("evaluation", JSON.stringify(payload.evaluation.draft));
             const result = await createAdviserFeedbackAction(formData);
             if (!current()) return;
             setMessage(result.message);
             setFailed(!result.success);
             if (result.success) {
+                evaluation.setAssessments([]);
                 revisions?.setItems([]);
                 setPhase("submitted"); changeDraft("", "Revision Required");
                 try { router.refresh(); } catch { setMessage("Feedback was saved. Reload this submission to view the recorded decision."); }
@@ -162,10 +175,11 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
         <form onSubmit={handleSubmit} className={`dashboard-form ${styles.reviewForm}`} aria-busy={isSubmitting} aria-describedby="feedback-instructions feedback-message">
             <div id="feedback-instructions"><strong>Official feedback</strong> <ContextHelp label="About official feedback">Comments and a decision are required. Draft corrections are managed in Revisions and publish only with Revision Required.</ContextHelp></div>
             <p className={styles.draftIndicator} hidden={!draftStatus.dirty} aria-describedby="feedback-draft-guard-help">Unsaved changes</p>
-            <span id="feedback-draft-guard-help" className={styles.srOnly}>Page links, logout and the version selector ask before discarding feedback. Browser Back and other programmatic navigation may discard this draft. Feedback is not automatically saved.</span>
+            <span id="feedback-draft-guard-help" className={styles.srOnly}>Page links, logout and the version selector ask before discarding feedback and rubric ratings. Browser Back and other programmatic navigation may discard this draft. Feedback and ratings are not automatically saved.</span>
             <span className={styles.srOnly} role="status" aria-live="polite" aria-atomic="true">{draftStatus.dirty ? "Unsaved feedback. Leaving this review may discard your changes." : ""}</span>
             {draftStatus.dirty && <UnsavedFeedbackToast key={draftStatus.session} />}
             <FeedbackEditor value={comments} onChange={value => changeDraft(value, decision)} disabled={locked} onError={message => { setEditorError(message); if (message) closeConfirmation(false); }} />
+            <SubmissionEvaluation evaluation={evaluation} disabled={locked} hidden={phase !== "editing"} onChange={() => closeConfirmation(false)} />
             <div className={styles.reviewDecision}>
                 <label htmlFor="decision">Review Decision</label>
                 <select id="decision" name="decision" value={decision} onChange={event => changeDraft(comments, event.target.value)}
@@ -181,6 +195,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
                 <p role="status">Submission {confirmation.submissionId}. Review your feedback before submitting.</p>
                 <h4>Feedback to submit</h4>
                 <FeedbackContent value={confirmation.comments} />
+                {confirmation.evaluation && <EvaluationConfirmation {...confirmation.evaluation} />}
                 {confirmation.decision === "Revision Required" && !!confirmation.revisionItems?.length && <><h4>Corrections to finalize</h4><ol>{confirmation.revisionItems.map((item, i) => <li key={i}>{item.correction}{item.reference && ` (${item.reference})`}</li>)}</ol></>}
                 <div className={styles.confirmationActions}>
                     <button ref={backButton} type="button" className={styles.neutral} onClick={() => closeConfirmation()}>Back to Edit</button>
@@ -189,7 +204,7 @@ export default function FeedbackForm({ submissionId }: { submissionId: number })
             </section>}
             {isSubmitting && <p ref={sendingStatus} tabIndex={-1} role="status">Submitting feedback. The request has been sent and can no longer be canceled.</p>}
             <p id="feedback-message" aria-live="polite" aria-atomic="true" className={message ? (failed ? "form-message" : "research-notice") : undefined}>{message}</p>
-            {phase !== "confirming" && <button ref={submitButton} type="submit" disabled={phase !== "editing"}>{isSubmitting ? "Submitting Feedback..." : phase === "submitted" ? "Feedback submitted" : phase === "unknown" ? "Review outcome unknown" : "Review & Confirm Decision"}</button>}
+            {phase !== "confirming" && <button ref={submitButton} type="submit" disabled={phase !== "editing" || evaluation.busy || !!evaluation.error}>{isSubmitting ? "Submitting Feedback..." : phase === "submitted" ? "Feedback submitted" : phase === "unknown" ? "Review outcome unknown" : "Review & Confirm Decision"}</button>}
         </form>
     );
 }

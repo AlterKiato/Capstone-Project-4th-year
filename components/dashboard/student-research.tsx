@@ -14,6 +14,8 @@ import StudentFeedbackDialog from "./student-feedback-dialog";
 import NavigationIcon from "./navigation-icon";
 import ResearchProgress from "./research-progress";
 import RevisionChecklist from "./revision-checklist";
+import StudentEvaluationDialog from "./student-evaluation-dialog";
+import type { StudentEvaluationRequest } from "@/lib/student-evaluation";
 
 export default function StudentResearch({ workspace, target }: { workspace: StudentWorkspace; target: ResearchTarget }) {
     const [notice, setNotice] = useState("");
@@ -28,6 +30,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
     const [selectedId, setSelectedId] = useState(initial.project?.id);
     const [expanded, setExpanded] = useState<number | null>(initial.expandedId);
     const [details, setDetails] = useState(false);
+    const [evaluation, setEvaluation] = useState<StudentEvaluationRequest | null>(null);
     const [modal, setModal] = useState<"create" | "upload" | null>(null);
     const tabs = useRef<(HTMLButtonElement | null)[]>([]);
     const [tab, setTab] = useState<ResearchTab>("history");
@@ -63,7 +66,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
             {workspace.projects.length > 0 && <div className={styles.selector}><label htmlFor="research-project">Research project</label>
                 <select id="research-project" value={selectedId} disabled={modal !== null} onChange={event => {
                     const id = Number(event.target.value);
-                    setSelectedId(id); setDetails(false); setNotice(""); setFeedback(null); setTab("history"); setVisited({ history: true, progress: false, revisions: false });
+                    setSelectedId(id); setDetails(false); setNotice(""); setFeedback(null); setEvaluation(null); setTab("history"); setVisited({ history: true, progress: false, revisions: false });
                     setExpanded(resolveResearchTarget(workspace, { project: String(id), submission: undefined, feedback: undefined }).expandedId);
                 }}>{workspace.projects.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></div>}
             {workspace.groups.length > 0 && <button type="button" className={styles.toggle} onClick={() => setModal("create")}>Create Project</button>}
@@ -99,6 +102,8 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
                             <p><strong>Decision: {item.decision}</strong> · <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleDateString("en-PH", { timeZone: "Asia/Manila" })}</time></p>
                             <p className={styles.feedbackPreview}>{feedbackPlainText(item.comments).slice(0, 180)}{feedbackPlainText(item.comments).length > 180 ? "…" : ""}</p>
                             <button id={`feedback-${item.id}`} type="button" className={styles.toggle} onClick={() => setFeedback({ submissionId: submission.id, feedbackId: item.id })}>View Full Feedback</button>
+                            {item.evaluationState === "available" && <button type="button" className={styles.toggle} onClick={() => setEvaluation({ paperId: submission.paperId, submissionId: submission.id, version: submission.version, feedbackId: item.id })}>View Evaluation</button>}
+                            {item.evaluationState === "none" && <p className="form-help">No criteria-based evaluation for this review.</p>}
                         </div>)}
                     </div>
                 </li>)}</ol>}
@@ -106,6 +111,7 @@ function StudentResearchContent({ workspace, target, notice, setNotice }: {
             <div id="research-progress" role="tabpanel" aria-labelledby="research-progress-tab" tabIndex={-1} hidden={tab !== "progress"} className={styles.tabPanel}>{project && visited.progress && <ResearchProgress paperId={project.id} />}</div>
             <div id="research-revisions-panel" role="tabpanel" aria-labelledby="research-revisions-tab" tabIndex={-1} hidden={tab !== "revisions"} className={styles.tabPanel}>{project && visited.revisions && <RevisionChecklist key={project.id} paperId={project.id} />}</div>
         </section>
+        {evaluation && <StudentEvaluationDialog request={evaluation} onClose={() => setEvaluation(null)} />}
         {viewedSubmission && viewedFeedback && <StudentFeedbackDialog version={viewedSubmission.version} decision={viewedFeedback.decision} reviewedAt={viewedFeedback.createdAt} comments={viewedFeedback.comments} onClose={() => {
             setFeedback(null); requestAnimationFrame(() => document.getElementById(`feedback-${viewedFeedback.id}`)?.focus());
         }} />}

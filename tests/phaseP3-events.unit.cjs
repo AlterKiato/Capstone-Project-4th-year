@@ -47,8 +47,8 @@ function feedbackFixture(changes = {}) {
         '@/lib/auth/authorization': {}, '@/lib/services/dashboard-account.service': {},
     });
     const service = load('lib/services/adviser-feedback.service.ts', {
-        '@/lib/auth/research-mutation-account': { getActiveResearchActor: async (role, id) => state.active && role === 2 && id === 7 ? 7 : null },
-        '@/lib/repositories/research-group.repository': { findResearchGroupsByAdviserId: async id => [{ id: id === 7 ? 100 : 200 }] },
+        '@/lib/auth/main-adviser': { getCurrentMainAdviser: async id => state.active && id === 7 ? { userId: 7, roleId: 2 } : null },
+        '@/lib/repositories/research-group.repository': { findResearchGroupsForMainAdviser: async id => [{ id: id === 7 ? 100 : 200 }] },
         '@/lib/repositories/adviser-submission.repository': { findSubmissionForAdviser: async (id, groups) =>
             state.owned && id === 5 && groups[0] === 100 ? { id, paperId: 10, submittedBy: 99, version: 'v2', status: state.status, researchTitle: 'PRIVATE research title' } : null },
         '@/lib/repositories/feedback.repository': { persistAdviserDecision: async data => {
@@ -84,7 +84,7 @@ test('Adviser authorization, validation and failed transactions schedule nothing
     }
     const invalid = feedbackFixture(); assert.equal((await invalid.action.createAdviserFeedbackAction(invalid.form('Rejected'))).success, false); assert.equal(invalid.scheduled.length, 0);
     const failed = feedbackFixture({ failCommit: true });
-    await assert.rejects(failed.action.createAdviserFeedbackAction(failed.form('Approved'))); assert.equal(failed.scheduled.length, 0); assert.equal(failed.inApp.length, 0);
+    assert.equal((await failed.action.createAdviserFeedbackAction(failed.form('Approved'))).success, false); assert.equal(failed.scheduled.length, 0); assert.equal(failed.inApp.length, 0);
     const schedule = feedbackFixture({ failSchedule: true });
     assert.equal((await schedule.action.createAdviserFeedbackAction(schedule.form('Approved'))).success, true); assert.equal(schedule.inApp.length, 1);
     const notification = feedbackFixture({ failNotification: true });

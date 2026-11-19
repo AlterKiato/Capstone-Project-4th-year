@@ -5,8 +5,12 @@ import styles from "@/components/dashboard/adviser-submissions.module.css";
 import { getAdviserSubmissionsDirectory } from "@/lib/services/adviser-submissions-ui.service";
 import { getCoAdviserWorkspace } from "@/lib/services/co-adviser.service";
 import CoAdviserWorkspace from "@/components/dashboard/co-adviser-workspace";
+import { redirect } from "next/navigation";
+import { isTemplateView } from "@/lib/evaluation-templates";
+import { EVALUATION_CRITERIA_HREF } from "@/lib/constants/dashboard-navigation";
 
-export default async function AdviserSubmissionsPage() {
+export default async function AdviserSubmissionsPage({ searchParams }: { searchParams?: Promise<{ view?: string | string[] }> }) {
+    if (isTemplateView((await searchParams)?.view)) redirect(EVALUATION_CRITERIA_HREF);
     const directory = await getAdviserSubmissionsDirectory();
     const delegated = directory ? null : await getCoAdviserWorkspace();
     return <main className={`dashboard-page research-workspace ${styles.page}`}>

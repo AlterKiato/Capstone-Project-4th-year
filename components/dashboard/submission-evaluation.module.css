@@ -1,0 +1,42 @@
+.entry { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.entry > span { min-width: 0; flex: 1; font-size: .875rem; }
+.coEntry > span { flex-basis: 10rem; }
+.assigned { display: block; color: var(--muted); overflow-wrap: anywhere; font-size: .8125rem; }
+.entry.coEntry .include { display: flex; align-items: center; gap: .4rem; min-height: 44px; margin-bottom: 0; font-size: .8125rem; flex-shrink: 0; }
+.coEntry .include input { width: auto; min-height: auto; }
+.recorded { min-width: 0; overflow-wrap: anywhere; }
+.recorded > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--action); font-size: .875rem; }
+.entry button, .window button, .chooser button { min-height: 44px; padding: .4rem .65rem; font-size: .8125rem; background: var(--surface); color: var(--foreground); border: 1px solid var(--border-strong); border-radius: .375rem; }
+.entry button:hover:not(:disabled), .window button:hover:not(:disabled), .chooser button:hover:not(:disabled) { background: var(--surface-hover); }
+.overlay { position: fixed; inset: 0; z-index: 110; background: #0f172a80; }
+.chooser { position: fixed; z-index: 111; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(28rem, calc(100dvw - 1.5rem)); max-height: calc(100dvh - 1.5rem); overflow-y: auto; padding: 1rem; border: 1px solid var(--border-strong); border-radius: .65rem; background: var(--surface); color: var(--foreground); font-family: var(--font-app); }
+.chooser h2 { margin: 0; font-size: 1rem; font-weight: 650; }
+.chooser p { margin: .75rem 0; font-size: .875rem; overflow-wrap: anywhere; }
+.chooser label { display: block; margin-top: .75rem; font-size: .875rem; }
+.chooser select, .window select, .window textarea { width: 100%; min-width: 0; max-width: 100%; min-height: 44px; padding: .5rem; border: 1px solid var(--border-strong); border-radius: .375rem; background: var(--surface); color: var(--foreground); font: inherit; }
+.actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .4rem; }
+.chooser .actions { margin-top: 1rem; }
+.window { position: fixed; z-index: 45; right: 1rem; bottom: 5rem; display: flex; flex-direction: column; width: min(29rem, calc(100dvw - 1.5rem)); height: min(38rem, calc(100dvh - 6rem)); min-height: 0; overflow: hidden; border: 1px solid var(--border-strong); border-radius: .65rem; box-shadow: 0 6px 24px #0003; background: var(--surface); color: var(--foreground); font-family: var(--font-app); font-size: .875rem; }
+.window[style] { right: auto; bottom: auto; }
+.header { display: flex; flex-shrink: 0; align-items: center; gap: .25rem; padding: .65rem; border-bottom: 1px solid var(--border); }
+.handle { flex: 1; min-width: 0; }
+.window[data-mobile="false"] .handle { cursor: grab; touch-action: none; user-select: none; }
+.header h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin: 0; font-size: .9375rem; font-weight: 650; overflow-wrap: anywhere; }
+.header p { margin: .25rem 0 0; font-size: .75rem; color: var(--muted); }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: .75rem 1rem; }
+.warning { margin: 0 0 .75rem; font-size: .75rem; color: var(--muted); line-height: 1.6; }
+.criterion { min-width: 0; margin: .5rem 0 1rem; padding: .5rem 0 0; border: 0; border-top: 1px solid var(--border); }
+.criterion legend { max-width: 100%; padding: 0 .4rem 0 0; font-weight: 650; overflow-wrap: anywhere; }
+.criterion label { display: grid; gap: .3rem; margin: .4rem 0; }
+.criterion summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--action); }
+.criterion p, .criterion dd { margin: .3rem 0 .5rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.criterion textarea { min-height: 5rem; resize: vertical; }
+.criterion dt { font-weight: 600; }
+.footer { flex-shrink: 0; padding: .65rem; border-top: 1px solid var(--border); }
+.footer > span { display: block; margin-bottom: .4rem; color: var(--muted); }
+.window :focus-visible, .chooser :focus-visible, .entry :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.window[data-mobile="true"] { z-index: 111; inset: auto .75rem .75rem; width: calc(100dvw - 1.5rem); height: min(42rem, calc(100dvh - 1.5rem)); }
+.confirmation { overflow-wrap: anywhere; }
+.confirmation ol { list-style: decimal; padding-left: 1.25rem; }
+.confirmation li { margin-top: .5rem; white-space: pre-wrap; }
+@media (max-height: 500px) { .window { bottom: .75rem; height: calc(100dvh - 1.5rem); } }

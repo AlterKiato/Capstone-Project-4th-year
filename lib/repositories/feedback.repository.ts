@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { lockCurrentMainAdviser } from "./research-supervision.repository";
 import { closeOpenDelegationsForDecision } from "./co-adviser.repository";
 import { SUBMISSION_STATUS } from "@/lib/constants/submission-status";
+import { prepareOfficialEvaluation, insertOfficialEvaluation } from "./submission-evaluation.repository";
 
 import {
     activityLogs,
@@ -88,6 +89,7 @@ export async function persistAdviserDecision(data: {
     activityAction: string;
     activityDescription: string;
     revisionItems?: RevisionDraft[];
+    evaluation?: unknown;
 }) {
     const corrections = revisionDraftsSchema.parse(data.revisionItems ?? []);
     return db.transaction(async (tx) => {
@@ -99,6 +101,7 @@ export async function persistAdviserDecision(data: {
         if (current.status !== SUBMISSION_STATUS.UNDER_REVIEW || data.expectedSubmissionStatus !== SUBMISSION_STATUS.UNDER_REVIEW)
             throw new Error("The submission status changed before the decision was saved.");
 
+        const evaluation = await prepareOfficialEvaluation(tx, data.submissionId, data.evaluation);
         await closeOpenDelegationsForDecision(tx, data.submissionId, data.teacherId);
 
         const [feedback] = await tx
@@ -114,6 +117,7 @@ export async function persistAdviserDecision(data: {
         if (!feedback) {
             throw new Error("The feedback could not be saved.");
         }
+        await insertOfficialEvaluation(tx, feedback.id, evaluation);
         if (data.decision === SUBMISSION_STATUS.REVISION_REQUIRED && corrections.length) {
             await tx.insert(revisionItems).values(corrections.map((item, position) => ({ ...item, feedbackId: feedback.id, position })));
         }
