@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import type postgres from "postgres";
-import { previewMigrationSource, workspaceMigrationSource, supervisionMigrationSource, progressMigrationSource, revisionMigrationSource, emailOtpMigrationSource } from "./preview-migration-source";
+import { previewMigrationSource, workspaceMigrationSource, supervisionMigrationSource, progressMigrationSource, revisionMigrationSource, emailOtpMigrationSource, evaluationTemplateMigrationSource, submissionEvaluationMigrationSource, coEvaluationMigrationSource } from "./preview-migration-source";
 import { catalogCheck, catalogDefault, catalogIndex, catalogIdentifier } from "./preview-catalog-contract";
+import { verifyEvaluationRoutines } from "./preview-evaluations";
 const pgName = (name: string) => name.slice(0, 63);
 
 export class PreviewSchemaAssertion extends Error {
@@ -22,7 +23,7 @@ export function verifyPreviewColumnNames(table: string, actual: string[], expect
 }
 
 // Legacy/local verifier: PostgreSQL canonicalizes trusted SQL in temporary tables.
-export type PreviewSchemaMode = "initialize" | "upgrade-0015" | "workspace-baseline" | "upgrade-0016" | "supervision-baseline" | "upgrade-0017" | "supervision-installed" | "progress-installed" | "upgrade-0018" | "revision-installed" | "upgrade-0019" | "otp-installed";
+export type PreviewSchemaMode = "initialize" | "upgrade-0015" | "workspace-baseline" | "upgrade-0016" | "supervision-baseline" | "upgrade-0017" | "supervision-installed" | "progress-installed" | "upgrade-0018" | "revision-installed" | "upgrade-0019" | "otp-installed" | "templates-installed" | "evaluation-installed" | "co-evaluation-installed";
 export async function verifyPreviewSchema(client: postgres.Sql, mode: PreviewSchemaMode = "initialize") {
     if (!["initialize", "upgrade-0015", "workspace-baseline", "upgrade-0016", "supervision-baseline", "upgrade-0017"].includes(mode)) throw new Error("Preview schema mode refused.");
     return verifySchema(client, mode);
@@ -30,8 +31,8 @@ export async function verifyPreviewSchema(client: postgres.Sql, mode: PreviewSch
 
 // Hosted 0017 path. The caller verifies authenticated target/ledger/privileges first and supplies
 // a bounded READ ONLY transaction for inspection. All SQL emitted here is SELECT, including on failure.
-export async function verifyPreviewCatalog(client: postgres.Sql, mode: "supervision-baseline" | "supervision-installed" | "upgrade-0017" | "progress-installed" | "upgrade-0018" | "revision-installed" | "upgrade-0019" | "otp-installed") {
-    if (!["supervision-baseline", "supervision-installed", "upgrade-0017", "progress-installed", "upgrade-0018", "revision-installed", "upgrade-0019", "otp-installed"].includes(mode)) throw new Error("Preview catalog mode refused.");
+export async function verifyPreviewCatalog(client: postgres.Sql, mode: Exclude<PreviewSchemaMode, "initialize" | "upgrade-0015" | "workspace-baseline" | "upgrade-0016">) {
+    if (!["supervision-baseline", "supervision-installed", "upgrade-0017", "progress-installed", "upgrade-0018", "revision-installed", "upgrade-0019", "otp-installed", "templates-installed", "evaluation-installed", "co-evaluation-installed"].includes(mode)) throw new Error("Preview catalog mode refused.");
     await verifyLedgerCatalog(client);
     return verifySchema(client, mode, undefined, true);
 }
@@ -82,7 +83,8 @@ export async function verifyLocalWorkspaceSchema(client: postgres.Sql, entries: 
 async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, localEntries?: 15 | 16 | 17, catalogOnly = false) {
     let schemaObject = "public", schemaAssertion = "table-set";
     try {
-        const snapshot = mode === "otp-installed" ? emailOtpMigrationSource().snapshot : mode === "upgrade-0019" || mode === "revision-installed" ? revisionMigrationSource().snapshot : mode === "upgrade-0018" || mode === "progress-installed" ? progressMigrationSource().snapshot : mode === "upgrade-0017" || mode === "supervision-installed" ? supervisionMigrationSource().snapshot :
+        const immutable = mode === "evaluation-installed" || mode === "co-evaluation-installed";
+        const snapshot = mode === "co-evaluation-installed" ? coEvaluationMigrationSource().snapshot : mode === "evaluation-installed" ? submissionEvaluationMigrationSource().snapshot : mode === "templates-installed" ? evaluationTemplateMigrationSource().snapshot : mode === "otp-installed" ? emailOtpMigrationSource().snapshot : mode === "upgrade-0019" || mode === "revision-installed" ? revisionMigrationSource().snapshot : mode === "upgrade-0018" || mode === "progress-installed" ? progressMigrationSource().snapshot : mode === "upgrade-0017" || mode === "supervision-installed" ? supervisionMigrationSource().snapshot :
             mode === "upgrade-0016" || mode === "supervision-baseline" ? workspaceMigrationSource().snapshot : previewMigrationSource().snapshot;
         // 0015 only added push_subscriptions: derive the preceding catalog from pinned source.
         if (localEntries === 15) delete snapshot.tables["public.push_subscriptions"];
@@ -240,7 +242,8 @@ async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, local
                 and not exists(select 1 from pg_depend d where d.classid='pg_proc'::regclass and d.objid=p.oid and d.deptype='e')) as routines,
             exists(select 1 from pg_type t join pg_namespace n on n.oid=t.typnamespace where n.nspname='public' and t.typtype in ('d','e','r','m')
                 and not exists(select 1 from pg_depend d where d.classid='pg_type'::regclass and d.objid=t.oid and d.deptype='e')) as types`;
-        assert.equal(unexpected.routines, false); assert.equal(unexpected.types, false);
+        assert.equal(unexpected.routines, immutable); assert.equal(unexpected.types, false);
+        if (immutable) await verifyEvaluationRoutines(client);
         for (const s of sequences) {
             schemaObject = `public.${s.sequencename}`; schemaAssertion = "sequence-properties";
             assert.equal(String(s.start_value), '1'); assert.equal(String(s.min_value), '1'); assert.equal(String(s.max_value), '2147483647');
@@ -254,7 +257,7 @@ async function verifySchema(client: postgres.Sql, mode: PreviewSchemaMode, local
         }
         schemaObject = "public"; schemaAssertion = "unexpected-triggers";
         const [extras] = await client`select exists(select 1 from pg_trigger g join pg_class c on c.oid=g.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and not g.tgisinternal) as triggers`;
-        assert.equal(extras.triggers, false);
+        assert.equal(extras.triggers, immutable);
         if (catalogOnly) {
             schemaAssertion = "expression-bindings-and-rules";
             // Deparsed text alone cannot authenticate function/operator/type bindings. Reject custom

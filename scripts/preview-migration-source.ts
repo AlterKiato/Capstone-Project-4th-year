@@ -155,3 +155,14 @@ export function recognizeEmailOtpLedger(ledger: Ledger) {
 export function submissionEvaluationMigrationSource() { return reviewedSources().evaluations; }
 /** Offline source identity only; 0023 is not authorized for an existing database here. */
 export function coEvaluationMigrationSource() { return reviewedSources().coEvaluations; }
+
+/** One reviewed hosted upgrade: exact 0020 predecessor or complete 0023 installation. */
+export function verifyEvaluationLedger(ledger: Ledger, entries: 21 | 24) {
+    if (entries !== 21 && entries !== 24) throw new Error("Evaluation ledger state refused.");
+    verifyLedger(ledger, coEvaluationMigrationSource().migrations, entries);
+}
+export function recognizeEvaluationLedger(ledger: Ledger) {
+    const entries = ledger.length === 21 ? 21 : 24;
+    verifyEvaluationLedger(ledger, entries);
+    return { entries } as const;
+}

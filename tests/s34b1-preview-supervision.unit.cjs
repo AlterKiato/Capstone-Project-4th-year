@@ -65,7 +65,7 @@ function databaseDouble(entries = 17) {
         if (text.includes('select to_regclass')) return [{ ledger: true }];
         if (text.includes('from pg_sequences')) return relations(state.entries).filter(r => r.relkind === 'S').map(r => ({ sequencename: r.relname, start_value: '1', increment_by: '1' }));
         if (text.includes('last_value::text')) return [{ value: params[0].identifier.includes('group_tasks') || params[0].identifier.includes('task_notes') ? '1' : state.oldSequence, is_called: true }];
-        if (text.includes('string_agg')) return [{ hash: params[0].identifier === 'public.push_subscriptions' ? state.pushHash : 'old-records' }];
+        if (text.includes('string_agg')) return [{ hash: params.find(p => p?.identifier)?.identifier === 'public.push_subscriptions' ? state.pushHash : 'old-records' }];
         if (text.includes('count(*)')) return [{ count: 0 }];
         if (text.includes('information_schema.columns')) return shape(state.entries).columns;
         if (text.includes('from pg_constraint')) return state.constraints ?? shape(state.entries).constraints;

@@ -1,12 +1,12 @@
 # ThesiSHS AI — Development and Protected Preview Playbook
 
-**Updated:** 2026-11-10 (Asia/Manila). Canonical operating procedure for small feature batches. This document grants no execution permission. Current progress belongs in [Master Context](MASTER_CONTEXT_UPDATED.md); configuration and synthetic fixtures belong in the [Preview baseline](VERCEL_PREVIEW_BASELINE.md); incident causes and established remedies belong in the [prevention register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register).
+**Updated:** 2026-11-19 (Asia/Manila). Canonical operating procedure for small feature batches. This document grants no execution permission. Current progress belongs in [Master Context](MASTER_CONTEXT_UPDATED.md) and the affected feature handoff; configuration and synthetic fixtures belong in the [Preview baseline](VERCEL_PREVIEW_BASELINE.md); incident causes and established remedies belong in the [prevention register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register).
 
 ## 1. Default: two prompts per feature batch
 
 **Prompt 1 implements the approved feature and, only if explicitly authorized, creates one reviewed local commit. Prompt 2 publishes that pinned commit to protected Preview after explicit push/deployment authorization.** Owner-led acceptance follows publication, one action at a time. Simple batches may use one prompt containing both explicitly authorized checkpoints, conditional on every applicable gate passing. Two prompts are a default, not permission to cross a security boundary.
 
-Read this playbook, the baseline, current `AGENTS.md`, Master Context and Source of Truth before release work. Inspect actual Git state and affected source. Treat dated handoffs as historical evidence, never reusable authorization. Preserve unrelated work. Prefer the smallest check that detects a concrete changed risk; reuse accepted evidence when its dependencies are unchanged. Do not turn routine UI work into a complete infrastructure or recovery audit.
+Read this playbook **first before every Preview push**, then the baseline, current `AGENTS.md`, Master Context, Source of Truth and affected feature handoff. Inspect actual Git state and affected source. Treat dated handoffs as historical evidence, never reusable authorization. Preserve unrelated work. Prefer the smallest check that detects a concrete changed risk; reuse accepted evidence when its dependencies are unchanged. Do not turn routine UI work into a complete infrastructure or recovery audit.
 
 ## 2. Compact dependency check before coding
 
@@ -46,7 +46,7 @@ Follow the [release policy](SOURCE_OF_TRUTH_UPDATED.md#future-release-policy-own
 1. Inspect actual branch/HEAD/index/tree, approved specification and affected source/contracts. Identify dependencies using section 2, classify A/B/C and consult only applicable prevention entries.
 2. Implement the complete approved batch. Prepare needed additive migration, operator compatibility, minimum-grant plan and acceptance support together. Keep hosted execution separately gated. Reuse existing Preview fixture inventory.
 3. Run focused unit/integration and authorization checks, relevant lint/TypeScript and build checks. Include changed transport/persistence boundaries rather than only component mocks (for example multipart FormData normalization). Distinguish doubles, real local database tests and hosted evidence. No hosted test mutation without approval.
-4. Inspect the diff for secret disclosure, authorization/schema regressions, install/build migration or seed side effects, and unintended changes. Fix routine test whitespace, documentation reconciliation and commit preparation in this same checkpoint. Update only affected canonical documentation.
+4. Inspect the diff for secret disclosure, authorization/schema regressions, install/build migration or seed side effects, and unintended changes. Check tracked diffs and each approved new/untracked file for whitespace before staging; after separately authorized exact-path staging, run `git diff --cached --check` over the entire index, including additions, before committing. See section 7.1 for the native new-file check. Fix routine test whitespace, documentation reconciliation and commit preparation in this same checkpoint. Update only affected canonical documentation.
 5. If committing was explicitly authorized, review exact file scope, branch, parent, remote ancestry, staged diff and whitespace; create **one local commit**. Preserve unrelated modifications; no broad staging, push, merge or deployment. If committing was not authorized, leave edits unstaged and report that status.
 6. Return SHA (or explicitly no commit), tier, validation and evidence limits, new variables/schema/operator/grant implications, fixture prerequisites, concrete blockers and the smallest next action.
 
@@ -84,6 +84,35 @@ Attempt the approved authenticated inspection channel **once**. If unavailable, 
 | Authorization/security failure | Stop the affected operation, preserve evidence and resolve the applicable hard requirement. |
 
 The intended public CA certificate's visibility advisory is nonblocking by itself; it is not independent proof of TLS failure. Actual CA/hostname verification failures, wrong target, secret exposure or disabled-Data-API violations remain security gates. See the [incident register](PHASE10_S34B1_PREVIEW_OPERATOR.md#preview-prevention-register) for established resolutions and fresh-check triggers.
+
+### 7.1 E1P lessons and narrow failure recovery
+
+The [evaluation operator handoff](FEATURE_E1PP4A_PREVIEW_EVALUATION_OPERATOR.md#current-handoff---e1p-p4b-complete-2026-11-19) records completed 0021–0023 and pending application publication/E1E. Use that completion receipt; never replay the migration to prepare a push.
+
+- **Reuse evidence and discover approved access.** Consult the baseline, affected handoffs and sanitized local reports for existing private operator profile locations before declaring access unavailable. For E1P, the approved profile was already recorded outside Git. Use the existing private-file/configuration guards only within the current authorization; permission denial does not establish file absence. Do not copy credentials, search unrelated private directories or connect merely to rediscover accepted configuration. Refresh only affected or contradictory evidence, retaining its date and limits.
+- **Catch new-file whitespace early.** `git diff --check` omits untracked files. For each exact approved new text path, use the native comparison below; it catches the E1P extra-blank-line-at-EOF defect without touching the index. Then require the full staged check after authorized staging. Never broad-stage to make a check see a file or silently alter unrelated formatting.
+- **Classify assertions before recovery.** A literal quoted-identifier expectation can reject a valid PostgreSQL backup. Verify exact schema/object/owner semantics for quoted and unquoted identifiers, not line counts or arbitrary quote stripping; use the bounded contract in the evaluation handoff. Compare persisted database values without treating driver `Result`/plain-array prototypes as data drift. Preserve sanitized diagnostics and distinguish an assertion defect from missing ownership, corrupt archives, changed records, wrong targets or privilege failures.
+- **Retain valid backup evidence.** Preserve the archive, checksum, inventory, decoded metadata and private ACL evidence. Reuse an artifact only after its required integrity, completeness, recovery, source/target/catalog/data binding and freshness conditions pass. Renew a receipt only after actual revalidation under the existing policy; do not merely change its timestamp, extend expiry or create a redundant export to refresh evidence. A genuinely unsuitable artifact requires separately authorized preparation; offline decoding is not a restore test.
+- **Resume the affected step.** When a tooling-only defect is confirmed and its correction is authorized, test that correction with synthetic offline cases, recheck affected prerequisites and continue the existing checkpoint. Keep target/source/ledger/TLS/privilege/lock/backup/preservation guards intact. Do not turn a harmless representation fix into a new phase, framework, repeated full audit or duplicate acceptance run. Unexpected sensitive-state discrepancies remain hard stops. After any attempted or uncertain migration, inspect durable state before deciding anything further; never automatically retry, restore or repair history.
+- **Keep authorization separate.** Migration/grant and other hosted writes, private backup preparation, local Git commits, push/automatic protected deployment and all Production operations each require their applicable explicit scope. A tooling fix or completion receipt authorizes none of those actions by itself. Preserve protected pending files; update the affected unprotected handoff with exact completed/pending evidence instead.
+
+Native checks (read-only; replace the placeholder with one approved path, not a glob):
+
+```powershell
+$previewNewPath = '<exact-approved-new-text-path>'
+if (!(Test-Path -LiteralPath $previewNewPath -PathType Leaf)) { throw 'Approved new file missing' }
+$previewWhitespace = @(git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol -c core.safecrlf=false diff --no-index --check -- /dev/null $previewNewPath 2>&1)
+$previewWhitespaceExit = $LASTEXITCODE
+# --no-index returns 1 for a clean nonempty addition, 0 for identical/empty input.
+# A missing/unreadable path can also return 1: require an existing file AND no diagnostics.
+if ($previewWhitespaceExit -notin @(0, 1) -or $previewWhitespace.Count -ne 0) { throw 'New-file whitespace or path check failed' }
+
+# Only after separately authorized exact-path staging:
+git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check
+if ($LASTEXITCODE -ne 0) { throw 'Staged whitespace check failed' }
+```
+
+The `-c` settings apply only to these commands, allowing conventional CRLF while retaining EOF/trailing-whitespace checks. The focused offline command regression is `node --test tests/preview-checkpoint-whitespace.unit.cjs`; existing backup receipt guards can be selected with `node --import tsx --test --test-name-pattern="backup is fresh" tests/preview-evaluations.unit.cjs`. Neither command authorizes database access or Git writes.
 
 ## 8. Reusable prompts (future instructions; no present authorization)
 
