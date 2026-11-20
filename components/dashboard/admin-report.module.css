@@ -18,6 +18,10 @@
 .metadata p + p { margin-top: .4rem; }
 .tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; align-items: start; }
 .tableBlock { min-width: 0; }
+.groupBlock { grid-column: 1 / -1; }
+.groupTable { min-width: 580px; }
+.groupTable thead th:nth-child(n+3) { text-align: right; }
+.groupTable td:nth-child(2) { text-align: left; }
 .tableBlock > p { margin-top: .65rem; }
 .scroll { max-width: 100%; overflow-x: auto; }
 .scroll table { width: 100%; border-collapse: collapse; font-size: .9375rem; }

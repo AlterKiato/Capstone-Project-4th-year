@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ROLE_NAMES } from "@/lib/auth/roles";
 import { RESEARCH_STATUS } from "@/lib/constants/research-status";
+import type { SnapshotReport, SnapshotRow, SnapshotSection } from "./snapshot-report";
 
 export const REPORT_TIMEZONE = "Asia/Manila";
 export const SNAPSHOT_LABEL = "Current snapshot at generation time";
@@ -81,12 +82,9 @@ export function selectedReportSections(request: AdminReportRequest): ReportSecti
     return ADMIN_REPORT_SECTIONS.filter(section => request.selection === "all" || request.sections.includes(section.id)).map(section => section.id);
 }
 
-export type ReportRow = { id: string; label: string; value: number };
-export type ReportSection = { id: ReportSectionId; label: string; semantics: "snapshot"; note: string; rows: ReportRow[] };
-export type AdminReport = {
-    title: string; reportType: "current-summary"; generatedAt: string; scope: string; timezone: string;
-    notes: string[]; sections: ReportSection[];
-};
+export type ReportRow = SnapshotRow;
+export type ReportSection = SnapshotSection<ReportSectionId>;
+export type AdminReport = SnapshotReport<"current-summary", ReportSectionId>;
 export type AdminReportSnapshot = {
     users?: number; roles?: { roleId: number; count: number }[];
     groups?: number; papers?: number; statuses?: { status: string; count: number }[]; published?: number;

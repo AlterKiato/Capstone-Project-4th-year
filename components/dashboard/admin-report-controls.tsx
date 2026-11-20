@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ACTIVITY_LIMITATION, ADMIN_REPORT_SECTIONS, type AdminReport, type AdminReportRequest, type ReportSectionId } from "@/lib/reporting/admin-report";
+import { ACTIVITY_LIMITATION, ADMIN_REPORT_SECTIONS } from "@/lib/reporting/admin-report";
+import { MAIN_REPORT_SECTIONS } from "@/lib/reporting/main-adviser-report";
+import { reportTypeLabel, type SnapshotReport } from "@/lib/reporting/snapshot-report";
 import AdminReportTables from "./admin-report-tables";
 import styles from "./admin-report.module.css";
 
-export default function AdminReportControls({ initialReport, initialError }: {
-    initialReport: AdminReport | null; initialError?: string;
+export default function AdminReportControls({ initialReport, initialError, kind = "admin" }: {
+    initialReport: SnapshotReport | null; initialError?: string; kind?: "admin" | "main";
 }) {
+    const catalog = kind === "main" ? MAIN_REPORT_SECTIONS : ADMIN_REPORT_SECTIONS;
+    const reportType = kind === "main" ? "current-supervision-summary" : "current-summary";
+    const title = reportTypeLabel({ reportType });
     const [selection, setSelection] = useState<"all" | "custom">("all");
-    const [sections, setSections] = useState<ReportSectionId[]>(ADMIN_REPORT_SECTIONS.map(section => section.id));
+    const [sections, setSections] = useState<string[]>(catalog.map(section => section.id));
     const [format, setFormat] = useState<"xlsx" | "pdf">("xlsx");
     const [report, setReport] = useState(initialReport);
     const [busy, setBusy] = useState<"preview" | "download" | null>(null);
@@ -28,9 +33,9 @@ export default function AdminReportControls({ initialReport, initialError }: {
         setBusy(action);
         const abort = new AbortController();
         controller.current = abort;
-        const request: AdminReportRequest = { reportType: "current-summary", selection, sections: selection === "all" ? [] : sections, format: action === "preview" ? "preview" : format };
+        const request = { reportType, selection, sections: selection === "all" ? [] : sections, format: action === "preview" ? "preview" : format };
         try {
-            const response = await fetch("/api/admin/reports", { method: "POST", credentials: "same-origin", cache: "no-store",
+            const response = await fetch(kind === "main" ? "/api/adviser/reports" : "/api/admin/reports", { method: "POST", credentials: "same-origin", cache: "no-store",
                 headers: { "Content-Type": "application/json" }, body: JSON.stringify(request), signal: abort.signal });
             if (!response.ok) {
                 const failure = await response.json().catch(() => null);
@@ -40,7 +45,7 @@ export default function AdminReportControls({ initialReport, initialError }: {
                 setReport(await response.json()); setDirty(false); setMessage("Reporting tables updated.");
             } else {
                 const blob = await response.blob();
-                const name = response.headers.get("Content-Disposition")?.match(/filename="([a-zA-Z0-9._-]+)"/)?.[1] ?? `thesishs-current-research-summary.${format}`;
+                const name = response.headers.get("Content-Disposition")?.match(/filename="([a-zA-Z0-9._-]+)"/)?.[1] ?? `thesishs-${kind === "main" ? "current-research-supervision-summary" : "current-research-summary"}.${format}`;
                 const url = URL.createObjectURL(blob);
                 setDownload({ url, name });
                 const anchor = document.createElement("a");
@@ -52,8 +57,8 @@ export default function AdminReportControls({ initialReport, initialError }: {
         } finally { if (!abort.signal.aborted) setBusy(null); }
     }
     return <section aria-labelledby="report-export-heading" className={`dashboard-panel ${styles.panel}`}>
-        <h2 id="report-export-heading">Current Research Summary</h2>
-        <p className="form-help">Export current user, group, research status and repository statistics. Each update or download reads a fresh current snapshot.</p>
+        <h2 id="report-export-heading">{title}</h2>
+        <p className="form-help">{kind === "main" ? "Export supervised groups, current paper statuses and submission-version workload." : "Export current user, group, research status and repository statistics."} Each update or download reads a fresh current snapshot.</p>
         <div className={styles.notice}>
             <h3>Research Activity Report</h3>
             <p>{ACTIVITY_LIMITATION}</p>
@@ -68,7 +73,7 @@ export default function AdminReportControls({ initialReport, initialError }: {
                     <option value="xlsx">Excel (.xlsx)</option><option value="pdf">PDF (.pdf)</option>
                 </select></label>
                 {selection === "custom" ? <fieldset className={styles.sections}><legend>Report sections</legend>
-                    {ADMIN_REPORT_SECTIONS.map(section => <label key={section.id}><input type="checkbox" checked={sections.includes(section.id)}
+                    {catalog.map(section => <label key={section.id}><input type="checkbox" checked={sections.includes(section.id)}
                         onChange={event => { changed(); setSections(current => event.target.checked ? [...current, section.id] : current.filter(id => id !== section.id)); }} />{section.label}</label>)}
                 </fieldset> : null}
                 <div className={styles.actions}>

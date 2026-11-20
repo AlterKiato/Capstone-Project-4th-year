@@ -71,6 +71,12 @@ async function AdviserOverview() {
                 </li>)}</ul> : <p className={styles.empty}>You have no research groups yet. Your groups will appear here once created.</p>}
             </section>
 
+            <section className={`dashboard-panel ${assistantStyles.entry}`} aria-labelledby="adviser-report-entry-title">
+                <div><h2 id="adviser-report-entry-title">Research Supervision Summary</h2>
+                    <p className="form-help">Current groups, research projects and submission-version workload.</p></div>
+                <Link href="/dashboard/adviser/reports" className="context-row">View supervision reports</Link>
+            </section>
+
             <section className={`dashboard-panel ${assistantStyles.entry}`} aria-labelledby="adviser-ai-entry-title">
                 <div><h2 id="adviser-ai-entry-title">AI Research Assistant</h2>
                     <p className="form-help">Prepared research writing guidance within an authorized submission review.</p></div>
