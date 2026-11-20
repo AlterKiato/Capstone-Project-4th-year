@@ -80,8 +80,8 @@ export async function getRecentActivities() {
         .limit(5);
 }
 
-export async function groupUsersByRole() {
-    return db.select({ roleId: users.roleId, count: count() })
+export async function groupUsersByRole(executor: Pick<typeof db, "select"> = db) {
+    return executor.select({ roleId: users.roleId, count: count() })
         .from(users).groupBy(users.roleId);
 }
 

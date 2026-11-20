@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // PDFKit/fontkit load Node resources relative to their installed package files.
+  serverExternalPackages: ["pdfkit"],
   // Next.js can log Server Function arguments in development, including credentials.
   logging: {
     serverFunctions: false,
