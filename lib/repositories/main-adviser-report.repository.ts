@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { mainAdviserDesignation, researchGroups, researchPapers, submissions } from "@/db/schema";
 import { currentMainAdviserPredicate } from "./research-supervision.repository";
@@ -21,15 +21,19 @@ export async function readMainAdviserReportSnapshot(actorId: number, sections: M
         if (sections.includes("submissions") || sections.includes("revisions")) snapshot.submissions = await tx.select({ status: submissions.status, count: count() })
             .from(submissions).innerJoin(researchPapers, eq(submissions.paperId, researchPapers.id))
             .innerJoin(researchGroups, eq(researchPapers.groupId, researchGroups.id)).where(scope).groupBy(submissions.status);
-        if (sections.includes("group-summary")) snapshot.groupRows = await tx.select({
-            id: researchGroups.id, status: researchGroups.status,
-            // Independent subqueries avoid project/member/version join multiplication.
-            projects: sql<number>`(select count(*) from ${researchPapers} where ${researchPapers.groupId} = ${researchGroups.id})`.mapWith(Number),
-            pending: sql<number>`(select count(*) from ${submissions} inner join ${researchPapers} on ${submissions.paperId} = ${researchPapers.id}
-                where ${researchPapers.groupId} = ${researchGroups.id} and ${inArray(submissions.status, [SUBMISSION_STATUS.SUBMITTED, SUBMISSION_STATUS.UNDER_REVIEW])})`.mapWith(Number),
-            revisionRequired: sql<number>`(select count(*) from ${submissions} inner join ${researchPapers} on ${submissions.paperId} = ${researchPapers.id}
-                where ${researchPapers.groupId} = ${researchGroups.id} and ${eq(submissions.status, SUBMISSION_STATUS.REVISION_REQUIRED)})`.mapWith(Number),
-        }).from(researchGroups).where(scope).orderBy(asc(researchGroups.id));
+        if (sections.includes("group-summary")) {
+            const groupPapers = tx.select({ id: researchPapers.id }).from(researchPapers)
+                .where(eq(researchPapers.groupId, researchGroups.id));
+            snapshot.groupRows = await tx.select({
+                id: researchGroups.id, status: researchGroups.status,
+                // Builder subqueries preserve outer-group correlation and avoid join multiplication.
+                projects: tx.$count(researchPapers, eq(researchPapers.groupId, researchGroups.id)),
+                pending: tx.$count(submissions, and(inArray(submissions.paperId, groupPapers),
+                    inArray(submissions.status, [SUBMISSION_STATUS.SUBMITTED, SUBMISSION_STATUS.UNDER_REVIEW]))),
+                revisionRequired: tx.$count(submissions, and(inArray(submissions.paperId, groupPapers),
+                    eq(submissions.status, SUBMISSION_STATUS.REVISION_REQUIRED))),
+            }).from(researchGroups).where(scope).orderBy(asc(researchGroups.id));
+        }
         return snapshot;
     }, { isolationLevel: "repeatable read", accessMode: "read only" });
 }
