@@ -1,8 +1,10 @@
-# Student registration email OTP: local implementation
+# Student registration email OTP: Preview closure
 
-Date: 2026-11-15 (Asia/Manila). **PASS for local implementation and focused offline validation.** Database application, real SMTP/Mailpit delivery, actual PostgreSQL contention and protected Preview acceptance are **NOT TESTED**. No migration, database/Storage connection, actual email, dependency installation, credential configuration, commit, push or deployment was performed.
+Updated: 2026-11-16 (Asia/Manila). **CLOSED / PASS for the agreed protected Vercel Preview scope.** Local implementation and the existing **92/92 focused automated tests PASS** evidence are retained. Preview migration `0020` is applied and verified against the 21-entry ledger; schema and runtime privileges were verified through metadata.
 
-Baseline and ending HEAD: `feature/development`, `3f6865b701288110c8c704ffd877cafdf2db8d56`. All OTP changes are unstaged. The incoming modifications to `docs/MASTER_CONTEXT_UPDATED.md` and `docs/SOURCE_OF_TRUTH_UPDATED.md`, and incoming untracked `scripts/groq-developer-test.cjs` and `tests/ai-p212-developer-groq.unit.cjs`, remain byte-for-byte unchanged. Canonical reconciliation is deferred to a separately authorized update; this document records the new implementation without replacing historical evidence.
+**Owner-reported acceptance:** real Gmail SMTP delivery PASS; controlled Preview acceptance **8/8 PASS, 0 reported failures**; existing Student, Admin and Adviser logins PASS. These hosted results are owner-confirmed, not independently rerun by Codex. No individual acceptance cases beyond the supplied evidence are inferred.
+
+Deployed commit: `a16e94737d598919781f6fbf0bff3564ededa15d` on `feature/development`, implementation parent `3f6865b701288110c8c704ffd877cafdf2db8d56`. The incoming modifications to `docs/MASTER_CONTEXT_UPDATED.md` and `docs/SOURCE_OF_TRUTH_UPDATED.md`, and incoming untracked `scripts/groq-developer-test.cjs` and `tests/ai-p212-developer-groq.unit.cjs`, remain byte-for-byte unchanged and were excluded from the OTP commit. Canonical reconciliation remains separately scoped. This closure changes only this report; no additional testing, hosted operations, commit or push is performed.
 
 ## Behavior
 
@@ -27,7 +29,7 @@ No backfill of verified timestamps, historical-row rewrite or new table. Drizzle
 
 The prepared `scripts/migrate-preview-email-otp.ts` follows the existing guarded operator: pinned Preview target/TLS/operator identity, exact 20-entry predecessor ledger, source/target/Data-API-disabled confirmations and interactive execution approval; lock/reinspect before applying only 0020; schema/permissions/default/preservation checks; durable readback; no automatic retry. It neither enables the Data API nor widens runtime grants. Missing required permissions stop for separate review. Existing row fingerprints omit only the two planned new fields when comparing before/after; legacy columns, constraints, ACLs, relationships, rows and sequences remain covered.
 
-**Ready for separate source/migration review, not claimed database-executed or Preview-accepted.** The application now depends on 0020: apply the separately approved migration and establish runtime permissions before publishing or accepting this code against a database. Do not run the prepared operator under implementation or push approval alone.
+**Preview prerequisite complete:** the read-only verification confirmed all 21 source-matching ledger entries through 0020, both columns/defaults, the validated 0–5 constraint and required runtime privileges. Do not reapply 0020. Direct runtime-credential authentication was not independently verified; owner-reported application logins passed. Current relationships/defaults passed inspection, but historical row preservation remains unverified without a pre-migration fingerprint.
 
 ## Email configuration (names/scopes only)
 
@@ -58,12 +60,12 @@ Local Mailpit remains explicitly development-only, loopback-only and `.invalid`-
 
 The four incoming protected paths are excluded from this inventory. No dependency, global CSS, AI implementation, institutional Live configuration, actual environment file or native mobile checkout changed.
 
-## Validation evidence and limits
+## Validation evidence and limits (local implementation, 2026-11-15)
 
 - **92/92 reported Node tests PASS**, zero failed/skipped, in the final sequential focused run below. These include real services/crypto/JWT/bcrypt and Drizzle SQL generation with synthetic cookie/repository/driver boundaries; serialized in-memory contention is not real PostgreSQL contention. SMTP is mocked before import. No database or external email request occurs.
 - **Current-source TypeScript PASS**, zero diagnostics using the existing compiler configuration with only ignored `test-results` copies excluded in memory. The unfiltered project command fails on stale generated build-source copies and their cross-imports; neither those artifacts nor the project config was changed to hide this distinction.
 - **Targeted ESLint PASS**, zero warnings/errors, for changed/new source and test files, excluding the two protected CLI files. Whitespace checks PASS.
-- **Drizzle history check PASS** (`npx.cmd drizzle-kit check`); historical-prefix and additive-schema tests PASS. No migration was applied, including to a disposable database.
+- **Drizzle history check PASS** (`npx.cmd drizzle-kit check`); historical-prefix and additive-schema tests PASS. No migration was applied during local implementation, including to a disposable database; the later Preview application is recorded above.
 - **Isolated Next.js 16.4.3 webpack production build PASS**, one worker, TypeScript and 27/27 page-generation tasks. The first sandboxed build failed only on the existing Manrope font fetch; one approved network-enabled fallback passed. No environment files were copied; service settings were synthetic/non-routable and no SMTP credentials were configured. All 486 copied source/dependency/configuration files match their final source hashes. Existing workspace-root warning is retained.
 - **Bounded synthetic Chromium form check PASS**: actual React forms and shared CSS; complete six-digit/leading-zero input, keyboard submit, pending/invalid/expired/success states, resend cooldown, delivery failure and login link. 360px Light and 1280px Dark have no horizontal overflow, 44px controls, visible focus and input contrast at least 4.5:1. Two screenshots inspected. Zero browser errors/unexpected requests. Actions are synthetic; this is not Next Server Action transport, real SMTP, physical-device or hosted acceptance.
 
@@ -80,10 +82,10 @@ Ignored evidence: `test-results/email-otp-20261115/` contains the build log/resu
 - **Hard Gate PASS:** actual existing auth styles, working form actions/feedback/recovery, numeric input and keyboard submission, measured mobile overflow/targets/focus/contrast, both recorded themes, no added decorative assets or fabricated product claims. No CSS or runtime source-patching mechanism added; UI behavior lives in the React source. Build and synthetic click-through passed within the explicit limits above.
 - **Purpose-Gate PASS:** a single native input supports full-code paste and leading zeros; countdown explains when resend is available; the existing error surface identifies actionable failure. No new palette, icons, badges or decorative effects.
 - **Liveliness PASS:** existing academic direction and ENERGY 1 / RHYTHM 2 / MOTION 1 retained; direct submit/loading feedback and no added animation.
-- **Craftsmanship/React PASS:** labels/status relationships, pending/empty/error/success states, server-authoritative cooldown/quota, effect timer cleanup, hydration-stable initial countdown and server-only imports kept out of client runtime. Source review and the bounded synthetic UI checks support these findings; real transport/device acceptance remains pending.
+- **Craftsmanship/React PASS:** labels/status relationships, pending/empty/error/success states, server-authoritative cooldown/quota, effect timer cleanup, hydration-stable initial countdown and server-only imports kept out of client runtime. Source review and the bounded synthetic UI checks support these findings; later owner-reported Gmail/Preview acceptance is recorded above. Broader device coverage remains unverified.
 
-## Smallest next action
+## Rollout boundary and next checkpoint
 
-Owner review of 0020 and the prepared operator, followed by explicit authorization for the affected Preview target/ledger/permission preflight. Migration execution, any minimum-grant change, Preview-only Gmail/OTP secret configuration, commit/push/publication and one controlled real-inbox registration test retain their separate gates under the existing playbook. No comprehensive deployment audit or new infrastructure is proposed.
+The Preview deployment is functional and accepted for controlled owner testing. **Broader controlled user access and demonstrations are deferred until the Phase 10 UI Overhaul is completed and accepted.** Preserve existing Vercel Authentication and deployment protection; do not publish the Preview URL for general access or change protection settings.
 
-After the separately approved migration/configuration/publication, use one owner-controlled new Student email: register, confirm that protected research access is unavailable, receive and enter the OTP, then log in normally. Execute owner-led acceptance one action at a time. Preserve existing Students/staff/history and do not email historical synthetic fixture addresses. Record actual inbox receipt and protected Preview behavior separately from this local PASS. Canonical handoff reconciliation and the Phase 10 UI Overhaul do not start automatically.
+**Next development priority: Phase 10 UI Overhaul**, beginning with a separately authorized scope/implementation checkpoint; no UI work starts in this documentation closure. Production readiness/release, CASAP enrollment identity verification, actual PostgreSQL contention and broader device/reliability coverage are not established by this closure. OTP verifies email ownership only. No additional infrastructure preparation is required by this checkpoint.
