@@ -7010,6 +7010,12 @@ E2.1 changes 11 paths: app/dashboard/admin/reports/page.tsx; components/dashboar
 
 **Recommendation:** review the combined E2/E2.1 snapshot-only feature diff, then separately authorize a scoped local commit excluding unrelated incoming work, followed by a separately authorized pinned protected Preview publication. Owner-led acceptance can verify Current Research Summary, All/custom selection and both downloads one action at a time. Historical timestamp uncertainty blocks future period activity, not acceptance of the honest snapshot-only summary. Actual database/grants, authenticated Next downloads, native Excel and physical PWA/Preview acceptance remain NOT TESTED. No staging/commit/push/merge/deployment occurred.
 
+## Phase 10.E2.2 Admin snapshot Preview acceptance (2026-11-20)
+
+**PASS for the agreed protected Preview snapshot scope.** Commit 57e657258efd4dfbf34914ec133c019deec15540 was pushed normally to origin/feature/development and independently read back; main was unchanged. GitHub's Vercel status reported success for deployment GSopY9SyMZLUB6Rr2dfTJh5x334v in thesi-shs-ai/thesishs-ai. Ready, Preview environment, correct source branch/SHA, Node 24.x and retained protection were OWNER-REPORTED confirmations, not direct Codex Dashboard verification. Stable branch URL: https://thesishs-ai-git-feature-development-thesi-shs-ai.vercel.app.
+
+Seven focused hosted checks were **7/7 OWNER-REPORTED PASS**: Admin report page and truthful snapshot labels; XLSX All metadata/worksheets/counts; XLSX custom subset; PDF metadata/counts/readability/pagination; mobile-width layout; existing Admin dashboard; and non-Admin report access denial (specific non-Admin role not supplied). Codex browser inspection failed with timeoutMs; no independent authenticated hosted browser test is claimed. No additional commit, configuration change, migration, record creation/reset or next-phase implementation occurred in E2.2. Physical installed-PWA coverage and broader Production/security acceptance remain separate.
+
 ## Phase 10.E3 Main Research Adviser snapshot reports (2026-11-20)
 
 **Local implementation and focused synthetic validation PASS; E3 hosted acceptance NOT TESTED.** Entry branch/HEAD: feature/development / 57e657258efd4dfbf34914ec133c019deec15540, synchronized after E2.2, empty index. Preserve the incoming three modified documents, four untracked files and ignored evidence. E3 authorizes local implementation/tests and these small append-only handoffs only; no staging/commit/push/deployment or database/Storage/provider operation.
@@ -7039,3 +7045,38 @@ Only the three group-summary expressions in lib/repositories/main-adviser-report
 Focused evidence: new SQL regression assertion FAILED before the correction and PASSED afterward. E3 **8/8** focused groups PASS, including an opt-in real local PostgreSQL check; Admin **8/8** existing unit/renderer/HTTP groups PASS. The local check verifies loopback Development runtime configuration and identity, uses a read-only repeatable-read transaction, and successfully EXPLAINs the corrected emitted query against the existing schema without ANALYZE. SELECT-only CTE fixtures verify distinct per-group project/submission counts, active/archived zero-project groups, other-Adviser denial and inactive-Main denial without creating records. PostgreSQL-derived four-group output agrees with reopened XLSX cells and all 12 PDF numeric counts (standard Helvetica content-stream extraction); snapshot wording remains. Existing unchanged layout/build/browser evidence is reused; no broad browser suite or new build. Targeted ESLint and current-source TypeScript PASS (434 roots, zero diagnostics); whitespace check PASS.
 
 Changed paths: lib/repositories/main-adviser-report.repository.ts; tests/phase10-e3-main-report.unit.cjs; only this appended section in docs/MASTER_CONTEXT_UPDATED.md and the matching appended E3.5 section in docs/SOURCE_OF_TRUTH_UPDATED.md. Evidence is under ignored test-results/phase10-e3-5/. Preserve incoming AI-P2.12/OTP/E2.2 document hunks and four untracked files; no staging, commit, push, deployment, hosted operation or database mutation. No authenticated local POST or corrected hosted acceptance is claimed. Next: owner review and separately authorized scoped hotfix commit, then pinned protected Preview publication and owner-led Main/Admin acceptance. Recommended message: fix(reports): correlate main adviser group summary counts.
+
+## Phase 10.E3 closure and E4 handoff (2026-11-21)
+
+**Phase 10.E3 CLOSED / PASS for the agreed snapshot-only Main Research Adviser reporting scope.** Recorded from the owner's E3.7 acceptance report on November 21, 2026. Latest owner-confirmed deployed commit: d337ea012a1941f2e865d9b5d75a8dcc1962ee94 on feature/development. Vercel Preview Ready, correct branch/commit and enabled deployment protection are **OWNER-REPORTED** deployment confirmations. This closure supersedes the earlier E3/E3.5/E3.7 pending-publication/acceptance wording for this accepted scope; dated implementation and failure evidence remains historical.
+
+| E3.7 owner-led functional acceptance batch | Result |
+|---|---|
+| Batch 2A - Reporting tables | 6/6 PASS |
+| Batch 2B - Excel/PDF exports | 4/4 PASS |
+| Batch 3 - Authorization and Admin regression | 6/6 PASS |
+| Total | **16/16 OWNER-REPORTED PASS** |
+
+The earlier SQL-related HTTP 503 was corrected by the E3.5 group-summary hotfix. The owner reports that Main Adviser tables now load and XLSX/PDF exports work in the tested scenarios. Generic Adviser/Co-Adviser, Student and Admin were denied Main-only report access; existing Admin reports and exports continued working. These are owner-led hosted results, not independently executed Codex browser/database tests. Earlier independently executed E3.5 local PostgreSQL/fixture/export checks, E3 8/8 and Admin 8/8 focused groups, TypeScript and lint retain their own evidence scope; none were repeated for this documentation update. Closure does not establish historical activity accuracy, exhaustive security/device coverage or Production readiness.
+
+### Current Phase 10.E roadmap (owner-approved)
+
+This sequence governs future reporting work and supersedes older next-step wording for Phase 10.E only. Existing dated handoffs and unrelated roadmaps remain preserved.
+
+| Phase | Scope | Status |
+|---|---|---|
+| 10.E1 | Reporting architecture inspection | COMPLETE |
+| 10.E2-E2.2 | Admin snapshot reports, tables, Excel/PDF and Preview acceptance | COMPLETE |
+| 10.E3-E3.7 | Main Adviser snapshot reporting, SQL hotfix and Preview acceptance | COMPLETE |
+| 10.E4 | UTC convention and weekly/monthly/yearly activity reporting | NEXT |
+| 10.E4.1 | Simple Admin dashboard/report charts and table refinements | PLANNED |
+| 10.E5 | Integrated reporting tests and Preview acceptance | PLANNED |
+| 10.E6 | Documentation and final reporting closure | PLANNED |
+
+### E4 timestamp handoff
+
+**Known blocker:** historical submissions.submitted_at and feedbacks.created_at use PostgreSQL timestamp without time zone with an unverified historical storage convention. Do not assume UTC or Manila-local storage. Existing decoding/calendar tests and current runtime settings do not prove historical interpretation.
+
+Smallest first E4 step: a bounded, read-only source and retained-evidence inspection of submission/official-decision timestamp writers, defaults and connection-timezone history. Establish reliable interpretation before enabling weekly/monthly/yearly activity. Prioritize submission and official-decision events, reuse the existing reporting services, period-boundary helpers, tables and XLSX/PDF infrastructure, and keep current snapshot reports unchanged. Do not rewrite uncertain historical timestamps; avoid unnecessary migrations and dependencies. If historical accuracy cannot be established safely, define an explicit forward-only strategy with a documented UTC write convention, known cutover and clearly bounded activity coverage, excluding ambiguous earlier records from period claims.
+
+E4.1 should reuse existing chart-ready section/category IDs and numeric reporting rows for simple Admin charts and table refinements; no unnecessary analytics infrastructure. NEXT/PLANNED identifies future scope and does not authorize implementation or database operations. This checkpoint updates only the two canonical documents, preserves incoming AI/authentication/E2.2 hunks and all other pending files, and performs no tests, staging, commit, push, merge, deployment or database change.

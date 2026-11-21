@@ -1299,6 +1299,10 @@ Current focused evidence: 7/7 selected existing service/export/HTTP tests and 4/
 
 See [E2.1 Master handoff](MASTER_CONTEXT_UPDATED.md#phase-10e21-admin-reporting-accuracy-and-ui-finalization-2026-11-20) for the 11-path correction inventory and evidence limits. Recommend owner review and separately authorized scoped commit, then pinned protected Preview publication and owner-led snapshot/download acceptance. Timestamp evidence remains necessary only before enabling period activity. No Main/Co implementation, automatic next phase or upgrade of historical acceptance classifications.
 
+## Phase 10.E2.2 Admin reporting Preview closure (2026-11-20)
+
+**PASS for the agreed snapshot scope.** Approved commit 57e657258efd4dfbf34914ec133c019deec15540 was pushed normally to feature/development and independently verified remotely; main was unchanged. GitHub Vercel check success identifies deployment GSopY9SyMZLUB6Rr2dfTJh5x334v. Ready/Preview/correct source/Node 24.x/protection were OWNER-REPORTED confirmations. Seven hosted checks were **7/7 OWNER-REPORTED PASS**: report page/snapshot accuracy, XLSX All, XLSX custom, PDF, mobile layout, Admin dashboard and non-Admin denial. Codex browser inspection failed with timeoutMs; no independent authenticated hosted acceptance or physical installed-PWA acceptance is claimed. See the E2.2 Master handoff for provenance and limits.
+
 ## Phase 10.E3 Main Adviser supervision reporting (2026-11-20)
 
 **Local implementation and focused synthetic validation PASS; E3 hosted acceptance NOT TESTED.** A Main-only dashboard entry and /dashboard/adviser/reports provide Current Research Supervision Summary with All/custom selection, current tables and XLSX/PDF. Five sections: groups including active/archived; current paper statuses; pending/reviewed/other submission-version workload; Revision Required versions; complete group-ID/status/project/pending/revision table including empty groups. No student information, private comments/documents or personal review attribution.
@@ -1316,3 +1320,21 @@ Next is local owner review and separately authorized scoped commit preparation, 
 **Local SQL correction PASS; protected Preview correction/acceptance PENDING.** E3.4 confirmed PostgreSQL 42702 from unqualified raw group-summary subqueries; the project count also lost correlation. Three expressions now use Drizzle count/correlated paper queries, preserving Main-only authority, all groups including archived/empty groups, snapshot/version semantics and unchanged services/UI/Admin exports. No schema, dependency or configuration change.
 
 Focused local evidence: pre-fix SQL regression fails and corrected regression passes; E3 8/8 groups (including real loopback PostgreSQL read-only EXPLAIN and SELECT-only CTE accuracy/denial checks), Admin 8/8 regression groups, targeted ESLint, current-source TypeScript (434 roots, zero diagnostics) and whitespace checks PASS. Four PostgreSQL-derived group rows match reopened XLSX and 12 PDF numeric counts. This is local parser/fixture/export evidence, not an authenticated Next request or corrected hosted acceptance. See the E3.5 Master handoff for exact four-path scope, safeguards and limits. Incoming pending work remains preserved; no Git write/publication, hosted access, database mutation or migration. Next requires separately authorized scoped hotfix commit and protected Preview redeployment, followed by owner-led acceptance.
+
+## Phase 10.E3 closure and E4 handoff (2026-11-21)
+
+**Phase 10.E3 CLOSED / PASS for the agreed snapshot-only reporting scope.** Latest owner-confirmed protected Preview deployment: feature/development at d337ea012a1941f2e865d9b5d75a8dcc1962ee94. Ready, correct branch/commit and enabled protection are OWNER-REPORTED. E3.7 functional acceptance is **16/16 OWNER-REPORTED PASS**: Batch 2A reporting tables 6/6; Batch 2B Excel/PDF 4/4; Batch 3 authorization/Admin regression 6/6. The SQL-related 503 is corrected, Main tables load, tested exports work, generic Adviser/Co-Adviser/Student/Admin are denied Main-only reporting, and Admin reports/exports remain functional. Codex did not independently execute these hosted checks or repeat local tests. Earlier pending E3 publication/acceptance labels are historical; prior local evidence remains separate.
+
+| Phase | Scope | Status |
+|---|---|---|
+| 10.E1 | Reporting architecture inspection | COMPLETE |
+| 10.E2-E2.2 | Admin snapshot reports, tables, Excel/PDF and Preview acceptance | COMPLETE |
+| 10.E3-E3.7 | Main Adviser snapshot reporting, SQL hotfix and Preview acceptance | COMPLETE |
+| 10.E4 | UTC convention and weekly/monthly/yearly activity reporting | NEXT |
+| 10.E4.1 | Simple Admin dashboard/report charts and table refinements | PLANNED |
+| 10.E5 | Integrated reporting tests and Preview acceptance | PLANNED |
+| 10.E6 | Documentation and final reporting closure | PLANNED |
+
+E4 remains blocked on reliable interpretation of historical PostgreSQL timestamp-without-time-zone submission/official-decision fields; neither UTC nor Manila-local storage is established. Start with bounded read-only source/retained-evidence inspection of writers, defaults and historical timezone settings. Prioritize weekly/monthly/yearly submission and official-decision activity, reuse reporting infrastructure and preserve current snapshots. Do not rewrite uncertain historical values or add unnecessary migrations/dependencies. If history cannot be interpreted safely, define a forward-only UTC convention/cutover and explicit coverage limits. E4.1 reuses chart-ready data without unnecessary analytics infrastructure. See the [E3 closure and E4 Master handoff](MASTER_CONTEXT_UPDATED.md#phase-10e3-closure-and-e4-handoff-2026-11-21) for evidence and limits.
+
+This owner-approved roadmap supersedes older Phase 10.E next-step wording only. Documentation-only update: unrelated AI/authentication/E2.2 hunks and pending files are preserved; no implementation, database operation, test execution, staging, commit, push, merge or deployment. Historical activity and Production readiness are outside the accepted snapshot closure; E4 remains separately authorized future work.
