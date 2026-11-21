@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ACTIVITY_LIMITATION, ADMIN_REPORT_SECTIONS } from "@/lib/reporting/admin-report";
+import { ADMIN_REPORT_SECTIONS } from "@/lib/reporting/admin-report";
 import { MAIN_REPORT_SECTIONS } from "@/lib/reporting/main-adviser-report";
 import { reportTypeLabel, type SnapshotReport } from "@/lib/reporting/snapshot-report";
 import AdminReportTables from "./admin-report-tables";
@@ -59,10 +59,6 @@ export default function AdminReportControls({ initialReport, initialError, kind 
     return <section aria-labelledby="report-export-heading" className={`dashboard-panel ${styles.panel}`}>
         <h2 id="report-export-heading">{title}</h2>
         <p className="form-help">{kind === "main" ? "Export supervised groups, current paper statuses and submission-version workload." : "Export current user, group, research status and repository statistics."} Each update or download reads a fresh current snapshot.</p>
-        <div className={styles.notice}>
-            <h3>Research Activity Report</h3>
-            <p>{ACTIVITY_LIMITATION}</p>
-        </div>
         <form onSubmit={event => { event.preventDefault(); void generate("download"); }}>
             <fieldset disabled={busy !== null} className={styles.fields}>
                 <legend className="sr-only">Report options</legend>

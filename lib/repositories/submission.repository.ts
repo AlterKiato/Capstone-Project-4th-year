@@ -123,7 +123,8 @@ export async function createSubmission(
     if (executor === db) return withPaperSubmissionLock(data.paperId, tx => createSubmission(data, tx));
     const [submission] = await executor
         .insert(submissions)
-        .values(data)
+        // Naive timestamp column: store UTC wall time for Drizzle's UTC reader.
+        .values({ ...data, submittedAt: sql<Date>`(clock_timestamp() at time zone 'UTC')` })
         .returning();
 
     if (submission) await freezeRevisionResponses(executor as DbTransaction, submission.paperId, submission.id);

@@ -1,12 +1,13 @@
 import "server-only";
 import { renderReportPdf, renderReportXlsx, reportFileName } from "./admin-report-export";
 import type { SnapshotReport } from "./snapshot-report";
+import type { PeriodActivityReport } from "./period-activity";
 
-type ReportResult = { ok: false; status: number; message: string } |
-    { ok: true; actor: number; format: "preview" | "xlsx" | "pdf"; report: SnapshotReport };
+type ReportResult = { ok: false; status: number; message: string; coverageStatus?: "unconfigured" | "invalid" | "before-cutover" } |
+    { ok: true; actor: number; format: "preview" | "xlsx" | "pdf"; report: SnapshotReport | PeriodActivityReport };
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", "X-Content-Type-Options": "nosniff", "Vary": "Cookie" };
-function failure(message: string, status: number) {
-    return Response.json({ message }, { status, headers: privateHeaders });
+function failure(message: string, status: number, coverageStatus?: string) {
+    return Response.json({ message, ...(coverageStatus ? { coverageStatus } : {}) }, { status, headers: privateHeaders });
 }
 
 /** Shared bounded request and private download delivery; role authority stays in each service. */
@@ -35,7 +36,7 @@ export async function reportResponse(request: Request, handlers: {
         try { input = JSON.parse(Buffer.concat(chunks).toString("utf8")); }
         catch { return failure("Send a valid report selection.", 400); }
         const result = await handlers.getReport(input);
-        if (!result.ok) return failure(result.message, result.status);
+        if (!result.ok) return failure(result.message, result.status, result.coverageStatus);
         if (result.actor !== actor) return failure(handlers.deniedMessage, 403);
         const bytes = result.format === "preview" ? null : result.format === "xlsx" ? await renderReportXlsx(result.report) : await renderReportPdf(result.report);
         if (await handlers.authorize() !== actor) return failure(handlers.deniedMessage, 403);

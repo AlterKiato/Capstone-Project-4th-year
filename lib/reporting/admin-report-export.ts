@@ -1,13 +1,25 @@
 import "server-only";
 import { reportGenerationLabel, SNAPSHOT_LABEL } from "./admin-report";
 import { GROUP_REPORT_COLUMNS, groupReportValues, reportTypeLabel, type SnapshotReport } from "./snapshot-report";
+import { coverageLabel, type PeriodActivityReport } from "./period-activity";
+type ExportReport = SnapshotReport | PeriodActivityReport;
+const basis = (report: ExportReport) => report.reportType === "period-activity" ? "Event activity within verified coverage" : SNAPSHOT_LABEL;
 
-export function reportFileName(report: SnapshotReport, format: "xlsx" | "pdf") {
-    const name = report.reportType === "current-supervision-summary" ? "current-research-supervision-summary" : "current-research-summary";
+export function reportFileName(report: ExportReport, format: "xlsx" | "pdf") {
+    const name = report.reportType === "period-activity" ? `period-activity-${report.period.value}` : report.reportType === "current-supervision-summary" ? "current-research-supervision-summary" : "current-research-summary";
     return `thesishs-${name}-${report.generatedAt.replace(/[-:.]/g, "")}.${format}`;
 }
 
-function metadata(report: SnapshotReport) {
+function metadata(report: ExportReport) {
+    if (report.reportType === "period-activity") return [
+        ["Report", report.title], ["Report type", "Period Activity"],
+        ["Reporting timezone", report.timezone], ["Generated", `${reportGenerationLabel(report.generatedAt)} (${report.timezone})`],
+        ["Authorized scope", report.scope], ["Statistics basis", basis(report)],
+        ["Selected period", `${report.period.kind}: ${report.period.value}`], ["Period label", report.period.label],
+        ["Period start (inclusive UTC)", report.period.startInclusive], ["Period end (exclusive UTC)", report.period.endExclusive],
+        ["Official UTC cutover", report.coverage.cutoverUtc], ["Coverage", coverageLabel(report.coverage.status)],
+        ["Included start (inclusive UTC)", report.coverage.effectiveStartInclusive], ["Limitations", report.notes.join(" ")],
+    ];
     return [
         ["Report", report.title], ["Report type", reportTypeLabel(report)],
         ["Reporting timezone", report.timezone], ["Generated", `${reportGenerationLabel(report.generatedAt)} (${report.timezone})`],
@@ -17,7 +29,7 @@ function metadata(report: SnapshotReport) {
     ];
 }
 
-export async function renderReportXlsx(report: SnapshotReport): Promise<Uint8Array> {
+export async function renderReportXlsx(report: ExportReport): Promise<Uint8Array> {
     const { default: ExcelJS } = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "ThesiSHS AI";
@@ -32,7 +44,7 @@ export async function renderReportXlsx(report: SnapshotReport): Promise<Uint8Arr
         const lastColumn = groups ? "E" : "B";
         sheet.columns = groups ? [{ width: 18 }, { width: 16 }, { width: 15 }, { width: 20 }, { width: 20 }] : [{ width: 48 }, { width: 18 }];
         sheet.addRow([section.label]);
-        sheet.addRow([SNAPSHOT_LABEL]);
+        sheet.addRow([basis(report)]);
         sheet.mergeCells(`A2:${lastColumn}2`);
         sheet.addRow([section.note]);
         sheet.mergeCells(`A3:${lastColumn}3`);
@@ -53,14 +65,16 @@ export async function renderReportXlsx(report: SnapshotReport): Promise<Uint8Arr
         sheet.getRow(1).font = { bold: true, size: 14 };
         sheet.eachRow((record, index) => {
             record.alignment = { vertical: "top", wrapText: true };
-            if (sheet === info && index > 1) record.height = index === 9 || index === 10 ? 56 : 34;
+            if (sheet === info && index > 1) record.height = report.reportType === "period-activity"
+                ? Math.max(34, Math.ceil(String(record.getCell(2).value ?? "").length / 75) * 15 + 8)
+                : index === 9 || index === 10 ? 56 : 34;
         });
         sheet.pageSetup = { paperSize: 9, orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
     });
     return new Uint8Array(await workbook.xlsx.writeBuffer());
 }
 
-export async function renderReportPdf(report: SnapshotReport): Promise<Uint8Array> {
+export async function renderReportPdf(report: ExportReport): Promise<Uint8Array> {
     const { default: PDFDocument } = await import("pdfkit");
     const doc = new PDFDocument({ size: "A4", margin: 48, bufferPages: true,
         info: { Title: report.title, Author: "ThesiSHS AI", CreationDate: new Date(report.generatedAt) } });
@@ -83,7 +97,7 @@ export async function renderReportPdf(report: SnapshotReport): Promise<Uint8Arra
         // These small aggregate sections fit on a page; keep their headings and rows together.
         if (doc.y + 90 + section.rows.length * 27 > 735) doc.addPage();
         doc.moveDown(0.8).font("Helvetica-Bold").fontSize(12).text(section.label);
-        doc.font("Helvetica").fontSize(9).text(SNAPSHOT_LABEL).text(section.note);
+        doc.font("Helvetica").fontSize(9).text(basis(report)).text(section.note);
         doc.moveDown(0.6);
         if (section.groupRows) {
             const widths = [70, 65, 65, 125, 125];

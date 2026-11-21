@@ -7,6 +7,9 @@ import styles from "@/components/dashboard/admin-overview.module.css";
 import { getAdminDashboardStats, getAdminRecentActivities } from "@/lib/services/dashboard.service";
 import AdminReportControls from "@/components/dashboard/admin-report-controls";
 import { getAdminReport } from "@/lib/services/admin-report.service";
+import PeriodActivityControls from "@/components/dashboard/period-activity-controls";
+import { currentActivityAvailability } from "@/lib/reporting/activity-coverage";
+import { defaultActivityPeriods } from "@/lib/reporting/period-activity";
 
 export default async function AdminReportsPage() {
     const session = await requireRole([ROLE_IDS.ADMIN]);
@@ -26,6 +29,7 @@ export default async function AdminReportsPage() {
             <p className="form-help">Current snapshot at generation time. The overview and report tables are separate live reads.</p>
         </> : <p className="form-message" role="alert">{statsResult.message}</p>}
         <AdminReportControls initialReport={reportResult.ok ? reportResult.report : null} initialError={reportResult.ok ? undefined : reportResult.message} />
+        <PeriodActivityControls kind="admin" availability={currentActivityAvailability()} defaults={defaultActivityPeriods()} />
         <AdminActivity title="Recent System Activity" result={activityResult} />
         <LocalAIAssistance feature="admin" />
     </main>;

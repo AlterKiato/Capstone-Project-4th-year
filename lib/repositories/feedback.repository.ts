@@ -71,7 +71,8 @@ export async function createFeedback(
     const [feedback] =
         await db
             .insert(feedbacks)
-            .values(data)
+            // All new feedback uses UTC wall time, including this legacy helper.
+            .values({ ...data, createdAt: sql<Date>`(clock_timestamp() at time zone 'UTC')` })
             .returning();
 
     return feedback;
@@ -111,6 +112,7 @@ export async function persistAdviserDecision(data: {
                 teacherId: data.teacherId,
                 comments: data.comments,
                 decision: data.decision,
+                createdAt: sql<Date>`(clock_timestamp() at time zone 'UTC')`,
             })
             .returning();
 

@@ -71,7 +71,8 @@ export function createSubmissionUploadRepository(database: Database): UploadRepo
                         checkDeadline();
                         if (!intent.finalPath) throw new UploadFailure("unavailable");
                         const [row] = await tx.insert(schema.submissions).values({ paperId, submittedBy: studentId, version, fileUrl: intent.finalPath,
-                            remarks: intent.remarks, status: "Submitted" }).returning();
+                            // Stamp successful persistence, not upload initiation; the naive column stores UTC.
+                            remarks: intent.remarks, status: "Submitted", submittedAt: sql<Date>`(clock_timestamp() at time zone 'UTC')` }).returning();
                         if (!row) throw new UploadFailure("unavailable");
                         await freezeRevisionResponses(tx, paperId, row.id);
                         return row;

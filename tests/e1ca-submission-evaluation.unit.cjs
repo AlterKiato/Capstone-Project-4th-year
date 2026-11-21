@@ -20,7 +20,8 @@ function fixture(){
    if(sort&&name==='submission_evaluation_assignments')rows.sort((a,b)=>b.revision-a.revision);
    if(name==='evaluation_template_criteria')rows.sort((a,b)=>a.position-b.position);
    if(limit)rows=rows.slice(0,limit);
-   if(mutation==='insert'){rows=values.map(v=>({...v,id:v.id??state.tables[name].length+1}));state.tables[name].push(...rows);}
+   // Evaluate the new database-clock expression before cloning the in-memory row, as a SQL adapter would.
+   if(mutation==='insert'){rows=values.map(v=>{if(name==='feedbacks'&&v.createdAt){assert.equal(dialect.sqlToQuery(v.createdAt).sql,"(clock_timestamp() at time zone 'UTC')");v={...v,createdAt:new Date('2026-11-21T16:30:00Z')};}return {...v,id:v.id??state.tables[name].length+1}});state.tables[name].push(...rows);}
    if(mutation==='update')rows.forEach(row=>Object.assign(row,values));
    const result=fields?rows.map(row=>Object.fromEntries(Object.entries(fields).map(([key,col])=>[key,row[cols[col.name]]]))):rows;
    return Promise.resolve(structuredClone(result)).then(resolve,reject);
