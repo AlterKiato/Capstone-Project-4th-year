@@ -3,7 +3,7 @@ import { reportGenerationLabel, SNAPSHOT_LABEL } from "./admin-report";
 import { GROUP_REPORT_COLUMNS, groupReportValues, reportTypeLabel, type SnapshotReport } from "./snapshot-report";
 import { coverageLabel, type PeriodActivityReport } from "./period-activity";
 type ExportReport = SnapshotReport | PeriodActivityReport;
-const basis = (report: ExportReport) => report.reportType === "period-activity" ? "Event activity within verified coverage" : SNAPSHOT_LABEL;
+const basis = (report: ExportReport) => report.reportType === "period-activity" ? "Event activity within reporting window" : SNAPSHOT_LABEL;
 
 export function reportFileName(report: ExportReport, format: "xlsx" | "pdf") {
     const name = report.reportType === "period-activity" ? `period-activity-${report.period.value}` : report.reportType === "current-supervision-summary" ? "current-research-supervision-summary" : "current-research-summary";
@@ -17,7 +17,7 @@ function metadata(report: ExportReport) {
         ["Authorized scope", report.scope], ["Statistics basis", basis(report)],
         ["Selected period", `${report.period.kind}: ${report.period.value}`], ["Period label", report.period.label],
         ["Period start (inclusive UTC)", report.period.startInclusive], ["Period end (exclusive UTC)", report.period.endExclusive],
-        ["Official UTC cutover", report.coverage.cutoverUtc], ["Coverage", coverageLabel(report.coverage.status)],
+        ["Reporting start (UTC)", report.coverage.reportingStartUtc], ["Coverage", coverageLabel(report.coverage.status)],
         ["Included start (inclusive UTC)", report.coverage.effectiveStartInclusive], ["Limitations", report.notes.join(" ")],
     ];
     return [

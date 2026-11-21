@@ -3,7 +3,7 @@ import { renderReportPdf, renderReportXlsx, reportFileName } from "./admin-repor
 import type { SnapshotReport } from "./snapshot-report";
 import type { PeriodActivityReport } from "./period-activity";
 
-type ReportResult = { ok: false; status: number; message: string; coverageStatus?: "unconfigured" | "invalid" | "before-cutover" } |
+type ReportResult = { ok: false; status: number; message: string; coverageStatus?: "unconfigured" | "invalid" | "before-start" } |
     { ok: true; actor: number; format: "preview" | "xlsx" | "pdf"; report: SnapshotReport | PeriodActivityReport };
 const privateHeaders = { "Cache-Control": "private, no-store, max-age=0", "X-Content-Type-Options": "nosniff", "Vary": "Cookie" };
 function failure(message: string, status: number, coverageStatus?: string) {

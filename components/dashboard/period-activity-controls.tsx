@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { reportPeriodSchema, resolveReportPeriod, type ReportPeriod } from "@/lib/reporting/admin-report";
-import { ACTIVITY_UNAVAILABLE, coverageLabel, type ActivityAvailability, type PeriodActivityReport, type defaultActivityPeriods } from "@/lib/reporting/period-activity";
+import { resolveReportPeriod, type ReportPeriod } from "@/lib/reporting/admin-report";
+import { ACTIVITY_UNAVAILABLE, ACTIVITY_COVERAGE_LIMITATION, activityPeriodSchema, coverageLabel, type ActivityAvailability, type PeriodActivityReport, type defaultActivityPeriods } from "@/lib/reporting/period-activity";
 import styles from "./admin-report.module.css";
 
 export default function PeriodActivityControls({ kind, availability, defaults }: {
@@ -15,19 +15,19 @@ export default function PeriodActivityControls({ kind, availability, defaults }:
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    const [unavailable, setUnavailable] = useState<"before-cutover" | "unavailable" | null>(null);
+    const [unavailable, setUnavailable] = useState<"before-start" | "unavailable" | null>(null);
     const [download, setDownload] = useState<{ url: string; name: string } | null>(null);
     const controller = useRef<AbortController | null>(null);
     const configured = availability === "configured";
     useEffect(() => () => controller.current?.abort(), []);
     useEffect(() => () => { if (download) URL.revokeObjectURL(download.url); }, [download]);
     let periodLabel = "Choose a valid reporting period.";
-    try { periodLabel = resolveReportPeriod(reportPeriodSchema.parse(period)).label; } catch { /* Keep invalid input editable. */ }
+    try { periodLabel = resolveReportPeriod(activityPeriodSchema.parse(period)).label; } catch { /* Keep invalid input editable. */ }
     function change(next: ReportPeriod) { setPeriod(next); setReport(null); setDownload(null); setError(""); setMessage(""); setUnavailable(null); }
     async function generate(action: "preview" | "download") {
         if (!configured || controller.current || (action === "download" && !report)) return;
-        try { resolveReportPeriod(reportPeriodSchema.parse(period)); }
-        catch { setError("Choose a valid week, month or year."); return; }
+        try { resolveReportPeriod(activityPeriodSchema.parse(period)); }
+        catch { setError("Choose a valid month or year."); return; }
         const abort = new AbortController(); controller.current = abort;
         setBusy(true); setError(""); setMessage(""); setDownload(null); setUnavailable(null);
         try {
@@ -41,7 +41,7 @@ export default function PeriodActivityControls({ kind, availability, defaults }:
                 const failure = await response.json().catch(() => null);
                 if (abort.signal.aborted) return;
                 setReport(null);
-                setUnavailable(failure?.coverageStatus === "before-cutover" ? "before-cutover" : "unavailable");
+                setUnavailable(failure?.coverageStatus === "before-start" ? "before-start" : "unavailable");
                 throw new Error(failure?.message || "Activity reporting is unavailable. Please try again.");
             }
             if (action === "preview") {
@@ -68,18 +68,18 @@ export default function PeriodActivityControls({ kind, availability, defaults }:
     return <section className={`dashboard-panel ${styles.panel}`} aria-labelledby={heading}>
         <h2 id={heading}>Period Activity</h2>
         <p className="form-help">Successful submission versions and official academic decisions, using Asia/Manila calendar periods.</p>
-        {!configured ? <p className={styles.notice}>{availability === "invalid" ? "Activity reporting is unavailable pending activation review. Current snapshot reports remain available." : ACTIVITY_UNAVAILABLE}</p> : null}
+        {!configured ? <p className={styles.notice}>{availability === "invalid" ? "Activity reporting is unavailable pending reporting-start review. Current snapshot reports remain available." : ACTIVITY_UNAVAILABLE}</p> : null}
+        {!report ? <p className="form-help">{ACTIVITY_COVERAGE_LIMITATION}</p> : null}
         <form onSubmit={event => { event.preventDefault(); void generate("preview"); }}>
             <fieldset disabled={busy} className={styles.fields}>
                 <legend className="sr-only">Activity report options</legend>
-                <label>Period type<select value={period.kind} onChange={event => change(defaults[event.target.value as ReportPeriod["kind"]])}>
-                    <option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option>
+                <label>Period type<select value={period.kind} onChange={event => change(defaults[event.target.value as keyof typeof defaults])}>
+                    <option value="monthly">Monthly</option><option value="yearly">Yearly</option>
                 </select></label>
-                <label>{period.kind === "weekly" ? "ISO week (YYYY-Www)" : period.kind === "monthly" ? "Calendar month" : "Calendar year"}
-                    <input type={period.kind === "monthly" ? "month" : period.kind === "yearly" ? "number" : "text"}
+                <label>{period.kind === "monthly" ? "Calendar month" : "Calendar year"}
+                    <input type={period.kind === "monthly" ? "month" : "number"}
                         value={period.value} required min={period.kind === "yearly" ? 1900 : period.kind === "monthly" ? "1900-01" : undefined}
                         max={period.kind === "yearly" ? 2199 : period.kind === "monthly" ? "2199-12" : undefined}
-                        pattern={period.kind === "weekly" ? "(19|20|21)[0-9]{2}-W[0-9]{2}" : undefined}
                         onChange={event => change({ ...period, value: event.target.value })} />
                 </label>
                 <label>Activity file format<select value={format} onChange={event => { setFormat(event.target.value as "xlsx" | "pdf"); setDownload(null); }}>
@@ -92,7 +92,7 @@ export default function PeriodActivityControls({ kind, availability, defaults }:
             </fieldset>
         </form>
         <p className="form-help">Selected period: {periodLabel}</p>
-        <p className="form-help">Coverage: {!configured ? "UNAVAILABLE: awaiting verified activation" : unavailable === "before-cutover" ? "BEFORE CUTOVER: no activity coverage" : unavailable ? "UNAVAILABLE: update tables to retry" : report ? coverageLabel(report.coverage.status) : "Update tables to determine coverage"}.</p>
+        <p className="form-help">Coverage: {!configured ? "UNAVAILABLE: reporting start not configured" : unavailable === "before-start" ? "BEFORE REPORTING START: unavailable" : unavailable ? "UNAVAILABLE: update tables to retry" : report ? coverageLabel(report.coverage.status) : "Update tables to determine coverage"}.</p>
         <div role="status" aria-live="polite" aria-atomic="true">{busy ? "Activity report request in progress." : message}
             {download ? <a className={styles.download} href={download.url} download={download.name}>Download {download.name}</a> : null}
         </div>
@@ -102,7 +102,7 @@ export default function PeriodActivityControls({ kind, availability, defaults }:
                 <h3>{report.period.label}</h3>
                 <p>{report.scope} · {coverageLabel(report.coverage.status)}</p>
                 <p>UTC period: {report.period.startInclusive} (inclusive) to {report.period.endExclusive} (exclusive).</p>
-                <p>Official UTC cutover: {report.coverage.cutoverUtc}. Included from: {report.coverage.effectiveStartInclusive}.</p>
+                <p>Reporting start (UTC): {report.coverage.reportingStartUtc}. Included from: {report.coverage.effectiveStartInclusive}.</p>
                 <p>Generated: <time dateTime={report.generatedAt}>{new Date(report.generatedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time> (Asia/Manila).</p>
             </div>
             <div className={styles.scroll}><table><caption>Activity totals</caption><thead><tr><th scope="col">Activity</th><th scope="col">Count</th></tr></thead>

@@ -11,7 +11,7 @@ const calendar = require('../lib/reporting/admin-report.ts');
 async function main() {
     const out = 'test-results/phase10-e4b2';
     const fixture = JSON.parse(fs.readFileSync(`${out}/dataset.json`, 'utf8'));
-    const policy = { status: 'verified', cutoverUtc: fixture.coverage.cutoverUtc, legacySubmissionMaxId: 100, legacyFeedbackMaxId: 50 };
+    const policy = { status: 'configured', reportingStartUtc: fixture.coverage.reportingStartUtc };
     const defaults = data.defaultActivityPeriods(new Date('2027-01-01T00:00:00Z'));
     const bundle = await build({ write: false, outfile: 'activity.js', bundle: true, platform: 'browser', format: 'iife', jsx: 'automatic',
         define: { 'process.env.NODE_ENV': '"production"' }, stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
@@ -37,7 +37,7 @@ window.show();` } });
             const input = route.request().postDataJSON(); requests.push({ url, input });
             assert.ok(data.activityRequestSchema.safeParse(input).success);
             if (mode === 'slow') await new Promise(resolve => { release = resolve; });
-            if (mode === 'before') return route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ message: 'This period is entirely before the verified cutover.', coverageStatus: 'before-cutover' }) });
+            if (mode === 'before') return route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ message: 'This period is entirely before the reporting start.', coverageStatus: 'before-start' }) });
             if (mode === 'failure') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Activity reporting is unavailable.' }) });
             if (mode === 'changed' && input.format !== 'preview') return route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ message: 'Activity changed. Update activity tables before downloading.' }) });
             if (input.format !== 'preview') {
@@ -55,18 +55,21 @@ window.show();` } });
         const update = page.getByRole('button', { name: 'Update activity tables' });
         const download = page.getByRole('button', { name: 'Download activity report' });
         await expect(update).toBeDisabled(); await expect(download).toBeDisabled();
-        await expect(page.getByText(/awaits verified activation/)).toBeVisible();
+        await expect(page.getByText(/owner-approved reporting start/)).toBeVisible();
+        await expect(page.getByText(/Limited Preview coverage/)).toBeVisible();
         assert.equal(await page.locator('td').count(), 0); assert.equal(requests.length, 0);
-        await page.getByLabel('Period type').selectOption('weekly'); await expect(page.getByLabel('ISO week')).toHaveValue('2026-W53');
+        assert.deepEqual(await page.getByLabel('Period type').locator('option').allTextContents(), ['Monthly', 'Yearly']);
         await page.getByLabel('Period type').selectOption('yearly'); await expect(page.getByLabel('Calendar year')).toHaveValue('2027');
         assert.equal(requests.length, 0);
-        results.push('unconfigured: all period selectors work, no fabricated totals/network queries, both activity actions disabled');
+        results.push('unconfigured: monthly/yearly only, coverage limitation visible, no fabricated totals/requests, activity actions disabled');
 
         for (const kind of ['admin', 'main']) {
             await page.evaluate(kind => window.show('configured', kind), kind);
             await expect(update).toBeEnabled(); await update.click();
-            await expect(page.getByRole('cell', { name: '2', exact: true })).toBeVisible();
+            await expect(page.getByRole('cell', { name: '3', exact: true })).toBeVisible();
             await expect(page.getByText('PARTIAL COVERAGE', { exact: false }).first()).toBeVisible();
+            await expect(page.getByText(/Reporting start \(UTC\):/)).toBeVisible();
+            await expect(page.getByText(/Historical accuracy and completeness/)).toBeVisible();
             assert.ok(requests.at(-1).url.includes(kind === 'main' ? '/adviser/' : '/admin/'));
             for (const format of ['xlsx', 'pdf']) {
                 await page.getByLabel('Activity file format').selectOption(format);
@@ -80,16 +83,10 @@ window.show();` } });
         }
         results.push('Admin/Main configured fixtures: matching displayed counts, role-specific URLs, actual XLSX/PDF blob downloads');
 
-        for (const period of ['weekly', 'yearly', 'monthly']) {
+        for (const period of ['yearly', 'monthly']) {
             await page.getByLabel('Period type').selectOption(period);
             await expect(download).toBeDisabled(); assert.equal(await page.locator('td').count(), 0);
-            if (period === 'weekly') {
-                await page.getByLabel('ISO week').fill('2027-W53');
-                const previous = requests.length; await update.click();
-                await expect(page.getByRole('alert')).toHaveText('Choose a valid week, month or year.');
-                assert.equal(requests.length, previous);
-                await page.getByLabel('ISO week').fill('2026-W53');
-            } else if (period === 'yearly') await page.getByLabel('Calendar year').fill('2027');
+            if (period === 'yearly') await page.getByLabel('Calendar year').fill('2027');
             else await page.getByLabel('Calendar month').fill('2027-01');
             await update.click(); await expect(page.locator('td')).toHaveCount(3);
             assert.equal(requests.at(-1).input.period.kind, period);
@@ -100,12 +97,12 @@ window.show();` } });
         mode = 'empty'; await update.click(); await expect(page.getByRole('cell', { name: '0', exact: true })).toHaveCount(3);
         mode = 'failure'; await update.click(); await expect(page.getByRole('alert')).toHaveText('Activity reporting is unavailable.');
         assert.equal(await page.locator('td').count(), 0); await expect(download).toBeDisabled();
-        mode = 'before'; await update.click(); await expect(page.getByText(/BEFORE CUTOVER: no activity coverage/)).toBeVisible();
+        mode = 'before'; await update.click(); await expect(page.getByText(/BEFORE REPORTING START: unavailable/)).toBeVisible();
         assert.equal(await page.locator('td').count(), 0); await expect(download).toBeDisabled();
         mode = 'normal'; await update.click(); await expect(download).toBeEnabled();
         mode = 'changed'; await download.click(); await expect(page.getByRole('alert')).toHaveText(/Activity changed/); await expect(download).toBeDisabled();
         mode = 'normal'; await update.click(); await expect(download).toBeEnabled();
-        results.push('period changes invalidate prior totals/downloads; loading, genuine zero, errors, pre-cutover and changed-data states behave correctly');
+        results.push('month/year changes invalidate totals/downloads; loading, zero, errors, pre-start and changed-data refusal remain usable');
 
         for (const width of [360, 1280]) for (const theme of ['light', 'dark']) {
             await page.setViewportSize({ width, height: 900 }); await page.locator('html').evaluate((node, theme) => node.dataset.theme = theme, theme);

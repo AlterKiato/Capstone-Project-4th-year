@@ -12,12 +12,12 @@ export async function getPeriodActivityReport(input: unknown, role: ActivityRole
         const actor = await authorize();
         if (!actor) return { ok: false, status: 403, message: "This role cannot access this activity report." } as const;
         const parsed = activityRequestSchema.safeParse(input);
-        if (!parsed.success) return { ok: false, status: 400, message: "Choose a valid week, month or year and report format." } as const;
+        if (!parsed.success) return { ok: false, status: 400, message: "Choose a valid month or year and report format." } as const;
         let period;
         try { period = resolveReportPeriod(parsed.data.period); }
-        catch { return { ok: false, status: 400, message: "Choose a valid ISO week." } as const; }
+        catch { return { ok: false, status: 400, message: "Choose a valid month or year." } as const; }
         const coverage = resolveActivityWindow(period, ACTIVITY_ACTIVATION);
-        if (!coverage.ok) return { ok: false, status: coverage.status === "before-cutover" ? 422 : 503, message: coverage.message, coverageStatus: coverage.status } as const;
+        if (!coverage.ok) return { ok: false, status: coverage.status === "before-start" ? 422 : 503, message: coverage.message, coverageStatus: coverage.status } as const;
         if (parsed.data.format !== "preview" && !parsed.data.expectedTotals)
             return { ok: false, status: 400, message: "Update activity tables before downloading." } as const;
         const generatedAt = new Date();
