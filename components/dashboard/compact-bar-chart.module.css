@@ -1,0 +1,12 @@
+.chart { min-width: 0; margin: .75rem 0 0; }
+.rows { display: grid; gap: .75rem; }
+.row { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); align-items: center; gap: .5rem 1rem; }
+.row dt { font-size: .9375rem; overflow-wrap: anywhere; }
+.row dd { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: .75rem; min-width: 0; }
+.track { display: block; height: .5rem; background: var(--surface-secondary); border-radius: .125rem; overflow: hidden; }
+.bar { display: block; height: 100%; background: var(--brand); border-radius: inherit; }
+.value { min-width: 3ch; text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
+.chart > p { margin-top: .75rem; }
+@media (max-width: 480px) {
+    .row { grid-template-columns: minmax(0, 1fr); gap: .25rem; }
+}

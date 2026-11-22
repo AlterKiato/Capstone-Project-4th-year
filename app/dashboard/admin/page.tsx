@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { ROLE_IDS } from "@/lib/auth/roles";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
-import { AdminMetrics, AdminActivity } from "@/components/dashboard/admin-overview";
+import { AdminMetrics, AdminActivity, AdminUserDistribution } from "@/components/dashboard/admin-overview";
 import styles from "@/components/dashboard/admin-overview.module.css";
 import { getAdminDashboardStats, getAdminRecentActivities } from "@/lib/services/dashboard.service";
 import { Suspense } from "react";
@@ -27,6 +27,7 @@ async function AdminOverview({ email }: { email: string }) {
                 <div><dt>Total Students</dt><dd>{statistics.totalStudents}</dd></div>
                 <div><dt>Total Advisers</dt><dd>{statistics.totalAdvisers}</dd></div>
             </dl>
+            <AdminUserDistribution stats={statistics} />
         </> : <p className="form-message" role="alert">{statisticsResult.message}</p>}
         <section className={`dashboard-panel ${styles.assistanceEntry}`} aria-labelledby="admin-assistance-entry">
             <div>

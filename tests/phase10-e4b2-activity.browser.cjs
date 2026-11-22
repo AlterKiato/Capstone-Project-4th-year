@@ -17,8 +17,10 @@ async function main() {
         define: { 'process.env.NODE_ENV': '"production"' }, stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React from 'react';import{createRoot}from'react-dom/client';
 import Controls from './components/dashboard/period-activity-controls';
+import {AdminUserDistribution} from './components/dashboard/admin-overview';
 const root=createRoot(document.getElementById('root'));
 window.show=(availability='unconfigured',kind='admin')=>root.render(<main className="dashboard-page"><h1>Synthetic activity component verification</h1><Controls key={availability+kind} kind={kind} availability={availability} defaults={${JSON.stringify(defaults)}}/></main>);
+window.showDashboard=(empty=false)=>root.render(<main className="dashboard-page"><h1>Admin dashboard chart (synthetic)</h1><AdminUserDistribution stats={{usersByRole:['Admin','Adviser','Student','Panel'].map((role,index)=>({role,count:empty?0:[2,4,12,1][index]}))}}/></main>);
 window.show();` } });
     const css = '@layer base {' + fs.readFileSync('node_modules/tailwindcss/preflight.css', 'utf8') + '}\n'
         + fs.readFileSync('app/globals.css', 'utf8').replace(/^@import.*$/m, '') + '\n' + bundle.outputFiles.find(file => file.path.endsWith('.css')).text;
@@ -54,10 +56,15 @@ window.show();` } });
         await page.addScriptTag({ content: bundle.outputFiles.find(file => file.path.endsWith('.js')).text });
         const update = page.getByRole('button', { name: 'Update activity tables' });
         const download = page.getByRole('button', { name: 'Download activity report' });
+        const chart = page.getByRole('figure', { name: 'Research Activity Summary' });
+        const chartMatchesTable = async () => assert.deepEqual(
+            (await chart.locator('dd').allTextContents()).map(value => value.trim()),
+            (await page.locator('tbody td').allTextContents()).map(value => value.trim()));
         await expect(update).toBeDisabled(); await expect(download).toBeDisabled();
         await expect(page.getByText(/owner-approved reporting start/)).toBeVisible();
         await expect(page.getByText(/Limited Preview coverage/)).toBeVisible();
         assert.equal(await page.locator('td').count(), 0); assert.equal(requests.length, 0);
+        await expect(chart).toHaveCount(0);
         assert.deepEqual(await page.getByLabel('Period type').locator('option').allTextContents(), ['Monthly', 'Yearly']);
         await page.getByLabel('Period type').selectOption('yearly'); await expect(page.getByLabel('Calendar year')).toHaveValue('2027');
         assert.equal(requests.length, 0);
@@ -70,6 +77,8 @@ window.show();` } });
             await expect(page.getByText('PARTIAL COVERAGE', { exact: false }).first()).toBeVisible();
             await expect(page.getByText(/Reporting start \(UTC\):/)).toBeVisible();
             await expect(page.getByText(/Historical accuracy and completeness/)).toBeVisible();
+            if (kind === 'admin') { await expect(chart).toBeVisible(); await chartMatchesTable(); }
+            else await expect(chart).toHaveCount(0);
             assert.ok(requests.at(-1).url.includes(kind === 'main' ? '/adviser/' : '/admin/'));
             for (const format of ['xlsx', 'pdf']) {
                 await page.getByLabel('Activity file format').selectOption(format);
@@ -83,32 +92,41 @@ window.show();` } });
         }
         results.push('Admin/Main configured fixtures: matching displayed counts, role-specific URLs, actual XLSX/PDF blob downloads');
 
+        await page.evaluate(() => window.show('configured', 'admin')); await update.click();
         for (const period of ['yearly', 'monthly']) {
             await page.getByLabel('Period type').selectOption(period);
             await expect(download).toBeDisabled(); assert.equal(await page.locator('td').count(), 0);
+            await expect(chart).toHaveCount(0);
             if (period === 'yearly') await page.getByLabel('Calendar year').fill('2027');
             else await page.getByLabel('Calendar month').fill('2027-01');
             await update.click(); await expect(page.locator('td')).toHaveCount(3);
             assert.equal(requests.at(-1).input.period.kind, period);
+            await chartMatchesTable();
         }
+        await page.getByLabel('Calendar month').fill('2027-02'); await update.click();
+        await expect(page.getByText(/WITHIN REPORTING WINDOW/).first()).toBeVisible(); await chartMatchesTable();
+        await page.getByLabel('Calendar month').fill('2027-01'); await update.click();
         mode = 'slow'; await update.click(); await expect(page.getByText('Activity report request in progress.')).toBeVisible();
         await expect(page.getByLabel('Period type')).toBeDisabled();
         await expect.poll(() => typeof release).toBe('function'); release(); await expect(update).toBeEnabled(); mode = 'normal';
         mode = 'empty'; await update.click(); await expect(page.getByRole('cell', { name: '0', exact: true })).toHaveCount(3);
+        await chartMatchesTable(); await expect(page.getByText('No submission or official decision events in this reporting window.')).toBeVisible();
         mode = 'failure'; await update.click(); await expect(page.getByRole('alert')).toHaveText('Activity reporting is unavailable.');
         assert.equal(await page.locator('td').count(), 0); await expect(download).toBeDisabled();
+        await expect(chart).toHaveCount(0);
         mode = 'before'; await update.click(); await expect(page.getByText(/BEFORE REPORTING START: unavailable/)).toBeVisible();
         assert.equal(await page.locator('td').count(), 0); await expect(download).toBeDisabled();
+        await expect(chart).toHaveCount(0);
         mode = 'normal'; await update.click(); await expect(download).toBeEnabled();
         mode = 'changed'; await download.click(); await expect(page.getByRole('alert')).toHaveText(/Activity changed/); await expect(download).toBeDisabled();
         mode = 'normal'; await update.click(); await expect(download).toBeEnabled();
         results.push('month/year changes invalidate totals/downloads; loading, zero, errors, pre-start and changed-data refusal remain usable');
 
-        for (const width of [360, 1280]) for (const theme of ['light', 'dark']) {
+        for (const width of [360, 768, 1280]) for (const theme of ['light', 'dark']) {
             await page.setViewportSize({ width, height: 900 }); await page.locator('html').evaluate((node, theme) => node.dataset.theme = theme, theme);
             assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
             for (const button of await page.getByRole('button').all()) assert.ok((await button.boundingBox()).height >= 44);
-            const lowContrast = await page.locator('p,th,td,label,button,a,input,select').evaluateAll(nodes => {
+            const lowContrast = await page.locator('p,th,td,dt,dd,label,button,a,input,select').evaluateAll(nodes => {
                 const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(Number)
                     .map(value => { const c = value / 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; })
                     .reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
@@ -125,7 +143,26 @@ window.show();` } });
         await page.getByLabel('Period type').focus(); await page.keyboard.press('Tab'); await expect(page.getByLabel('Calendar month')).toBeFocused();
         assert.ok(await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle !== 'none'));
         assert.deepEqual(errors, []);
-        results.push('360/1280 Light/Dark: no page overflow, 44px actions, contrast >=4.5:1, keyboard focus, zero browser errors');
+        results.push('Admin activity chart matches monthly/yearly tables; partial/window/zero/unavailable states and Main chart exclusion PASS');
+        results.push('360/768/1280 Light/Dark: no page overflow, 44px actions, contrast >=4.5:1, keyboard focus, zero browser errors');
+
+        const previousRequests = requests.length;
+        await page.evaluate(() => window.showDashboard());
+        const distribution = page.getByRole('figure', { name: 'Accounts by role' });
+        await expect(distribution).toBeVisible();
+        assert.deepEqual(await distribution.locator('dt').allTextContents(), ['Admin', 'Adviser', 'Student', 'Panel']);
+        assert.deepEqual(await distribution.locator('dd').allTextContents(), ['2', '4', '12', '1']);
+        for (const width of [360, 768, 1280]) for (const theme of ['light', 'dark']) {
+            await page.setViewportSize({ width, height: 900 }); await page.locator('html').evaluate((node, theme) => node.dataset.theme = theme, theme);
+            assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+            await page.screenshot({ path: `${out}/distribution-${width}-${theme}.png`, fullPage: true });
+        }
+        await page.evaluate(() => window.showDashboard(true));
+        await expect(page.getByText('No accounts in these roles.')).toBeVisible();
+        assert.deepEqual(await distribution.locator('dd').allTextContents(), ['0', '0', '0', '0']);
+        assert.equal(requests.length, previousRequests, 'Distribution chart adds no HTTP requests');
+        assert.deepEqual(errors, []);
+        results.push('Dashboard role chart: exact role counts, genuine empty state, mobile/tablet/desktop themes, no added requests');
         fs.writeFileSync(`${out}/browser-results.json`, JSON.stringify(results, null, 2));
         console.log(results.map(result => `PASS ${result}`).join('\n'));
     } finally { await browser.close(); }

@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { resolveReportPeriod, type ReportPeriod } from "@/lib/reporting/admin-report";
 import { ACTIVITY_UNAVAILABLE, ACTIVITY_COVERAGE_LIMITATION, activityPeriodSchema, coverageLabel, type ActivityAvailability, type PeriodActivityReport, type defaultActivityPeriods } from "@/lib/reporting/period-activity";
 import styles from "./admin-report.module.css";
+import CompactBarChart from "./compact-bar-chart";
 
 export default function PeriodActivityControls({ kind, availability, defaults }: {
     kind: "admin" | "main"; availability: ActivityAvailability; defaults: ReturnType<typeof defaultActivityPeriods>;
@@ -105,6 +106,14 @@ export default function PeriodActivityControls({ kind, availability, defaults }:
                 <p>Reporting start (UTC): {report.coverage.reportingStartUtc}. Included from: {report.coverage.effectiveStartInclusive}.</p>
                 <p>Generated: <time dateTime={report.generatedAt}>{new Date(report.generatedAt).toLocaleString("en-PH", { timeZone: "Asia/Manila" })}</time> (Asia/Manila).</p>
             </div>
+            {kind === "admin" ? <div className={styles.metadata}>
+                <h3>Research Activity Summary</h3>
+                <CompactBarChart label="Research Activity Summary" rows={[
+                    { label: "Submissions", value: report.totals.submissions },
+                    { label: "Approved decisions", value: report.totals.approved },
+                    { label: "Revision Required decisions", value: report.totals.revisionRequired },
+                ]} emptyMessage="No submission or official decision events in this reporting window." />
+            </div> : null}
             <div className={styles.scroll}><table><caption>Activity totals</caption><thead><tr><th scope="col">Activity</th><th scope="col">Count</th></tr></thead>
                 <tbody>{report.sections[0].rows.map(row => <tr key={row.id}><th scope="row">{row.label}</th><td>{row.value.toLocaleString("en-PH")}</td></tr>)}</tbody>
             </table></div>

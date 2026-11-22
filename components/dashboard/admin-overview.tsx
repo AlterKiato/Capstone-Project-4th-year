@@ -2,6 +2,20 @@ import type { AdminDashboardStats, RecentActivity } from "@/lib/services/dashboa
 import type { ServiceResult } from "@/types/auth";
 import styles from "./admin-overview.module.css";
 import NavigationIcon from "./navigation-icon";
+import CompactBarChart from "./compact-bar-chart";
+
+export function AdminUserDistribution({ stats }: { stats: Pick<AdminDashboardStats, "usersByRole"> }) {
+    const rows = ["Admin", "Adviser", "Student", "Panel"].map(role => ({
+        label: role, value: stats.usersByRole.find(row => row.role === role)?.count ?? 0,
+    }));
+    const other = stats.usersByRole.find(row => row.role === "Other")?.count ?? 0;
+    return <section className={`dashboard-panel ${styles.section}`} aria-label="User Distribution">
+        <h2>User Distribution</h2>
+        <p className="form-help">Current accounts by role, including inactive accounts.</p>
+        <CompactBarChart label="Accounts by role" rows={rows} emptyMessage="No accounts in these roles." />
+        {other > 0 ? <p className="form-help">Accounts in other roles: {other.toLocaleString("en-PH")}.</p> : null}
+    </section>;
+}
 
 export function AdminMetrics({ stats, reports = false }: { stats: AdminDashboardStats; reports?: boolean }) {
     const metrics = [

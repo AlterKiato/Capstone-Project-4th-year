@@ -34,11 +34,37 @@ const service = require('../lib/services/admin-report.service.ts');
 const renderer = require('../lib/reporting/admin-report-export.ts');
 const { POST } = require('../app/api/admin/reports/route.ts');
 const Tables = require('../components/dashboard/admin-report-tables.tsx').default;
+const dashboard = require('../lib/services/dashboard.service.ts');
+const { AdminUserDistribution } = require('../components/dashboard/admin-overview.tsx');
 const ExcelJS = require('exceljs');
 const out = process.env.REPORT_TEST_OUTPUT || 'test-results/phase10-e2';
 const request = (overrides = {}) => ({ reportType: 'current-summary', selection: 'all', sections: [], format: 'preview', ...overrides });
 const http = body => new Request('https://report.example.invalid/api/admin/reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: typeof body === 'string' ? body : JSON.stringify(body) });
 beforeEach(() => { state = { session: { userId: 1, roleId: 1 }, account: { id: 1, roleId: 1, isActive: true }, queries: [], transactions: [], accountReads: 0 }; });
+
+test('dashboard role chart reuses existing authorized metrics, with zero and unavailable states kept distinct', async () => {
+    for (const roleId of [2, 3, 4]) {
+        state.session = { userId: 2, roleId };
+        assert.equal((await dashboard.getAdminDashboardStats()).success, false);
+        assert.equal(state.queries.length, 0);
+    }
+    state.session = { userId: 1, roleId: 1 }; state.account.isActive = false;
+    assert.equal((await dashboard.getAdminDashboardStats()).success, false); assert.equal(state.queries.length, 0);
+    state.account.isActive = true;
+    const stats = await dashboard.getAdminDashboardStats(); assert.ok(stats.success);
+    const queryCount = state.queries.length;
+    const html = renderToStaticMarkup(React.createElement(AdminUserDistribution, { stats: stats.data }));
+    const values = [...html.matchAll(/<dt[^>]*>([^<]+)<\/dt><dd[^>]*>.*?<span[^>]*>([\d,]+)<\/span><\/dd>/g)]
+        .map(([, role, count]) => [role, Number(count.replaceAll(',', ''))]);
+    assert.deepEqual(values, [['Admin', 1], ['Adviser', 1], ['Student', 5], ['Panel', 0]]);
+    assert.equal(values.reduce((sum, [, count]) => sum + count, 0), stats.data.totalUsers);
+    assert.equal(state.queries.length, queryCount, 'Rendering adds no database query');
+    state.empty = true;
+    const empty = await dashboard.getAdminDashboardStats(); assert.ok(empty.success);
+    const zero = renderToStaticMarkup(React.createElement(AdminUserDistribution, { stats: empty.data }));
+    assert.match(zero, /No accounts in these roles/); assert.equal((zero.match(/width:0%/g) || []).length, 4);
+    state.failure = true; assert.equal((await dashboard.getAdminDashboardStats()).success, false);
+});
 
 test('Manila week/month/year boundaries, leap dates and ISO week-year transitions', () => {
     const cases = [
