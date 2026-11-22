@@ -118,9 +118,50 @@ test('limited policy needs only its explicit start; legacy tuples and extra conf
     ]) assert.equal(data.activityAvailability(activation), 'invalid');
 });
 
-test('production start is unconfigured; absent/malformed policies fail closed, without queries, zeros or downloads', async () => {
-    assert.deepEqual(initialActivation, { status: 'unconfigured' });
-    for (const activation of [initialActivation, undefined, null, { ...policy, reportingStartUtc: '2027-01-01' }, { status: 'configured' }, { ...policy, reportingStartUtc: '2027-01-01T08:00:00+08:00' }]) {
+test('owner-approved Preview start gives partial November/year coverage with matching Admin/Main exports', async () => {
+    assert.deepEqual(initialActivation, { status: 'configured', reportingStartUtc: '2026-11-21T17:00:00.000Z' });
+    assert.ok(Object.isFrozen(initialActivation));
+    assert.ok(data.activityActivationSchema.safeParse(initialActivation).success);
+    assert.equal(data.activityAvailability(initialActivation), 'configured');
+    for (const [route, roleId] of [[adminRoute, 1], [mainRoute, 2]]) {
+        state.activation = initialActivation; state.session = { userId: roleId, roleId };
+        for (const period of [{ kind: 'monthly', value: '2026-10' }, { kind: 'yearly', value: '2025' }]) {
+            state.queries = [];
+            const response = await route(http(request({ period })));
+            assert.equal(response.status, 422); assert.equal((await response.json()).coverageStatus, 'before-start');
+            assert.equal(aggregates().length, 0);
+        }
+        for (const period of [{ kind: 'monthly', value: '2026-11' }, { kind: 'yearly', value: '2026' }]) {
+            const response = await route(http(request({ period }))); assert.equal(response.status, 200);
+            const report = await response.json();
+            assert.equal(report.coverage.status, 'partial'); assert.equal(report.timezone, 'Asia/Manila');
+            assert.equal(report.coverage.reportingStartUtc, initialActivation.reportingStartUtc);
+            assert.equal(report.coverage.effectiveStartInclusive, initialActivation.reportingStartUtc);
+            assert.ok(report.notes.includes(data.ACTIVITY_COVERAGE_LIMITATION));
+            for (const format of ['xlsx', 'pdf']) {
+                const exported = await route(http(request({ period, format, expectedTotals: report.totals })));
+                assert.equal(exported.status, 200);
+                const bytes = Buffer.from(await exported.arrayBuffer());
+                if (format === 'xlsx') {
+                    const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(bytes);
+                    const info = workbook.getWorksheet('Report Information').getSheetValues().flat().filter(Boolean).join(' ');
+                    for (const value of ['PARTIAL COVERAGE', `${period.kind}: ${period.value}`, initialActivation.reportingStartUtc, 'Asia/Manila', data.ACTIVITY_COVERAGE_LIMITATION]) assert.ok(info.includes(value));
+                    report.sections[0].rows.forEach((row, index) => assert.deepEqual(workbook.getWorksheet('Activity totals').getRow(index + 5).values.slice(1), [row.label, row.value]));
+                } else {
+                    const text = pdfText(bytes);
+                    for (const value of ['PARTIAL COVERAGE', period.value, initialActivation.reportingStartUtc, 'Asia/Manila', 'Historical accuracy and completeness']) assert.ok(text.includes(value));
+                    for (const row of report.sections[0].rows) assert.ok(text.includes(`${row.label}${row.value}`));
+                }
+            }
+        }
+        const later = await route(http(request({ period: { kind: 'monthly', value: '2026-12' } })));
+        assert.equal(later.status, 200); assert.equal(data.coverageLabel((await later.json()).coverage.status), 'WITHIN REPORTING WINDOW');
+    }
+});
+
+test('unconfigured and malformed policies fail closed, without queries, zeros or downloads', async () => {
+    const unconfigured = { status: 'unconfigured' };
+    for (const activation of [unconfigured, undefined, null, { ...policy, reportingStartUtc: '2027-01-01' }, { status: 'configured' }, { ...policy, reportingStartUtc: '2027-01-01T08:00:00+08:00' }]) {
         state.activation = activation;
         for (const format of ['preview', 'xlsx', 'pdf']) {
             const response = await adminRoute(http(request({ format })));
@@ -129,7 +170,7 @@ test('production start is unconfigured; absent/malformed policies fail closed, w
             assert.ok(!Object.hasOwn(body, 'totals')); assert.equal(aggregates().length, 0);
         }
     }
-    state.activation = initialActivation;
+    state.activation = unconfigured;
     for (const [route, roleId] of [[adminRoute, 1], [mainRoute, 2]]) {
         state.session = { userId: roleId, roleId };
         for (const bypass of [{ reportingStartUtc: policy.reportingStartUtc }, { cutoverUtc: policy.reportingStartUtc }, { activation: policy }, { coverage: policy }, { role: 'admin' }])
